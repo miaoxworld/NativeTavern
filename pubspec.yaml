@@ -71,6 +71,7 @@ dev_dependencies:
   riverpod_generator: ^2.3.9
   drift_dev: ^2.14.1
   go_router_builder: ^2.4.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true

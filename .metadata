@@ -18,9 +18,6 @@ migration:
     - platform: android
       create_revision: f6ff1529fd6d8af5f706051d9251ac9231c83407
       base_revision: f6ff1529fd6d8af5f706051d9251ac9231c83407
-    - platform: macos
-      create_revision: f6ff1529fd6d8af5f706051d9251ac9231c83407
-      base_revision: f6ff1529fd6d8af5f706051d9251ac9231c83407
 
   # User provided section
 
