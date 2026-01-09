@@ -1,0 +1,899 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/data/models/world_info.dart';
+import 'package:native_tavern/presentation/providers/world_info_providers.dart';
+import 'package:native_tavern/presentation/theme/app_theme.dart';
+
+/// Screen for managing World Info / Lorebooks
+class WorldInfoScreen extends ConsumerWidget {
+  const WorldInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final worldInfosAsync = ref.watch(worldInfoNotifierProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('World Info / Lorebooks'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Create Lorebook',
+            onPressed: () => _showCreateDialog(context, ref),
+          ),
+        ],
+      ),
+      body: worldInfosAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.read(worldInfoNotifierProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        data: (worldInfos) {
+          if (worldInfos.isEmpty) {
+            return _buildEmptyState(context, ref);
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: worldInfos.length,
+            itemBuilder: (context, index) {
+              final worldInfo = worldInfos[index];
+              return _WorldInfoCard(
+                worldInfo: worldInfo,
+                onTap: () => _openWorldInfo(context, worldInfo),
+                onEdit: () => _showEditDialog(context, ref, worldInfo),
+                onDelete: () => _showDeleteConfirmation(context, ref, worldInfo),
+                onToggle: (enabled) {
+                  ref.read(worldInfoNotifierProvider.notifier).updateWorldInfo(
+                    worldInfo.copyWith(enabled: enabled),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.auto_stories_outlined,
+            size: 64,
+            color: AppTheme.textMuted,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No Lorebooks yet',
+            style: TextStyle(
+              fontSize: 18,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Lorebooks inject context into your chats when keywords are detected.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showCreateDialog(context, ref),
+            icon: const Icon(Icons.add),
+            label: const Text('Create Lorebook'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => _WorldInfoDialog(
+        title: 'Create Lorebook',
+        onSave: (name, description, isGlobal) async {
+          await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
+            name: name,
+            description: description,
+            isGlobal: isGlobal,
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, WidgetRef ref, WorldInfo worldInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => _WorldInfoDialog(
+        title: 'Edit Lorebook',
+        initialName: worldInfo.name,
+        initialDescription: worldInfo.description,
+        initialIsGlobal: worldInfo.isGlobal,
+        onSave: (name, description, isGlobal) async {
+          await ref.read(worldInfoNotifierProvider.notifier).updateWorldInfo(
+            worldInfo.copyWith(
+              name: name,
+              description: description,
+              isGlobal: isGlobal,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref, WorldInfo worldInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Lorebook'),
+        content: Text('Are you sure you want to delete "${worldInfo.name}" and all its entries?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(worldInfoNotifierProvider.notifier).deleteWorldInfo(worldInfo.id);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openWorldInfo(BuildContext context, WorldInfo worldInfo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorldInfoEntriesScreen(worldInfo: worldInfo),
+      ),
+    );
+  }
+}
+
+/// Card widget for displaying a World Info
+class _WorldInfoCard extends StatelessWidget {
+  final WorldInfo worldInfo;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final ValueChanged<bool> onToggle;
+
+  const _WorldInfoCard({
+    required this.worldInfo,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: AppTheme.darkCard,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: worldInfo.enabled
+                      ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                      : AppTheme.textMuted.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.auto_stories,
+                  color: worldInfo.enabled ? AppTheme.primaryColor : AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            worldInfo.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (worldInfo.isGlobal)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentColor.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Global',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.accentColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${worldInfo.entries.length} entries',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (worldInfo.description?.isNotEmpty == true) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        worldInfo.description!,
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Actions
+              Switch(
+                value: worldInfo.enabled,
+                onChanged: onToggle,
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: AppTheme.textMuted),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      onEdit();
+                      break;
+                    case 'delete':
+                      onDelete();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                      leading: Icon(Icons.edit),
+                      title: Text('Edit'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete, color: Colors.red),
+                      title: Text('Delete', style: TextStyle(color: Colors.red)),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dialog for creating/editing World Info
+class _WorldInfoDialog extends StatefulWidget {
+  final String title;
+  final String? initialName;
+  final String? initialDescription;
+  final bool initialIsGlobal;
+  final Future<void> Function(String name, String? description, bool isGlobal) onSave;
+
+  const _WorldInfoDialog({
+    required this.title,
+    this.initialName,
+    this.initialDescription,
+    this.initialIsGlobal = true,
+    required this.onSave,
+  });
+
+  @override
+  State<_WorldInfoDialog> createState() => _WorldInfoDialogState();
+}
+
+class _WorldInfoDialogState extends State<_WorldInfoDialog> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late bool _isGlobal;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.initialName ?? '');
+    _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _isGlobal = widget.initialIsGlobal;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                hintText: 'Enter lorebook name',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'Optional description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Global'),
+              subtitle: const Text('Apply to all chats'),
+              value: _isGlobal,
+              onChanged: (value) => setState(() => _isGlobal = value),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _save,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a name')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      await widget.onSave(
+        name,
+        _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+        _isGlobal,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+}
+
+/// Screen for managing entries within a World Info
+class WorldInfoEntriesScreen extends ConsumerStatefulWidget {
+  final WorldInfo worldInfo;
+
+  const WorldInfoEntriesScreen({super.key, required this.worldInfo});
+
+  @override
+  ConsumerState<WorldInfoEntriesScreen> createState() => _WorldInfoEntriesScreenState();
+}
+
+class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen> {
+  late WorldInfo _worldInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    _worldInfo = widget.worldInfo;
+  }
+
+  void _refreshWorldInfo() async {
+    final worldInfos = ref.read(worldInfoNotifierProvider).valueOrNull ?? [];
+    final updated = worldInfos.firstWhere(
+      (w) => w.id == _worldInfo.id,
+      orElse: () => _worldInfo,
+    );
+    setState(() => _worldInfo = updated);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Listen to changes
+    ref.listen(worldInfoNotifierProvider, (previous, next) {
+      _refreshWorldInfo();
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_worldInfo.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Entry',
+            onPressed: () => _showEntryDialog(context, ref, null),
+          ),
+        ],
+      ),
+      body: _worldInfo.entries.isEmpty
+          ? _buildEmptyState(context)
+          : ReorderableListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _worldInfo.entries.length,
+              onReorder: (oldIndex, newIndex) {
+                // TODO: Implement reordering
+              },
+              itemBuilder: (context, index) {
+                final entry = _worldInfo.entries[index];
+                return _WorldInfoEntryCard(
+                  key: ValueKey(entry.id),
+                  entry: entry,
+                  onTap: () => _showEntryDialog(context, ref, entry),
+                  onDelete: () => _showDeleteEntryConfirmation(context, ref, entry),
+                  onToggle: (enabled) {
+                    ref.read(worldInfoNotifierProvider.notifier).updateEntry(
+                      entry.copyWith(enabled: enabled),
+                    );
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.note_add_outlined,
+            size: 64,
+            color: AppTheme.textMuted,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No entries yet',
+            style: TextStyle(
+              fontSize: 18,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Add entries with keywords to inject context into chats',
+            style: TextStyle(color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showEntryDialog(context, ref, null),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Entry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEntryDialog(BuildContext context, WidgetRef ref, WorldInfoEntry? entry) {
+    showDialog(
+      context: context,
+      builder: (context) => _WorldInfoEntryDialog(
+        title: entry == null ? 'Add Entry' : 'Edit Entry',
+        entry: entry,
+        onSave: (keys, content, comment, secondaryKeys) async {
+          if (entry == null) {
+            await ref.read(worldInfoNotifierProvider.notifier).addEntry(
+              worldInfoId: _worldInfo.id,
+              keys: keys,
+              content: content,
+              comment: comment,
+              secondaryKeys: secondaryKeys,
+            );
+          } else {
+            await ref.read(worldInfoNotifierProvider.notifier).updateEntry(
+              entry.copyWith(
+                keys: keys,
+                content: content,
+                comment: comment,
+                secondaryKeys: secondaryKeys,
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _showDeleteEntryConfirmation(BuildContext context, WidgetRef ref, WorldInfoEntry entry) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Entry'),
+        content: Text('Are you sure you want to delete this entry?\n\nKeys: ${entry.keys.join(", ")}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(worldInfoNotifierProvider.notifier).deleteEntry(entry.id);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card widget for displaying a World Info Entry
+class _WorldInfoEntryCard extends StatelessWidget {
+  final WorldInfoEntry entry;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final ValueChanged<bool> onToggle;
+
+  const _WorldInfoEntryCard({
+    super.key,
+    required this.entry,
+    required this.onTap,
+    required this.onDelete,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: AppTheme.darkCard,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: entry.keys.map((key) => Chip(
+                        label: Text(key, style: const TextStyle(fontSize: 12)),
+                        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      )).toList(),
+                    ),
+                  ),
+                  Switch(
+                    value: entry.enabled,
+                    onChanged: onToggle,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+              if (entry.comment.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  entry.comment,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              Text(
+                entry.content,
+                style: const TextStyle(fontSize: 14),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (entry.constant || entry.selective) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    if (entry.constant)
+                      _buildBadge('Constant', Colors.orange),
+                    if (entry.selective)
+                      _buildBadge('Selective', Colors.purple),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+/// Dialog for creating/editing World Info Entry
+class _WorldInfoEntryDialog extends StatefulWidget {
+  final String title;
+  final WorldInfoEntry? entry;
+  final Future<void> Function(
+    List<String> keys,
+    String content,
+    String comment,
+    List<String> secondaryKeys,
+  ) onSave;
+
+  const _WorldInfoEntryDialog({
+    required this.title,
+    this.entry,
+    required this.onSave,
+  });
+
+  @override
+  State<_WorldInfoEntryDialog> createState() => _WorldInfoEntryDialogState();
+}
+
+class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
+  late TextEditingController _keysController;
+  late TextEditingController _secondaryKeysController;
+  late TextEditingController _contentController;
+  late TextEditingController _commentController;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _keysController = TextEditingController(
+      text: widget.entry?.keys.join(', ') ?? '',
+    );
+    _secondaryKeysController = TextEditingController(
+      text: widget.entry?.secondaryKeys.join(', ') ?? '',
+    );
+    _contentController = TextEditingController(
+      text: widget.entry?.content ?? '',
+    );
+    _commentController = TextEditingController(
+      text: widget.entry?.comment ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _keysController.dispose();
+    _secondaryKeysController.dispose();
+    _contentController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _keysController,
+                decoration: const InputDecoration(
+                  labelText: 'Keywords (comma-separated)',
+                  hintText: 'dragon, wyrm, serpent',
+                  border: OutlineInputBorder(),
+                  helperText: 'Entry activates when any keyword is found in chat',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _secondaryKeysController,
+                decoration: const InputDecoration(
+                  labelText: 'Secondary Keys (optional)',
+                  hintText: 'fire, flame',
+                  border: OutlineInputBorder(),
+                  helperText: 'If set, both primary AND secondary must match (selective mode)',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _commentController,
+                decoration: const InputDecoration(
+                  labelText: 'Comment (optional)',
+                  hintText: 'Note for this entry',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _contentController,
+                decoration: const InputDecoration(
+                  labelText: 'Content',
+                  hintText: 'The context to inject when keywords match...',
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+                maxLines: 6,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _save,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _save() async {
+    final keys = _keysController.text
+        .split(',')
+        .map((k) => k.trim())
+        .where((k) => k.isNotEmpty)
+        .toList();
+
+    if (keys.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter at least one keyword')),
+      );
+      return;
+    }
+
+    final content = _contentController.text.trim();
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter content')),
+      );
+      return;
+    }
+
+    final secondaryKeys = _secondaryKeysController.text
+        .split(',')
+        .map((k) => k.trim())
+        .where((k) => k.isNotEmpty)
+        .toList();
+
+    setState(() => _isSaving = true);
+
+    try {
+      await widget.onSave(
+        keys,
+        content,
+        _commentController.text.trim(),
+        secondaryKeys,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+}

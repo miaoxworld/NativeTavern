@@ -1,0 +1,87 @@
+name: native_tavern
+description: A native cross-platform SillyTavern client for iOS and Android
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Navigation
+  go_router: ^13.0.1
+  
+  # Database
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.18
+  
+  # Storage & Paths
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  shared_preferences: ^2.2.2
+  
+  # File Picker
+  file_picker: ^8.0.0
+  
+  # Networking
+  dio: ^5.4.0
+  
+  # Image Processing
+  image: ^4.1.3
+  
+  # Archive Handling
+  archive: ^3.4.9
+  
+  # Code Generation (Runtime)
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  
+  # Utils
+  uuid: ^4.2.1
+  intl: ^0.20.2
+  collection: ^1.18.0
+  equatable: ^2.0.5
+  
+  # UI Components
+  cached_network_image: ^3.3.0
+  flutter_markdown: ^0.6.18
+  flutter_html: ^3.0.0-beta.2
+  shimmer: ^3.0.0
+  share_plus: ^12.0.1
+  url_launcher: ^6.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  
+  # Code Generation
+  build_runner: ^2.4.7
+  freezed: ^2.4.5
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.3.9
+  drift_dev: ^2.14.1
+  go_router_builder: ^2.4.1
+
+flutter:
+  uses-material-design: true
+  
+  # Assets will be added as needed
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+  
+  # Custom fonts can be added later
+  # fonts:
+  #   - family: NotoSans
+  #     fonts:
+  #       - asset: assets/fonts/NotoSans-Regular.ttf

@@ -1,0 +1,54 @@
+[package]
+name = "native_tavern_core"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+description = "Native core library for NativeTavern - PNG parsing, CharX, and LLM inference"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "native_tavern_core"
+
+[dependencies]
+# FFI bridge
+flutter_rust_bridge = "2.0"
+
+# PNG handling
+png = "0.17"
+base64 = "0.21"
+
+# JSON/Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Archive handling
+zip = "0.6"
+
+# Async runtime
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# Path handling
+camino = "1.1"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+# iOS-specific dependencies
+
+[target.'cfg(target_os = "android")'.dependencies]
+# Android-specific dependencies
+
+[build-dependencies]
+flutter_rust_bridge_codegen = "2.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+strip = true
