@@ -43,7 +43,7 @@ mkdir -p release
 # Compress macOS App
 echo "Compressing macOS App..."
 cd build/macos/Build/Products/Release
-zip -r "../../../../../release/NativeTavern_v${VERSION}_macOS.zip" NativeTavern.app
+zip -r "../../../../../release/NativeTavern_v${VERSION}_macOS.zip" native_tavern.app
 cd -
 
 echo "Build artifact saved to release/NativeTavern_v${VERSION}_macOS.zip"
