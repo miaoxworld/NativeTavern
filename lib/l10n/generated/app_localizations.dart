@@ -217,6 +217,12 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// Save as action
+  ///
+  /// In en, this message translates to:
+  /// **'Save As'**
+  String get saveAs;
+
   /// Edit action
   ///
   /// In en, this message translates to:

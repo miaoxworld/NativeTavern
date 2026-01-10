@@ -51,6 +51,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get save => 'Salvar';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'Editar';
 
   @override

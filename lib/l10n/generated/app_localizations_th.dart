@@ -51,6 +51,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get save => 'บันทึก';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'แก้ไข';
 
   @override

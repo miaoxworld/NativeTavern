@@ -44,6 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 ios
+ios_*
 android
 web
 test

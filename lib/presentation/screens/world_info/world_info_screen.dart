@@ -209,7 +209,21 @@ class WorldInfoScreen extends ConsumerWidget {
       }
 
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      final worldInfo = WorldInfo.fromJson(json);
+      
+      // Ensure required fields have default values to prevent null casting errors
+      final sanitizedJson = {
+        'id': json['id'] ?? 'imported_${DateTime.now().millisecondsSinceEpoch}',
+        'name': json['name'] as String? ?? 'Imported Lorebook',
+        'description': json['description'] as String?,
+        'entries': json['entries'] ?? [],
+        'enabled': json['enabled'] ?? true,
+        'isGlobal': json['isGlobal'] ?? false,
+        'characterId': json['characterId'] as String?,
+        'createdAt': json['createdAt'] ?? DateTime.now().toIso8601String(),
+        'modifiedAt': json['modifiedAt'] ?? DateTime.now().toIso8601String(),
+      };
+      
+      final worldInfo = WorldInfo.fromJson(sanitizedJson);
 
       await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
         name: worldInfo.name,

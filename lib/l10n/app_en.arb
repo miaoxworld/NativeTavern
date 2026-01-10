@@ -71,6 +71,11 @@
     "description": "Save action"
   },
   
+  "saveAs": "Save As",
+  "@saveAs": {
+    "description": "Save as action"
+  },
+  
   "edit": "Edit",
   "@edit": {
     "description": "Edit action"

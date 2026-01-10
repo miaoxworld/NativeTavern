@@ -51,6 +51,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get save => 'Lưu';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'Chỉnh sửa';
 
   @override

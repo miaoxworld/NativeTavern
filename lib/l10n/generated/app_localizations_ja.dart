@@ -51,6 +51,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get save => '保存';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => '編集';
 
   @override

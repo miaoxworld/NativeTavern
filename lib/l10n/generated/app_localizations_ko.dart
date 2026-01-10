@@ -51,6 +51,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get save => '저장';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => '편집';
 
   @override

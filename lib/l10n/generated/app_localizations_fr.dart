@@ -52,6 +52,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get save => 'Enregistrer';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'Modifier';
 
   @override

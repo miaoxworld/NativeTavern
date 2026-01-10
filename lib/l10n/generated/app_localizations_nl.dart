@@ -51,6 +51,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get save => 'Opslaan';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'Bewerken';
 
   @override

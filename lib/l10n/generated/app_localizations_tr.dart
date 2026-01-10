@@ -51,6 +51,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get save => 'Kaydet';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'Düzenle';
 
   @override

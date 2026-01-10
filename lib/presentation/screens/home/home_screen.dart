@@ -22,6 +22,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Refresh chat list when screen is first created
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(allChatsProvider);
+    });
   }
 
   @override
@@ -36,6 +40,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       // Refresh chat list when returning to the app
       ref.invalidate(allChatsProvider);
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh chat list whenever dependencies change (e.g., when navigating back)
+    ref.invalidate(allChatsProvider);
   }
 
   @override

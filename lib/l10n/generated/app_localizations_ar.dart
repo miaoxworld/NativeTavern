@@ -51,6 +51,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get save => 'حفظ';
 
   @override
+  String get saveAs => 'Save As';
+
+  @override
   String get edit => 'تعديل';
 
   @override

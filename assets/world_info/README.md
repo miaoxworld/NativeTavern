@@ -4,66 +4,88 @@
 
 ## 可用世界书 / Available World Info / 利用可能なワールド情報
 
-### 1. 凡人修仙传 (mortal_cultivation.json) 🇨🇳
-**中文世界观**
-**内容：** 经典修仙小说《凡人修仙传》的世界设定
-- 修仙境界体系（炼气期到真仙）
-- 门派势力（黄枫谷、七派联盟）
-- 法宝丹药系统
+### 1. 灵域修真录 (mortal_cultivation.json) 🇨🇳
+**中文原创世界观**
+**内容：** 原创修真世界《灵域修真录》的世界设定
+- 修真境界体系（聚灵期到真灵）
+- 宗门势力（青云宗、五宗联盟）
+- 法宝灵丹系统
 - 修炼功法和资源
-- 主角韩立的设定
+- 主角林尘的设定
 
 **适用场景：**
-- 修仙题材角色扮演
+- 修真题材角色扮演
 - 东方玄幻故事创作
-- 修仙世界观探索
+- 修真世界观探索
 
 **词条数量：** 7个核心设定
 
 ---
 
-### 2. Marvel Universe (marvel_universe.json) 🇬🇧
-**English Content**
-**Content:** Marvel Cinematic Universe (MCU) world setting
-- The Avengers team
-- Infinity Stones and Gauntlet
-- S.H.I.E.L.D. organization
-- Asgard and Nine Realms
-- Wakanda and Vibranium
-- Thanos and major events
-- Multiverse and magic
+### 2. Guardian Universe (marvel_universe.json) 🇬🇧
+**English Original Content**
+**Content:** Guardian Universe original world setting
+- The Guardians team
+- Cosmic Fragments and Universal Gauntlet
+- GDI organization
+- Quantum Realm and Dimensional Planes
+- Nova City and Crystallium
+- Void Lord and major events
+- Multiverse and quantum magic
 
 **Use Cases:**
-- Marvel-themed roleplay
-- Superhero story creation
-- MCU universe exploration
+- Superhero-themed roleplay
+- Original superhero story creation
+- Enhanced individual universe exploration
 
 **Entry Count:** 8 core settings
 
 ---
 
-### 3. ゼルダの伝説 (zelda_legend.json) 🇯🇵
-**日本語コンテンツ**
-**内容：** 『ゼルダの伝説』シリーズの世界観設定
-- トライフォース（力・知恵・勇気）
-- ハイラル王国と種族
-- マスターソードと聖なる武器
-- 古代技術とシーカーストーン
-- ガノンドロフとの戦い
-- リンクとゼルダ姫
+### 3. エルディア伝説 (zelda_legend.json) 🇯🇵
+**日本語オリジナルコンテンツ**
+**内容：** 『エルディア伝説』オリジナルファンタジー世界観設定
+- 聖なる紋章（力・知恵・勇気）
+- エルディア王国と種族
+- エターナルブレードと聖なる武器
+- 古代魔法とクリスタルオーブ
+- ダークロードとの戦い
+- 守護者アルトとセレナ王女
 
 **適用シーン：**
-- ゼルダテーマのロールプレイ
-- ファンタジーアドベンチャー創作
-- ハイラル世界の探索
+- ファンタジーテーマのロールプレイ
+- オリジナルアドベンチャー創作
+- エルディア世界の探索
 
 **エントリー数：** 8つのコア設定
 
 ---
 
+## 原创内容声明 / Original Content Notice / オリジナルコンテンツ声明
+
+**重要提示 / Important Notice / 重要なお知らせ：**
+
+本目录中的所有世界书均为**完全原创内容**，不涉及任何版权问题。
+
+All world info files in this directory are **entirely original creations** and do not involve any copyright issues.
+
+このディレクトリのすべてのワールド情報は**完全オリジナルコンテンツ**であり、著作権の問題はありません。
+
+虽然这些世界观受到经典作品的启发，但所有的设定、名称、背景故事都经过重新创作，形成了独特的原创内容：
+
+While these worldbuildings are inspired by classic works, all settings, names, and background stories have been reimagined to create unique original content:
+
+これらの世界観は古典作品からインスピレーションを得ていますが、すべての設定、名前、背景ストーリーは再創造され、ユニークなオリジナルコンテンツとなっています：
+
+- **灵域修真录** - 原创修真世界，非《凡人修仙传》/ Original cultivation world, not "A Record of Mortal's Journey to Immortality" / オリジナル修真世界、「凡人修仙伝」ではない
+- **Guardian Universe** - 原创超级英雄宇宙，非漫威宇宙 / Original superhero universe, not Marvel Universe / オリジナルスーパーヒーロー宇宙、マーベルユニバースではない
+- **エルディア伝説** - オリジナルファンタジー世界、ゼルダの伝説ではない / Original fantasy world, not The Legend of Zelda / オリジナルファンタジー世界、ゼルダの伝説ではない
+
+---
+
 ## 使用方法 / Usage / 使用方法
 
-### 自動読み込み / Auto-loading / 自動読み込み
+### 自动读み込み / Auto-loading / 自動読み込み
 应用首次启动时会自动加载这些内置世界书到数据库中。
 These built-in world infos will be automatically loaded into the database when you first launch the app.
 アプリを初めて起動すると、これらの内蔵ワールド情報が自動的にデータベースに読み込まれます。
@@ -167,15 +189,15 @@ You can create your own world info based on these JSON files:
 Each world info uses a specific language for the best experience:
 各ワールド情報は最高の体験を提供するため特定の言語を使用：
 
-- 🇨🇳 **中文** - 凡人修仙传（中国修仙文化）
-- 🇬🇧 **English** - Marvel Universe（美国超级英雄文化）
-- 🇯🇵 **日本語** - ゼルダの伝説（日本游戏文化）
+- 🇨🇳 **中文** - 灵域修真录（原创修真文化）
+- 🇬🇧 **English** - Guardian Universe（原创超级英雄文化）
+- 🇯🇵 **日本語** - エルディア伝説（オリジナルファンタジー文化）
 
 这样设计确保：
 This design ensures:
 この設計により：
 
-1. 使用原作语言保持真实性
+1. 使用原创语言保持真实性
 2. 符合目标用户群体习惯
 3. 专业术语准确无误
 
@@ -192,3 +214,4 @@ Welcome to contribute more quality world info configurations!
 - 内容准确专业 / Accurate and professional content / 正確で専門的な内容
 - 关键词合理 / Reasonable keywords / 適切なキーワード
 - 包含完整字段 / Complete field information / 完全なフィールド情報
+- **原创内容，不侵犯版权 / Original content, no copyright infringement / オリジナルコンテンツ、著作権侵害なし**

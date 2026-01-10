@@ -1,124 +1,124 @@
 {
-    "id": "builtin_marvel_universe",
-    "name": "Marvel Universe",
-    "description": "The Marvel Cinematic Universe (MCU) world setting. Includes superheroes, organizations, powers, locations, and key events. Perfect for creating Marvel-themed roleplay stories.",
+    "id": "builtin_guardian_universe",
+    "name": "Guardian Universe",
+    "description": "The Guardian Universe original world setting. Includes enhanced individuals, organizations, powers, locations, and key events. Perfect for creating superhero-themed roleplay stories.",
     "enabled": false,
     "isGlobal": false,
     "entries": [
         {
             "id": "entry_001",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Avengers",
-                "Earth's Mightiest Heroes"
+                "Guardians",
+                "Earth's Protectors"
             ],
-            "content": "The Avengers are Earth's Mightiest Heroes, a team of extraordinary individuals assembled to protect the world from threats too great for any single hero. Core members include: Iron Man (Tony Stark), Captain America (Steve Rogers), Thor, Hulk (Bruce Banner), Black Widow (Natasha Romanoff), and Hawkeye (Clint Barton). The team operates from Avengers Tower and later the Avengers Compound.",
+            "content": "The Guardians are Earth's Protectors, a team of extraordinary enhanced individuals assembled to protect the world from threats too great for any single hero. Core members include: Techno Knight (Marcus Steel), Sentinel (Sarah Cross), Storm Caller (Kai Zhang), Titan (David Grant), Shadow (Elena Volkov), and Marksman (Alex Rivera). The team operates from Guardian Tower and later the Guardian Compound.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 100,
-            "comment": "The Avengers team"
+            "comment": "The Guardians team"
         },
         {
             "id": "entry_002",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Infinity Stones",
-                "Infinity Gauntlet"
+                "Cosmic Fragments",
+                "Universal Gauntlet"
             ],
-            "content": "The Infinity Stones are six immensely powerful gems that control fundamental aspects of existence: Space (blue, Tesseract), Mind (yellow, Loki's scepter), Reality (red, Aether), Power (purple, Orb), Time (green, Eye of Agamotto), and Soul (orange, requires sacrifice). When combined in the Infinity Gauntlet, they grant the wielder god-like power to reshape reality itself.",
+            "content": "The Cosmic Fragments are six immensely powerful crystalline shards that control fundamental aspects of existence: Space (blue, Nexus Cube), Mind (yellow, Consciousness Scepter), Reality (red, Aether Wave), Power (purple, Cosmic Core), Time (green, Temporal Eye), and Soul (orange, requires sacrifice). When combined in the Universal Gauntlet, they grant the wielder god-like power to reshape reality itself.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 90,
-            "comment": "Infinity Stones"
+            "comment": "Cosmic Fragments"
         },
         {
             "id": "entry_003",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "S.H.I.E.L.D.",
-                "Strategic Homeland Intervention"
+                "GDI",
+                "Global Defense Initiative"
             ],
-            "content": "S.H.I.E.L.D. (Strategic Homeland Intervention, Enforcement and Logistics Division) is a covert law enforcement and counter-terrorism agency. Led by Nick Fury, S.H.I.E.L.D. deals with superhuman threats and maintains peace. The organization was infiltrated by HYDRA and later reformed after its fall. Key agents include Phil Coulson and Maria Hill.",
+            "content": "GDI (Global Defense Initiative) is a covert international law enforcement and counter-threat agency. Led by Director Chen (retired), GDI deals with enhanced individual threats and maintains global peace. The organization was infiltrated by Crimson Dawn and later reformed after its exposure. Key agents include Commander Park and Deputy Director Martinez.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 80,
-            "comment": "S.H.I.E.L.D. organization"
+            "comment": "GDI organization"
         },
         {
             "id": "entry_004",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Asgard",
-                "Nine Realms",
-                "Bifrost"
+                "Quantum Realm",
+                "Dimensional Planes",
+                "Nexus Bridge"
             ],
-            "content": "Asgard is one of the Nine Realms, home to the god-like Asgardians. Ruled by Odin (later Thor), Asgard is a golden realm of advanced magic and technology. The Bifrost is a rainbow bridge that allows travel between realms. Other realms include Midgard (Earth), Jotunheim (Frost Giants), and Muspelheim (Fire Demons). Asgard was destroyed during Ragnarok.",
+            "content": "The Quantum Realm is one of the Dimensional Planes, home to energy-based beings. Accessible through the Nexus Bridge, the Quantum Realm is a dimension of pure energy and advanced quantum technology. Other planes include Earth (Material Realm), Shadow Dimension (darkness entities), and Ember Realm (fire beings). The Quantum Realm holds secrets to dimensional travel and energy manipulation.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 70,
-            "comment": "Asgard and Nine Realms"
+            "comment": "Quantum Realm"
         },
         {
             "id": "entry_005",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Wakanda",
-                "Vibranium",
-                "Black Panther"
+                "Nova City",
+                "Crystallium",
+                "Techno Knight"
             ],
-            "content": "Wakanda is a technologically advanced African nation, hidden from the world. Rich in Vibranium (the strongest metal on Earth), Wakanda developed incredible technology while maintaining traditional culture. The Black Panther (T'Challa) serves as both king and protector. Key locations include the Golden City and Mount Bashenga. Wakanda opened its borders to the world after centuries of isolation.",
+            "content": "Nova City is a technologically advanced metropolis, hidden within a quantum shield. Rich in Crystallium (the most powerful energy source on Earth), Nova City developed incredible technology while maintaining sustainable living. Techno Knight (Marcus Steel) serves as both defender and innovator. Key locations include the Crystal Tower and Quantum Labs. Nova City opened its technology to the world after centuries of isolation.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 60,
-            "comment": "Wakanda"
+            "comment": "Nova City"
         },
         {
             "id": "entry_006",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Thanos",
-                "Mad Titan"
+                "Void Lord",
+                "Dark Conqueror"
             ],
-            "content": "Thanos, the Mad Titan, sought to balance the universe by eliminating half of all life. Obsessed with collecting the Infinity Stones, he successfully performed 'The Snap' using the complete Infinity Gauntlet. Thanos was eventually defeated by the Avengers in the Battle of Earth. He believed his actions were merciful, aiming to prevent universal resource depletion.",
+            "content": "Void Lord, the Dark Conqueror, sought to balance the universe by reshaping reality to his vision. Obsessed with collecting the Cosmic Fragments, he successfully performed 'The Convergence' using the complete Universal Gauntlet. Void Lord was eventually defeated by the Guardians in the Battle for Earth. He believed his actions were necessary, aiming to create a perfect universe.",
             "enabled": true,
             "constant": false,
             "position": 1,
             "insertionOrder": 50,
-            "comment": "Thanos antagonist"
+            "comment": "Void Lord antagonist"
         },
         {
             "id": "entry_007",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
-                "Tony Stark",
-                "Iron Man"
+                "Marcus Steel",
+                "Techno Knight"
             ],
             "secondaryKeys": [
-                "Arc Reactor",
-                "Stark Industries"
+                "Quantum Reactor",
+                "Steel Industries"
             ],
-            "content": "Tony Stark is a genius billionaire inventor who became Iron Man after being captured by terrorists. He created the Arc Reactor to power his armored suits. As CEO of Stark Industries, he transformed the company from weapons manufacturing to clean energy. Known for his wit and ego, Tony sacrificed himself to save the universe from Thanos, wielding the Infinity Stones despite knowing it would be fatal.",
+            "content": "Marcus Steel is a genius inventor who became Techno Knight after a near-death experience. He created the Quantum Reactor to power his advanced armored suits. As CEO of Steel Industries, he transformed the company from weapons manufacturing to clean energy technology. Known for his innovation and determination, Marcus sacrificed himself to save the universe from Void Lord, wielding the Cosmic Fragments despite knowing it would be fatal.",
             "enabled": true,
             "constant": false,
             "selective": true,
             "position": 1,
             "insertionOrder": 110,
-            "comment": "Iron Man character"
+            "comment": "Techno Knight character"
         },
         {
             "id": "entry_008",
-            "worldInfoId": "builtin_marvel_universe",
+            "worldInfoId": "builtin_guardian_universe",
             "keys": [
                 "Multiverse",
-                "Doctor Strange",
-                "Time Stone"
+                "Quantum Mage",
+                "Temporal Fragment"
             ],
-            "content": "The Multiverse is an infinite collection of alternate realities and timelines. Doctor Strange (Stephen Strange), Master of the Mystic Arts, protects Earth from mystical threats using the Time Stone (Eye of Agamotto) and ancient spells. The Sanctum Sanctorum in New York serves as a mystical fortress. Time travel and dimensional travel are possible but dangerous, potentially creating paradoxes or attracting entities like Dormammu.",
+            "content": "The Multiverse is an infinite collection of alternate realities and timelines. Quantum Mage (Dr. Stephen Chen), Master of the Mystic Arts, protects Earth from mystical and dimensional threats using the Temporal Fragment (Cosmic Fragment of Time) and ancient spells. The Sanctum Primaris in New York serves as a mystical fortress. Dimensional travel and time manipulation are possible but dangerous, potentially creating paradoxes or attracting entities like the Shadow King.",
             "enabled": true,
             "constant": false,
             "position": 1,
@@ -127,5 +127,5 @@
         }
     ],
     "createdAt": "2026-01-10T07:50:00.000Z",
-    "modifiedAt": "2026-01-10T07:50:00.000Z"
+    "modifiedAt": "2026-01-10T09:10:00.000Z"
 }
