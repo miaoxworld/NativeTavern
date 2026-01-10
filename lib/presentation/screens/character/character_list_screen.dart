@@ -18,7 +18,7 @@ class CharacterListScreen extends ConsumerStatefulWidget {
 
 class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
   String _searchQuery = '';
-  bool _isGridView = true;
+  bool _isGridView = false;
 
   @override
   Widget build(BuildContext context) {

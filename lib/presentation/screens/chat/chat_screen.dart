@@ -157,6 +157,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  /// Show model selector dialog
+  void _showModelSelector() async {
+    final llmConfig = ref.read(llmConfigProvider);
+    final llmService = ref.read(llmServiceProvider);
+    
+    // Show loading dialog while fetching models
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading models...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    try {
+      // Fetch available models
+      final models = await llmService.getAvailableModels(llmConfig);
+      
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+      
+      if (models.isEmpty) {
+        _showSnackBar('No models available. Check your API configuration.');
+        return;
+      }
+      
+      // Show model selection dialog
+      final selectedModel = await showDialog<String>(
+        context: context,
+        builder: (context) => _ModelSelectorDialog(
+          models: models,
+          currentModel: llmConfig.model,
+          providerName: llmConfig.provider.name,
+        ),
+      );
+      
+      if (selectedModel != null && selectedModel != llmConfig.model) {
+        ref.read(llmConfigProvider.notifier).updateModel(selectedModel);
+        _showSnackBar('Model changed to $selectedModel');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading dialog
+      _showSnackBar('Failed to load models: $e');
+    }
+  }
+
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     final hasAttachments = _pendingAttachments.isNotEmpty;
@@ -541,6 +600,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   AppBar _buildAppBar(ActiveChatState chatState) {
     final hasAuthorNote = chatState.chat?.authorNoteEnabled == true &&
         (chatState.chat?.authorNote.isNotEmpty ?? false);
+    final llmConfig = ref.watch(llmConfigProvider);
     
     return AppBar(
       title: Column(
@@ -550,11 +610,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             chatState.character?.name ?? 'Chat',
             style: const TextStyle(fontSize: 16),
           ),
-          if (chatState.isGenerating)
-            const Text(
-              'Generating...',
-              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+          // Model selector - tap to change model
+          GestureDetector(
+            onTap: () => _showModelSelector(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  llmConfig.model.isEmpty ? 'Select Model' : llmConfig.model,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: chatState.isGenerating
+                        ? AppTheme.textMuted
+                        : AppTheme.accentColor,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.expand_more,
+                  size: 14,
+                  color: chatState.isGenerating
+                      ? AppTheme.textMuted
+                      : AppTheme.accentColor,
+                ),
+              ],
             ),
+          ),
         ],
       ),
       actions: [
@@ -2013,6 +2094,184 @@ class _TypingIndicatorState extends State<_TypingIndicator>
           }),
         );
       },
+    );
+  }
+}
+
+/// Dialog for selecting a model from available models
+class _ModelSelectorDialog extends StatefulWidget {
+  final List<String> models;
+  final String currentModel;
+  final String providerName;
+
+  const _ModelSelectorDialog({
+    required this.models,
+    required this.currentModel,
+    required this.providerName,
+  });
+
+  @override
+  State<_ModelSelectorDialog> createState() => _ModelSelectorDialogState();
+}
+
+class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _filteredModels = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredModels = widget.models;
+    _searchController.addListener(_filterModels);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterModels() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredModels = widget.models;
+      } else {
+        _filteredModels = widget.models
+            .where((model) => model.toLowerCase().contains(query))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: AppTheme.darkCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 400,
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.smart_toy, color: AppTheme.primaryColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Select Model',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Provider: ${widget.providerName}',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Search field
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search models...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  isDense: true,
+                  filled: true,
+                  fillColor: AppTheme.darkBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Model list
+            Flexible(
+              child: _filteredModels.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          'No models match your search',
+                          style: TextStyle(color: AppTheme.textMuted),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _filteredModels.length,
+                      itemBuilder: (context, index) {
+                        final model = _filteredModels[index];
+                        final isSelected = model == widget.currentModel;
+                        
+                        return ListTile(
+                          leading: Icon(
+                            isSelected ? Icons.check_circle : Icons.circle_outlined,
+                            color: isSelected ? AppTheme.accentColor : AppTheme.textMuted,
+                            size: 20,
+                          ),
+                          title: Text(
+                            model,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppTheme.accentColor : AppTheme.textPrimary,
+                            ),
+                          ),
+                          selected: isSelected,
+                          selectedTileColor: AppTheme.accentColor.withValues(alpha: 0.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          onTap: () => Navigator.pop(context, model),
+                        );
+                      },
+                    ),
+            ),
+            
+            // Actions
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

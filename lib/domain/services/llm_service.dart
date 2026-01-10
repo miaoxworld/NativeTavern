@@ -248,8 +248,25 @@ class LLMService {
       for (int i = 0; i < messages.length; i++) {
         final msg = messages[i] as Map<String, dynamic>;
         final role = msg['role'] as String? ?? 'unknown';
-        final content = msg['content'] as String? ?? '';
-        final preview = content.length > 200 ? '${content.substring(0, 200)}...' : content;
+        final contentValue = msg['content'];
+        String preview;
+        if (contentValue is String) {
+          preview = contentValue.length > 200 ? '${contentValue.substring(0, 200)}...' : contentValue;
+        } else if (contentValue is List) {
+          // Multimodal content - summarize the parts
+          final parts = contentValue.map((p) {
+            if (p is Map<String, dynamic>) {
+              final type = p['type'] as String?;
+              if (type == 'text') return 'text: ${(p['text'] as String? ?? '').substring(0, (p['text'] as String? ?? '').length.clamp(0, 50))}...';
+              if (type == 'image_url') return 'image';
+              return type ?? 'unknown';
+            }
+            return p.toString();
+          }).join(', ');
+          preview = '[Multimodal: $parts]';
+        } else {
+          preview = contentValue?.toString() ?? '';
+        }
         _log('  [$i] $role: $preview');
       }
     }
