@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/character.dart';
 import '../../data/repositories/character_repository.dart';
+import './tag_providers.dart';
 
 /// Sort options for characters
 enum CharacterSortOption {
@@ -15,26 +16,30 @@ enum CharacterSortOption {
 /// Filter state for character list
 class CharacterFilterState {
   final String searchQuery;
-  final List<String> selectedTags;
+  final Set<String> selectedTagIds; // Tag IDs from the Tags table
+  final List<String> selectedLegacyTags; // Legacy string tags from character.tags
   final bool showFavoritesOnly;
   final CharacterSortOption sortOption;
 
   const CharacterFilterState({
     this.searchQuery = '',
-    this.selectedTags = const [],
+    this.selectedTagIds = const {},
+    this.selectedLegacyTags = const [],
     this.showFavoritesOnly = false,
     this.sortOption = CharacterSortOption.modifiedAtDesc,
   });
 
   CharacterFilterState copyWith({
     String? searchQuery,
-    List<String>? selectedTags,
+    Set<String>? selectedTagIds,
+    List<String>? selectedLegacyTags,
     bool? showFavoritesOnly,
     CharacterSortOption? sortOption,
   }) {
     return CharacterFilterState(
       searchQuery: searchQuery ?? this.searchQuery,
-      selectedTags: selectedTags ?? this.selectedTags,
+      selectedTagIds: selectedTagIds ?? this.selectedTagIds,
+      selectedLegacyTags: selectedLegacyTags ?? this.selectedLegacyTags,
       showFavoritesOnly: showFavoritesOnly ?? this.showFavoritesOnly,
       sortOption: sortOption ?? this.sortOption,
     );
@@ -42,7 +47,13 @@ class CharacterFilterState {
 
   /// Check if any filters are active
   bool get hasActiveFilters =>
-      searchQuery.isNotEmpty || selectedTags.isNotEmpty || showFavoritesOnly;
+      searchQuery.isNotEmpty ||
+      selectedTagIds.isNotEmpty ||
+      selectedLegacyTags.isNotEmpty ||
+      showFavoritesOnly;
+
+  /// For backward compatibility - get all selected tags (both new and legacy)
+  List<String> get selectedTags => selectedLegacyTags;
 }
 
 /// Notifier for character filter state
@@ -53,22 +64,38 @@ class CharacterFilterNotifier extends StateNotifier<CharacterFilterState> {
     state = state.copyWith(searchQuery: query);
   }
 
+  /// Toggle a tag ID (from Tags table)
+  void toggleTagId(String tagId) {
+    final tagIds = Set<String>.from(state.selectedTagIds);
+    if (tagIds.contains(tagId)) {
+      tagIds.remove(tagId);
+    } else {
+      tagIds.add(tagId);
+    }
+    state = state.copyWith(selectedTagIds: tagIds);
+  }
+
+  /// Toggle a legacy tag (string from character.tags)
   void toggleTag(String tag) {
-    final tags = List<String>.from(state.selectedTags);
+    final tags = List<String>.from(state.selectedLegacyTags);
     if (tags.contains(tag)) {
       tags.remove(tag);
     } else {
       tags.add(tag);
     }
-    state = state.copyWith(selectedTags: tags);
+    state = state.copyWith(selectedLegacyTags: tags);
   }
 
   void clearTags() {
-    state = state.copyWith(selectedTags: []);
+    state = state.copyWith(selectedTagIds: {}, selectedLegacyTags: []);
   }
 
   void setTags(List<String> tags) {
-    state = state.copyWith(selectedTags: tags);
+    state = state.copyWith(selectedLegacyTags: tags);
+  }
+
+  void setTagIds(Set<String> tagIds) {
+    state = state.copyWith(selectedTagIds: tagIds);
   }
 
   void toggleFavoritesOnly() {
@@ -90,8 +117,8 @@ final characterFilterProvider =
   return CharacterFilterNotifier();
 });
 
-/// Provider for all unique tags across all characters
-final allTagsProvider = FutureProvider<List<String>>((ref) async {
+/// Provider for all unique legacy tags across all characters (from character.tags field)
+final allLegacyTagsProvider = FutureProvider<List<String>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final characters = await repo.getAllCharacters();
   
@@ -104,10 +131,25 @@ final allTagsProvider = FutureProvider<List<String>>((ref) async {
   return tags;
 });
 
+/// Combined provider for all tags (both new Tag model and legacy string tags)
+final allCombinedTagsProvider = FutureProvider<List<dynamic>>((ref) async {
+  final newTags = await ref.watch(allTagsProvider.future);
+  final legacyTags = await ref.watch(allLegacyTagsProvider.future);
+  
+  // Return new tags first, then legacy tags that aren't covered by new tags
+  final newTagNames = newTags.map((t) => t.name.toLowerCase()).toSet();
+  final uniqueLegacyTags = legacyTags.where(
+    (t) => !newTagNames.contains(t.toLowerCase())
+  ).toList();
+  
+  return [...newTags, ...uniqueLegacyTags];
+});
+
 /// Provider for filtered and sorted characters
 final filteredCharactersProvider = FutureProvider<List<Character>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final filterState = ref.watch(characterFilterProvider);
+  final tagRepo = ref.watch(tagRepositoryProvider);
   
   var characters = await repo.getAllCharacters();
   
@@ -122,10 +164,18 @@ final filteredCharactersProvider = FutureProvider<List<Character>>((ref) async {
     }).toList();
   }
   
-  // Apply tag filter
-  if (filterState.selectedTags.isNotEmpty) {
+  // Apply new tag filter (from Tags table)
+  if (filterState.selectedTagIds.isNotEmpty) {
+    final tagIds = filterState.selectedTagIds.toList();
+    final characterIdsWithTags = await tagRepo.getCharactersWithAllTags(tagIds);
+    final characterIdSet = characterIdsWithTags.toSet();
+    characters = characters.where((c) => characterIdSet.contains(c.id)).toList();
+  }
+  
+  // Apply legacy tag filter (from character.tags field)
+  if (filterState.selectedLegacyTags.isNotEmpty) {
     characters = characters.where((c) {
-      return filterState.selectedTags.every((tag) => c.tags.contains(tag));
+      return filterState.selectedLegacyTags.every((tag) => c.tags.contains(tag));
     }).toList();
   }
   
@@ -166,7 +216,7 @@ final favoriteCharactersProvider = FutureProvider<List<Character>>((ref) async {
   return characters.where((c) => c.isFavorite).toList();
 });
 
-/// Provider for character count by tag
+/// Provider for character count by legacy tag
 final tagCountsProvider = FutureProvider<Map<String, int>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final characters = await repo.getAllCharacters();

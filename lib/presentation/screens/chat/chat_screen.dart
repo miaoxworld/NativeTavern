@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:native_tavern/data/models/character.dart';
 import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/domain/services/chat_export_service.dart';
@@ -18,7 +19,12 @@ import 'package:native_tavern/presentation/widgets/chat/author_note_dialog.dart'
 import 'package:native_tavern/presentation/widgets/chat/bookmark_dialog.dart';
 import 'package:native_tavern/presentation/widgets/chat/message_content_widget.dart';
 import 'package:native_tavern/presentation/widgets/chat/quick_reply_bar.dart';
+import 'package:native_tavern/presentation/widgets/chat/markdown_input_field.dart';
+import 'package:native_tavern/presentation/widgets/chat/reasoning_widget.dart';
 import 'package:native_tavern/presentation/widgets/chat/slash_command_suggestions.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 
 /// Provider for chat export service
 final chatExportServiceProvider = Provider<ChatExportService>((ref) {
@@ -40,6 +46,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   bool _showSlashSuggestions = false;
+  final List<ChatAttachment> _pendingAttachments = [];
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -136,8 +144,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
-              // Use go instead of push because /settings is inside ShellRoute
-              parentContext.go('/settings');
+              // Use go instead of push because /ai-config is inside ShellRoute
+              parentContext.go('/ai-config');
             },
             icon: const Icon(Icons.settings),
             label: const Text('Configure Now'),
@@ -149,10 +157,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
-    if (content.isEmpty) return;
+    final hasAttachments = _pendingAttachments.isNotEmpty;
+    
+    // Allow sending if there's content OR attachments
+    if (content.isEmpty && !hasAttachments) return;
 
-    // Check if it's a slash command
-    if (content.startsWith('/')) {
+    // Check if it's a slash command (only if no attachments)
+    if (content.startsWith('/') && !hasAttachments) {
       await _handleSlashCommand(content);
       return;
     }
@@ -165,9 +176,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return;
     }
 
+    // Capture attachments before clearing
+    final attachments = List<ChatAttachment>.from(_pendingAttachments);
+    
     _messageController.clear();
-    setState(() => _showSlashSuggestions = false);
-    await ref.read(activeChatProvider.notifier).sendMessage(content, config);
+    setState(() {
+      _showSlashSuggestions = false;
+      _pendingAttachments.clear();
+    });
+    
+    await ref.read(activeChatProvider.notifier).sendMessage(
+      content,
+      config,
+      attachments: attachments,
+    );
     _scrollToBottom();
   }
 
@@ -505,8 +527,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
           TextButton(
-            // Use go instead of push because /settings is inside ShellRoute
-            onPressed: () => context.go('/settings'),
+            // Use go instead of push because /ai-config is inside ShellRoute
+            onPressed: () => context.go('/ai-config'),
             child: const Text('Configure'),
           ),
         ],
@@ -860,49 +882,295 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                focusNode: _focusNode,
-                maxLines: 5,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  filled: true,
-                  fillColor: AppTheme.darkBackground,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+            // Pending attachments preview
+            if (_pendingAttachments.isNotEmpty)
+              _buildAttachmentsPreview(),
+            // Compact markdown toolbar
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  // Image attachment button
+                  IconButton(
+                    icon: const Icon(Icons.image, size: 20),
+                    tooltip: 'Attach image',
+                    onPressed: _showAttachmentOptions,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                  const SizedBox(width: 4),
+                  MarkdownToolbar(
+                    controller: _messageController,
+                    focusNode: _focusNode,
+                    compact: true,
                   ),
-                ),
-                onSubmitted: (_) => _sendMessage(),
-                textInputAction: TextInputAction.send,
+                  const Spacer(),
+                  // Hint for keyboard shortcuts
+                  Tooltip(
+                    message: 'Keyboard shortcuts:\n'
+                        '⌘B - Bold\n'
+                        '⌘I - Italic\n'
+                        '⌘U - Underline\n'
+                        '⌘⇧S - Strikethrough\n'
+                        '⌘` - Inline code\n'
+                        '⌘K - Link',
+                    child: Icon(
+                      Icons.keyboard,
+                      size: 16,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: chatState.isGenerating ? null : _sendMessage,
-              icon: chatState.isGenerating
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+            // Input row
+            Row(
+              children: [
+                Expanded(
+                  child: MarkdownInputField(
+                    controller: _messageController,
+                    focusNode: _focusNode,
+                    maxLines: 5,
+                    minLines: 1,
+                    hintText: 'Type a message...',
+                    onSubmitted: (_) => _sendMessage(),
+                    textInputAction: TextInputAction.send,
+                    showToolbar: false, // We show toolbar above
+                    decoration: InputDecoration(
+                      hintText: 'Type a message...',
+                      filled: true,
+                      fillColor: AppTheme.darkBackground,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
                       ),
-                    )
-                  : const Icon(Icons.send),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: chatState.isGenerating ? null : _sendMessage,
+                  icon: chatState.isGenerating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Build preview of pending attachments
+  Widget _buildAttachmentsPreview() {
+    return Container(
+      height: 80,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _pendingAttachments.length,
+        itemBuilder: (context, index) {
+          final attachment = _pendingAttachments[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(attachment.path),
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 80,
+                      height: 80,
+                      color: AppTheme.darkCard,
+                      child: const Icon(Icons.broken_image, color: AppTheme.textMuted),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: GestureDetector(
+                    onTap: () => _removeAttachment(index),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Show attachment options (camera or gallery)
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.darkCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppTheme.primaryColor),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppTheme.accentColor),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _takePhoto();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Pick image from gallery
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final images = await _imagePicker.pickMultiImage(
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 85,
+      );
+      
+      for (final image in images) {
+        await _addAttachment(image);
+      }
+    } catch (e) {
+      _showSnackBar('Failed to pick image: $e');
+    }
+  }
+
+  /// Take photo with camera
+  Future<void> _takePhoto() async {
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        await _addAttachment(image);
+      }
+    } catch (e) {
+      _showSnackBar('Failed to take photo: $e');
+    }
+  }
+
+  /// Add an attachment from XFile
+  Future<void> _addAttachment(XFile file) async {
+    try {
+      // Copy file to app's documents directory for persistence
+      final appDir = await getApplicationDocumentsDirectory();
+      final attachmentsDir = Directory(p.join(appDir.path, 'NativeTavern', 'attachments'));
+      await attachmentsDir.create(recursive: true);
+      
+      final uuid = const Uuid();
+      final extension = p.extension(file.path);
+      final newFileName = '${uuid.v4()}$extension';
+      final newPath = p.join(attachmentsDir.path, newFileName);
+      
+      // Copy file
+      final bytes = await file.readAsBytes();
+      await File(newPath).writeAsBytes(bytes);
+      
+      // Get file info
+      final fileInfo = await File(newPath).stat();
+      
+      final attachment = ChatAttachment(
+        id: uuid.v4(),
+        path: newPath,
+        mimeType: _getMimeType(extension),
+        sizeBytes: fileInfo.size,
+      );
+      
+      setState(() {
+        _pendingAttachments.add(attachment);
+      });
+    } catch (e) {
+      _showSnackBar('Failed to add attachment: $e');
+    }
+  }
+
+  /// Remove an attachment
+  void _removeAttachment(int index) {
+    setState(() {
+      _pendingAttachments.removeAt(index);
+    });
+  }
+
+  /// Get MIME type from file extension
+  String _getMimeType(String extension) {
+    switch (extension.toLowerCase()) {
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.png':
+        return 'image/png';
+      case '.gif':
+        return 'image/gif';
+      case '.webp':
+        return 'image/webp';
+      case '.bmp':
+        return 'image/bmp';
+      default:
+        return 'image/jpeg';
+    }
   }
 
   void _showExportDialog() {
@@ -1246,6 +1514,9 @@ class _MessageBubbleState extends State<_MessageBubble> {
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Show reasoning/thinking content if available
+                              if (!isUser && widget.message.hasReasoning)
+                                _buildReasoningSection(),
                               if (widget.isGenerating &&
                                   widget.message.content.isEmpty)
                                 const _TypingIndicator()
@@ -1318,6 +1589,30 @@ class _MessageBubbleState extends State<_MessageBubble> {
     return const CircleAvatar(
       radius: 16,
       child: Icon(Icons.person, size: 16),
+    );
+  }
+
+  /// Build the reasoning/thinking section for AI messages
+  Widget _buildReasoningSection() {
+    final reasoning = widget.message.currentReasoning;
+    if (reasoning == null || reasoning.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    // During streaming, show the streaming version
+    if (widget.isGenerating && widget.isLast) {
+      return StreamingReasoningWidget(
+        reasoning: reasoning,
+        isStreaming: true,
+        label: 'Thinking',
+      );
+    }
+    
+    // For completed messages, show the collapsible version
+    return ReasoningWidget(
+      reasoning: reasoning,
+      initiallyExpanded: false,
+      label: 'Thinking',
     );
   }
 

@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/data/repositories/world_info_repository.dart';
-import 'package:native_tavern/data/database/database.dart' hide WorldInfo, WorldInfoEntry;
+import 'package:native_tavern/core/services/initialization_service.dart';
 
 /// Provider for WorldInfo repository (properly initialized)
 final worldInfoRepositoryProvider = Provider<WorldInfoRepository>((ref) {
-  final db = DatabaseProvider.instance;
+  final db = ref.watch(databaseProvider);
   return WorldInfoRepository(db);
 });
 

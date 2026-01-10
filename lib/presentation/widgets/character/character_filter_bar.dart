@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/tag.dart';
 import '../../providers/character_filter_providers.dart';
+import '../../providers/tag_providers.dart';
+import '../../screens/tags/tags_screen.dart';
 import '../../theme/app_theme.dart';
 
 /// Filter bar for character list
@@ -10,7 +13,8 @@ class CharacterFilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filterState = ref.watch(characterFilterProvider);
-    final allTagsAsync = ref.watch(allTagsProvider);
+    final newTagsAsync = ref.watch(tagNotifierProvider);
+    final legacyTagsAsync = ref.watch(allLegacyTagsProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -87,12 +91,12 @@ class CharacterFilterBar extends ConsumerWidget {
               // Filter button (tags)
               IconButton(
                 icon: Badge(
-                  isLabelVisible: filterState.selectedTags.isNotEmpty,
-                  label: Text('${filterState.selectedTags.length}'),
+                  isLabelVisible: filterState.selectedTagIds.isNotEmpty || filterState.selectedLegacyTags.isNotEmpty,
+                  label: Text('${filterState.selectedTagIds.length + filterState.selectedLegacyTags.length}'),
                   child: const Icon(Icons.filter_list),
                 ),
                 tooltip: 'Filter by tags',
-                onPressed: () => _showTagFilterSheet(context, ref, allTagsAsync),
+                onPressed: () => _showTagFilterSheet(context, ref, newTagsAsync, legacyTagsAsync),
               ),
             ],
           ),
@@ -113,9 +117,32 @@ class CharacterFilterBar extends ConsumerWidget {
                         ref.read(characterFilterProvider.notifier).toggleFavoritesOnly();
                       },
                     ),
-                  ...filterState.selectedTags.map((tag) => _FilterChip(
+                  // New tags (from Tags table)
+                  ...(() {
+                    final tags = newTagsAsync.valueOrNull ?? [];
+                    return filterState.selectedTagIds.map((tagId) {
+                      Tag? foundTag;
+                      for (final t in tags) {
+                        if (t.id == tagId) {
+                          foundTag = t;
+                          break;
+                        }
+                      }
+                      final tag = foundTag ?? Tag(id: tagId, name: tagId, createdAt: DateTime.now());
+                      return _FilterChip(
+                        label: tag.name,
+                        icon: Icons.label,
+                        color: tag.colorValue,
+                        onRemove: () {
+                          ref.read(characterFilterProvider.notifier).toggleTagId(tagId);
+                        },
+                      );
+                    }).toList();
+                  })(),
+                  // Legacy tags (from character.tags field)
+                  ...filterState.selectedLegacyTags.map((tag) => _FilterChip(
                     label: tag,
-                    icon: Icons.label,
+                    icon: Icons.label_outline,
                     onRemove: () {
                       ref.read(characterFilterProvider.notifier).toggleTag(tag);
                     },
@@ -143,15 +170,20 @@ class CharacterFilterBar extends ConsumerWidget {
   void _showTagFilterSheet(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<String>> allTagsAsync,
+    AsyncValue<List<Tag>> newTagsAsync,
+    AsyncValue<List<String>> legacyTagsAsync,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppTheme.darkCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
+        initialChildSize: 0.6,
         minChildSize: 0.3,
-        maxChildSize: 0.8,
+        maxChildSize: 0.9,
         expand: false,
         builder: (context, scrollController) => _TagFilterSheet(
           scrollController: scrollController,
@@ -198,12 +230,26 @@ class _TagFilterSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filterState = ref.watch(characterFilterProvider);
-    final allTagsAsync = ref.watch(allTagsProvider);
-    final tagCountsAsync = ref.watch(tagCountsProvider);
+    final newTagsAsync = ref.watch(tagNotifierProvider);
+    final legacyTagsAsync = ref.watch(allLegacyTagsProvider);
+    final tagUsageCountsAsync = ref.watch(tagUsageCountsProvider);
+    final legacyTagCountsAsync = ref.watch(tagCountsProvider);
+
+    final totalSelected = filterState.selectedTagIds.length + filterState.selectedLegacyTags.length;
 
     return SafeArea(
       child: Column(
         children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.textMuted,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           // Header
           Padding(
             padding: const EdgeInsets.all(16),
@@ -217,7 +263,18 @@ class _TagFilterSheet extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
-                if (filterState.selectedTags.isNotEmpty)
+                TextButton.icon(
+                  icon: const Icon(Icons.settings, size: 18),
+                  label: const Text('Manage'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push<void>(
+                      context,
+                      MaterialPageRoute<void>(builder: (_) => const TagsScreen()),
+                    );
+                  },
+                ),
+                if (totalSelected > 0)
                   TextButton(
                     onPressed: () {
                       ref.read(characterFilterProvider.notifier).clearTags();
@@ -231,52 +288,149 @@ class _TagFilterSheet extends ConsumerWidget {
           
           // Tags list
           Expanded(
-            child: allTagsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (tags) {
-                if (tags.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.label_off, size: 48, color: AppTheme.textMuted),
-                        SizedBox(height: 16),
-                        Text(
-                          'No tags found',
-                          style: TextStyle(color: AppTheme.textMuted),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Add tags to your characters to filter them',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                        ),
-                      ],
+            child: ListView(
+              controller: scrollController,
+              children: [
+                // New Tags section (from Tags table)
+                newTagsAsync.when<Widget>(
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
                     ),
-                  );
-                }
-                
-                return ListView.builder(
-                  controller: scrollController,
-                  itemCount: tags.length,
-                  itemBuilder: (context, index) {
-                    final tag = tags[index];
-                    final isSelected = filterState.selectedTags.contains(tag);
-                    final count = tagCountsAsync.valueOrNull?[tag] ?? 0;
-                    
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (_) {
-                        ref.read(characterFilterProvider.notifier).toggleTag(tag);
-                      },
-                      title: Text(tag),
-                      subtitle: Text('$count character${count == 1 ? '' : 's'}'),
-                      secondary: const Icon(Icons.label),
-                      controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  error: (e, _) => Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Error: $e'),
+                  ),
+                  data: (List<Tag> tags) {
+                    if (tags.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(Icons.label_outline, size: 48, color: AppTheme.textMuted),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No tags created yet',
+                              style: TextStyle(color: AppTheme.textMuted),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              icon: const Icon(Icons.add),
+                              label: const Text('Create Tags'),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push<void>(
+                                  context,
+                                  MaterialPageRoute<void>(builder: (_) => const TagsScreen()),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final usageCounts = tagUsageCountsAsync.valueOrNull ?? {};
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (tags.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: Text(
+                              'Tags',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                          ),
+                          ...tags.map((Tag tag) {
+                            final isSelected = filterState.selectedTagIds.contains(tag.id);
+                            final count = usageCounts[tag.id] ?? 0;
+
+                            return CheckboxListTile(
+                              value: isSelected,
+                              onChanged: (_) {
+                                ref.read(characterFilterProvider.notifier).toggleTagId(tag.id);
+                              },
+                              title: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: tag.colorValue,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (tag.icon != null && tag.icon!.isNotEmpty) ...[
+                                    Text(tag.icon!),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Text(tag.name),
+                                ],
+                              ),
+                              subtitle: Text('$count character${count == 1 ? '' : 's'}'),
+                              controlAffinity: ListTileControlAffinity.leading,
+                              activeColor: tag.colorValue,
+                            );
+                          }),
+                        ],
+                      ],
                     );
                   },
-                );
-              },
+                ),
+
+                // Legacy Tags section (from character.tags field)
+                legacyTagsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, _) => const SizedBox.shrink(),
+                  data: (legacyTags) {
+                    if (legacyTags.isEmpty) return const SizedBox.shrink();
+
+                    final legacyCounts = legacyTagCountsAsync.valueOrNull ?? {};
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: Text(
+                            'Character Tags (Legacy)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                        ...legacyTags.map((tag) {
+                          final isSelected = filterState.selectedLegacyTags.contains(tag);
+                          final count = legacyCounts[tag] ?? 0;
+
+                          return CheckboxListTile(
+                            value: isSelected,
+                            onChanged: (_) {
+                              ref.read(characterFilterProvider.notifier).toggleTag(tag);
+                            },
+                            title: Text(tag),
+                            subtitle: Text('$count character${count == 1 ? '' : 's'}'),
+                            secondary: Icon(Icons.label_outline, color: AppTheme.textMuted),
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
           ),
           
@@ -288,9 +442,9 @@ class _TagFilterSheet extends ConsumerWidget {
               child: FilledButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  filterState.selectedTags.isEmpty
+                  totalSelected == 0
                       ? 'Done'
-                      : 'Apply (${filterState.selectedTags.length} selected)',
+                      : 'Apply ($totalSelected selected)',
                 ),
               ),
             ),

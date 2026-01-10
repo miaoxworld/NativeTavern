@@ -58,6 +58,9 @@ dependencies:
   shimmer: ^3.0.0
   share_plus: ^12.0.1
   url_launcher: ^6.2.2
+  
+  # Image Picker
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:

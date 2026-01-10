@@ -65,6 +65,7 @@ class Messages extends Table {
   TextColumn get metadataJson => text().withDefault(const Constant('{}'))(); // JSON
   TextColumn get characterId => text().nullable()(); // For group chats - which character sent this
   TextColumn get characterName => text().nullable()(); // Cached character name
+  TextColumn get attachmentsJson => text().withDefault(const Constant('[]'))(); // JSON array of attachments
 
   @override
   Set<Column> get primaryKey => {id};
@@ -173,6 +174,27 @@ class Bookmarks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tags table - for categorizing characters
+class Tags extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get color => text().nullable()(); // Hex color string
+  TextColumn get icon => text().nullable()(); // Icon name or emoji
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Character-Tags junction table
+class CharacterTags extends Table {
+  TextColumn get characterId => text().references(Characters, #id)();
+  TextColumn get tagId => text().references(Tags, #id)();
+
+  @override
+  Set<Column> get primaryKey => {characterId, tagId};
+}
+
 /// App database
 @DriftDatabase(tables: [
   Characters,
@@ -184,12 +206,14 @@ class Bookmarks extends Table {
   Personas,
   Groups,
   Bookmarks,
+  Tags,
+  CharacterTags,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -233,6 +257,15 @@ class AppDatabase extends _$AppDatabase {
           // Add isFavorite column to characters
           await m.addColumn(characters, characters.isFavorite);
         }
+        if (from < 9) {
+          // Add tags and character_tags tables
+          await m.createTable(tags);
+          await m.createTable(characterTags);
+        }
+        if (from < 10) {
+          // Add attachmentsJson column to messages for image attachments
+          await m.addColumn(messages, messages.attachmentsJson);
+        }
       },
     );
   }
@@ -248,19 +281,4 @@ LazyDatabase _openConnection() {
     
     return NativeDatabase.createInBackground(file);
   });
-}
-
-/// Database provider for dependency injection
-class DatabaseProvider {
-  static AppDatabase? _instance;
-
-  static AppDatabase get instance {
-    _instance ??= AppDatabase();
-    return _instance!;
-  }
-
-  static Future<void> close() async {
-    await _instance?.close();
-    _instance = null;
-  }
 }

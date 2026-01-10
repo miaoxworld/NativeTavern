@@ -82,6 +82,43 @@ enum MessageRole {
   system,
 }
 
+/// Image attachment for chat messages
+class ChatAttachment {
+  final String id;
+  final String path; // Local file path
+  final String? mimeType;
+  final int? width;
+  final int? height;
+  final int? sizeBytes;
+
+  const ChatAttachment({
+    required this.id,
+    required this.path,
+    this.mimeType,
+    this.width,
+    this.height,
+    this.sizeBytes,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'path': path,
+    if (mimeType != null) 'mimeType': mimeType,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (sizeBytes != null) 'sizeBytes': sizeBytes,
+  };
+
+  factory ChatAttachment.fromJson(Map<String, dynamic> json) => ChatAttachment(
+    id: json['id'] as String,
+    path: json['path'] as String,
+    mimeType: json['mimeType'] as String?,
+    width: json['width'] as int?,
+    height: json['height'] as int?,
+    sizeBytes: json['sizeBytes'] as int?,
+  );
+}
+
 /// Chat message model
 class ChatMessage {
   final String id;
@@ -95,6 +132,7 @@ class ChatMessage {
   final String? characterName; // Cached character name for display
   final String? reasoning; // Chain of Thought / Thinking content from LLM
   final List<String>? reasoningSwipes; // Reasoning content for each swipe
+  final List<ChatAttachment> attachments; // Image attachments
 
   const ChatMessage({
     required this.id,
@@ -108,6 +146,7 @@ class ChatMessage {
     this.characterName,
     this.reasoning,
     this.reasoningSwipes,
+    this.attachments = const [],
   });
 
   /// Get the current reasoning content (for current swipe)
@@ -125,6 +164,9 @@ class ChatMessage {
       (reasoning != null && reasoning!.isNotEmpty) ||
       (reasoningSwipes != null && reasoningSwipes!.any((r) => r.isNotEmpty));
 
+  /// Check if this message has image attachments
+  bool get hasAttachments => attachments.isNotEmpty;
+
   ChatMessage copyWith({
     String? id,
     String? chatId,
@@ -137,6 +179,7 @@ class ChatMessage {
     String? characterName,
     String? reasoning,
     List<String>? reasoningSwipes,
+    List<ChatAttachment>? attachments,
     bool clearCharacterId = false,
     bool clearCharacterName = false,
     bool clearReasoning = false,
@@ -153,6 +196,7 @@ class ChatMessage {
       characterName: clearCharacterName ? null : (characterName ?? this.characterName),
       reasoning: clearReasoning ? null : (reasoning ?? this.reasoning),
       reasoningSwipes: clearReasoning ? null : (reasoningSwipes ?? this.reasoningSwipes),
+      attachments: attachments ?? this.attachments,
     );
   }
 
@@ -168,6 +212,7 @@ class ChatMessage {
         'characterName': characterName,
         if (reasoning != null) 'reasoning': reasoning,
         if (reasoningSwipes != null) 'reasoningSwipes': reasoningSwipes,
+        if (attachments.isNotEmpty) 'attachments': attachments.map((a) => a.toJson()).toList(),
       };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
@@ -185,5 +230,8 @@ class ChatMessage {
         characterName: json['characterName'] as String?,
         reasoning: json['reasoning'] as String?,
         reasoningSwipes: (json['reasoningSwipes'] as List<dynamic>?)?.cast<String>(),
+        attachments: (json['attachments'] as List<dynamic>?)
+            ?.map((a) => ChatAttachment.fromJson(a as Map<String, dynamic>))
+            .toList() ?? [],
       );
 }

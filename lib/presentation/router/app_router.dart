@@ -14,12 +14,26 @@ import 'package:native_tavern/presentation/screens/settings/background_settings_
 import 'package:native_tavern/presentation/screens/settings/theme_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/statistics_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/ai_presets_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/sprite_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/tts_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/stt_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/translation_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/image_gen_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/regex_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/variables_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/backup_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/logit_bias_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/cfg_scale_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/tokenizer_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/vector_storage_settings_screen.dart';
+import 'package:native_tavern/presentation/widgets/chat/logprobs_panel.dart';
 import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/screens/import/import_screen.dart';
 import 'package:native_tavern/presentation/screens/personas/personas_screen.dart';
 import 'package:native_tavern/presentation/screens/world_info/world_info_screen.dart';
 import 'package:native_tavern/presentation/screens/groups/groups_screen.dart';
 import 'package:native_tavern/presentation/screens/groups/group_detail_screen.dart';
+import 'package:native_tavern/presentation/screens/tags/tags_screen.dart';
 import 'package:native_tavern/presentation/widgets/common/app_shell.dart';
 
 /// Route paths
@@ -45,6 +59,21 @@ abstract class AppRoutes {
   static const worldInfo = '/world-info';
   static const groups = '/groups';
   static const groupDetail = '/groups/:id';
+  static const tags = '/tags';
+  static const spriteSettings = '/sprite-settings';
+  static const characterSprites = '/characters/:id/sprites';
+  static const ttsSettings = '/tts-settings';
+  static const sttSettings = '/stt-settings';
+  static const translationSettings = '/translation-settings';
+  static const imageGenSettings = '/image-gen-settings';
+  static const regexSettings = '/regex-settings';
+  static const variablesSettings = '/variables-settings';
+  static const backupSettings = '/backup-settings';
+  static const logitBiasSettings = '/logit-bias-settings';
+  static const cfgScaleSettings = '/cfg-scale-settings';
+  static const logprobsSettings = '/logprobs-settings';
+  static const tokenizerSettings = '/tokenizer-settings';
+  static const vectorStorageSettings = '/vector-storage-settings';
 }
 
 /// Navigation keys for nested navigation
@@ -101,6 +130,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       // Full-screen routes (outside shell)
+      // NOTE: More specific routes must come BEFORE wildcard routes
+      // /characters/new must come before /characters/:id
+      GoRoute(
+        path: AppRoutes.characterCreate,
+        name: 'characterCreate',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CharacterEditorScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.characterEdit,
+        name: 'characterEdit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return CharacterEditorScreen(characterId: id);
+        },
+      ),
       GoRoute(
         path: AppRoutes.characterDetail,
         name: 'characterDetail',
@@ -130,21 +176,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'personas',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const PersonasScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.characterCreate,
-        name: 'characterCreate',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CharacterEditorScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.characterEdit,
-        name: 'characterEdit',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return CharacterEditorScreen(characterId: id);
-        },
       ),
       GoRoute(
         path: AppRoutes.promptManager,
@@ -211,6 +242,110 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return GroupDetailScreen(groupId: id);
         },
+      ),
+      GoRoute(
+        path: AppRoutes.tags,
+        name: 'tags',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TagsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.spriteSettings,
+        name: 'spriteSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SpriteSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.characterSprites,
+        name: 'characterSprites',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final name = state.uri.queryParameters['name'] ?? 'Character';
+          return CharacterSpritesScreen(characterId: id, characterName: name);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.ttsSettings,
+        name: 'ttsSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TTSSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sttSettings,
+        name: 'sttSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const STTSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.translationSettings,
+        name: 'translationSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TranslationSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.imageGenSettings,
+        name: 'imageGenSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ImageGenSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.regexSettings,
+        name: 'regexSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RegexSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.variablesSettings,
+        name: 'variablesSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final chatId = state.uri.queryParameters['chatId'];
+          return VariablesSettingsScreen(chatId: chatId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.backupSettings,
+        name: 'backupSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BackupSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.logitBiasSettings,
+        name: 'logitBiasSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LogitBiasSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.cfgScaleSettings,
+        name: 'cfgScaleSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final characterId = state.uri.queryParameters['characterId'];
+          final chatId = state.uri.queryParameters['chatId'];
+          return CFGScaleSettingsScreen(
+            characterId: characterId,
+            chatId: chatId,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.logprobsSettings,
+        name: 'logprobsSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LogprobsSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.tokenizerSettings,
+        name: 'tokenizerSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TokenizerSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vectorStorageSettings,
+        name: 'vectorStorageSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const VectorStorageSettingsScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

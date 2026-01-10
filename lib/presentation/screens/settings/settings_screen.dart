@@ -39,6 +39,96 @@ class SettingsScreen extends ConsumerWidget {
           ),
           
           const Divider(height: 32),
+          _buildSectionHeader(context, 'Multimedia'),
+          ListTile(
+            leading: const Icon(Icons.record_voice_over),
+            title: const Text('Text-to-Speech'),
+            subtitle: const Text('Voice synthesis settings'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.ttsSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.mic),
+            title: const Text('Speech-to-Text'),
+            subtitle: const Text('Voice input settings'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.sttSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.translate),
+            title: const Text('Translation'),
+            subtitle: const Text('Message translation settings'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.translationSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.image),
+            title: const Text('Image Generation'),
+            subtitle: const Text('AI image generation settings'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.imageGenSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.emoji_emotions),
+            title: const Text('Expression Sprites'),
+            subtitle: const Text('Character emotion sprites'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.spriteSettings),
+          ),
+          
+          const Divider(height: 32),
+          _buildSectionHeader(context, 'Advanced'),
+          ListTile(
+            leading: const Icon(Icons.find_replace),
+            title: const Text('Regex Scripts'),
+            subtitle: const Text('Find/replace patterns in messages'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.regexSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.data_object),
+            title: const Text('Variables'),
+            subtitle: const Text('Global and local variable storage'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.variablesSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.tune),
+            title: const Text('Logit Bias'),
+            subtitle: const Text('Adjust token probabilities'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.logitBiasSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.linear_scale),
+            title: const Text('CFG Scale'),
+            subtitle: const Text('Classifier-Free Guidance settings'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.cfgScaleSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.analytics),
+            title: const Text('Token Probabilities'),
+            subtitle: const Text('View logprobs for AI responses'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.logprobsSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.token),
+            title: const Text('Tokenizer'),
+            subtitle: const Text('Token visualization and counting'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.tokenizerSettings),
+          ),
+          ListTile(
+            leading: const Icon(Icons.storage),
+            title: const Text('Vector Storage / RAG'),
+            subtitle: const Text('Knowledge base and retrieval'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.vectorStorageSettings),
+          ),
+          
+          const Divider(height: 32),
           _buildSectionHeader(context, 'App Settings'),
           ListTile(
             leading: const Icon(Icons.palette),
@@ -64,9 +154,8 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.backup),
             title: const Text('Backup & Restore'),
             subtitle: const Text('Export or import all data'),
-            onTap: () {
-              // Open backup screen
-            },
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.backupSettings),
           ),
           
           ListTile(

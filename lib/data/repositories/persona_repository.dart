@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/database/database.dart' hide Persona;
 import 'package:native_tavern/data/models/persona.dart';
+import 'package:native_tavern/core/services/initialization_service.dart';
 
 /// Repository for managing personas
 class PersonaRepository {
@@ -142,6 +143,6 @@ class PersonaRepository {
 
 /// Provider for persona repository
 final personaRepositoryProvider = Provider<PersonaRepository>((ref) {
-  final db = DatabaseProvider.instance;
+  final db = ref.watch(databaseProvider);
   return PersonaRepository(db);
 });

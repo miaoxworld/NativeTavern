@@ -321,12 +321,16 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   }
 
   /// Send a user message and get AI response
-  Future<void> sendMessage(String content, LLMConfig config) async {
+  Future<void> sendMessage(
+    String content,
+    LLMConfig config, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     if (state.chat == null) return;
     
     // For group chats, use group message handling
     if (state.isGroupChat) {
-      await sendGroupMessage(content, config);
+      await sendGroupMessage(content, config, attachments: attachments);
       return;
     }
     
@@ -341,6 +345,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       timestamp: DateTime.now(),
       swipes: [content],
       currentSwipeIndex: 0,
+      attachments: attachments,
     );
 
     await _chatRepository.addMessage(userMessage);
@@ -1554,7 +1559,11 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   // ============================================
 
   /// Send a message in group chat and get responses from characters
-  Future<void> sendGroupMessage(String content, LLMConfig config) async {
+  Future<void> sendGroupMessage(
+    String content,
+    LLMConfig config, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     if (state.chat == null || state.group == null) return;
 
     // Add user message
@@ -1566,6 +1575,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       timestamp: DateTime.now(),
       swipes: [content],
       currentSwipeIndex: 0,
+      attachments: attachments,
     );
 
     await _chatRepository.addMessage(userMessage);

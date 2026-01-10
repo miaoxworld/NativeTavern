@@ -133,6 +133,7 @@ class ChatRepository {
       currentSwipeIndex: Value(newMessage.currentSwipeIndex),
       characterId: Value(newMessage.characterId),
       characterName: Value(newMessage.characterName),
+      attachmentsJson: Value(jsonEncode(newMessage.attachments.map((a) => a.toJson()).toList())),
     ));
     
     // Update chat's updatedAt
@@ -151,6 +152,7 @@ class ChatRepository {
           currentSwipeIndex: Value(message.currentSwipeIndex),
           characterId: Value(message.characterId),
           characterName: Value(message.characterName),
+          attachmentsJson: Value(jsonEncode(message.attachments.map((a) => a.toJson()).toList())),
         ));
     
     // Update chat's updatedAt
@@ -222,6 +224,7 @@ class ChatRepository {
       currentSwipeIndex: row.currentSwipeIndex,
       characterId: row.characterId,
       characterName: row.characterName,
+      attachments: _parseAttachments(row.attachmentsJson),
     );
   }
 
@@ -229,6 +232,17 @@ class ChatRepository {
     try {
       final list = jsonDecode(json) as List;
       return list.cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  List<models.ChatAttachment> _parseAttachments(String json) {
+    try {
+      final list = jsonDecode(json) as List;
+      return list
+          .map((item) => models.ChatAttachment.fromJson(item as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }

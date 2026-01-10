@@ -1608,6 +1608,14 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   late final GeneratedColumn<String> characterName = GeneratedColumn<String>(
       'character_name', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _attachmentsJsonMeta =
+      const VerificationMeta('attachmentsJson');
+  @override
+  late final GeneratedColumn<String> attachmentsJson = GeneratedColumn<String>(
+      'attachments_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1621,7 +1629,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         isHidden,
         metadataJson,
         characterId,
-        characterName
+        characterName,
+        attachmentsJson
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1698,6 +1707,12 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           characterName.isAcceptableOrUnknown(
               data['character_name']!, _characterNameMeta));
     }
+    if (data.containsKey('attachments_json')) {
+      context.handle(
+          _attachmentsJsonMeta,
+          attachmentsJson.isAcceptableOrUnknown(
+              data['attachments_json']!, _attachmentsJsonMeta));
+    }
     return context;
   }
 
@@ -1731,6 +1746,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.string, data['${effectivePrefix}character_id']),
       characterName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}character_name']),
+      attachmentsJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}attachments_json'])!,
     );
   }
 
@@ -1753,6 +1770,7 @@ class Message extends DataClass implements Insertable<Message> {
   final String metadataJson;
   final String? characterId;
   final String? characterName;
+  final String attachmentsJson;
   const Message(
       {required this.id,
       required this.chatId,
@@ -1765,7 +1783,8 @@ class Message extends DataClass implements Insertable<Message> {
       required this.isHidden,
       required this.metadataJson,
       this.characterId,
-      this.characterName});
+      this.characterName,
+      required this.attachmentsJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1785,6 +1804,7 @@ class Message extends DataClass implements Insertable<Message> {
     if (!nullToAbsent || characterName != null) {
       map['character_name'] = Variable<String>(characterName);
     }
+    map['attachments_json'] = Variable<String>(attachmentsJson);
     return map;
   }
 
@@ -1806,6 +1826,7 @@ class Message extends DataClass implements Insertable<Message> {
       characterName: characterName == null && nullToAbsent
           ? const Value.absent()
           : Value(characterName),
+      attachmentsJson: Value(attachmentsJson),
     );
   }
 
@@ -1825,6 +1846,7 @@ class Message extends DataClass implements Insertable<Message> {
       metadataJson: serializer.fromJson<String>(json['metadataJson']),
       characterId: serializer.fromJson<String?>(json['characterId']),
       characterName: serializer.fromJson<String?>(json['characterName']),
+      attachmentsJson: serializer.fromJson<String>(json['attachmentsJson']),
     );
   }
   @override
@@ -1843,6 +1865,7 @@ class Message extends DataClass implements Insertable<Message> {
       'metadataJson': serializer.toJson<String>(metadataJson),
       'characterId': serializer.toJson<String?>(characterId),
       'characterName': serializer.toJson<String?>(characterName),
+      'attachmentsJson': serializer.toJson<String>(attachmentsJson),
     };
   }
 
@@ -1858,7 +1881,8 @@ class Message extends DataClass implements Insertable<Message> {
           bool? isHidden,
           String? metadataJson,
           Value<String?> characterId = const Value.absent(),
-          Value<String?> characterName = const Value.absent()}) =>
+          Value<String?> characterName = const Value.absent(),
+          String? attachmentsJson}) =>
       Message(
         id: id ?? this.id,
         chatId: chatId ?? this.chatId,
@@ -1873,6 +1897,7 @@ class Message extends DataClass implements Insertable<Message> {
         characterId: characterId.present ? characterId.value : this.characterId,
         characterName:
             characterName.present ? characterName.value : this.characterName,
+        attachmentsJson: attachmentsJson ?? this.attachmentsJson,
       );
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
@@ -1895,6 +1920,9 @@ class Message extends DataClass implements Insertable<Message> {
       characterName: data.characterName.present
           ? data.characterName.value
           : this.characterName,
+      attachmentsJson: data.attachmentsJson.present
+          ? data.attachmentsJson.value
+          : this.attachmentsJson,
     );
   }
 
@@ -1912,7 +1940,8 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('isHidden: $isHidden, ')
           ..write('metadataJson: $metadataJson, ')
           ..write('characterId: $characterId, ')
-          ..write('characterName: $characterName')
+          ..write('characterName: $characterName, ')
+          ..write('attachmentsJson: $attachmentsJson')
           ..write(')'))
         .toString();
   }
@@ -1930,7 +1959,8 @@ class Message extends DataClass implements Insertable<Message> {
       isHidden,
       metadataJson,
       characterId,
-      characterName);
+      characterName,
+      attachmentsJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1946,7 +1976,8 @@ class Message extends DataClass implements Insertable<Message> {
           other.isHidden == this.isHidden &&
           other.metadataJson == this.metadataJson &&
           other.characterId == this.characterId &&
-          other.characterName == this.characterName);
+          other.characterName == this.characterName &&
+          other.attachmentsJson == this.attachmentsJson);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -1962,6 +1993,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<String> metadataJson;
   final Value<String?> characterId;
   final Value<String?> characterName;
+  final Value<String> attachmentsJson;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -1976,6 +2008,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.metadataJson = const Value.absent(),
     this.characterId = const Value.absent(),
     this.characterName = const Value.absent(),
+    this.attachmentsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -1991,6 +2024,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.metadataJson = const Value.absent(),
     this.characterId = const Value.absent(),
     this.characterName = const Value.absent(),
+    this.attachmentsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         chatId = Value(chatId),
@@ -2010,6 +2044,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<String>? metadataJson,
     Expression<String>? characterId,
     Expression<String>? characterName,
+    Expression<String>? attachmentsJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2025,6 +2060,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (metadataJson != null) 'metadata_json': metadataJson,
       if (characterId != null) 'character_id': characterId,
       if (characterName != null) 'character_name': characterName,
+      if (attachmentsJson != null) 'attachments_json': attachmentsJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2042,6 +2078,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<String>? metadataJson,
       Value<String?>? characterId,
       Value<String?>? characterName,
+      Value<String>? attachmentsJson,
       Value<int>? rowid}) {
     return MessagesCompanion(
       id: id ?? this.id,
@@ -2056,6 +2093,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       metadataJson: metadataJson ?? this.metadataJson,
       characterId: characterId ?? this.characterId,
       characterName: characterName ?? this.characterName,
+      attachmentsJson: attachmentsJson ?? this.attachmentsJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2099,6 +2137,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (characterName.present) {
       map['character_name'] = Variable<String>(characterName.value);
     }
+    if (attachmentsJson.present) {
+      map['attachments_json'] = Variable<String>(attachmentsJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2120,6 +2161,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('metadataJson: $metadataJson, ')
           ..write('characterId: $characterId, ')
           ..write('characterName: $characterName, ')
+          ..write('attachmentsJson: $attachmentsJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5279,6 +5321,509 @@ class BookmarksCompanion extends UpdateCompanion<Bookmark> {
   }
 }
 
+class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+      'icon', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, color, icon, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<Tag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+          _iconMeta, icon.isAcceptableOrUnknown(data['icon']!, _iconMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Tag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Tag(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color']),
+      icon: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+}
+
+class Tag extends DataClass implements Insertable<Tag> {
+  final String id;
+  final String name;
+  final String? color;
+  final String? icon;
+  final DateTime createdAt;
+  const Tag(
+      {required this.id,
+      required this.name,
+      this.color,
+      this.icon,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TagsCompanion toCompanion(bool nullToAbsent) {
+    return TagsCompanion(
+      id: Value(id),
+      name: Value(name),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Tag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Tag(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      color: serializer.fromJson<String?>(json['color']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'color': serializer.toJson<String?>(color),
+      'icon': serializer.toJson<String?>(icon),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Tag copyWith(
+          {String? id,
+          String? name,
+          Value<String?> color = const Value.absent(),
+          Value<String?> icon = const Value.absent(),
+          DateTime? createdAt}) =>
+      Tag(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        color: color.present ? color.value : this.color,
+        icon: icon.present ? icon.value : this.icon,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  Tag copyWithCompanion(TagsCompanion data) {
+    return Tag(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      color: data.color.present ? data.color.value : this.color,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Tag(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, color, icon, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Tag &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.color == this.color &&
+          other.icon == this.icon &&
+          other.createdAt == this.createdAt);
+}
+
+class TagsCompanion extends UpdateCompanion<Tag> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> color;
+  final Value<String?> icon;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TagsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TagsCompanion.insert({
+    required String id,
+    required String name,
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        createdAt = Value(createdAt);
+  static Insertable<Tag> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? color,
+    Expression<String>? icon,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (color != null) 'color': color,
+      if (icon != null) 'icon': icon,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TagsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<String?>? color,
+      Value<String?>? icon,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return TagsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CharacterTagsTable extends CharacterTags
+    with TableInfo<$CharacterTagsTable, CharacterTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CharacterTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _characterIdMeta =
+      const VerificationMeta('characterId');
+  @override
+  late final GeneratedColumn<String> characterId = GeneratedColumn<String>(
+      'character_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES characters (id)'));
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+      'tag_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES tags (id)'));
+  @override
+  List<GeneratedColumn> get $columns => [characterId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'character_tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<CharacterTag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('character_id')) {
+      context.handle(
+          _characterIdMeta,
+          characterId.isAcceptableOrUnknown(
+              data['character_id']!, _characterIdMeta));
+    } else if (isInserting) {
+      context.missing(_characterIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta));
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {characterId, tagId};
+  @override
+  CharacterTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CharacterTag(
+      characterId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}character_id'])!,
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tag_id'])!,
+    );
+  }
+
+  @override
+  $CharacterTagsTable createAlias(String alias) {
+    return $CharacterTagsTable(attachedDatabase, alias);
+  }
+}
+
+class CharacterTag extends DataClass implements Insertable<CharacterTag> {
+  final String characterId;
+  final String tagId;
+  const CharacterTag({required this.characterId, required this.tagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['character_id'] = Variable<String>(characterId);
+    map['tag_id'] = Variable<String>(tagId);
+    return map;
+  }
+
+  CharacterTagsCompanion toCompanion(bool nullToAbsent) {
+    return CharacterTagsCompanion(
+      characterId: Value(characterId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory CharacterTag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CharacterTag(
+      characterId: serializer.fromJson<String>(json['characterId']),
+      tagId: serializer.fromJson<String>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'characterId': serializer.toJson<String>(characterId),
+      'tagId': serializer.toJson<String>(tagId),
+    };
+  }
+
+  CharacterTag copyWith({String? characterId, String? tagId}) => CharacterTag(
+        characterId: characterId ?? this.characterId,
+        tagId: tagId ?? this.tagId,
+      );
+  CharacterTag copyWithCompanion(CharacterTagsCompanion data) {
+    return CharacterTag(
+      characterId:
+          data.characterId.present ? data.characterId.value : this.characterId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CharacterTag(')
+          ..write('characterId: $characterId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(characterId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CharacterTag &&
+          other.characterId == this.characterId &&
+          other.tagId == this.tagId);
+}
+
+class CharacterTagsCompanion extends UpdateCompanion<CharacterTag> {
+  final Value<String> characterId;
+  final Value<String> tagId;
+  final Value<int> rowid;
+  const CharacterTagsCompanion({
+    this.characterId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CharacterTagsCompanion.insert({
+    required String characterId,
+    required String tagId,
+    this.rowid = const Value.absent(),
+  })  : characterId = Value(characterId),
+        tagId = Value(tagId);
+  static Insertable<CharacterTag> custom({
+    Expression<String>? characterId,
+    Expression<String>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (characterId != null) 'character_id': characterId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CharacterTagsCompanion copyWith(
+      {Value<String>? characterId, Value<String>? tagId, Value<int>? rowid}) {
+    return CharacterTagsCompanion(
+      characterId: characterId ?? this.characterId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (characterId.present) {
+      map['character_id'] = Variable<String>(characterId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<String>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CharacterTagsCompanion(')
+          ..write('characterId: $characterId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5292,6 +5837,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PersonasTable personas = $PersonasTable(this);
   late final $GroupsTable groups = $GroupsTable(this);
   late final $BookmarksTable bookmarks = $BookmarksTable(this);
+  late final $TagsTable tags = $TagsTable(this);
+  late final $CharacterTagsTable characterTags = $CharacterTagsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5305,7 +5852,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         llmConfigs,
         personas,
         groups,
-        bookmarks
+        bookmarks,
+        tags,
+        characterTags
       ];
 }
 
@@ -5388,6 +5937,21 @@ final class $$CharactersTableReferences
         .filter((f) => f.characterId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_worldInfosRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$CharacterTagsTable, List<CharacterTag>>
+      _characterTagsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.characterTags,
+              aliasName: $_aliasNameGenerator(
+                  db.characters.id, db.characterTags.characterId));
+
+  $$CharacterTagsTableProcessedTableManager get characterTagsRefs {
+    final manager = $$CharacterTagsTableTableManager($_db, $_db.characterTags)
+        .filter((f) => f.characterId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_characterTagsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -5505,6 +6069,27 @@ class $$CharactersTableFilterComposer
             $$WorldInfosTableFilterComposer(
               $db: $db,
               $table: $db.worldInfos,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> characterTagsRefs(
+      Expression<bool> Function($$CharacterTagsTableFilterComposer f) f) {
+    final $$CharacterTagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.characterTags,
+        getReferencedColumn: (t) => t.characterId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharacterTagsTableFilterComposer(
+              $db: $db,
+              $table: $db.characterTags,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5709,6 +6294,27 @@ class $$CharactersTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> characterTagsRefs<T extends Object>(
+      Expression<T> Function($$CharacterTagsTableAnnotationComposer a) f) {
+    final $$CharacterTagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.characterTags,
+        getReferencedColumn: (t) => t.characterId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharacterTagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.characterTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$CharactersTableTableManager extends RootTableManager<
@@ -5722,7 +6328,8 @@ class $$CharactersTableTableManager extends RootTableManager<
     $$CharactersTableUpdateCompanionBuilder,
     (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function({bool chatsRefs, bool worldInfosRefs})> {
+    PrefetchHooks Function(
+        {bool chatsRefs, bool worldInfosRefs, bool characterTagsRefs})> {
   $$CharactersTableTableManager(_$AppDatabase db, $CharactersTable table)
       : super(TableManagerState(
           db: db,
@@ -5835,12 +6442,16 @@ class $$CharactersTableTableManager extends RootTableManager<
                     $$CharactersTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({chatsRefs = false, worldInfosRefs = false}) {
+          prefetchHooksCallback: (
+              {chatsRefs = false,
+              worldInfosRefs = false,
+              characterTagsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (chatsRefs) db.chats,
-                if (worldInfosRefs) db.worldInfos
+                if (worldInfosRefs) db.worldInfos,
+                if (characterTagsRefs) db.characterTags
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -5870,6 +6481,19 @@ class $$CharactersTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.characterId == item.id),
+                        typedResults: items),
+                  if (characterTagsRefs)
+                    await $_getPrefetchedData<Character, $CharactersTable,
+                            CharacterTag>(
+                        currentTable: table,
+                        referencedTable: $$CharactersTableReferences
+                            ._characterTagsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CharactersTableReferences(db, table, p0)
+                                .characterTagsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.characterId == item.id),
                         typedResults: items)
                 ];
               },
@@ -5889,7 +6513,8 @@ typedef $$CharactersTableProcessedTableManager = ProcessedTableManager<
     $$CharactersTableUpdateCompanionBuilder,
     (Character, $$CharactersTableReferences),
     Character,
-    PrefetchHooks Function({bool chatsRefs, bool worldInfosRefs})>;
+    PrefetchHooks Function(
+        {bool chatsRefs, bool worldInfosRefs, bool characterTagsRefs})>;
 typedef $$ChatsTableCreateCompanionBuilder = ChatsCompanion Function({
   required String id,
   required String characterId,
@@ -6396,6 +7021,7 @@ typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   Value<String> metadataJson,
   Value<String?> characterId,
   Value<String?> characterName,
+  Value<String> attachmentsJson,
   Value<int> rowid,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
@@ -6411,6 +7037,7 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<String> metadataJson,
   Value<String?> characterId,
   Value<String?> characterName,
+  Value<String> attachmentsJson,
   Value<int> rowid,
 });
 
@@ -6475,6 +7102,10 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<String> get characterName => $composableBuilder(
       column: $table.characterName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get attachmentsJson => $composableBuilder(
+      column: $table.attachmentsJson,
+      builder: (column) => ColumnFilters(column));
 
   $$ChatsTableFilterComposer get chatId {
     final $$ChatsTableFilterComposer composer = $composerBuilder(
@@ -6542,6 +7173,10 @@ class $$MessagesTableOrderingComposer
       column: $table.characterName,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get attachmentsJson => $composableBuilder(
+      column: $table.attachmentsJson,
+      builder: (column) => ColumnOrderings(column));
+
   $$ChatsTableOrderingComposer get chatId {
     final $$ChatsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -6605,6 +7240,9 @@ class $$MessagesTableAnnotationComposer
   GeneratedColumn<String> get characterName => $composableBuilder(
       column: $table.characterName, builder: (column) => column);
 
+  GeneratedColumn<String> get attachmentsJson => $composableBuilder(
+      column: $table.attachmentsJson, builder: (column) => column);
+
   $$ChatsTableAnnotationComposer get chatId {
     final $$ChatsTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -6661,6 +7299,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<String> metadataJson = const Value.absent(),
             Value<String?> characterId = const Value.absent(),
             Value<String?> characterName = const Value.absent(),
+            Value<String> attachmentsJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion(
@@ -6676,6 +7315,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             metadataJson: metadataJson,
             characterId: characterId,
             characterName: characterName,
+            attachmentsJson: attachmentsJson,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -6691,6 +7331,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<String> metadataJson = const Value.absent(),
             Value<String?> characterId = const Value.absent(),
             Value<String?> characterName = const Value.absent(),
+            Value<String> attachmentsJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
@@ -6706,6 +7347,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             metadataJson: metadataJson,
             characterId: characterId,
             characterName: characterName,
+            attachmentsJson: attachmentsJson,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -8634,6 +9276,562 @@ typedef $$BookmarksTableProcessedTableManager = ProcessedTableManager<
     (Bookmark, $$BookmarksTableReferences),
     Bookmark,
     PrefetchHooks Function({bool chatId})>;
+typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
+  required String id,
+  required String name,
+  Value<String?> color,
+  Value<String?> icon,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$TagsTableUpdateCompanionBuilder = TagsCompanion Function({
+  Value<String> id,
+  Value<String> name,
+  Value<String?> color,
+  Value<String?> icon,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $$TagsTableReferences
+    extends BaseReferences<_$AppDatabase, $TagsTable, Tag> {
+  $$TagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$CharacterTagsTable, List<CharacterTag>>
+      _characterTagsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.characterTags,
+              aliasName:
+                  $_aliasNameGenerator(db.tags.id, db.characterTags.tagId));
+
+  $$CharacterTagsTableProcessedTableManager get characterTagsRefs {
+    final manager = $$CharacterTagsTableTableManager($_db, $_db.characterTags)
+        .filter((f) => f.tagId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_characterTagsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> characterTagsRefs(
+      Expression<bool> Function($$CharacterTagsTableFilterComposer f) f) {
+    final $$CharacterTagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.characterTags,
+        getReferencedColumn: (t) => t.tagId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharacterTagsTableFilterComposer(
+              $db: $db,
+              $table: $db.characterTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> characterTagsRefs<T extends Object>(
+      Expression<T> Function($$CharacterTagsTableAnnotationComposer a) f) {
+    final $$CharacterTagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.characterTags,
+        getReferencedColumn: (t) => t.tagId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharacterTagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.characterTags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TagsTable,
+    Tag,
+    $$TagsTableFilterComposer,
+    $$TagsTableOrderingComposer,
+    $$TagsTableAnnotationComposer,
+    $$TagsTableCreateCompanionBuilder,
+    $$TagsTableUpdateCompanionBuilder,
+    (Tag, $$TagsTableReferences),
+    Tag,
+    PrefetchHooks Function({bool characterTagsRefs})> {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> color = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TagsCompanion(
+            id: id,
+            name: name,
+            color: color,
+            icon: icon,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            Value<String?> color = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            required DateTime createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TagsCompanion.insert(
+            id: id,
+            name: name,
+            color: color,
+            icon: icon,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable(table), $$TagsTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: ({characterTagsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (characterTagsRefs) db.characterTags
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (characterTagsRefs)
+                    await $_getPrefetchedData<Tag, $TagsTable, CharacterTag>(
+                        currentTable: table,
+                        referencedTable:
+                            $$TagsTableReferences._characterTagsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TagsTableReferences(db, table, p0)
+                                .characterTagsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.tagId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TagsTable,
+    Tag,
+    $$TagsTableFilterComposer,
+    $$TagsTableOrderingComposer,
+    $$TagsTableAnnotationComposer,
+    $$TagsTableCreateCompanionBuilder,
+    $$TagsTableUpdateCompanionBuilder,
+    (Tag, $$TagsTableReferences),
+    Tag,
+    PrefetchHooks Function({bool characterTagsRefs})>;
+typedef $$CharacterTagsTableCreateCompanionBuilder = CharacterTagsCompanion
+    Function({
+  required String characterId,
+  required String tagId,
+  Value<int> rowid,
+});
+typedef $$CharacterTagsTableUpdateCompanionBuilder = CharacterTagsCompanion
+    Function({
+  Value<String> characterId,
+  Value<String> tagId,
+  Value<int> rowid,
+});
+
+final class $$CharacterTagsTableReferences
+    extends BaseReferences<_$AppDatabase, $CharacterTagsTable, CharacterTag> {
+  $$CharacterTagsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $CharactersTable _characterIdTable(_$AppDatabase db) =>
+      db.characters.createAlias(
+          $_aliasNameGenerator(db.characterTags.characterId, db.characters.id));
+
+  $$CharactersTableProcessedTableManager get characterId {
+    final $_column = $_itemColumn<String>('character_id')!;
+
+    final manager = $$CharactersTableTableManager($_db, $_db.characters)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_characterIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $TagsTable _tagIdTable(_$AppDatabase db) => db.tags
+      .createAlias($_aliasNameGenerator(db.characterTags.tagId, db.tags.id));
+
+  $$TagsTableProcessedTableManager get tagId {
+    final $_column = $_itemColumn<String>('tag_id')!;
+
+    final manager = $$TagsTableTableManager($_db, $_db.tags)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tagIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$CharacterTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $CharacterTagsTable> {
+  $$CharacterTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CharactersTableFilterComposer get characterId {
+    final $$CharactersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableFilterComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableFilterComposer get tagId {
+    final $$TagsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableFilterComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CharacterTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CharacterTagsTable> {
+  $$CharacterTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CharactersTableOrderingComposer get characterId {
+    final $$CharactersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableOrderingComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableOrderingComposer get tagId {
+    final $$TagsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableOrderingComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CharacterTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CharacterTagsTable> {
+  $$CharacterTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CharactersTableAnnotationComposer get characterId {
+    final $$CharactersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.characterId,
+        referencedTable: $db.characters,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CharactersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.characters,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TagsTableAnnotationComposer get tagId {
+    final $$TagsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.tagId,
+        referencedTable: $db.tags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TagsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tags,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CharacterTagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CharacterTagsTable,
+    CharacterTag,
+    $$CharacterTagsTableFilterComposer,
+    $$CharacterTagsTableOrderingComposer,
+    $$CharacterTagsTableAnnotationComposer,
+    $$CharacterTagsTableCreateCompanionBuilder,
+    $$CharacterTagsTableUpdateCompanionBuilder,
+    (CharacterTag, $$CharacterTagsTableReferences),
+    CharacterTag,
+    PrefetchHooks Function({bool characterId, bool tagId})> {
+  $$CharacterTagsTableTableManager(_$AppDatabase db, $CharacterTagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CharacterTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CharacterTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CharacterTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> characterId = const Value.absent(),
+            Value<String> tagId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CharacterTagsCompanion(
+            characterId: characterId,
+            tagId: tagId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String characterId,
+            required String tagId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CharacterTagsCompanion.insert(
+            characterId: characterId,
+            tagId: tagId,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$CharacterTagsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({characterId = false, tagId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (characterId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.characterId,
+                    referencedTable:
+                        $$CharacterTagsTableReferences._characterIdTable(db),
+                    referencedColumn:
+                        $$CharacterTagsTableReferences._characterIdTable(db).id,
+                  ) as T;
+                }
+                if (tagId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.tagId,
+                    referencedTable:
+                        $$CharacterTagsTableReferences._tagIdTable(db),
+                    referencedColumn:
+                        $$CharacterTagsTableReferences._tagIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$CharacterTagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CharacterTagsTable,
+    CharacterTag,
+    $$CharacterTagsTableFilterComposer,
+    $$CharacterTagsTableOrderingComposer,
+    $$CharacterTagsTableAnnotationComposer,
+    $$CharacterTagsTableCreateCompanionBuilder,
+    $$CharacterTagsTableUpdateCompanionBuilder,
+    (CharacterTag, $$CharacterTagsTableReferences),
+    CharacterTag,
+    PrefetchHooks Function({bool characterId, bool tagId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8656,4 +9854,7 @@ class $AppDatabaseManager {
       $$GroupsTableTableManager(_db, _db.groups);
   $$BookmarksTableTableManager get bookmarks =>
       $$BookmarksTableTableManager(_db, _db.bookmarks);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$CharacterTagsTableTableManager get characterTags =>
+      $$CharacterTagsTableTableManager(_db, _db.characterTags);
 }
