@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/bookmark.dart';
@@ -774,8 +776,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
 
   /// Build context for LLM
   /// This method builds the full message list according to Prompt Manager configuration
-  Future<List<Map<String, String>>> _buildContext({bool excludeLastAssistant = false}) async {
-    final messages = <Map<String, String>>[];
+  Future<List<Map<String, dynamic>>> _buildContext({bool excludeLastAssistant = false}) async {
+    final messages = <Map<String, dynamic>>[];
     final character = state.character;
     final chat = state.chat;
 
@@ -923,10 +925,15 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         });
       }
       
-      messages.add({
-        'role': msg.role == MessageRole.user ? 'user' : 'assistant',
-        'content': msg.content,
-      });
+      // Build message with attachments if present
+      if (msg.hasAttachments && msg.role == MessageRole.user) {
+        messages.add(_buildMultimodalMessage(msg));
+      } else {
+        messages.add({
+          'role': msg.role == MessageRole.user ? 'user' : 'assistant',
+          'content': msg.content,
+        });
+      }
     }
     
     // If Author's Note depth is beyond message count, insert at the start of chat
@@ -959,9 +966,15 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     print('Chat messages: ${chatMessages.length}');
     for (var i = 0; i < messages.length; i++) {
       final msg = messages[i];
-      final preview = msg['content']!.length > 100
-          ? '${msg['content']!.substring(0, 100)}...'
-          : msg['content']!;
+      final content = msg['content'];
+      String preview;
+      if (content is String) {
+        preview = content.length > 100 ? '${content.substring(0, 100)}...' : content;
+      } else if (content is List) {
+        preview = '[Multimodal: ${content.length} parts]';
+      } else {
+        preview = content.toString();
+      }
       print('[$i] ${msg['role']}: $preview');
     }
     print('=== End Context Messages ===');
@@ -970,7 +983,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   }
 
   /// Build messages for a single prompt section
-  Future<List<Map<String, String>>> _buildSectionMessages(
+  Future<List<Map<String, dynamic>>> _buildSectionMessages(
     PromptSection section,
     Character? character,
     Persona? persona,
@@ -979,7 +992,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     String Function(String) processMacros,
     void Function(WorldInfoPosition, String) addWorldInfoAt,
   ) async {
-    final messages = <Map<String, String>>[];
+    final messages = <Map<String, dynamic>>[];
     final role = section.role ?? 'system';
     
     switch (section.type) {
@@ -1233,8 +1246,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   }
 
   /// Build context up to a specific message index (exclusive)
-  Future<List<Map<String, String>>> _buildContextUpTo(int messageIndex) async {
-    final messages = <Map<String, String>>[];
+  Future<List<Map<String, dynamic>>> _buildContextUpTo(int messageIndex) async {
+    final messages = <Map<String, dynamic>>[];
     final character = state.character;
     final chat = state.chat;
 
@@ -1373,10 +1386,15 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         });
       }
       
-      messages.add({
-        'role': msg.role == MessageRole.user ? 'user' : 'assistant',
-        'content': msg.content,
-      });
+      // Build message with attachments if present
+      if (msg.hasAttachments && msg.role == MessageRole.user) {
+        messages.add(_buildMultimodalMessage(msg));
+      } else {
+        messages.add({
+          'role': msg.role == MessageRole.user ? 'user' : 'assistant',
+          'content': msg.content,
+        });
+      }
     }
     
     // If Author's Note depth is beyond message count, insert at the start of chat
@@ -1441,6 +1459,48 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       contextText: contextBuffer.toString(),
       worldInfoIds: allWorldInfoIds,
     );
+  }
+
+  /// Build a multimodal message with text and images
+  Map<String, dynamic> _buildMultimodalMessage(ChatMessage msg) {
+    // Build content array with text and images
+    final contentParts = <Map<String, dynamic>>[];
+    
+    // Add text content if present
+    if (msg.content.isNotEmpty) {
+      contentParts.add({
+        'type': 'text',
+        'text': msg.content,
+      });
+    }
+    
+    // Add image attachments as base64
+    for (final attachment in msg.attachments) {
+      try {
+        final file = File(attachment.path);
+        if (file.existsSync()) {
+          final bytes = file.readAsBytesSync();
+          final base64Data = base64Encode(bytes);
+          final mimeType = attachment.mimeType ?? 'image/jpeg';
+          
+          // Use OpenAI-compatible format (works with most providers)
+          contentParts.add({
+            'type': 'image_url',
+            'image_url': {
+              'url': 'data:$mimeType;base64,$base64Data',
+            },
+          });
+        }
+      } catch (e) {
+        // Skip invalid attachments
+        print('Error loading attachment: $e');
+      }
+    }
+    
+    return {
+      'role': 'user',
+      'content': contentParts,
+    };
   }
 
   String _generateId() {
@@ -1769,8 +1829,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   }
 
   /// Build context for group chat
-  Future<List<Map<String, String>>> _buildGroupContext(Character respondingCharacter) async {
-    final messages = <Map<String, String>>[];
+  Future<List<Map<String, dynamic>>> _buildGroupContext(Character respondingCharacter) async {
+    final messages = <Map<String, dynamic>>[];
     final group = state.group;
     if (group == null) return messages;
 

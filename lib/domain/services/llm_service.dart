@@ -341,7 +341,7 @@ class LLMService {
 
   /// Generate a response (non-streaming)
   Future<String> generate(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     switch (config.provider) {
@@ -362,7 +362,7 @@ class LLMService {
 
   /// Generate a streaming response (content only, for backward compatibility)
   Stream<String> generateStream(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     await for (final chunk in generateStreamWithReasoning(messages, config)) {
@@ -374,7 +374,7 @@ class LLMService {
 
   /// Generate a streaming response with reasoning/thinking support
   Stream<LLMStreamChunk> generateStreamWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) {
     switch (config.provider) {
@@ -693,7 +693,7 @@ class LLMService {
 
   // OpenAI
   Future<String> _generateOpenAI(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     final endpoint = '${config.apiUrl}/chat/completions';
@@ -736,7 +736,7 @@ class LLMService {
   }
 
   Stream<String> _streamOpenAI(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final endpoint = '${config.apiUrl}/chat/completions';
@@ -807,7 +807,7 @@ class LLMService {
 
   // Claude
   Future<String> _generateClaude(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     final systemMessage = messages.firstWhere(
@@ -853,7 +853,7 @@ class LLMService {
   }
 
   Stream<String> _streamClaude(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final systemMessage = messages.firstWhere(
@@ -926,7 +926,7 @@ class LLMService {
 
   // OpenRouter (uses OpenAI format)
   Future<String> _generateOpenRouter(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     return _generateOpenAI(messages, config);
@@ -934,7 +934,7 @@ class LLMService {
 
   // Gemini
   Future<String> _generateGemini(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     final contents = messages.map((m) => {
@@ -982,7 +982,7 @@ class LLMService {
   }
 
   Stream<String> _streamGemini(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     // Gemini streaming is complex, fallback to non-streaming
@@ -993,7 +993,7 @@ class LLMService {
 
   // Ollama
   Future<String> _generateOllama(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     final endpoint = '${config.apiUrl}/api/chat';
@@ -1031,7 +1031,7 @@ class LLMService {
   }
 
   Stream<String> _streamOllama(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final endpoint = '${config.apiUrl}/api/chat';
@@ -1096,7 +1096,7 @@ class LLMService {
 
   // KoboldCpp
   Future<String> _generateKobold(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     // Build prompt from messages
@@ -1136,7 +1136,7 @@ class LLMService {
   }
 
   Stream<String> _streamKobold(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     // KoboldCpp SSE streaming
@@ -1197,7 +1197,7 @@ class LLMService {
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
-  String _buildKoboldPrompt(List<Map<String, String>> messages) {
+  String _buildKoboldPrompt(List<Map<String, dynamic>> messages) {
     final buffer = StringBuffer();
     for (final msg in messages) {
       final role = msg['role'];
@@ -1221,7 +1221,7 @@ class LLMService {
 
   /// OpenAI streaming with reasoning support (for o1/o3 models)
   Stream<LLMStreamChunk> _streamOpenAIWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final endpoint = '${config.apiUrl}/chat/completions';
@@ -1307,7 +1307,7 @@ class LLMService {
 
   /// Claude streaming with thinking support
   Stream<LLMStreamChunk> _streamClaudeWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final systemMessage = messages.firstWhere(
@@ -1420,7 +1420,7 @@ class LLMService {
 
   /// Gemini streaming with thought support
   Stream<LLMStreamChunk> _streamGeminiWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     // Gemini 2.0 Flash Thinking returns thought in a separate part
@@ -1529,7 +1529,7 @@ class LLMService {
 
   /// Ollama streaming with reasoning support
   Stream<LLMStreamChunk> _streamOllamaWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final endpoint = '${config.apiUrl}/api/chat';
@@ -1594,7 +1594,7 @@ class LLMService {
 
   /// KoboldCpp streaming (no reasoning support)
   Stream<LLMStreamChunk> _streamKoboldWithReasoning(
-    List<Map<String, String>> messages,
+    List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
     final prompt = _buildKoboldPrompt(messages);

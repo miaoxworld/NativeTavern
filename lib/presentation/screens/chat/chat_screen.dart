@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1032,8 +1034,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  /// Show attachment options (camera or gallery)
+  /// Check if running on desktop platform
+  bool get _isDesktop =>
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+
+  /// Show attachment options (camera or gallery/files)
   void _showAttachmentOptions() {
+    debugPrint('📎 _showAttachmentOptions called, isDesktop: $_isDesktop');
+    
+    // On desktop, directly open file picker
+    if (_isDesktop) {
+      debugPrint('📎 Opening file picker for desktop...');
+      _pickImageFromFiles();
+      return;
+    }
+    
+    // On mobile, show options sheet
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.darkCard,
@@ -1077,7 +1093,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  /// Pick image from gallery
+  /// Pick image from files using FilePicker (for desktop)
+  Future<void> _pickImageFromFiles() async {
+    debugPrint('📎 _pickImageFromFiles called');
+    try {
+      debugPrint('📎 Calling FilePicker.platform.pickFiles...');
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+        dialogTitle: 'Select Images',
+      );
+      
+      debugPrint('📎 FilePicker result: $result');
+      
+      if (result != null && result.files.isNotEmpty) {
+        debugPrint('📎 Got ${result.files.length} files');
+        for (final file in result.files) {
+          debugPrint('📎 File: ${file.name}, path: ${file.path}');
+          if (file.path != null) {
+            await _addAttachmentFromPath(file.path!);
+          }
+        }
+      } else {
+        debugPrint('📎 No files selected or result is null');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('📎 FilePicker error: $e');
+      debugPrint('📎 Stack trace: $stackTrace');
+      _showSnackBar('Failed to pick image: $e');
+    }
+  }
+
+  /// Pick image from gallery (for mobile)
   Future<void> _pickImageFromGallery() async {
     try {
       final images = await _imagePicker.pickMultiImage(
@@ -1087,14 +1134,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
       
       for (final image in images) {
-        await _addAttachment(image);
+        await _addAttachmentFromXFile(image);
       }
     } catch (e) {
       _showSnackBar('Failed to pick image: $e');
     }
   }
 
-  /// Take photo with camera
+  /// Take photo with camera (for mobile)
   Future<void> _takePhoto() async {
     try {
       final image = await _imagePicker.pickImage(
@@ -1105,15 +1152,50 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
       
       if (image != null) {
-        await _addAttachment(image);
+        await _addAttachmentFromXFile(image);
       }
     } catch (e) {
       _showSnackBar('Failed to take photo: $e');
     }
   }
 
-  /// Add an attachment from XFile
-  Future<void> _addAttachment(XFile file) async {
+  /// Add an attachment from a file path
+  Future<void> _addAttachmentFromPath(String filePath) async {
+    try {
+      // Copy file to app's documents directory for persistence
+      final appDir = await getApplicationDocumentsDirectory();
+      final attachmentsDir = Directory(p.join(appDir.path, 'NativeTavern', 'attachments'));
+      await attachmentsDir.create(recursive: true);
+      
+      final uuid = const Uuid();
+      final extension = p.extension(filePath);
+      final newFileName = '${uuid.v4()}$extension';
+      final newPath = p.join(attachmentsDir.path, newFileName);
+      
+      // Copy file
+      final sourceFile = File(filePath);
+      await sourceFile.copy(newPath);
+      
+      // Get file info
+      final fileInfo = await File(newPath).stat();
+      
+      final attachment = ChatAttachment(
+        id: uuid.v4(),
+        path: newPath,
+        mimeType: _getMimeType(extension),
+        sizeBytes: fileInfo.size,
+      );
+      
+      setState(() {
+        _pendingAttachments.add(attachment);
+      });
+    } catch (e) {
+      _showSnackBar('Failed to add attachment: $e');
+    }
+  }
+
+  /// Add an attachment from XFile (for mobile image_picker)
+  Future<void> _addAttachmentFromXFile(XFile file) async {
     try {
       // Copy file to app's documents directory for persistence
       final appDir = await getApplicationDocumentsDirectory();
@@ -1514,6 +1596,9 @@ class _MessageBubbleState extends State<_MessageBubble> {
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Show image attachments if available
+                              if (widget.message.hasAttachments)
+                                _buildAttachments(),
                               // Show reasoning/thinking content if available
                               if (!isUser && widget.message.hasReasoning)
                                 _buildReasoningSection(),
@@ -1613,6 +1698,109 @@ class _MessageBubbleState extends State<_MessageBubble> {
       reasoning: reasoning,
       initiallyExpanded: false,
       label: 'Thinking',
+    );
+  }
+
+  /// Build image attachments grid for messages
+  Widget _buildAttachments() {
+    final attachments = widget.message.attachments;
+    if (attachments.isEmpty) return const SizedBox.shrink();
+    
+    // For single image, show larger preview
+    if (attachments.length == 1) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: GestureDetector(
+          onTap: () => _showImagePreview(attachments[0]),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 250,
+                maxHeight: 200,
+              ),
+              child: Image.file(
+                File(attachments[0].path),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 150,
+                  height: 100,
+                  color: AppTheme.darkBackground,
+                  child: const Icon(Icons.broken_image, color: AppTheme.textMuted),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // For multiple images, show a grid
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: attachments.map((attachment) {
+          return GestureDetector(
+            onTap: () => _showImagePreview(attachment),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(attachment.path),
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 80,
+                  height: 80,
+                  color: AppTheme.darkBackground,
+                  child: const Icon(Icons.broken_image, size: 20, color: AppTheme.textMuted),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// Show full-screen image preview
+  void _showImagePreview(ChatAttachment attachment) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(attachment.path),
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 200,
+                      height: 200,
+                      color: AppTheme.darkCard,
+                      child: const Icon(Icons.broken_image, size: 48, color: AppTheme.textMuted),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -147,9 +147,9 @@ class AIPresetManager {
     llmNotifier.updateSeed(gen.seed);
     llmNotifier.updateStreamEnabled(gen.streamEnabled);
 
-    // Apply prompt manager config if present
+    // Apply prompt manager config (reset to default if not present)
+    final promptNotifier = _ref.read(promptManagerProvider.notifier);
     if (preset.promptManagerConfig != null) {
-      final promptNotifier = _ref.read(promptManagerProvider.notifier);
       await promptNotifier.applyPreset(PromptManagerPreset(
         id: preset.id,
         name: preset.name,
@@ -157,6 +157,9 @@ class AIPresetManager {
         createdAt: preset.createdAt,
         updatedAt: preset.updatedAt,
       ));
+    } else {
+      // Reset to default prompt manager config when preset doesn't have one
+      await promptNotifier.resetToDefault();
     }
 
     // Apply instruct template if present
