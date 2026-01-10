@@ -27,51 +27,6 @@ class AIPresetsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.aiPresets),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              switch (value) {
-                case 'import':
-                  _importPreset(context, ref);
-                  break;
-                case 'export':
-                  _exportCurrentSettings(context, ref);
-                  break;
-                case 'save':
-                  _saveCurrentAsPreset(context, ref);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'save',
-                child: ListTile(
-                  leading: const Icon(Icons.save),
-                  title: Text(l10n.saveCurrentAsPreset),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  leading: const Icon(Icons.file_download),
-                  title: Text(l10n.importPreset),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: 'export',
-                child: ListTile(
-                  leading: const Icon(Icons.file_upload),
-                  title: Text(l10n.exportCurrentSettings),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -97,6 +52,36 @@ class AIPresetsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _importPreset(context, ref),
+                  icon: const Icon(Icons.file_download, size: 20),
+                  label: Text(l10n.importPreset),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _exportCurrentSettings(context, ref),
+                  icon: const Icon(Icons.file_upload, size: 20),
+                  label: Text(l10n.export),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _saveCurrentAsPreset(context, ref),
+                  icon: const Icon(Icons.save, size: 20),
+                  label: Text(l10n.saveAs),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 

@@ -1,7 +1,7 @@
 name: native_tavern
 description: A native cross-platform SillyTavern client for iOS and Android
 publish_to: 'none'
-version: 0.0.2+1
+version: 0.0.3+1
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

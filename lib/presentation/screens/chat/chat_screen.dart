@@ -500,9 +500,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     });
 
-    return Scaffold(
-      appBar: _buildAppBar(chatState),
-      body: Column(
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: _buildAppBar(chatState),
+        body: Column(
         children: [
           // API not configured banner
           if (!isConfigured)
@@ -558,7 +563,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
           // Input area
           _buildInputArea(chatState),
-        ],
+          ],
+        ),
       ),
     );
   }

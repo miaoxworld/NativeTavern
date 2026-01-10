@@ -52,4 +52,4 @@ linux
 windows
 release
 .env
-build_
+build_*

@@ -141,11 +141,25 @@ final importStateProvider =
 enum ImportFormat { png, charx, json }
 
 /// Import screen
-class ImportScreen extends ConsumerWidget {
+class ImportScreen extends ConsumerStatefulWidget {
   const ImportScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ImportScreen> createState() => _ImportScreenState();
+}
+
+class _ImportScreenState extends ConsumerState<ImportScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Clear previous import state when screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(importStateProvider.notifier).clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final importState = ref.watch(importStateProvider);
 
     return Scaffold(

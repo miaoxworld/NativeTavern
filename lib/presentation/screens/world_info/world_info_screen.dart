@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Screen for managing World Info / Lorebooks
 class WorldInfoScreen extends ConsumerWidget {
@@ -17,6 +22,11 @@ class WorldInfoScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.worldInfoLorebooks),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            tooltip: AppLocalizations.of(context)!.import,
+            onPressed: () => _importWorldInfo(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: AppLocalizations.of(context)!.createLorebook,
@@ -176,6 +186,64 @@ class WorldInfoScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _importWorldInfo(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.first;
+      String jsonString;
+
+      if (file.bytes != null) {
+        jsonString = utf8.decode(file.bytes!);
+      } else if (file.path != null) {
+        jsonString = await File(file.path!).readAsString();
+      } else {
+        throw Exception('Could not read file');
+      }
+
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      final worldInfo = WorldInfo.fromJson(json);
+
+      await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
+        name: worldInfo.name,
+        description: worldInfo.description,
+        isGlobal: worldInfo.isGlobal,
+      );
+
+      // Import entries
+      final createdWorldInfos = ref.read(worldInfoNotifierProvider).valueOrNull ?? [];
+      final createdWorldInfo = createdWorldInfos.firstWhere((w) => w.name == worldInfo.name);
+      
+      for (final entry in worldInfo.entries) {
+        await ref.read(worldInfoNotifierProvider.notifier).addEntry(
+          worldInfoId: createdWorldInfo.id,
+          keys: entry.keys,
+          content: entry.content,
+          comment: entry.comment,
+          secondaryKeys: entry.secondaryKeys,
+        );
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n!.importedAndApplied(worldInfo.name))),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppLocalizations.of(context)!.importFailed(e.toString())}')),
+        );
+      }
+    }
+  }
 }
 
 /// Card widget for displaying a World Info
@@ -296,6 +364,9 @@ class _WorldInfoCard extends StatelessWidget {
                     case 'edit':
                       onEdit();
                       break;
+                    case 'export':
+                      _exportWorldInfo(context, worldInfo);
+                      break;
                     case 'delete':
                       onDelete();
                       break;
@@ -307,6 +378,14 @@ class _WorldInfoCard extends StatelessWidget {
                     child: ListTile(
                       leading: const Icon(Icons.edit),
                       title: Text(AppLocalizations.of(context)!.edit),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'export',
+                    child: ListTile(
+                      leading: const Icon(Icons.file_upload),
+                      title: Text(AppLocalizations.of(context)!.export),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -325,6 +404,31 @@ class _WorldInfoCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static Future<void> _exportWorldInfo(BuildContext context, WorldInfo worldInfo) async {
+    try {
+      final json = worldInfo.toJson();
+      final jsonString = const JsonEncoder.withIndent('  ').convert(json);
+
+      final tempDir = await getTemporaryDirectory();
+      final fileName = '${worldInfo.name.replaceAll(RegExp(r'[^\w\s-]'), '_')}.json';
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsString(jsonString);
+
+      // ignore: deprecated_member_use
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'NativeTavern World Info: ${worldInfo.name}',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n!.exportFailed(e.toString()))),
+        );
+      }
+    }
   }
 }
 

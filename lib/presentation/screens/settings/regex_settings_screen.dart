@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import 'package:native_tavern/data/models/regex_script.dart';
 import 'package:native_tavern/domain/services/regex_service.dart';
 import 'package:native_tavern/presentation/providers/regex_providers.dart';
@@ -343,40 +345,33 @@ class RegexSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showImportDialog(BuildContext context, WidgetRef ref) {
-    final controller = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.importScripts),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.json,
-            hintText: AppLocalizations.of(context)!.pasteJsonArray,
-            border: OutlineInputBorder(),
-          ),
-          maxLines: 5,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final count = await ref.read(globalRegexScriptsProvider.notifier).importScripts(controller.text);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.importedCount(count))),
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.import),
-          ),
-        ],
-      ),
-    );
+  void _showImportDialog(BuildContext context, WidgetRef ref) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        final jsonContent = await file.readAsString();
+        
+        final count = await ref.read(globalRegexScriptsProvider.notifier).importScripts(jsonContent);
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.importedCount(count))),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Import failed: $e')),
+        );
+      }
+    }
   }
 
   void _showExportDialog(BuildContext context, WidgetRef ref) {

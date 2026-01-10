@@ -169,6 +169,9 @@ class CharacterRepository {
         'assets/characters/image_generation_assistant.json',
         'assets/characters/xiaohongshu_copywriter.json',
         'assets/characters/coding_assistant.json',
+        'assets/characters/cultivation_survival_game.json',
+        'assets/characters/marvel_crisis_manager.json',
+        'assets/characters/hyrule_adventure_quest.json',
       ];
 
       for (final assetPath in builtInCharacterFiles) {
