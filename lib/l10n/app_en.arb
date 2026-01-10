@@ -1,0 +1,1516 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "NativeTavern",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  
+  "home": "Home",
+  "@home": {
+    "description": "Home navigation label"
+  },
+  
+  "characters": "Characters",
+  "@characters": {
+    "description": "Characters navigation label"
+  },
+  
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings navigation label"
+  },
+  
+  "chats": "Chats",
+  "@chats": {
+    "description": "Chats navigation label"
+  },
+  
+  "newChat": "New Chat",
+  "@newChat": {
+    "description": "New chat button label"
+  },
+  
+  "noChatsYet": "No chats yet",
+  "@noChatsYet": {
+    "description": "Empty state message when no chats exist"
+  },
+  
+  "startNewConversation": "Start a new conversation with a character",
+  "@startNewConversation": {
+    "description": "Empty state subtitle"
+  },
+  
+  "browseCharacters": "Browse Characters",
+  "@browseCharacters": {
+    "description": "Button to browse characters"
+  },
+  
+  "groupChats": "Group Chats",
+  "@groupChats": {
+    "description": "Group chats tooltip"
+  },
+  
+  "import": "Import",
+  "@import": {
+    "description": "Import button tooltip"
+  },
+  
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete action"
+  },
+  
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel action"
+  },
+  
+  "save": "Save",
+  "@save": {
+    "description": "Save action"
+  },
+  
+  "edit": "Edit",
+  "@edit": {
+    "description": "Edit action"
+  },
+  
+  "copy": "Copy",
+  "@copy": {
+    "description": "Copy action"
+  },
+  
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry action"
+  },
+  
+  "close": "Close",
+  "@close": {
+    "description": "Close action"
+  },
+  
+  "ok": "OK",
+  "@ok": {
+    "description": "OK action"
+  },
+  
+  "yes": "Yes",
+  "@yes": {
+    "description": "Yes action"
+  },
+  
+  "no": "No",
+  "@no": {
+    "description": "No action"
+  },
+  
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading indicator text"
+  },
+  
+  "error": "Error",
+  "@error": {
+    "description": "Error label"
+  },
+  
+  "errorLoadingChats": "Error loading chats: {error}",
+  "@errorLoadingChats": {
+    "description": "Error message when loading chats fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "deleteChat": "Delete Chat",
+  "@deleteChat": {
+    "description": "Delete chat dialog title"
+  },
+  
+  "deleteChatConfirmation": "Are you sure you want to delete this chat? This action cannot be undone.",
+  "@deleteChatConfirmation": {
+    "description": "Delete chat confirmation message"
+  },
+  
+  "chatDeleted": "Chat deleted",
+  "@chatDeleted": {
+    "description": "Chat deleted snackbar message"
+  },
+  
+  "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Yesterday time label"
+  },
+  
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "description": "Days ago time label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "noMessages": "No messages",
+  "@noMessages": {
+    "description": "No messages placeholder"
+  },
+  
+  "noMessagesYet": "No messages yet",
+  "@noMessagesYet": {
+    "description": "No messages yet placeholder"
+  },
+  
+  "chat": "Chat",
+  "@chat": {
+    "description": "Chat label"
+  },
+  
+  "typeMessage": "Type a message...",
+  "@typeMessage": {
+    "description": "Message input placeholder"
+  },
+  
+  "send": "Send",
+  "@send": {
+    "description": "Send button label"
+  },
+  
+  "regenerate": "Regenerate",
+  "@regenerate": {
+    "description": "Regenerate response button"
+  },
+  
+  "continueGeneration": "Continue",
+  "@continueGeneration": {
+    "description": "Continue generation button"
+  },
+  
+  "viewCharacter": "View Character",
+  "@viewCharacter": {
+    "description": "View character menu item"
+  },
+  
+  "authorsNote": "Author's Note",
+  "@authorsNote": {
+    "description": "Author's note label"
+  },
+  
+  "bookmarks": "Bookmarks",
+  "@bookmarks": {
+    "description": "Bookmarks label"
+  },
+  
+  "exportChat": "Export Chat",
+  "@exportChat": {
+    "description": "Export chat menu item"
+  },
+  
+  "importChat": "Import Chat",
+  "@importChat": {
+    "description": "Import chat menu item"
+  },
+  
+  "clearMessages": "Clear Messages",
+  "@clearMessages": {
+    "description": "Clear messages menu item"
+  },
+  
+  "selectModel": "Select Model",
+  "@selectModel": {
+    "description": "Select model dialog title"
+  },
+  
+  "loadingModels": "Loading models...",
+  "@loadingModels": {
+    "description": "Loading models indicator"
+  },
+  
+  "noModelsAvailable": "No models available. Check your API configuration.",
+  "@noModelsAvailable": {
+    "description": "No models available message"
+  },
+  
+  "modelChangedTo": "Model changed to {model}",
+  "@modelChangedTo": {
+    "description": "Model changed snackbar message",
+    "placeholders": {
+      "model": {
+        "type": "String",
+        "example": "gpt-4"
+      }
+    }
+  },
+  
+  "failedToLoadModels": "Failed to load models: {error}",
+  "@failedToLoadModels": {
+    "description": "Failed to load models error message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "searchModels": "Search models...",
+  "@searchModels": {
+    "description": "Search models placeholder"
+  },
+  
+  "noModelsMatchSearch": "No models match your search",
+  "@noModelsMatchSearch": {
+    "description": "No models match search message"
+  },
+  
+  "provider": "Provider",
+  "@provider": {
+    "description": "Provider label"
+  },
+  
+  "apiNotConfigured": "API Not Configured",
+  "@apiNotConfigured": {
+    "description": "API not configured title"
+  },
+  
+  "apiNotConfiguredMessage": "To chat with characters, you need to configure an LLM provider first.",
+  "@apiNotConfiguredMessage": {
+    "description": "API not configured message"
+  },
+  
+  "supportedProviders": "Supported providers:",
+  "@supportedProviders": {
+    "description": "Supported providers label"
+  },
+  
+  "configureNow": "Configure Now",
+  "@configureNow": {
+    "description": "Configure now button"
+  },
+  
+  "later": "Later",
+  "@later": {
+    "description": "Later button"
+  },
+  
+  "configure": "Configure",
+  "@configure": {
+    "description": "Configure button"
+  },
+  
+  "configureApiProvider": "Configure an LLM provider to start chatting",
+  "@configureApiProvider": {
+    "description": "Configure API provider message"
+  },
+  
+  "startConversation": "Start a conversation",
+  "@startConversation": {
+    "description": "Start conversation message"
+  },
+  
+  "deleteMessage": "Delete Message",
+  "@deleteMessage": {
+    "description": "Delete message dialog title"
+  },
+  
+  "deleteMessageConfirmation": "Are you sure you want to delete this message?",
+  "@deleteMessageConfirmation": {
+    "description": "Delete message confirmation"
+  },
+  
+  "deleteMessages": "Delete Messages",
+  "@deleteMessages": {
+    "description": "Delete messages dialog title"
+  },
+  
+  "deleteMessagesConfirmation": "Are you sure you want to delete this message and all messages after it?",
+  "@deleteMessagesConfirmation": {
+    "description": "Delete messages confirmation"
+  },
+  
+  "deleteAll": "Delete All",
+  "@deleteAll": {
+    "description": "Delete all button"
+  },
+  
+  "copiedToClipboard": "Copied to clipboard",
+  "@copiedToClipboard": {
+    "description": "Copied to clipboard snackbar"
+  },
+  
+  "generateNewResponse": "Generate a new response alternative",
+  "@generateNewResponse": {
+    "description": "Regenerate tooltip"
+  },
+  
+  "continueFromHere": "Continue from here",
+  "@continueFromHere": {
+    "description": "Continue from here menu item"
+  },
+  
+  "deleteMessagesAfterAndRegenerate": "Delete messages after and regenerate response",
+  "@deleteMessagesAfterAndRegenerate": {
+    "description": "Continue from here description for user messages"
+  },
+  
+  "deleteMessagesAfterThis": "Delete messages after this one",
+  "@deleteMessagesAfterThis": {
+    "description": "Continue from here description for assistant messages"
+  },
+  
+  "createBookmark": "Create Bookmark",
+  "@createBookmark": {
+    "description": "Create bookmark menu item"
+  },
+  
+  "saveAsCheckpoint": "Save this point as a checkpoint",
+  "@saveAsCheckpoint": {
+    "description": "Create bookmark description"
+  },
+  
+  "deleteThisMessage": "Delete this message",
+  "@deleteThisMessage": {
+    "description": "Delete this message menu item"
+  },
+  
+  "deleteThisAndAllAfter": "Delete this and all after",
+  "@deleteThisAndAllAfter": {
+    "description": "Delete this and all after menu item"
+  },
+  
+  "attachImage": "Attach image",
+  "@attachImage": {
+    "description": "Attach image tooltip"
+  },
+  
+  "chooseFromGallery": "Choose from Gallery",
+  "@chooseFromGallery": {
+    "description": "Choose from gallery option"
+  },
+  
+  "takePhoto": "Take Photo",
+  "@takePhoto": {
+    "description": "Take photo option"
+  },
+  
+  "failedToPickImage": "Failed to pick image: {error}",
+  "@failedToPickImage": {
+    "description": "Failed to pick image error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "failedToTakePhoto": "Failed to take photo: {error}",
+  "@failedToTakePhoto": {
+    "description": "Failed to take photo error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Camera not available"
+      }
+    }
+  },
+  
+  "failedToAddAttachment": "Failed to add attachment: {error}",
+  "@failedToAddAttachment": {
+    "description": "Failed to add attachment error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "File too large"
+      }
+    }
+  },
+  
+  "exportChatWith": "Export chat with {character}",
+  "@exportChatWith": {
+    "description": "Export chat dialog subtitle",
+    "placeholders": {
+      "character": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "messagesCount": "{count} messages",
+  "@messagesCount": {
+    "description": "Messages count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  
+  "chooseExportFormat": "Choose export format:",
+  "@chooseExportFormat": {
+    "description": "Choose export format label"
+  },
+  
+  "json": "JSON",
+  "@json": {
+    "description": "JSON format"
+  },
+  
+  "jsonlStFormat": "JSONL (ST Format)",
+  "@jsonlStFormat": {
+    "description": "JSONL SillyTavern format"
+  },
+  
+  "noChatToExport": "No chat to export",
+  "@noChatToExport": {
+    "description": "No chat to export message"
+  },
+  
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "description": "Export failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "importChatHistory": "Import chat history from a file.",
+  "@importChatHistory": {
+    "description": "Import chat description"
+  },
+  
+  "supportedFormats": "Supported formats:",
+  "@supportedFormats": {
+    "description": "Supported formats label"
+  },
+  
+  "jsonlSillyTavernFormat": "JSONL (SillyTavern format)",
+  "@jsonlSillyTavernFormat": {
+    "description": "JSONL SillyTavern format description"
+  },
+  
+  "jsonNativeTavernFormat": "JSON (NativeTavern format)",
+  "@jsonNativeTavernFormat": {
+    "description": "JSON NativeTavern format description"
+  },
+  
+  "importNote": "Note: Imported messages will be added to the current chat.",
+  "@importNote": {
+    "description": "Import note"
+  },
+  
+  "chooseFile": "Choose File",
+  "@chooseFile": {
+    "description": "Choose file button"
+  },
+  
+  "noFileSelected": "No file selected or invalid format",
+  "@noFileSelected": {
+    "description": "No file selected message"
+  },
+  
+  "importConfirmation": "Import Confirmation",
+  "@importConfirmation": {
+    "description": "Import confirmation dialog title"
+  },
+  
+  "character": "Character",
+  "@character": {
+    "description": "Character label"
+  },
+  
+  "user": "User",
+  "@user": {
+    "description": "User label"
+  },
+  
+  "messages": "Messages",
+  "@messages": {
+    "description": "Messages label"
+  },
+  
+  "date": "Date",
+  "@date": {
+    "description": "Date label"
+  },
+  
+  "hasAuthorsNote": "Has Author's Note",
+  "@hasAuthorsNote": {
+    "description": "Has author's note label"
+  },
+  
+  "importMessagesToCurrentChat": "Import these messages to the current chat?",
+  "@importMessagesToCurrentChat": {
+    "description": "Import confirmation question"
+  },
+  
+  "noActiveChat": "No active chat",
+  "@noActiveChat": {
+    "description": "No active chat message"
+  },
+  
+  "importedMessages": "Imported {count} messages",
+  "@importedMessages": {
+    "description": "Imported messages snackbar",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  
+  "importFailed": "Import failed: {error}",
+  "@importFailed": {
+    "description": "Import failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  
+  "clearMessagesConfirmation": "Are you sure you want to clear all messages? This cannot be undone.",
+  "@clearMessagesConfirmation": {
+    "description": "Clear messages confirmation"
+  },
+  
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear button"
+  },
+  
+  "thinking": "Thinking",
+  "@thinking": {
+    "description": "Thinking/reasoning label"
+  },
+  
+  "noSwipesAvailable": "No swipes available",
+  "@noSwipesAvailable": {
+    "description": "No swipes available message"
+  },
+  
+  "system": "System",
+  "@system": {
+    "description": "System label"
+  },
+  
+  "backgroundFeatureComingSoon": "Background feature coming soon",
+  "@backgroundFeatureComingSoon": {
+    "description": "Background feature coming soon message"
+  },
+  
+  "authorsNoteUpdated": "Author's note updated",
+  "@authorsNoteUpdated": {
+    "description": "Author's note updated snackbar"
+  },
+  
+  "commandError": "Command Error",
+  "@commandError": {
+    "description": "Command error dialog title"
+  },
+  
+  "enabled": "Enabled",
+  "@enabled": {
+    "description": "Enabled label"
+  },
+  
+  "disabled": "Disabled",
+  "@disabled": {
+    "description": "Disabled label"
+  },
+  
+  "personas": "Personas",
+  "@personas": {
+    "description": "Personas screen title"
+  },
+  
+  "createPersona": "Create Persona",
+  "@createPersona": {
+    "description": "Create persona button"
+  },
+  
+  "editPersona": "Edit Persona",
+  "@editPersona": {
+    "description": "Edit persona dialog title"
+  },
+  
+  "deletePersona": "Delete Persona",
+  "@deletePersona": {
+    "description": "Delete persona dialog title"
+  },
+  
+  "deletePersonaConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deletePersonaConfirmation": {
+    "description": "Delete persona confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Persona"
+      }
+    }
+  },
+  
+  "noPersonasYet": "No personas yet",
+  "@noPersonasYet": {
+    "description": "No personas empty state"
+  },
+  
+  "createPersonaDescription": "Create a persona to represent yourself in chats",
+  "@createPersonaDescription": {
+    "description": "Create persona description"
+  },
+  
+  "name": "Name",
+  "@name": {
+    "description": "Name label"
+  },
+  
+  "enterPersonaName": "Enter persona name",
+  "@enterPersonaName": {
+    "description": "Enter persona name hint"
+  },
+  
+  "description": "Description",
+  "@description": {
+    "description": "Description label"
+  },
+  
+  "describePersona": "Describe this persona (optional)",
+  "@describePersona": {
+    "description": "Describe persona hint"
+  },
+  
+  "personaDescriptionHelp": "The description will be included in the system prompt to help the AI understand who you are.",
+  "@personaDescriptionHelp": {
+    "description": "Persona description help text"
+  },
+  
+  "pleaseEnterName": "Please enter a name",
+  "@pleaseEnterName": {
+    "description": "Please enter name validation"
+  },
+  
+  "default_": "Default",
+  "@default_": {
+    "description": "Default label"
+  },
+  
+  "active": "Active",
+  "@active": {
+    "description": "Active label"
+  },
+  
+  "setAsDefault": "Set as Default",
+  "@setAsDefault": {
+    "description": "Set as default menu item"
+  },
+  
+  "removeAvatar": "Remove Avatar",
+  "@removeAvatar": {
+    "description": "Remove avatar option"
+  },
+  
+  "failedToSaveAvatar": "Failed to save avatar: {error}",
+  "@failedToSaveAvatar": {
+    "description": "Failed to save avatar error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "selectAvatarImage": "Select Avatar Image",
+  "@selectAvatarImage": {
+    "description": "Select avatar image dialog title"
+  },
+  
+  "aiConfiguration": "AI Configuration",
+  "@aiConfiguration": {
+    "description": "AI configuration screen title"
+  },
+  
+  "llmProvider": "LLM Provider",
+  "@llmProvider": {
+    "description": "LLM provider label"
+  },
+  
+  "apiUrl": "API URL",
+  "@apiUrl": {
+    "description": "API URL label"
+  },
+  
+  "apiKey": "API Key",
+  "@apiKey": {
+    "description": "API key label"
+  },
+  
+  "model": "Model",
+  "@model": {
+    "description": "Model label"
+  },
+  
+  "temperature": "Temperature",
+  "@temperature": {
+    "description": "Temperature label"
+  },
+  
+  "maxTokens": "Max Tokens",
+  "@maxTokens": {
+    "description": "Max tokens label"
+  },
+  
+  "topP": "Top P",
+  "@topP": {
+    "description": "Top P label"
+  },
+  
+  "topK": "Top K",
+  "@topK": {
+    "description": "Top K label"
+  },
+  
+  "frequencyPenalty": "Frequency Penalty",
+  "@frequencyPenalty": {
+    "description": "Frequency penalty label"
+  },
+  
+  "presencePenalty": "Presence Penalty",
+  "@presencePenalty": {
+    "description": "Presence penalty label"
+  },
+  
+  "repetitionPenalty": "Repetition Penalty",
+  "@repetitionPenalty": {
+    "description": "Repetition penalty label"
+  },
+  
+  "streamingEnabled": "Streaming Enabled",
+  "@streamingEnabled": {
+    "description": "Streaming enabled label"
+  },
+  
+  "testConnection": "Test Connection",
+  "@testConnection": {
+    "description": "Test connection button"
+  },
+  
+  "connectionSuccessful": "Connection successful!",
+  "@connectionSuccessful": {
+    "description": "Connection successful message"
+  },
+  
+  "connectionFailed": "Connection failed: {error}",
+  "@connectionFailed": {
+    "description": "Connection failed message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "openai": "OpenAI",
+  "@openai": {
+    "description": "OpenAI provider name"
+  },
+  
+  "claude": "Claude",
+  "@claude": {
+    "description": "Claude provider name"
+  },
+  
+  "openRouter": "OpenRouter",
+  "@openRouter": {
+    "description": "OpenRouter provider name"
+  },
+  
+  "gemini": "Gemini",
+  "@gemini": {
+    "description": "Gemini provider name"
+  },
+  
+  "ollama": "Ollama",
+  "@ollama": {
+    "description": "Ollama provider name"
+  },
+  
+  "koboldCpp": "KoboldCpp",
+  "@koboldCpp": {
+    "description": "KoboldCpp provider name"
+  },
+  
+  "local": "Local",
+  "@local": {
+    "description": "Local provider indicator"
+  },
+  
+  "aiPresets": "AI Presets",
+  "@aiPresets": {
+    "description": "AI presets screen title"
+  },
+  
+  "createPreset": "Create Preset",
+  "@createPreset": {
+    "description": "Create preset button"
+  },
+  
+  "editPreset": "Edit Preset",
+  "@editPreset": {
+    "description": "Edit preset dialog title"
+  },
+  
+  "deletePreset": "Delete Preset",
+  "@deletePreset": {
+    "description": "Delete preset dialog title"
+  },
+  
+  "presetName": "Preset Name",
+  "@presetName": {
+    "description": "Preset name label"
+  },
+  
+  "promptManager": "Prompt Manager",
+  "@promptManager": {
+    "description": "Prompt manager screen title"
+  },
+  
+  "systemPrompt": "System Prompt",
+  "@systemPrompt": {
+    "description": "System prompt label"
+  },
+  
+  "jailbreak": "Jailbreak",
+  "@jailbreak": {
+    "description": "Jailbreak prompt label"
+  },
+  
+  "worldInfo": "World Info",
+  "@worldInfo": {
+    "description": "World info screen title"
+  },
+  
+  "createEntry": "Create Entry",
+  "@createEntry": {
+    "description": "Create entry button"
+  },
+  
+  "editEntry": "Edit Entry",
+  "@editEntry": {
+    "description": "Edit entry dialog title"
+  },
+  
+  "deleteEntry": "Delete Entry",
+  "@deleteEntry": {
+    "description": "Delete entry dialog title"
+  },
+  
+  "keywords": "Keywords",
+  "@keywords": {
+    "description": "Keywords label"
+  },
+  
+  "content": "Content",
+  "@content": {
+    "description": "Content label"
+  },
+  
+  "priority": "Priority",
+  "@priority": {
+    "description": "Priority label"
+  },
+  
+  "groups": "Groups",
+  "@groups": {
+    "description": "Groups screen title"
+  },
+  
+  "createGroup": "Create Group",
+  "@createGroup": {
+    "description": "Create group button"
+  },
+  
+  "editGroup": "Edit Group",
+  "@editGroup": {
+    "description": "Edit group dialog title"
+  },
+  
+  "deleteGroup": "Delete Group",
+  "@deleteGroup": {
+    "description": "Delete group dialog title"
+  },
+  
+  "groupName": "Group Name",
+  "@groupName": {
+    "description": "Group name label"
+  },
+  
+  "members": "Members",
+  "@members": {
+    "description": "Members label"
+  },
+  
+  "addMember": "Add Member",
+  "@addMember": {
+    "description": "Add member button"
+  },
+  
+  "removeMember": "Remove Member",
+  "@removeMember": {
+    "description": "Remove member button"
+  },
+  
+  "tags": "Tags",
+  "@tags": {
+    "description": "Tags screen title"
+  },
+  
+  "createTag": "Create Tag",
+  "@createTag": {
+    "description": "Create tag button"
+  },
+  
+  "editTag": "Edit Tag",
+  "@editTag": {
+    "description": "Edit tag dialog title"
+  },
+  
+  "deleteTag": "Delete Tag",
+  "@deleteTag": {
+    "description": "Delete tag dialog title"
+  },
+  
+  "tagName": "Tag Name",
+  "@tagName": {
+    "description": "Tag name label"
+  },
+  
+  "color": "Color",
+  "@color": {
+    "description": "Color label"
+  },
+  
+  "quickReplies": "Quick Replies",
+  "@quickReplies": {
+    "description": "Quick replies screen title"
+  },
+  
+  "createQuickReply": "Create Quick Reply",
+  "@createQuickReply": {
+    "description": "Create quick reply button"
+  },
+  
+  "editQuickReply": "Edit Quick Reply",
+  "@editQuickReply": {
+    "description": "Edit quick reply dialog title"
+  },
+  
+  "deleteQuickReply": "Delete Quick Reply",
+  "@deleteQuickReply": {
+    "description": "Delete quick reply dialog title"
+  },
+  
+  "label": "Label",
+  "@label": {
+    "description": "Label field"
+  },
+  
+  "message": "Message",
+  "@message": {
+    "description": "Message field"
+  },
+  
+  "autoSend": "Auto Send",
+  "@autoSend": {
+    "description": "Auto send toggle"
+  },
+  
+  "regex": "Regex",
+  "@regex": {
+    "description": "Regex screen title"
+  },
+  
+  "createRegex": "Create Regex",
+  "@createRegex": {
+    "description": "Create regex button"
+  },
+  
+  "editRegex": "Edit Regex",
+  "@editRegex": {
+    "description": "Edit regex dialog title"
+  },
+  
+  "deleteRegex": "Delete Regex",
+  "@deleteRegex": {
+    "description": "Delete regex dialog title"
+  },
+  
+  "pattern": "Pattern",
+  "@pattern": {
+    "description": "Pattern label"
+  },
+  
+  "replacement": "Replacement",
+  "@replacement": {
+    "description": "Replacement label"
+  },
+  
+  "backup": "Backup",
+  "@backup": {
+    "description": "Backup screen title"
+  },
+  
+  "createBackup": "Create Backup",
+  "@createBackup": {
+    "description": "Create backup button"
+  },
+  
+  "restoreBackup": "Restore Backup",
+  "@restoreBackup": {
+    "description": "Restore backup button"
+  },
+  
+  "backupCreated": "Backup created successfully",
+  "@backupCreated": {
+    "description": "Backup created message"
+  },
+  
+  "backupRestored": "Backup restored successfully",
+  "@backupRestored": {
+    "description": "Backup restored message"
+  },
+  
+  "backupFailed": "Backup failed: {error}",
+  "@backupFailed": {
+    "description": "Backup failed message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "restoreFailed": "Restore failed: {error}",
+  "@restoreFailed": {
+    "description": "Restore failed message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid backup file"
+      }
+    }
+  },
+  
+  "theme": "Theme",
+  "@theme": {
+    "description": "Theme screen title"
+  },
+  
+  "darkMode": "Dark Mode",
+  "@darkMode": {
+    "description": "Dark mode toggle"
+  },
+  
+  "lightMode": "Light Mode",
+  "@lightMode": {
+    "description": "Light mode toggle"
+  },
+  
+  "systemTheme": "System Theme",
+  "@systemTheme": {
+    "description": "System theme option"
+  },
+  
+  "primaryColor": "Primary Color",
+  "@primaryColor": {
+    "description": "Primary color label"
+  },
+  
+  "accentColor": "Accent Color",
+  "@accentColor": {
+    "description": "Accent color label"
+  },
+  
+  "advanced": "Advanced",
+  "@advanced": {
+    "description": "Advanced settings label"
+  },
+  
+  "advancedSettings": "Advanced Settings",
+  "@advancedSettings": {
+    "description": "Advanced settings screen title"
+  },
+  
+  "statistics": "Statistics",
+  "@statistics": {
+    "description": "Statistics screen title"
+  },
+  
+  "totalChats": "Total Chats",
+  "@totalChats": {
+    "description": "Total chats statistic"
+  },
+  
+  "totalMessages": "Total Messages",
+  "@totalMessages": {
+    "description": "Total messages statistic"
+  },
+  
+  "totalCharacters": "Total Characters",
+  "@totalCharacters": {
+    "description": "Total characters statistic"
+  },
+  
+  "tokenizer": "Tokenizer",
+  "@tokenizer": {
+    "description": "Tokenizer screen title"
+  },
+  
+  "tts": "Text-to-Speech",
+  "@tts": {
+    "description": "TTS screen title"
+  },
+  
+  "stt": "Speech-to-Text",
+  "@stt": {
+    "description": "STT screen title"
+  },
+  
+  "translation": "Translation",
+  "@translation": {
+    "description": "Translation screen title"
+  },
+  
+  "imageGeneration": "Image Generation",
+  "@imageGeneration": {
+    "description": "Image generation screen title"
+  },
+  
+  "vectorStorage": "Vector Storage",
+  "@vectorStorage": {
+    "description": "Vector storage screen title"
+  },
+  
+  "sprites": "Sprites",
+  "@sprites": {
+    "description": "Sprites screen title"
+  },
+  
+  "backgrounds": "Backgrounds",
+  "@backgrounds": {
+    "description": "Backgrounds screen title"
+  },
+  
+  "cfgScale": "CFG Scale",
+  "@cfgScale": {
+    "description": "CFG scale screen title"
+  },
+  
+  "logitBias": "Logit Bias",
+  "@logitBias": {
+    "description": "Logit bias screen title"
+  },
+  
+  "variables": "Variables",
+  "@variables": {
+    "description": "Variables screen title"
+  },
+  
+  "listView": "List view",
+  "@listView": {
+    "description": "List view toggle"
+  },
+  
+  "gridView": "Grid view",
+  "@gridView": {
+    "description": "Grid view toggle"
+  },
+  
+  "search": "Search",
+  "@search": {
+    "description": "Search label"
+  },
+  
+  "searchCharacters": "Search characters...",
+  "@searchCharacters": {
+    "description": "Search characters placeholder"
+  },
+  
+  "noCharactersFound": "No characters found",
+  "@noCharactersFound": {
+    "description": "No characters found message"
+  },
+  
+  "noCharactersYet": "No characters yet",
+  "@noCharactersYet": {
+    "description": "No characters empty state"
+  },
+  
+  "importCharacter": "Import a character to get started",
+  "@importCharacter": {
+    "description": "Import character description"
+  },
+  
+  "createCharacter": "Create Character",
+  "@createCharacter": {
+    "description": "Create character button"
+  },
+  
+  "editCharacter": "Edit Character",
+  "@editCharacter": {
+    "description": "Edit character button"
+  },
+  
+  "deleteCharacter": "Delete Character",
+  "@deleteCharacter": {
+    "description": "Delete character button"
+  },
+  
+  "deleteCharacterConfirmation": "Are you sure you want to delete \"{name}\"? This will also delete all chats with this character.",
+  "@deleteCharacterConfirmation": {
+    "description": "Delete character confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "characterDeleted": "Character deleted",
+  "@characterDeleted": {
+    "description": "Character deleted snackbar"
+  },
+  
+  "startChat": "Start Chat",
+  "@startChat": {
+    "description": "Start chat button"
+  },
+  
+  "personality": "Personality",
+  "@personality": {
+    "description": "Personality label"
+  },
+  
+  "scenario": "Scenario",
+  "@scenario": {
+    "description": "Scenario label"
+  },
+  
+  "firstMessage": "First Message",
+  "@firstMessage": {
+    "description": "First message label"
+  },
+  
+  "exampleDialogue": "Example Dialogue",
+  "@exampleDialogue": {
+    "description": "Example dialogue label"
+  },
+  
+  "creatorNotes": "Creator Notes",
+  "@creatorNotes": {
+    "description": "Creator notes label"
+  },
+  
+  "alternateGreetings": "Alternate Greetings",
+  "@alternateGreetings": {
+    "description": "Alternate greetings label"
+  },
+  
+  "characterBook": "Character Book",
+  "@characterBook": {
+    "description": "Character book label"
+  },
+  
+  "language": "Language",
+  "@language": {
+    "description": "Language setting label"
+  },
+  
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Select language dialog title"
+  },
+  
+  "languageChanged": "Language changed",
+  "@languageChanged": {
+    "description": "Language changed snackbar"
+  },
+  
+  "about": "About",
+  "@about": {
+    "description": "About screen title"
+  },
+  
+  "version": "Version",
+  "@version": {
+    "description": "Version label"
+  },
+  
+  "licenses": "Licenses",
+  "@licenses": {
+    "description": "Licenses button"
+  },
+  
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy button"
+  },
+  
+  "termsOfService": "Terms of Service",
+  "@termsOfService": {
+    "description": "Terms of service button"
+  },
+  
+  "feedback": "Feedback",
+  "@feedback": {
+    "description": "Feedback button"
+  },
+  
+  "rateApp": "Rate App",
+  "@rateApp": {
+    "description": "Rate app button"
+  },
+  
+  "shareApp": "Share App",
+  "@shareApp": {
+    "description": "Share app button"
+  },
+  
+  "checkForUpdates": "Check for Updates",
+  "@checkForUpdates": {
+    "description": "Check for updates button"
+  },
+  
+  "noUpdatesAvailable": "No updates available",
+  "@noUpdatesAvailable": {
+    "description": "No updates available message"
+  },
+  
+  "updateAvailable": "Update available",
+  "@updateAvailable": {
+    "description": "Update available message"
+  },
+  
+  "downloadUpdate": "Download Update",
+  "@downloadUpdate": {
+    "description": "Download update button"
+  },
+  
+  "bookmarkCreated": "Bookmark created",
+  "@bookmarkCreated": {
+    "description": "Bookmark created snackbar"
+  },
+  
+  "bookmarkName": "Bookmark Name",
+  "@bookmarkName": {
+    "description": "Bookmark name label"
+  },
+  
+  "enterBookmarkName": "Enter bookmark name",
+  "@enterBookmarkName": {
+    "description": "Enter bookmark name hint"
+  },
+  
+  "noBookmarksYet": "No bookmarks yet",
+  "@noBookmarksYet": {
+    "description": "No bookmarks empty state"
+  },
+  
+  "createBookmarkDescription": "Create bookmarks to save important points in your conversation",
+  "@createBookmarkDescription": {
+    "description": "Create bookmark description"
+  },
+  
+  "jumpToBookmark": "Jump to Bookmark",
+  "@jumpToBookmark": {
+    "description": "Jump to bookmark button"
+  },
+  
+  "deleteBookmark": "Delete Bookmark",
+  "@deleteBookmark": {
+    "description": "Delete bookmark button"
+  },
+  
+  "bookmarkDeleted": "Bookmark deleted",
+  "@bookmarkDeleted": {
+    "description": "Bookmark deleted snackbar"
+  },
+  
+  "saveAsJsonl": "Save as JSONL",
+  "@saveAsJsonl": {
+    "description": "Save as JSONL option"
+  },
+  
+  "saveAsJson": "Save as JSON",
+  "@saveAsJson": {
+    "description": "Save as JSON option"
+  },
+  
+  "keyboardShortcuts": "Keyboard shortcuts:",
+  "@keyboardShortcuts": {
+    "description": "Keyboard shortcuts tooltip title"
+  },
+  
+  "bold": "Bold",
+  "@bold": {
+    "description": "Bold formatting"
+  },
+  
+  "italic": "Italic",
+  "@italic": {
+    "description": "Italic formatting"
+  },
+  
+  "underline": "Underline",
+  "@underline": {
+    "description": "Underline formatting"
+  },
+  
+  "strikethrough": "Strikethrough",
+  "@strikethrough": {
+    "description": "Strikethrough formatting"
+  },
+  
+  "inlineCode": "Inline code",
+  "@inlineCode": {
+    "description": "Inline code formatting"
+  },
+  
+  "link": "Link",
+  "@link": {
+    "description": "Link formatting"
+  },
+  
+  "slashCommands": "Slash Commands",
+  "@slashCommands": {
+    "description": "Slash commands help title"
+  },
+  
+  "availableCommands": "Available commands:",
+  "@availableCommands": {
+    "description": "Available commands label"
+  },
+  
+  "commandHelp": "Type / to see available commands",
+  "@commandHelp": {
+    "description": "Command help hint"
+  }
+}

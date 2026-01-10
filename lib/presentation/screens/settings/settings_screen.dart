@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:native_tavern/presentation/providers/locale_provider.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
@@ -130,6 +131,7 @@ class SettingsScreen extends ConsumerWidget {
           
           const Divider(height: 32),
           _buildSectionHeader(context, 'App Settings'),
+          const _LanguageTile(),
           ListTile(
             leading: const Icon(Icons.palette),
             title: const Text('Themes'),
@@ -262,6 +264,126 @@ class _AutoSaveTile extends ConsumerWidget {
       onChanged: (value) {
         ref.read(appSettingsProvider.notifier).updateAutoSaveChats(value);
       },
+    );
+  }
+}
+
+class _LanguageTile extends ConsumerWidget {
+  const _LanguageTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.watch(localeProvider);
+    
+    // Find the current locale's display name
+    String currentLanguage = 'System Default';
+    if (currentLocale != null) {
+      final supportedLocale = supportedLocales.where((sl) {
+        if (currentLocale.countryCode != null) {
+          return sl.locale.languageCode == currentLocale.languageCode &&
+                 sl.locale.countryCode == currentLocale.countryCode;
+        }
+        return sl.locale.languageCode == currentLocale.languageCode &&
+               sl.locale.countryCode == null;
+      }).firstOrNull;
+      if (supportedLocale != null) {
+        currentLanguage = '${supportedLocale.nativeName} (${supportedLocale.displayName})';
+      }
+    }
+
+    return ListTile(
+      leading: const Icon(Icons.language),
+      title: const Text('Language'),
+      subtitle: Text(currentLanguage),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => _showLanguageSelector(context, ref),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.read(localeProvider);
+    
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Text(
+                    'Select Language',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  // System default option
+                  ListTile(
+                    leading: const Icon(Icons.phone_android),
+                    title: const Text('System Default'),
+                    trailing: currentLocale == null
+                        ? const Icon(Icons.check, color: Colors.green)
+                        : null,
+                    onTap: () {
+                      ref.read(localeProvider.notifier).resetToSystem();
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Language set to system default'),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(),
+                  // All supported locales
+                  ...supportedLocales.map((sl) {
+                    final isSelected = currentLocale != null &&
+                        currentLocale.languageCode == sl.locale.languageCode &&
+                        currentLocale.countryCode == sl.locale.countryCode;
+                    
+                    return ListTile(
+                      title: Text(sl.nativeName),
+                      subtitle: Text(sl.displayName),
+                      trailing: isSelected
+                          ? const Icon(Icons.check, color: Colors.green)
+                          : null,
+                      onTap: () {
+                        ref.read(localeProvider.notifier).setLocale(sl.locale);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Language changed to ${sl.displayName}'),
+                          ),
+                        );
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

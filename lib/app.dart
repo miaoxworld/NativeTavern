@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/providers/theme_providers.dart';
+import 'package:native_tavern/presentation/providers/locale_provider.dart';
 
 class NativeTavernApp extends ConsumerWidget {
   const NativeTavernApp({super.key});
@@ -10,6 +13,7 @@ class NativeTavernApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final activeTheme = ref.watch(activeThemeConfigProvider);
+    final locale = ref.watch(localeProvider);
     
     return MaterialApp.router(
       title: 'NativeTavern',
@@ -18,6 +22,14 @@ class NativeTavernApp extends ConsumerWidget {
       darkTheme: activeTheme.toThemeData(),
       themeMode: activeTheme.isDark ? ThemeMode.dark : ThemeMode.light,
       routerConfig: router,
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
