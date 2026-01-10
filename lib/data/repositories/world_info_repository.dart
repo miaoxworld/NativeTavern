@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/database/database.dart' hide WorldInfo, WorldInfoEntry;
 import 'package:native_tavern/data/database/database.dart' as db;
@@ -76,6 +78,12 @@ class WorldInfoRepository {
     String? description,
     bool isGlobal = false,
     String? characterId,
+    String? scanDepth,
+    bool? caseSensitive,
+    bool? matchWholeWords,
+    bool? useGroupScoring,
+    int? recursionDepth,
+    Map<String, dynamic>? extensions,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -87,6 +95,12 @@ class WorldInfoRepository {
       enabled: const Value(true),
       isGlobal: Value(isGlobal),
       characterId: Value(characterId),
+      scanDepth: Value(scanDepth),
+      caseSensitive: Value(caseSensitive),
+      matchWholeWords: Value(matchWholeWords),
+      useGroupScoring: Value(useGroupScoring),
+      recursionDepth: Value(recursionDepth),
+      extensionsJson: Value(extensions != null ? jsonEncode(extensions) : '{}'),
       createdAt: Value(now),
       modifiedAt: Value(now),
     );
@@ -175,11 +189,14 @@ class WorldInfoRepository {
       insertionOrder: Value(insertionOrder),
       caseSensitive: const Value(false),
       matchWholeWords: const Value(false),
+      useGroupScoring: const Value(false),
+      automationId: const Value(''),
       probability: const Value(100),
       position: Value(position.index),
       depth: Value(depth),
       groupWeight: const Value(100),
       preventRecursion: const Value(false),
+      delayUntilRecursion: const Value(false),
       scanDepth: const Value(1000),
       extensionsJson: const Value('{}'),
     );
@@ -229,13 +246,17 @@ class WorldInfoRepository {
         insertionOrder: Value(entry.insertionOrder),
         caseSensitive: Value(entry.caseSensitive),
         matchWholeWords: Value(entry.matchWholeWords),
+        useGroupScoring: Value(entry.useGroupScoring),
+        automationId: Value(entry.automationId ? 'true' : ''),
         probability: Value(entry.probability),
         position: Value(entry.position.index),
         depth: Value(entry.depth),
         group: Value(entry.group),
         groupWeight: Value(entry.groupWeight),
         preventRecursion: Value(entry.preventRecursion),
+        delayUntilRecursion: Value(entry.delayUntilRecursion),
         scanDepth: Value(entry.scanDepth),
+        extensionsJson: Value(jsonEncode(entry.extensions)),
       ),
     );
     
@@ -343,13 +364,17 @@ class WorldInfoRepository {
       insertionOrder: row.insertionOrder,
       caseSensitive: row.caseSensitive,
       matchWholeWords: row.matchWholeWords,
+      useGroupScoring: row.useGroupScoring,
+      automationId: row.automationId.isNotEmpty,
       probability: row.probability,
       position: models.WorldInfoPosition.values[row.position],
       depth: row.depth,
       group: row.group,
       groupWeight: row.groupWeight,
       preventRecursion: row.preventRecursion,
+      delayUntilRecursion: row.delayUntilRecursion,
       scanDepth: row.scanDepth,
+      extensions: _parseJsonMap(row.extensionsJson),
     );
   }
 
@@ -359,6 +384,109 @@ class WorldInfoRepository {
       return list.cast<String>();
     } catch (_) {
       return [];
+    }
+  }
+
+  Map<String, dynamic> _parseJsonMap(String json) {
+    try {
+      return jsonDecode(json) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Load built-in world infos from assets
+  Future<void> loadBuiltInWorldInfos() async {
+    try {
+      final builtInWorldInfoFiles = [
+        'assets/world_info/mortal_cultivation.json',
+        'assets/world_info/marvel_universe.json',
+        'assets/world_info/zelda_legend.json',
+      ];
+
+      for (final assetPath in builtInWorldInfoFiles) {
+        try {
+          // Load JSON from assets
+          final jsonString = await rootBundle.loadString(assetPath);
+          final json = jsonDecode(jsonString) as Map<String, dynamic>;
+          final worldInfoId = json['id'] as String;
+          
+          // Check if already exists
+          final existing = await getWorldInfoById(worldInfoId);
+          if (existing != null) {
+            continue;
+          }
+
+          // Create world info
+          await _db.into(_db.worldInfos).insert(
+            WorldInfosCompanion(
+              id: Value(worldInfoId),
+              name: Value(json['name'] as String),
+              description: Value(json['description'] as String?),
+              enabled: Value(json['enabled'] as bool? ?? true),
+              isGlobal: Value(json['isGlobal'] as bool? ?? false),
+              characterId: Value(json['characterId'] as String?),
+              scanDepth: Value(json['scanDepth'] as String?),
+              caseSensitive: Value(json['caseSensitive'] as bool?),
+              matchWholeWords: Value(json['matchWholeWords'] as bool?),
+              useGroupScoring: Value(json['useGroupScoring'] as bool?),
+              recursionDepth: Value(json['recursionDepth'] as int?),
+              extensionsJson: Value(json['extensions'] != null ? jsonEncode(json['extensions']) : '{}'),
+              createdAt: Value(DateTime.parse(json['createdAt'] as String)),
+              modifiedAt: Value(DateTime.parse(json['modifiedAt'] as String)),
+            ),
+          );
+
+          // Create entries
+          final entries = json['entries'] as List<dynamic>? ?? [];
+          debugPrint('Loading ${entries.length} entries for ${json['name']}');
+          
+          for (final entryJson in entries) {
+            final entry = entryJson as Map<String, dynamic>;
+            debugPrint('  - Loading entry: ${entry['id']} with keys: ${entry['keys']}');
+            
+            try {
+              await _db.into(_db.worldInfoEntries).insert(
+                WorldInfoEntriesCompanion(
+                  id: Value(entry['id'] as String),
+                  worldInfoId: Value(worldInfoId),
+                  keys: Value(jsonEncode(entry['keys'] ?? [])),
+                  secondaryKeys: Value(jsonEncode(entry['secondaryKeys'] ?? [])),
+                  content: Value(entry['content'] as String? ?? ''),
+                  comment: Value(entry['comment'] as String? ?? ''),
+                  enabled: Value(entry['enabled'] as bool? ?? true),
+                  constant: Value(entry['constant'] as bool? ?? false),
+                  selective: Value(entry['selective'] as bool? ?? false),
+                  insertionOrder: Value(entry['insertionOrder'] as int? ?? 0),
+                  caseSensitive: Value(entry['caseSensitive'] as bool? ?? false),
+                  matchWholeWords: Value(entry['matchWholeWords'] as bool? ?? false),
+                  useGroupScoring: Value(entry['useGroupScoring'] as bool? ?? false),
+                  automationId: Value(entry['automationId'] as String? ?? ''),
+                  probability: Value(entry['probability'] as int? ?? 100),
+                  position: Value(entry['position'] as int? ?? 1),
+                  depth: Value(entry['depth'] as int? ?? 4),
+                  group: Value(entry['group'] as String?),
+                  groupWeight: Value(entry['groupWeight'] as int? ?? 100),
+                  preventRecursion: Value(entry['preventRecursion'] as bool? ?? false),
+                  delayUntilRecursion: Value(entry['delayUntilRecursion'] as bool? ?? false),
+                  scanDepth: Value(entry['scanDepth'] as int? ?? 1000),
+                  extensionsJson: Value(entry['extensions'] != null ? jsonEncode(entry['extensions']) : '{}'),
+                ),
+              );
+            } catch (entryError, entryStack) {
+              debugPrint('  ❌ Failed to insert entry ${entry['id']}: $entryError');
+              debugPrint('  Entry data: ${jsonEncode(entry)}');
+            }
+          }
+          
+          debugPrint('✅ Loaded built-in world info: ${json['name']} with ${entries.length} entries');
+        } catch (e, stackTrace) {
+          debugPrint('❌ Failed to load built-in world info from $assetPath: $e');
+          debugPrint('Stack trace: $stackTrace');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load built-in world infos: $e');
     }
   }
 }

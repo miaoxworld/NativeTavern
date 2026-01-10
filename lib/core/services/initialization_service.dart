@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/database/database.dart';
 import 'package:native_tavern/data/models/character.dart' as models;
 import 'package:native_tavern/data/repositories/character_repository.dart';
+import 'package:native_tavern/data/repositories/world_info_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -28,6 +29,8 @@ class InitializationService {
   static bool _initialized = false;
   static InitializationData? _initData;
   static const String _defaultCharacterCreatedKey = 'default_character_created';
+  static const String _builtInCharactersLoadedKey = 'builtin_characters_loaded';
+  static const String _builtInWorldInfosLoadedKey = 'builtin_worldinfos_loaded';
   
   /// Initialize all core services
   static Future<InitializationData> initialize() async {
@@ -54,6 +57,12 @@ class InitializationService {
     
     // Create default character if first launch
     await _ensureDefaultCharacter(database);
+    
+    // Load built-in characters
+    await _loadBuiltInCharacters(database, dataPath);
+    
+    // Load built-in world infos
+    await _loadBuiltInWorldInfos(database);
     
     _initialized = true;
     debugPrint('✅ NativeTavern initialized successfully');
@@ -115,6 +124,52 @@ class InitializationService {
       await prefs.setBool(_defaultCharacterCreatedKey, true);
     } catch (e) {
       debugPrint('⚠️ Failed to create default character: $e');
+    }
+  }
+
+  /// Load built-in characters from assets
+  static Future<void> _loadBuiltInCharacters(AppDatabase database, String dataPath) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final builtInLoaded = prefs.getBool(_builtInCharactersLoadedKey) ?? false;
+      
+      if (builtInLoaded) {
+        debugPrint('📦 Built-in characters already loaded');
+        return;
+      }
+      
+      debugPrint('📦 Loading built-in characters...');
+      final repo = CharacterRepository(database, dataPath);
+      await repo.loadBuiltInCharacters();
+      
+      // Mark as loaded
+      await prefs.setBool(_builtInCharactersLoadedKey, true);
+      debugPrint('✅ Built-in characters loaded successfully');
+    } catch (e) {
+      debugPrint('⚠️ Failed to load built-in characters: $e');
+    }
+  }
+
+  /// Load built-in world infos from assets
+  static Future<void> _loadBuiltInWorldInfos(AppDatabase database) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final worldInfosLoaded = prefs.getBool(_builtInWorldInfosLoadedKey) ?? false;
+      
+      if (worldInfosLoaded) {
+        debugPrint('📚 Built-in world infos already loaded');
+        return;
+      }
+      
+      debugPrint('📚 Loading built-in world infos...');
+      final repo = WorldInfoRepository(database);
+      await repo.loadBuiltInWorldInfos();
+      
+      // Mark as loaded
+      await prefs.setBool(_builtInWorldInfosLoadedKey, true);
+      debugPrint('✅ Built-in world infos loaded successfully');
+    } catch (e) {
+      debugPrint('⚠️ Failed to load built-in world infos: $e');
     }
   }
   

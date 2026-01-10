@@ -2219,6 +2219,53 @@ class $WorldInfosTable extends WorldInfos
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES characters (id)'));
+  static const VerificationMeta _scanDepthMeta =
+      const VerificationMeta('scanDepth');
+  @override
+  late final GeneratedColumn<String> scanDepth = GeneratedColumn<String>(
+      'scan_depth', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _caseSensitiveMeta =
+      const VerificationMeta('caseSensitive');
+  @override
+  late final GeneratedColumn<bool> caseSensitive = GeneratedColumn<bool>(
+      'case_sensitive', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("case_sensitive" IN (0, 1))'));
+  static const VerificationMeta _matchWholeWordsMeta =
+      const VerificationMeta('matchWholeWords');
+  @override
+  late final GeneratedColumn<bool> matchWholeWords = GeneratedColumn<bool>(
+      'match_whole_words', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("match_whole_words" IN (0, 1))'));
+  static const VerificationMeta _useGroupScoringMeta =
+      const VerificationMeta('useGroupScoring');
+  @override
+  late final GeneratedColumn<bool> useGroupScoring = GeneratedColumn<bool>(
+      'use_group_scoring', aliasedName, true,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("use_group_scoring" IN (0, 1))'));
+  static const VerificationMeta _recursionDepthMeta =
+      const VerificationMeta('recursionDepth');
+  @override
+  late final GeneratedColumn<int> recursionDepth = GeneratedColumn<int>(
+      'recursion_depth', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _extensionsJsonMeta =
+      const VerificationMeta('extensionsJson');
+  @override
+  late final GeneratedColumn<String> extensionsJson = GeneratedColumn<String>(
+      'extensions_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('{}'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -2239,6 +2286,12 @@ class $WorldInfosTable extends WorldInfos
         enabled,
         isGlobal,
         characterId,
+        scanDepth,
+        caseSensitive,
+        matchWholeWords,
+        useGroupScoring,
+        recursionDepth,
+        extensionsJson,
         createdAt,
         modifiedAt
       ];
@@ -2283,6 +2336,40 @@ class $WorldInfosTable extends WorldInfos
           characterId.isAcceptableOrUnknown(
               data['character_id']!, _characterIdMeta));
     }
+    if (data.containsKey('scan_depth')) {
+      context.handle(_scanDepthMeta,
+          scanDepth.isAcceptableOrUnknown(data['scan_depth']!, _scanDepthMeta));
+    }
+    if (data.containsKey('case_sensitive')) {
+      context.handle(
+          _caseSensitiveMeta,
+          caseSensitive.isAcceptableOrUnknown(
+              data['case_sensitive']!, _caseSensitiveMeta));
+    }
+    if (data.containsKey('match_whole_words')) {
+      context.handle(
+          _matchWholeWordsMeta,
+          matchWholeWords.isAcceptableOrUnknown(
+              data['match_whole_words']!, _matchWholeWordsMeta));
+    }
+    if (data.containsKey('use_group_scoring')) {
+      context.handle(
+          _useGroupScoringMeta,
+          useGroupScoring.isAcceptableOrUnknown(
+              data['use_group_scoring']!, _useGroupScoringMeta));
+    }
+    if (data.containsKey('recursion_depth')) {
+      context.handle(
+          _recursionDepthMeta,
+          recursionDepth.isAcceptableOrUnknown(
+              data['recursion_depth']!, _recursionDepthMeta));
+    }
+    if (data.containsKey('extensions_json')) {
+      context.handle(
+          _extensionsJsonMeta,
+          extensionsJson.isAcceptableOrUnknown(
+              data['extensions_json']!, _extensionsJsonMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -2318,6 +2405,18 @@ class $WorldInfosTable extends WorldInfos
           .read(DriftSqlType.bool, data['${effectivePrefix}is_global'])!,
       characterId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}character_id']),
+      scanDepth: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scan_depth']),
+      caseSensitive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}case_sensitive']),
+      matchWholeWords: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}match_whole_words']),
+      useGroupScoring: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}use_group_scoring']),
+      recursionDepth: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}recursion_depth']),
+      extensionsJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}extensions_json'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       modifiedAt: attachedDatabase.typeMapping
@@ -2338,6 +2437,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
   final bool enabled;
   final bool isGlobal;
   final String? characterId;
+  final String? scanDepth;
+  final bool? caseSensitive;
+  final bool? matchWholeWords;
+  final bool? useGroupScoring;
+  final int? recursionDepth;
+  final String extensionsJson;
   final DateTime createdAt;
   final DateTime modifiedAt;
   const WorldInfo(
@@ -2347,6 +2452,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
       required this.enabled,
       required this.isGlobal,
       this.characterId,
+      this.scanDepth,
+      this.caseSensitive,
+      this.matchWholeWords,
+      this.useGroupScoring,
+      this.recursionDepth,
+      required this.extensionsJson,
       required this.createdAt,
       required this.modifiedAt});
   @override
@@ -2362,6 +2473,22 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
     if (!nullToAbsent || characterId != null) {
       map['character_id'] = Variable<String>(characterId);
     }
+    if (!nullToAbsent || scanDepth != null) {
+      map['scan_depth'] = Variable<String>(scanDepth);
+    }
+    if (!nullToAbsent || caseSensitive != null) {
+      map['case_sensitive'] = Variable<bool>(caseSensitive);
+    }
+    if (!nullToAbsent || matchWholeWords != null) {
+      map['match_whole_words'] = Variable<bool>(matchWholeWords);
+    }
+    if (!nullToAbsent || useGroupScoring != null) {
+      map['use_group_scoring'] = Variable<bool>(useGroupScoring);
+    }
+    if (!nullToAbsent || recursionDepth != null) {
+      map['recursion_depth'] = Variable<int>(recursionDepth);
+    }
+    map['extensions_json'] = Variable<String>(extensionsJson);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['modified_at'] = Variable<DateTime>(modifiedAt);
     return map;
@@ -2379,6 +2506,22 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
       characterId: characterId == null && nullToAbsent
           ? const Value.absent()
           : Value(characterId),
+      scanDepth: scanDepth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scanDepth),
+      caseSensitive: caseSensitive == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caseSensitive),
+      matchWholeWords: matchWholeWords == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matchWholeWords),
+      useGroupScoring: useGroupScoring == null && nullToAbsent
+          ? const Value.absent()
+          : Value(useGroupScoring),
+      recursionDepth: recursionDepth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recursionDepth),
+      extensionsJson: Value(extensionsJson),
       createdAt: Value(createdAt),
       modifiedAt: Value(modifiedAt),
     );
@@ -2394,6 +2537,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
       enabled: serializer.fromJson<bool>(json['enabled']),
       isGlobal: serializer.fromJson<bool>(json['isGlobal']),
       characterId: serializer.fromJson<String?>(json['characterId']),
+      scanDepth: serializer.fromJson<String?>(json['scanDepth']),
+      caseSensitive: serializer.fromJson<bool?>(json['caseSensitive']),
+      matchWholeWords: serializer.fromJson<bool?>(json['matchWholeWords']),
+      useGroupScoring: serializer.fromJson<bool?>(json['useGroupScoring']),
+      recursionDepth: serializer.fromJson<int?>(json['recursionDepth']),
+      extensionsJson: serializer.fromJson<String>(json['extensionsJson']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       modifiedAt: serializer.fromJson<DateTime>(json['modifiedAt']),
     );
@@ -2408,6 +2557,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
       'enabled': serializer.toJson<bool>(enabled),
       'isGlobal': serializer.toJson<bool>(isGlobal),
       'characterId': serializer.toJson<String?>(characterId),
+      'scanDepth': serializer.toJson<String?>(scanDepth),
+      'caseSensitive': serializer.toJson<bool?>(caseSensitive),
+      'matchWholeWords': serializer.toJson<bool?>(matchWholeWords),
+      'useGroupScoring': serializer.toJson<bool?>(useGroupScoring),
+      'recursionDepth': serializer.toJson<int?>(recursionDepth),
+      'extensionsJson': serializer.toJson<String>(extensionsJson),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'modifiedAt': serializer.toJson<DateTime>(modifiedAt),
     };
@@ -2420,6 +2575,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
           bool? enabled,
           bool? isGlobal,
           Value<String?> characterId = const Value.absent(),
+          Value<String?> scanDepth = const Value.absent(),
+          Value<bool?> caseSensitive = const Value.absent(),
+          Value<bool?> matchWholeWords = const Value.absent(),
+          Value<bool?> useGroupScoring = const Value.absent(),
+          Value<int?> recursionDepth = const Value.absent(),
+          String? extensionsJson,
           DateTime? createdAt,
           DateTime? modifiedAt}) =>
       WorldInfo(
@@ -2429,6 +2590,18 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
         enabled: enabled ?? this.enabled,
         isGlobal: isGlobal ?? this.isGlobal,
         characterId: characterId.present ? characterId.value : this.characterId,
+        scanDepth: scanDepth.present ? scanDepth.value : this.scanDepth,
+        caseSensitive:
+            caseSensitive.present ? caseSensitive.value : this.caseSensitive,
+        matchWholeWords: matchWholeWords.present
+            ? matchWholeWords.value
+            : this.matchWholeWords,
+        useGroupScoring: useGroupScoring.present
+            ? useGroupScoring.value
+            : this.useGroupScoring,
+        recursionDepth:
+            recursionDepth.present ? recursionDepth.value : this.recursionDepth,
+        extensionsJson: extensionsJson ?? this.extensionsJson,
         createdAt: createdAt ?? this.createdAt,
         modifiedAt: modifiedAt ?? this.modifiedAt,
       );
@@ -2442,6 +2615,22 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
       isGlobal: data.isGlobal.present ? data.isGlobal.value : this.isGlobal,
       characterId:
           data.characterId.present ? data.characterId.value : this.characterId,
+      scanDepth: data.scanDepth.present ? data.scanDepth.value : this.scanDepth,
+      caseSensitive: data.caseSensitive.present
+          ? data.caseSensitive.value
+          : this.caseSensitive,
+      matchWholeWords: data.matchWholeWords.present
+          ? data.matchWholeWords.value
+          : this.matchWholeWords,
+      useGroupScoring: data.useGroupScoring.present
+          ? data.useGroupScoring.value
+          : this.useGroupScoring,
+      recursionDepth: data.recursionDepth.present
+          ? data.recursionDepth.value
+          : this.recursionDepth,
+      extensionsJson: data.extensionsJson.present
+          ? data.extensionsJson.value
+          : this.extensionsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       modifiedAt:
           data.modifiedAt.present ? data.modifiedAt.value : this.modifiedAt,
@@ -2457,6 +2646,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
           ..write('enabled: $enabled, ')
           ..write('isGlobal: $isGlobal, ')
           ..write('characterId: $characterId, ')
+          ..write('scanDepth: $scanDepth, ')
+          ..write('caseSensitive: $caseSensitive, ')
+          ..write('matchWholeWords: $matchWholeWords, ')
+          ..write('useGroupScoring: $useGroupScoring, ')
+          ..write('recursionDepth: $recursionDepth, ')
+          ..write('extensionsJson: $extensionsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('modifiedAt: $modifiedAt')
           ..write(')'))
@@ -2464,8 +2659,21 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, description, enabled, isGlobal,
-      characterId, createdAt, modifiedAt);
+  int get hashCode => Object.hash(
+      id,
+      name,
+      description,
+      enabled,
+      isGlobal,
+      characterId,
+      scanDepth,
+      caseSensitive,
+      matchWholeWords,
+      useGroupScoring,
+      recursionDepth,
+      extensionsJson,
+      createdAt,
+      modifiedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2476,6 +2684,12 @@ class WorldInfo extends DataClass implements Insertable<WorldInfo> {
           other.enabled == this.enabled &&
           other.isGlobal == this.isGlobal &&
           other.characterId == this.characterId &&
+          other.scanDepth == this.scanDepth &&
+          other.caseSensitive == this.caseSensitive &&
+          other.matchWholeWords == this.matchWholeWords &&
+          other.useGroupScoring == this.useGroupScoring &&
+          other.recursionDepth == this.recursionDepth &&
+          other.extensionsJson == this.extensionsJson &&
           other.createdAt == this.createdAt &&
           other.modifiedAt == this.modifiedAt);
 }
@@ -2487,6 +2701,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
   final Value<bool> enabled;
   final Value<bool> isGlobal;
   final Value<String?> characterId;
+  final Value<String?> scanDepth;
+  final Value<bool?> caseSensitive;
+  final Value<bool?> matchWholeWords;
+  final Value<bool?> useGroupScoring;
+  final Value<int?> recursionDepth;
+  final Value<String> extensionsJson;
   final Value<DateTime> createdAt;
   final Value<DateTime> modifiedAt;
   final Value<int> rowid;
@@ -2497,6 +2717,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
     this.enabled = const Value.absent(),
     this.isGlobal = const Value.absent(),
     this.characterId = const Value.absent(),
+    this.scanDepth = const Value.absent(),
+    this.caseSensitive = const Value.absent(),
+    this.matchWholeWords = const Value.absent(),
+    this.useGroupScoring = const Value.absent(),
+    this.recursionDepth = const Value.absent(),
+    this.extensionsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.modifiedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2508,6 +2734,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
     this.enabled = const Value.absent(),
     this.isGlobal = const Value.absent(),
     this.characterId = const Value.absent(),
+    this.scanDepth = const Value.absent(),
+    this.caseSensitive = const Value.absent(),
+    this.matchWholeWords = const Value.absent(),
+    this.useGroupScoring = const Value.absent(),
+    this.recursionDepth = const Value.absent(),
+    this.extensionsJson = const Value.absent(),
     required DateTime createdAt,
     required DateTime modifiedAt,
     this.rowid = const Value.absent(),
@@ -2522,6 +2754,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
     Expression<bool>? enabled,
     Expression<bool>? isGlobal,
     Expression<String>? characterId,
+    Expression<String>? scanDepth,
+    Expression<bool>? caseSensitive,
+    Expression<bool>? matchWholeWords,
+    Expression<bool>? useGroupScoring,
+    Expression<int>? recursionDepth,
+    Expression<String>? extensionsJson,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? modifiedAt,
     Expression<int>? rowid,
@@ -2533,6 +2771,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
       if (enabled != null) 'enabled': enabled,
       if (isGlobal != null) 'is_global': isGlobal,
       if (characterId != null) 'character_id': characterId,
+      if (scanDepth != null) 'scan_depth': scanDepth,
+      if (caseSensitive != null) 'case_sensitive': caseSensitive,
+      if (matchWholeWords != null) 'match_whole_words': matchWholeWords,
+      if (useGroupScoring != null) 'use_group_scoring': useGroupScoring,
+      if (recursionDepth != null) 'recursion_depth': recursionDepth,
+      if (extensionsJson != null) 'extensions_json': extensionsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (modifiedAt != null) 'modified_at': modifiedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2546,6 +2790,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
       Value<bool>? enabled,
       Value<bool>? isGlobal,
       Value<String?>? characterId,
+      Value<String?>? scanDepth,
+      Value<bool?>? caseSensitive,
+      Value<bool?>? matchWholeWords,
+      Value<bool?>? useGroupScoring,
+      Value<int?>? recursionDepth,
+      Value<String>? extensionsJson,
       Value<DateTime>? createdAt,
       Value<DateTime>? modifiedAt,
       Value<int>? rowid}) {
@@ -2556,6 +2806,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
       enabled: enabled ?? this.enabled,
       isGlobal: isGlobal ?? this.isGlobal,
       characterId: characterId ?? this.characterId,
+      scanDepth: scanDepth ?? this.scanDepth,
+      caseSensitive: caseSensitive ?? this.caseSensitive,
+      matchWholeWords: matchWholeWords ?? this.matchWholeWords,
+      useGroupScoring: useGroupScoring ?? this.useGroupScoring,
+      recursionDepth: recursionDepth ?? this.recursionDepth,
+      extensionsJson: extensionsJson ?? this.extensionsJson,
       createdAt: createdAt ?? this.createdAt,
       modifiedAt: modifiedAt ?? this.modifiedAt,
       rowid: rowid ?? this.rowid,
@@ -2583,6 +2839,24 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
     if (characterId.present) {
       map['character_id'] = Variable<String>(characterId.value);
     }
+    if (scanDepth.present) {
+      map['scan_depth'] = Variable<String>(scanDepth.value);
+    }
+    if (caseSensitive.present) {
+      map['case_sensitive'] = Variable<bool>(caseSensitive.value);
+    }
+    if (matchWholeWords.present) {
+      map['match_whole_words'] = Variable<bool>(matchWholeWords.value);
+    }
+    if (useGroupScoring.present) {
+      map['use_group_scoring'] = Variable<bool>(useGroupScoring.value);
+    }
+    if (recursionDepth.present) {
+      map['recursion_depth'] = Variable<int>(recursionDepth.value);
+    }
+    if (extensionsJson.present) {
+      map['extensions_json'] = Variable<String>(extensionsJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2604,6 +2878,12 @@ class WorldInfosCompanion extends UpdateCompanion<WorldInfo> {
           ..write('enabled: $enabled, ')
           ..write('isGlobal: $isGlobal, ')
           ..write('characterId: $characterId, ')
+          ..write('scanDepth: $scanDepth, ')
+          ..write('caseSensitive: $caseSensitive, ')
+          ..write('matchWholeWords: $matchWholeWords, ')
+          ..write('useGroupScoring: $useGroupScoring, ')
+          ..write('recursionDepth: $recursionDepth, ')
+          ..write('extensionsJson: $extensionsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('modifiedAt: $modifiedAt, ')
           ..write('rowid: $rowid')
@@ -2721,6 +3001,24 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("match_whole_words" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _useGroupScoringMeta =
+      const VerificationMeta('useGroupScoring');
+  @override
+  late final GeneratedColumn<bool> useGroupScoring = GeneratedColumn<bool>(
+      'use_group_scoring', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("use_group_scoring" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _automationIdMeta =
+      const VerificationMeta('automationId');
+  @override
+  late final GeneratedColumn<String> automationId = GeneratedColumn<String>(
+      'automation_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _probabilityMeta =
       const VerificationMeta('probability');
   @override
@@ -2767,6 +3065,16 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("prevent_recursion" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _delayUntilRecursionMeta =
+      const VerificationMeta('delayUntilRecursion');
+  @override
+  late final GeneratedColumn<bool> delayUntilRecursion = GeneratedColumn<bool>(
+      'delay_until_recursion', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("delay_until_recursion" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _scanDepthMeta =
       const VerificationMeta('scanDepth');
   @override
@@ -2797,12 +3105,15 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
         insertionOrder,
         caseSensitive,
         matchWholeWords,
+        useGroupScoring,
+        automationId,
         probability,
         position,
         depth,
         group,
         groupWeight,
         preventRecursion,
+        delayUntilRecursion,
         scanDepth,
         extensionsJson
       ];
@@ -2877,6 +3188,18 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
           matchWholeWords.isAcceptableOrUnknown(
               data['match_whole_words']!, _matchWholeWordsMeta));
     }
+    if (data.containsKey('use_group_scoring')) {
+      context.handle(
+          _useGroupScoringMeta,
+          useGroupScoring.isAcceptableOrUnknown(
+              data['use_group_scoring']!, _useGroupScoringMeta));
+    }
+    if (data.containsKey('automation_id')) {
+      context.handle(
+          _automationIdMeta,
+          automationId.isAcceptableOrUnknown(
+              data['automation_id']!, _automationIdMeta));
+    }
     if (data.containsKey('probability')) {
       context.handle(
           _probabilityMeta,
@@ -2906,6 +3229,12 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
           _preventRecursionMeta,
           preventRecursion.isAcceptableOrUnknown(
               data['prevent_recursion']!, _preventRecursionMeta));
+    }
+    if (data.containsKey('delay_until_recursion')) {
+      context.handle(
+          _delayUntilRecursionMeta,
+          delayUntilRecursion.isAcceptableOrUnknown(
+              data['delay_until_recursion']!, _delayUntilRecursionMeta));
     }
     if (data.containsKey('scan_depth')) {
       context.handle(_scanDepthMeta,
@@ -2950,6 +3279,10 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
           .read(DriftSqlType.bool, data['${effectivePrefix}case_sensitive'])!,
       matchWholeWords: attachedDatabase.typeMapping.read(
           DriftSqlType.bool, data['${effectivePrefix}match_whole_words'])!,
+      useGroupScoring: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}use_group_scoring'])!,
+      automationId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}automation_id'])!,
       probability: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}probability'])!,
       position: attachedDatabase.typeMapping
@@ -2962,6 +3295,8 @@ class $WorldInfoEntriesTable extends WorldInfoEntries
           .read(DriftSqlType.int, data['${effectivePrefix}group_weight'])!,
       preventRecursion: attachedDatabase.typeMapping.read(
           DriftSqlType.bool, data['${effectivePrefix}prevent_recursion'])!,
+      delayUntilRecursion: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}delay_until_recursion'])!,
       scanDepth: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}scan_depth'])!,
       extensionsJson: attachedDatabase.typeMapping.read(
@@ -2988,12 +3323,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
   final int insertionOrder;
   final bool caseSensitive;
   final bool matchWholeWords;
+  final bool useGroupScoring;
+  final String automationId;
   final int probability;
   final int position;
   final int depth;
   final String? group;
   final int groupWeight;
   final bool preventRecursion;
+  final bool delayUntilRecursion;
   final int scanDepth;
   final String extensionsJson;
   const WorldInfoEntry(
@@ -3009,12 +3347,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       required this.insertionOrder,
       required this.caseSensitive,
       required this.matchWholeWords,
+      required this.useGroupScoring,
+      required this.automationId,
       required this.probability,
       required this.position,
       required this.depth,
       this.group,
       required this.groupWeight,
       required this.preventRecursion,
+      required this.delayUntilRecursion,
       required this.scanDepth,
       required this.extensionsJson});
   @override
@@ -3032,6 +3373,8 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
     map['insertion_order'] = Variable<int>(insertionOrder);
     map['case_sensitive'] = Variable<bool>(caseSensitive);
     map['match_whole_words'] = Variable<bool>(matchWholeWords);
+    map['use_group_scoring'] = Variable<bool>(useGroupScoring);
+    map['automation_id'] = Variable<String>(automationId);
     map['probability'] = Variable<int>(probability);
     map['position'] = Variable<int>(position);
     map['depth'] = Variable<int>(depth);
@@ -3040,6 +3383,7 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
     }
     map['group_weight'] = Variable<int>(groupWeight);
     map['prevent_recursion'] = Variable<bool>(preventRecursion);
+    map['delay_until_recursion'] = Variable<bool>(delayUntilRecursion);
     map['scan_depth'] = Variable<int>(scanDepth);
     map['extensions_json'] = Variable<String>(extensionsJson);
     return map;
@@ -3059,6 +3403,8 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       insertionOrder: Value(insertionOrder),
       caseSensitive: Value(caseSensitive),
       matchWholeWords: Value(matchWholeWords),
+      useGroupScoring: Value(useGroupScoring),
+      automationId: Value(automationId),
       probability: Value(probability),
       position: Value(position),
       depth: Value(depth),
@@ -3066,6 +3412,7 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
           group == null && nullToAbsent ? const Value.absent() : Value(group),
       groupWeight: Value(groupWeight),
       preventRecursion: Value(preventRecursion),
+      delayUntilRecursion: Value(delayUntilRecursion),
       scanDepth: Value(scanDepth),
       extensionsJson: Value(extensionsJson),
     );
@@ -3087,12 +3434,16 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       insertionOrder: serializer.fromJson<int>(json['insertionOrder']),
       caseSensitive: serializer.fromJson<bool>(json['caseSensitive']),
       matchWholeWords: serializer.fromJson<bool>(json['matchWholeWords']),
+      useGroupScoring: serializer.fromJson<bool>(json['useGroupScoring']),
+      automationId: serializer.fromJson<String>(json['automationId']),
       probability: serializer.fromJson<int>(json['probability']),
       position: serializer.fromJson<int>(json['position']),
       depth: serializer.fromJson<int>(json['depth']),
       group: serializer.fromJson<String?>(json['group']),
       groupWeight: serializer.fromJson<int>(json['groupWeight']),
       preventRecursion: serializer.fromJson<bool>(json['preventRecursion']),
+      delayUntilRecursion:
+          serializer.fromJson<bool>(json['delayUntilRecursion']),
       scanDepth: serializer.fromJson<int>(json['scanDepth']),
       extensionsJson: serializer.fromJson<String>(json['extensionsJson']),
     );
@@ -3113,12 +3464,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       'insertionOrder': serializer.toJson<int>(insertionOrder),
       'caseSensitive': serializer.toJson<bool>(caseSensitive),
       'matchWholeWords': serializer.toJson<bool>(matchWholeWords),
+      'useGroupScoring': serializer.toJson<bool>(useGroupScoring),
+      'automationId': serializer.toJson<String>(automationId),
       'probability': serializer.toJson<int>(probability),
       'position': serializer.toJson<int>(position),
       'depth': serializer.toJson<int>(depth),
       'group': serializer.toJson<String?>(group),
       'groupWeight': serializer.toJson<int>(groupWeight),
       'preventRecursion': serializer.toJson<bool>(preventRecursion),
+      'delayUntilRecursion': serializer.toJson<bool>(delayUntilRecursion),
       'scanDepth': serializer.toJson<int>(scanDepth),
       'extensionsJson': serializer.toJson<String>(extensionsJson),
     };
@@ -3137,12 +3491,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
           int? insertionOrder,
           bool? caseSensitive,
           bool? matchWholeWords,
+          bool? useGroupScoring,
+          String? automationId,
           int? probability,
           int? position,
           int? depth,
           Value<String?> group = const Value.absent(),
           int? groupWeight,
           bool? preventRecursion,
+          bool? delayUntilRecursion,
           int? scanDepth,
           String? extensionsJson}) =>
       WorldInfoEntry(
@@ -3158,12 +3515,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
         insertionOrder: insertionOrder ?? this.insertionOrder,
         caseSensitive: caseSensitive ?? this.caseSensitive,
         matchWholeWords: matchWholeWords ?? this.matchWholeWords,
+        useGroupScoring: useGroupScoring ?? this.useGroupScoring,
+        automationId: automationId ?? this.automationId,
         probability: probability ?? this.probability,
         position: position ?? this.position,
         depth: depth ?? this.depth,
         group: group.present ? group.value : this.group,
         groupWeight: groupWeight ?? this.groupWeight,
         preventRecursion: preventRecursion ?? this.preventRecursion,
+        delayUntilRecursion: delayUntilRecursion ?? this.delayUntilRecursion,
         scanDepth: scanDepth ?? this.scanDepth,
         extensionsJson: extensionsJson ?? this.extensionsJson,
       );
@@ -3190,6 +3550,12 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       matchWholeWords: data.matchWholeWords.present
           ? data.matchWholeWords.value
           : this.matchWholeWords,
+      useGroupScoring: data.useGroupScoring.present
+          ? data.useGroupScoring.value
+          : this.useGroupScoring,
+      automationId: data.automationId.present
+          ? data.automationId.value
+          : this.automationId,
       probability:
           data.probability.present ? data.probability.value : this.probability,
       position: data.position.present ? data.position.value : this.position,
@@ -3200,6 +3566,9 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
       preventRecursion: data.preventRecursion.present
           ? data.preventRecursion.value
           : this.preventRecursion,
+      delayUntilRecursion: data.delayUntilRecursion.present
+          ? data.delayUntilRecursion.value
+          : this.delayUntilRecursion,
       scanDepth: data.scanDepth.present ? data.scanDepth.value : this.scanDepth,
       extensionsJson: data.extensionsJson.present
           ? data.extensionsJson.value
@@ -3222,12 +3591,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
           ..write('insertionOrder: $insertionOrder, ')
           ..write('caseSensitive: $caseSensitive, ')
           ..write('matchWholeWords: $matchWholeWords, ')
+          ..write('useGroupScoring: $useGroupScoring, ')
+          ..write('automationId: $automationId, ')
           ..write('probability: $probability, ')
           ..write('position: $position, ')
           ..write('depth: $depth, ')
           ..write('group: $group, ')
           ..write('groupWeight: $groupWeight, ')
           ..write('preventRecursion: $preventRecursion, ')
+          ..write('delayUntilRecursion: $delayUntilRecursion, ')
           ..write('scanDepth: $scanDepth, ')
           ..write('extensionsJson: $extensionsJson')
           ..write(')'))
@@ -3235,27 +3607,31 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      worldInfoId,
-      keys,
-      secondaryKeys,
-      content,
-      comment,
-      enabled,
-      constant,
-      selective,
-      insertionOrder,
-      caseSensitive,
-      matchWholeWords,
-      probability,
-      position,
-      depth,
-      group,
-      groupWeight,
-      preventRecursion,
-      scanDepth,
-      extensionsJson);
+  int get hashCode => Object.hashAll([
+        id,
+        worldInfoId,
+        keys,
+        secondaryKeys,
+        content,
+        comment,
+        enabled,
+        constant,
+        selective,
+        insertionOrder,
+        caseSensitive,
+        matchWholeWords,
+        useGroupScoring,
+        automationId,
+        probability,
+        position,
+        depth,
+        group,
+        groupWeight,
+        preventRecursion,
+        delayUntilRecursion,
+        scanDepth,
+        extensionsJson
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3272,12 +3648,15 @@ class WorldInfoEntry extends DataClass implements Insertable<WorldInfoEntry> {
           other.insertionOrder == this.insertionOrder &&
           other.caseSensitive == this.caseSensitive &&
           other.matchWholeWords == this.matchWholeWords &&
+          other.useGroupScoring == this.useGroupScoring &&
+          other.automationId == this.automationId &&
           other.probability == this.probability &&
           other.position == this.position &&
           other.depth == this.depth &&
           other.group == this.group &&
           other.groupWeight == this.groupWeight &&
           other.preventRecursion == this.preventRecursion &&
+          other.delayUntilRecursion == this.delayUntilRecursion &&
           other.scanDepth == this.scanDepth &&
           other.extensionsJson == this.extensionsJson);
 }
@@ -3295,12 +3674,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
   final Value<int> insertionOrder;
   final Value<bool> caseSensitive;
   final Value<bool> matchWholeWords;
+  final Value<bool> useGroupScoring;
+  final Value<String> automationId;
   final Value<int> probability;
   final Value<int> position;
   final Value<int> depth;
   final Value<String?> group;
   final Value<int> groupWeight;
   final Value<bool> preventRecursion;
+  final Value<bool> delayUntilRecursion;
   final Value<int> scanDepth;
   final Value<String> extensionsJson;
   final Value<int> rowid;
@@ -3317,12 +3699,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
     this.insertionOrder = const Value.absent(),
     this.caseSensitive = const Value.absent(),
     this.matchWholeWords = const Value.absent(),
+    this.useGroupScoring = const Value.absent(),
+    this.automationId = const Value.absent(),
     this.probability = const Value.absent(),
     this.position = const Value.absent(),
     this.depth = const Value.absent(),
     this.group = const Value.absent(),
     this.groupWeight = const Value.absent(),
     this.preventRecursion = const Value.absent(),
+    this.delayUntilRecursion = const Value.absent(),
     this.scanDepth = const Value.absent(),
     this.extensionsJson = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3340,12 +3725,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
     this.insertionOrder = const Value.absent(),
     this.caseSensitive = const Value.absent(),
     this.matchWholeWords = const Value.absent(),
+    this.useGroupScoring = const Value.absent(),
+    this.automationId = const Value.absent(),
     this.probability = const Value.absent(),
     this.position = const Value.absent(),
     this.depth = const Value.absent(),
     this.group = const Value.absent(),
     this.groupWeight = const Value.absent(),
     this.preventRecursion = const Value.absent(),
+    this.delayUntilRecursion = const Value.absent(),
     this.scanDepth = const Value.absent(),
     this.extensionsJson = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3364,12 +3752,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
     Expression<int>? insertionOrder,
     Expression<bool>? caseSensitive,
     Expression<bool>? matchWholeWords,
+    Expression<bool>? useGroupScoring,
+    Expression<String>? automationId,
     Expression<int>? probability,
     Expression<int>? position,
     Expression<int>? depth,
     Expression<String>? group,
     Expression<int>? groupWeight,
     Expression<bool>? preventRecursion,
+    Expression<bool>? delayUntilRecursion,
     Expression<int>? scanDepth,
     Expression<String>? extensionsJson,
     Expression<int>? rowid,
@@ -3387,12 +3778,16 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
       if (insertionOrder != null) 'insertion_order': insertionOrder,
       if (caseSensitive != null) 'case_sensitive': caseSensitive,
       if (matchWholeWords != null) 'match_whole_words': matchWholeWords,
+      if (useGroupScoring != null) 'use_group_scoring': useGroupScoring,
+      if (automationId != null) 'automation_id': automationId,
       if (probability != null) 'probability': probability,
       if (position != null) 'position': position,
       if (depth != null) 'depth': depth,
       if (group != null) 'group': group,
       if (groupWeight != null) 'group_weight': groupWeight,
       if (preventRecursion != null) 'prevent_recursion': preventRecursion,
+      if (delayUntilRecursion != null)
+        'delay_until_recursion': delayUntilRecursion,
       if (scanDepth != null) 'scan_depth': scanDepth,
       if (extensionsJson != null) 'extensions_json': extensionsJson,
       if (rowid != null) 'rowid': rowid,
@@ -3412,12 +3807,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
       Value<int>? insertionOrder,
       Value<bool>? caseSensitive,
       Value<bool>? matchWholeWords,
+      Value<bool>? useGroupScoring,
+      Value<String>? automationId,
       Value<int>? probability,
       Value<int>? position,
       Value<int>? depth,
       Value<String?>? group,
       Value<int>? groupWeight,
       Value<bool>? preventRecursion,
+      Value<bool>? delayUntilRecursion,
       Value<int>? scanDepth,
       Value<String>? extensionsJson,
       Value<int>? rowid}) {
@@ -3434,12 +3832,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
       insertionOrder: insertionOrder ?? this.insertionOrder,
       caseSensitive: caseSensitive ?? this.caseSensitive,
       matchWholeWords: matchWholeWords ?? this.matchWholeWords,
+      useGroupScoring: useGroupScoring ?? this.useGroupScoring,
+      automationId: automationId ?? this.automationId,
       probability: probability ?? this.probability,
       position: position ?? this.position,
       depth: depth ?? this.depth,
       group: group ?? this.group,
       groupWeight: groupWeight ?? this.groupWeight,
       preventRecursion: preventRecursion ?? this.preventRecursion,
+      delayUntilRecursion: delayUntilRecursion ?? this.delayUntilRecursion,
       scanDepth: scanDepth ?? this.scanDepth,
       extensionsJson: extensionsJson ?? this.extensionsJson,
       rowid: rowid ?? this.rowid,
@@ -3485,6 +3886,12 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
     if (matchWholeWords.present) {
       map['match_whole_words'] = Variable<bool>(matchWholeWords.value);
     }
+    if (useGroupScoring.present) {
+      map['use_group_scoring'] = Variable<bool>(useGroupScoring.value);
+    }
+    if (automationId.present) {
+      map['automation_id'] = Variable<String>(automationId.value);
+    }
     if (probability.present) {
       map['probability'] = Variable<int>(probability.value);
     }
@@ -3502,6 +3909,9 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
     }
     if (preventRecursion.present) {
       map['prevent_recursion'] = Variable<bool>(preventRecursion.value);
+    }
+    if (delayUntilRecursion.present) {
+      map['delay_until_recursion'] = Variable<bool>(delayUntilRecursion.value);
     }
     if (scanDepth.present) {
       map['scan_depth'] = Variable<int>(scanDepth.value);
@@ -3530,12 +3940,15 @@ class WorldInfoEntriesCompanion extends UpdateCompanion<WorldInfoEntry> {
           ..write('insertionOrder: $insertionOrder, ')
           ..write('caseSensitive: $caseSensitive, ')
           ..write('matchWholeWords: $matchWholeWords, ')
+          ..write('useGroupScoring: $useGroupScoring, ')
+          ..write('automationId: $automationId, ')
           ..write('probability: $probability, ')
           ..write('position: $position, ')
           ..write('depth: $depth, ')
           ..write('group: $group, ')
           ..write('groupWeight: $groupWeight, ')
           ..write('preventRecursion: $preventRecursion, ')
+          ..write('delayUntilRecursion: $delayUntilRecursion, ')
           ..write('scanDepth: $scanDepth, ')
           ..write('extensionsJson: $extensionsJson, ')
           ..write('rowid: $rowid')
@@ -7410,6 +7823,12 @@ typedef $$WorldInfosTableCreateCompanionBuilder = WorldInfosCompanion Function({
   Value<bool> enabled,
   Value<bool> isGlobal,
   Value<String?> characterId,
+  Value<String?> scanDepth,
+  Value<bool?> caseSensitive,
+  Value<bool?> matchWholeWords,
+  Value<bool?> useGroupScoring,
+  Value<int?> recursionDepth,
+  Value<String> extensionsJson,
   required DateTime createdAt,
   required DateTime modifiedAt,
   Value<int> rowid,
@@ -7421,6 +7840,12 @@ typedef $$WorldInfosTableUpdateCompanionBuilder = WorldInfosCompanion Function({
   Value<bool> enabled,
   Value<bool> isGlobal,
   Value<String?> characterId,
+  Value<String?> scanDepth,
+  Value<bool?> caseSensitive,
+  Value<bool?> matchWholeWords,
+  Value<bool?> useGroupScoring,
+  Value<int?> recursionDepth,
+  Value<String> extensionsJson,
   Value<DateTime> createdAt,
   Value<DateTime> modifiedAt,
   Value<int> rowid,
@@ -7486,6 +7911,28 @@ class $$WorldInfosTableFilterComposer
 
   ColumnFilters<bool> get isGlobal => $composableBuilder(
       column: $table.isGlobal, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scanDepth => $composableBuilder(
+      column: $table.scanDepth, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get caseSensitive => $composableBuilder(
+      column: $table.caseSensitive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get matchWholeWords => $composableBuilder(
+      column: $table.matchWholeWords,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recursionDepth => $composableBuilder(
+      column: $table.recursionDepth,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get extensionsJson => $composableBuilder(
+      column: $table.extensionsJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -7559,6 +8006,29 @@ class $$WorldInfosTableOrderingComposer
   ColumnOrderings<bool> get isGlobal => $composableBuilder(
       column: $table.isGlobal, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get scanDepth => $composableBuilder(
+      column: $table.scanDepth, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get caseSensitive => $composableBuilder(
+      column: $table.caseSensitive,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get matchWholeWords => $composableBuilder(
+      column: $table.matchWholeWords,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recursionDepth => $composableBuilder(
+      column: $table.recursionDepth,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get extensionsJson => $composableBuilder(
+      column: $table.extensionsJson,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
@@ -7609,6 +8079,24 @@ class $$WorldInfosTableAnnotationComposer
 
   GeneratedColumn<bool> get isGlobal =>
       $composableBuilder(column: $table.isGlobal, builder: (column) => column);
+
+  GeneratedColumn<String> get scanDepth =>
+      $composableBuilder(column: $table.scanDepth, builder: (column) => column);
+
+  GeneratedColumn<bool> get caseSensitive => $composableBuilder(
+      column: $table.caseSensitive, builder: (column) => column);
+
+  GeneratedColumn<bool> get matchWholeWords => $composableBuilder(
+      column: $table.matchWholeWords, builder: (column) => column);
+
+  GeneratedColumn<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring, builder: (column) => column);
+
+  GeneratedColumn<int> get recursionDepth => $composableBuilder(
+      column: $table.recursionDepth, builder: (column) => column);
+
+  GeneratedColumn<String> get extensionsJson => $composableBuilder(
+      column: $table.extensionsJson, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -7687,6 +8175,12 @@ class $$WorldInfosTableTableManager extends RootTableManager<
             Value<bool> enabled = const Value.absent(),
             Value<bool> isGlobal = const Value.absent(),
             Value<String?> characterId = const Value.absent(),
+            Value<String?> scanDepth = const Value.absent(),
+            Value<bool?> caseSensitive = const Value.absent(),
+            Value<bool?> matchWholeWords = const Value.absent(),
+            Value<bool?> useGroupScoring = const Value.absent(),
+            Value<int?> recursionDepth = const Value.absent(),
+            Value<String> extensionsJson = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> modifiedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -7698,6 +8192,12 @@ class $$WorldInfosTableTableManager extends RootTableManager<
             enabled: enabled,
             isGlobal: isGlobal,
             characterId: characterId,
+            scanDepth: scanDepth,
+            caseSensitive: caseSensitive,
+            matchWholeWords: matchWholeWords,
+            useGroupScoring: useGroupScoring,
+            recursionDepth: recursionDepth,
+            extensionsJson: extensionsJson,
             createdAt: createdAt,
             modifiedAt: modifiedAt,
             rowid: rowid,
@@ -7709,6 +8209,12 @@ class $$WorldInfosTableTableManager extends RootTableManager<
             Value<bool> enabled = const Value.absent(),
             Value<bool> isGlobal = const Value.absent(),
             Value<String?> characterId = const Value.absent(),
+            Value<String?> scanDepth = const Value.absent(),
+            Value<bool?> caseSensitive = const Value.absent(),
+            Value<bool?> matchWholeWords = const Value.absent(),
+            Value<bool?> useGroupScoring = const Value.absent(),
+            Value<int?> recursionDepth = const Value.absent(),
+            Value<String> extensionsJson = const Value.absent(),
             required DateTime createdAt,
             required DateTime modifiedAt,
             Value<int> rowid = const Value.absent(),
@@ -7720,6 +8226,12 @@ class $$WorldInfosTableTableManager extends RootTableManager<
             enabled: enabled,
             isGlobal: isGlobal,
             characterId: characterId,
+            scanDepth: scanDepth,
+            caseSensitive: caseSensitive,
+            matchWholeWords: matchWholeWords,
+            useGroupScoring: useGroupScoring,
+            recursionDepth: recursionDepth,
+            extensionsJson: extensionsJson,
             createdAt: createdAt,
             modifiedAt: modifiedAt,
             rowid: rowid,
@@ -7811,12 +8323,15 @@ typedef $$WorldInfoEntriesTableCreateCompanionBuilder
   Value<int> insertionOrder,
   Value<bool> caseSensitive,
   Value<bool> matchWholeWords,
+  Value<bool> useGroupScoring,
+  Value<String> automationId,
   Value<int> probability,
   Value<int> position,
   Value<int> depth,
   Value<String?> group,
   Value<int> groupWeight,
   Value<bool> preventRecursion,
+  Value<bool> delayUntilRecursion,
   Value<int> scanDepth,
   Value<String> extensionsJson,
   Value<int> rowid,
@@ -7835,12 +8350,15 @@ typedef $$WorldInfoEntriesTableUpdateCompanionBuilder
   Value<int> insertionOrder,
   Value<bool> caseSensitive,
   Value<bool> matchWholeWords,
+  Value<bool> useGroupScoring,
+  Value<String> automationId,
   Value<int> probability,
   Value<int> position,
   Value<int> depth,
   Value<String?> group,
   Value<int> groupWeight,
   Value<bool> preventRecursion,
+  Value<bool> delayUntilRecursion,
   Value<int> scanDepth,
   Value<String> extensionsJson,
   Value<int> rowid,
@@ -7911,6 +8429,13 @@ class $$WorldInfoEntriesTableFilterComposer
       column: $table.matchWholeWords,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get automationId => $composableBuilder(
+      column: $table.automationId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get probability => $composableBuilder(
       column: $table.probability, builder: (column) => ColumnFilters(column));
 
@@ -7928,6 +8453,10 @@ class $$WorldInfoEntriesTableFilterComposer
 
   ColumnFilters<bool> get preventRecursion => $composableBuilder(
       column: $table.preventRecursion,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get delayUntilRecursion => $composableBuilder(
+      column: $table.delayUntilRecursion,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get scanDepth => $composableBuilder(
@@ -8004,6 +8533,14 @@ class $$WorldInfoEntriesTableOrderingComposer
       column: $table.matchWholeWords,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get automationId => $composableBuilder(
+      column: $table.automationId,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get probability => $composableBuilder(
       column: $table.probability, builder: (column) => ColumnOrderings(column));
 
@@ -8021,6 +8558,10 @@ class $$WorldInfoEntriesTableOrderingComposer
 
   ColumnOrderings<bool> get preventRecursion => $composableBuilder(
       column: $table.preventRecursion,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get delayUntilRecursion => $composableBuilder(
+      column: $table.delayUntilRecursion,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get scanDepth => $composableBuilder(
@@ -8093,6 +8634,12 @@ class $$WorldInfoEntriesTableAnnotationComposer
   GeneratedColumn<bool> get matchWholeWords => $composableBuilder(
       column: $table.matchWholeWords, builder: (column) => column);
 
+  GeneratedColumn<bool> get useGroupScoring => $composableBuilder(
+      column: $table.useGroupScoring, builder: (column) => column);
+
+  GeneratedColumn<String> get automationId => $composableBuilder(
+      column: $table.automationId, builder: (column) => column);
+
   GeneratedColumn<int> get probability => $composableBuilder(
       column: $table.probability, builder: (column) => column);
 
@@ -8110,6 +8657,9 @@ class $$WorldInfoEntriesTableAnnotationComposer
 
   GeneratedColumn<bool> get preventRecursion => $composableBuilder(
       column: $table.preventRecursion, builder: (column) => column);
+
+  GeneratedColumn<bool> get delayUntilRecursion => $composableBuilder(
+      column: $table.delayUntilRecursion, builder: (column) => column);
 
   GeneratedColumn<int> get scanDepth =>
       $composableBuilder(column: $table.scanDepth, builder: (column) => column);
@@ -8174,12 +8724,15 @@ class $$WorldInfoEntriesTableTableManager extends RootTableManager<
             Value<int> insertionOrder = const Value.absent(),
             Value<bool> caseSensitive = const Value.absent(),
             Value<bool> matchWholeWords = const Value.absent(),
+            Value<bool> useGroupScoring = const Value.absent(),
+            Value<String> automationId = const Value.absent(),
             Value<int> probability = const Value.absent(),
             Value<int> position = const Value.absent(),
             Value<int> depth = const Value.absent(),
             Value<String?> group = const Value.absent(),
             Value<int> groupWeight = const Value.absent(),
             Value<bool> preventRecursion = const Value.absent(),
+            Value<bool> delayUntilRecursion = const Value.absent(),
             Value<int> scanDepth = const Value.absent(),
             Value<String> extensionsJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -8197,12 +8750,15 @@ class $$WorldInfoEntriesTableTableManager extends RootTableManager<
             insertionOrder: insertionOrder,
             caseSensitive: caseSensitive,
             matchWholeWords: matchWholeWords,
+            useGroupScoring: useGroupScoring,
+            automationId: automationId,
             probability: probability,
             position: position,
             depth: depth,
             group: group,
             groupWeight: groupWeight,
             preventRecursion: preventRecursion,
+            delayUntilRecursion: delayUntilRecursion,
             scanDepth: scanDepth,
             extensionsJson: extensionsJson,
             rowid: rowid,
@@ -8220,12 +8776,15 @@ class $$WorldInfoEntriesTableTableManager extends RootTableManager<
             Value<int> insertionOrder = const Value.absent(),
             Value<bool> caseSensitive = const Value.absent(),
             Value<bool> matchWholeWords = const Value.absent(),
+            Value<bool> useGroupScoring = const Value.absent(),
+            Value<String> automationId = const Value.absent(),
             Value<int> probability = const Value.absent(),
             Value<int> position = const Value.absent(),
             Value<int> depth = const Value.absent(),
             Value<String?> group = const Value.absent(),
             Value<int> groupWeight = const Value.absent(),
             Value<bool> preventRecursion = const Value.absent(),
+            Value<bool> delayUntilRecursion = const Value.absent(),
             Value<int> scanDepth = const Value.absent(),
             Value<String> extensionsJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -8243,12 +8802,15 @@ class $$WorldInfoEntriesTableTableManager extends RootTableManager<
             insertionOrder: insertionOrder,
             caseSensitive: caseSensitive,
             matchWholeWords: matchWholeWords,
+            useGroupScoring: useGroupScoring,
+            automationId: automationId,
             probability: probability,
             position: position,
             depth: depth,
             group: group,
             groupWeight: groupWeight,
             preventRecursion: preventRecursion,
+            delayUntilRecursion: delayUntilRecursion,
             scanDepth: scanDepth,
             extensionsJson: extensionsJson,
             rowid: rowid,

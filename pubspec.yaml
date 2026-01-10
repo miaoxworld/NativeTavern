@@ -80,10 +80,9 @@ flutter:
   uses-material-design: true
   generate: true
   
-  # Assets will be added as needed
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  assets:
+    - assets/characters/
+    - assets/world_info/
   
   # Custom fonts can be added later
   # fonts:

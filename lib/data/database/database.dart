@@ -79,6 +79,12 @@ class WorldInfos extends Table {
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   BoolColumn get isGlobal => boolean().withDefault(const Constant(false))();
   TextColumn get characterId => text().nullable().references(Characters, #id)();
+  TextColumn get scanDepth => text().nullable()(); // Default scan depth for entries
+  BoolColumn get caseSensitive => boolean().nullable()(); // Default case sensitivity
+  BoolColumn get matchWholeWords => boolean().nullable()(); // Default match whole words
+  BoolColumn get useGroupScoring => boolean().nullable()(); // Default group scoring
+  IntColumn get recursionDepth => integer().nullable()(); // Max recursion depth
+  TextColumn get extensionsJson => text().withDefault(const Constant('{}'))(); // JSON extensions
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get modifiedAt => dateTime()();
 
@@ -100,12 +106,15 @@ class WorldInfoEntries extends Table {
   IntColumn get insertionOrder => integer().withDefault(const Constant(0))();
   BoolColumn get caseSensitive => boolean().withDefault(const Constant(false))();
   BoolColumn get matchWholeWords => boolean().withDefault(const Constant(false))();
+  BoolColumn get useGroupScoring => boolean().withDefault(const Constant(false))();
+  TextColumn get automationId => text().withDefault(const Constant(''))();
   IntColumn get probability => integer().withDefault(const Constant(100))();
   IntColumn get position => integer().withDefault(const Constant(1))();
   IntColumn get depth => integer().withDefault(const Constant(4))();
   TextColumn get group => text().nullable()();
   IntColumn get groupWeight => integer().withDefault(const Constant(100))();
   BoolColumn get preventRecursion => boolean().withDefault(const Constant(false))();
+  BoolColumn get delayUntilRecursion => boolean().withDefault(const Constant(false))();
   IntColumn get scanDepth => integer().withDefault(const Constant(1000))();
   TextColumn get extensionsJson => text().withDefault(const Constant('{}'))(); // JSON
 
@@ -213,7 +222,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -265,6 +274,21 @@ class AppDatabase extends _$AppDatabase {
         if (from < 10) {
           // Add attachmentsJson column to messages for image attachments
           await m.addColumn(messages, messages.attachmentsJson);
+        }
+        if (from < 11) {
+          // Add missing SillyTavern-compatible fields to world info entries
+          await m.addColumn(worldInfoEntries, worldInfoEntries.useGroupScoring);
+          await m.addColumn(worldInfoEntries, worldInfoEntries.automationId);
+          await m.addColumn(worldInfoEntries, worldInfoEntries.delayUntilRecursion);
+        }
+        if (from < 12) {
+          // Add missing SillyTavern-compatible fields to world infos
+          await m.addColumn(worldInfos, worldInfos.scanDepth);
+          await m.addColumn(worldInfos, worldInfos.caseSensitive);
+          await m.addColumn(worldInfos, worldInfos.matchWholeWords);
+          await m.addColumn(worldInfos, worldInfos.useGroupScoring);
+          await m.addColumn(worldInfos, worldInfos.recursionDepth);
+          await m.addColumn(worldInfos, worldInfos.extensionsJson);
         }
       },
     );

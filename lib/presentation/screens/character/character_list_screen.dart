@@ -286,16 +286,56 @@ class _CharacterGridCard extends ConsumerWidget {
   }
 
   Widget _defaultAvatar() {
+    final icon = _getCharacterIcon(character);
+    final color = _getCharacterColor(character);
+    
     return Container(
-      color: AppTheme.darkDivider,
-      child: const Center(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color,
+            color.withValues(alpha: 0.7),
+          ],
+        ),
+      ),
+      child: Center(
         child: Icon(
-          Icons.person,
+          icon,
           size: 60,
-          color: AppTheme.textMuted,
+          color: Colors.white,
         ),
       ),
     );
+  }
+
+  IconData _getCharacterIcon(Character character) {
+    // Check if it's a built-in character by ID
+    switch (character.id) {
+      case 'builtin_coding_assistant':
+        return Icons.code;
+      case 'builtin_image_gen_assistant':
+        return Icons.image;
+      case 'builtin_xiaohongshu_copywriter':
+        return Icons.edit_note;
+      default:
+        return Icons.person;
+    }
+  }
+
+  Color _getCharacterColor(Character character) {
+    // Check if it's a built-in character by ID
+    switch (character.id) {
+      case 'builtin_coding_assistant':
+        return const Color(0xFF2196F3); // Blue for coding
+      case 'builtin_image_gen_assistant':
+        return const Color(0xFFE91E63); // Pink for image generation
+      case 'builtin_xiaohongshu_copywriter':
+        return const Color(0xFFFF5722); // Orange/Red for social media
+      default:
+        return AppTheme.darkDivider;
+    }
   }
 }
 
@@ -311,15 +351,7 @@ class _CharacterListTile extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
-          radius: 28,
-          backgroundImage: character.assets?.avatarPath != null
-              ? FileImage(File(character.assets!.avatarPath!))
-              : null,
-          child: character.assets?.avatarPath == null
-              ? const Icon(Icons.person)
-              : null,
-        ),
+        leading: _buildListAvatar(),
         title: Text(character.name),
         subtitle: Text(
           character.description.isNotEmpty
@@ -423,5 +455,53 @@ class _CharacterListTile extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildListAvatar() {
+    if (character.assets?.avatarPath != null) {
+      return CircleAvatar(
+        radius: 28,
+        backgroundImage: FileImage(File(character.assets!.avatarPath!)),
+      );
+    }
+
+    final icon = _getCharacterIcon(character);
+    final color = _getCharacterColor(character);
+
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: color,
+      child: Icon(
+        icon,
+        color: Colors.white,
+        size: 28,
+      ),
+    );
+  }
+
+  IconData _getCharacterIcon(Character character) {
+    switch (character.id) {
+      case 'builtin_coding_assistant':
+        return Icons.code;
+      case 'builtin_image_gen_assistant':
+        return Icons.image;
+      case 'builtin_xiaohongshu_copywriter':
+        return Icons.edit_note;
+      default:
+        return Icons.person;
+    }
+  }
+
+  Color _getCharacterColor(Character character) {
+    switch (character.id) {
+      case 'builtin_coding_assistant':
+        return const Color(0xFF2196F3);
+      case 'builtin_image_gen_assistant':
+        return const Color(0xFFE91E63);
+      case 'builtin_xiaohongshu_copywriter':
+        return const Color(0xFFFF5722);
+      default:
+        return AppTheme.primaryColor;
+    }
   }
 }

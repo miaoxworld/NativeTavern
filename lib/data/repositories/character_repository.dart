@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/database/database.dart' hide Character;
 import 'package:native_tavern/data/database/database.dart' as db;
@@ -159,6 +160,42 @@ class CharacterRepository {
   Future<int> getCharacterCount() async {
     final count = await _db.select(_db.characters).get();
     return count.length;
+  }
+
+  /// Load built-in characters from assets
+  Future<void> loadBuiltInCharacters() async {
+    try {
+      final builtInCharacterFiles = [
+        'assets/characters/image_generation_assistant.json',
+        'assets/characters/xiaohongshu_copywriter.json',
+        'assets/characters/coding_assistant.json',
+      ];
+
+      for (final assetPath in builtInCharacterFiles) {
+        try {
+          // Check if character already exists
+          final jsonString = await rootBundle.loadString(assetPath);
+          final json = jsonDecode(jsonString) as Map<String, dynamic>;
+          final characterId = json['id'] as String;
+          
+          final existing = await getCharacter(characterId);
+          if (existing != null) {
+            // Character already exists, skip
+            continue;
+          }
+
+          // Create character from JSON
+          final character = models.Character.fromJson(json);
+          await createCharacter(character);
+          
+          debugPrint('Loaded built-in character: ${character.name}');
+        } catch (e) {
+          debugPrint('Failed to load built-in character from $assetPath: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load built-in characters: $e');
+    }
   }
 
   /// Import character from JSON data

@@ -1,0 +1,120 @@
+{
+    "id": "builtin_mortal_cultivation",
+    "name": "凡人修仙传",
+    "description": "《凡人修仙传》世界观设定。包含修仙境界、门派势力、法宝丹药、修炼功法等核心设定。适合创作修仙题材的角色扮演故事。",
+    "enabled": false,
+    "isGlobal": false,
+    "entries": [
+        {
+            "id": "entry_001",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "修仙境界",
+                "境界",
+                "修为"
+            ],
+            "content": "修仙境界分为：炼气期（1-13层）、筑基期、结丹期、元婴期、化神期、炼虚期、合体期、大乘期、渡劫期、真仙。每个大境界又分为初期、中期、后期、大圆满四个小境界。突破境界需要大量资源和机缘，失败可能导致修为倒退甚至身死道消。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 100,
+            "comment": "修仙境界体系"
+        },
+        {
+            "id": "entry_002",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "黄枫谷",
+                "七派",
+                "越国"
+            ],
+            "content": "黄枫谷是越国七大修仙门派之一，位于天星山脉。门派以炼器闻名，拥有众多炼器大师。七派包括：黄枫谷、灵兽山、掩月宗、清虚门、化刀坞、巨剑门、天阙堡。七派联盟共同维护越国修仙界的秩序。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 90,
+            "comment": "门派势力"
+        },
+        {
+            "id": "entry_003",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "法宝",
+                "灵器",
+                "法器"
+            ],
+            "content": "法宝分为：法器（炼气期）、灵器（筑基期）、法宝（结丹期及以上）、通天灵宝（元婴期以上）、玄天之宝（化神期以上）。法宝需要用神识祭炼，威力随修为提升而增强。顶级法宝拥有器灵，可自主战斗。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 80,
+            "comment": "法宝体系"
+        },
+        {
+            "id": "entry_004",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "丹药",
+                "筑基丹",
+                "结金丹"
+            ],
+            "content": "常见丹药：筑基丹（助炼气期修士筑基）、结金丹（助筑基期修士结丹）、元婴丹（助结丹期修士凝婴）、回春丹（疗伤）、辟谷丹（代替食物）、解毒丹。高阶丹药需要珍稀灵药和高超炼丹术，价值连城。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 70,
+            "comment": "丹药系统"
+        },
+        {
+            "id": "entry_005",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "功法",
+                "修炼",
+                "口诀"
+            ],
+            "content": "功法分为：基础功法（人阶）、高级功法（地阶）、顶级功法（天阶）、仙界功法（仙阶）。功法包括：吐纳术（吸收灵气）、炼体术（强化肉身）、御剑术（驾驭飞剑）、遁术（逃跑技能）。修炼需要灵石、灵药辅助，闭关时需要护法。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 60,
+            "comment": "功法修炼"
+        },
+        {
+            "id": "entry_006",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "灵石",
+                "灵脉",
+                "灵气"
+            ],
+            "content": "灵石是修仙界通用货币和修炼资源，分为下品、中品、上品、极品四个等级。1块中品灵石=100块下品灵石。灵脉是灵气汇聚之地，门派和洞府都建在灵脉之上。灵气浓度影响修炼速度。",
+            "enabled": true,
+            "constant": false,
+            "position": 1,
+            "insertionOrder": 50,
+            "comment": "修炼资源"
+        },
+        {
+            "id": "entry_007",
+            "worldInfoId": "builtin_mortal_cultivation",
+            "keys": [
+                "韩立",
+                "主角"
+            ],
+            "secondaryKeys": [
+                "青元剑诀",
+                "掌天瓶"
+            ],
+            "content": "韩立，凡人出身，机缘巧合下踏入修仙界。性格谨慎低调，善于隐藏实力。拥有神秘小瓶（掌天瓶），可催熟灵药。修炼《青元剑诀》，擅长炼丹和炼器。凭借坚韧意志和谨慎行事，一步步从炼气期修炼至真仙境界。",
+            "enabled": true,
+            "constant": false,
+            "selective": true,
+            "position": 1,
+            "insertionOrder": 110,
+            "comment": "主角设定"
+        }
+    ],
+    "createdAt": "2026-01-10T07:50:00.000Z",
+    "modifiedAt": "2026-01-10T07:50:00.000Z"
+}
