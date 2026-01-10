@@ -1,9 +1,14 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:native_tavern/data/models/persona.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 
 /// Screen for managing user personas
 class PersonasScreen extends ConsumerWidget {
@@ -114,10 +119,11 @@ class PersonasScreen extends ConsumerWidget {
       context: context,
       builder: (context) => _PersonaDialog(
         title: 'Create Persona',
-        onSave: (name, description) async {
+        onSave: (name, description, avatarPath) async {
           await ref.read(personaNotifierProvider.notifier).createPersona(
                 name: name,
                 description: description,
+                avatarPath: avatarPath,
               );
         },
       ),
@@ -131,11 +137,13 @@ class PersonasScreen extends ConsumerWidget {
         title: 'Edit Persona',
         initialName: persona.name,
         initialDescription: persona.description,
-        onSave: (name, description) async {
+        initialAvatarPath: persona.avatarPath,
+        onSave: (name, description, avatarPath) async {
           await ref.read(personaNotifierProvider.notifier).updatePersona(
                 persona.copyWith(
                   name: name,
                   description: description,
+                  avatarPath: avatarPath,
                 ),
               );
         },
@@ -367,12 +375,14 @@ class _PersonaDialog extends StatefulWidget {
   final String title;
   final String? initialName;
   final String? initialDescription;
-  final Future<void> Function(String name, String description) onSave;
+  final String? initialAvatarPath;
+  final Future<void> Function(String name, String description, String? avatarPath) onSave;
 
   const _PersonaDialog({
     required this.title,
     this.initialName,
     this.initialDescription,
+    this.initialAvatarPath,
     required this.onSave,
   });
 
@@ -383,13 +393,16 @@ class _PersonaDialog extends StatefulWidget {
 class _PersonaDialogState extends State<_PersonaDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  String? _avatarPath;
   bool _isSaving = false;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName ?? '');
     _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _avatarPath = widget.initialAvatarPath;
   }
 
   @override
@@ -399,6 +412,10 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     super.dispose();
   }
 
+  /// Check if running on desktop platform
+  bool get _isDesktop =>
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -407,6 +424,9 @@ class _PersonaDialogState extends State<_PersonaDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Avatar picker
+            _buildAvatarPicker(),
+            const SizedBox(height: 16),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -456,6 +476,209 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     );
   }
 
+  Widget _buildAvatarPicker() {
+    return Center(
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: _showAvatarOptions,
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+              backgroundImage: _avatarPath != null
+                  ? FileImage(File(_avatarPath!))
+                  : null,
+              child: _avatarPath == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: AppTheme.primaryColor,
+                    )
+                  : null,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: _showAvatarOptions,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.darkCard,
+                    width: 2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAvatarOptions() {
+    // On desktop, directly open file picker
+    if (_isDesktop) {
+      _pickImageFromFiles();
+      return;
+    }
+    
+    // On mobile, show options sheet
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.darkCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textMuted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppTheme.primaryColor),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppTheme.accentColor),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _takePhoto();
+              },
+            ),
+            if (_avatarPath != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Remove Avatar', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _avatarPath = null);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Pick image from files using FilePicker (for desktop)
+  Future<void> _pickImageFromFiles() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+        dialogTitle: 'Select Avatar Image',
+      );
+      
+      if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
+        await _saveAvatarImage(result.files.first.path!);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
+    }
+  }
+
+  /// Pick image from gallery (for mobile)
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        await _saveAvatarImage(image.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
+    }
+  }
+
+  /// Take photo with camera (for mobile)
+  Future<void> _takePhoto() async {
+    try {
+      final image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        await _saveAvatarImage(image.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to take photo: $e')),
+        );
+      }
+    }
+  }
+
+  /// Save avatar image to app's documents directory
+  Future<void> _saveAvatarImage(String sourcePath) async {
+    try {
+      // Copy file to app's documents directory for persistence
+      final appDir = await getApplicationDocumentsDirectory();
+      final avatarsDir = Directory(p.join(appDir.path, 'NativeTavern', 'avatars', 'personas'));
+      await avatarsDir.create(recursive: true);
+      
+      const uuid = Uuid();
+      final extension = p.extension(sourcePath);
+      final newFileName = '${uuid.v4()}$extension';
+      final newPath = p.join(avatarsDir.path, newFileName);
+      
+      // Copy file
+      final sourceFile = File(sourcePath);
+      await sourceFile.copy(newPath);
+      
+      setState(() {
+        _avatarPath = newPath;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save avatar: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -468,7 +691,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     setState(() => _isSaving = true);
 
     try {
-      await widget.onSave(name, _descriptionController.text.trim());
+      await widget.onSave(name, _descriptionController.text.trim(), _avatarPath);
       if (mounted) {
         Navigator.pop(context);
       }

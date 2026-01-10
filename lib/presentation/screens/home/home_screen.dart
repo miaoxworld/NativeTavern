@@ -164,9 +164,8 @@ class _ChatListTile extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               _formatTime(chat.updatedAt),
@@ -174,9 +173,9 @@ class _ChatListTile extends ConsumerWidget {
                     color: AppTheme.textMuted,
                   ),
             ),
-            const SizedBox(height: 4),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 20),
+              padding: EdgeInsets.zero,
               onSelected: (value) => _handleMenuAction(context, ref, value),
               itemBuilder: (context) => [
                 const PopupMenuItem(
