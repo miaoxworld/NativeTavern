@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/chat_statistics.dart';
 import '../../providers/statistics_providers.dart';
 import '../../theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for viewing app and chat statistics
 class StatisticsScreen extends ConsumerWidget {

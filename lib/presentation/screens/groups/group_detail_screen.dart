@@ -6,6 +6,7 @@ import 'package:native_tavern/data/models/character.dart';
 import 'package:native_tavern/presentation/providers/group_providers.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/data/repositories/character_repository.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -76,7 +77,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     await ref.read(groupListProvider.notifier).updateGroup(updatedGroup);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group saved')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.groupSaved)),
       );
     }
   }
@@ -85,17 +86,17 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Group'),
-        content: Text('Are you sure you want to delete "${_group?.name}"?'),
+        title: Text(AppLocalizations.of(context)!.deleteGroup),
+        content: Text(AppLocalizations.of(context)!.deleteGroupAndChats(_group?.name ?? '')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -117,7 +118,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
     if (availableCharacters.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No more characters available to add')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.noMoreCharactersAvailable)),
       );
       return;
     }
@@ -181,15 +182,15 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Loading...')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.loading)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_group == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('Group not found')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.error)),
+        body: Center(child: Text(AppLocalizations.of(context)!.characterNotFoundMessage)),
       );
     }
 
@@ -199,17 +200,17 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.play_arrow),
-            tooltip: 'Start Chat',
+            tooltip: AppLocalizations.of(context)!.startChatAction,
             onPressed: _group!.members.isNotEmpty ? _startGroupChat : null,
           ),
           IconButton(
             icon: const Icon(Icons.save),
-            tooltip: 'Save',
+            tooltip: AppLocalizations.of(context)!.save,
             onPressed: _saveGroup,
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            tooltip: 'Delete',
+            tooltip: AppLocalizations.of(context)!.delete,
             onPressed: _deleteGroup,
           ),
         ],
@@ -225,23 +226,23 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Group Info',
+                    AppLocalizations.of(context)!.groupInfo,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.name,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description (optional)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.descriptionOptionalLabel,
+                      border: const OutlineInputBorder(),
                     ),
                     maxLines: 3,
                   ),
@@ -259,18 +260,18 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Response Mode',
+                    AppLocalizations.of(context)!.responseMode,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'How characters take turns responding',
+                    AppLocalizations.of(context)!.howCharactersTakeTurns,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 16),
                   ...GroupResponseMode.values.map((mode) => RadioListTile<GroupResponseMode>(
-                    title: Text(_getResponseModeTitle(mode)),
-                    subtitle: Text(_getResponseModeDescription(mode)),
+                    title: Text(_getResponseModeTitle(mode, context)),
+                    subtitle: Text(_getResponseModeDescription(mode, context)),
                     value: mode,
                     groupValue: _responseMode,
                     onChanged: (value) {
@@ -296,21 +297,21 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Members (${_group!.members.length})',
+                        AppLocalizations.of(context)!.membersCount(_group!.members.length),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       IconButton(
                         icon: const Icon(Icons.add),
-                        tooltip: 'Add Member',
+                        tooltip: AppLocalizations.of(context)!.addMember,
                         onPressed: _addMember,
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   if (_group!.members.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No members yet. Add characters to this group.'),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(AppLocalizations.of(context)!.noMembersYet),
                     )
                   else
                     ReorderableListView.builder(
@@ -351,33 +352,33 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     );
   }
 
-  String _getResponseModeTitle(GroupResponseMode mode) {
+  String _getResponseModeTitle(GroupResponseMode mode, BuildContext context) {
     switch (mode) {
       case GroupResponseMode.sequential:
-        return 'Sequential';
+        return AppLocalizations.of(context)!.sequential;
       case GroupResponseMode.random:
-        return 'Random';
+        return AppLocalizations.of(context)!.random;
       case GroupResponseMode.all:
-        return 'All at Once';
+        return AppLocalizations.of(context)!.allAtOnce;
       case GroupResponseMode.manual:
-        return 'Manual';
+        return AppLocalizations.of(context)!.manual;
       case GroupResponseMode.natural:
-        return 'Natural';
+        return AppLocalizations.of(context)!.natural;
     }
   }
 
-  String _getResponseModeDescription(GroupResponseMode mode) {
+  String _getResponseModeDescription(GroupResponseMode mode, BuildContext context) {
     switch (mode) {
       case GroupResponseMode.sequential:
-        return 'Characters respond in order';
+        return AppLocalizations.of(context)!.charactersRespondInOrder;
       case GroupResponseMode.random:
-        return 'Random character responds each turn';
+        return AppLocalizations.of(context)!.randomCharacterResponds;
       case GroupResponseMode.all:
-        return 'All non-muted characters respond';
+        return AppLocalizations.of(context)!.allNonMutedCharactersRespond;
       case GroupResponseMode.manual:
-        return 'You select which character responds';
+        return AppLocalizations.of(context)!.youSelectWhoResponds;
       case GroupResponseMode.natural:
-        return 'AI decides based on context and trigger words';
+        return AppLocalizations.of(context)!.aiDecidesBasedOnContext;
     }
   }
 }
@@ -430,7 +431,7 @@ class _MemberTile extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            'Talkativeness: ${member.talkativeness}% ${member.triggerWords.isNotEmpty ? '• Triggers: ${member.triggerWords.join(", ")}' : ''}',
+            '${AppLocalizations.of(context)!.talkativenessPercent(member.talkativeness)} ${member.triggerWords.isNotEmpty ? '• ${AppLocalizations.of(context)!.triggers(member.triggerWords.join(", "))}' : ''}',
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -440,17 +441,17 @@ class _MemberTile extends StatelessWidget {
                   member.isMuted ? Icons.volume_off : Icons.volume_up,
                   color: member.isMuted ? Colors.grey : null,
                 ),
-                tooltip: member.isMuted ? 'Unmute' : 'Mute',
+                tooltip: member.isMuted ? AppLocalizations.of(context)!.unmute : AppLocalizations.of(context)!.mute,
                 onPressed: onToggleMute,
               ),
               IconButton(
                 icon: const Icon(Icons.settings),
-                tooltip: 'Settings',
+                tooltip: AppLocalizations.of(context)!.settings,
                 onPressed: onEdit,
               ),
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
-                tooltip: 'Remove',
+                tooltip: AppLocalizations.of(context)!.removeMember,
                 onPressed: onRemove,
               ),
             ],
@@ -469,7 +470,7 @@ class _AddMemberDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Member'),
+      title: Text(AppLocalizations.of(context)!.addMemberToGroup),
       content: SizedBox(
         width: double.maxFinite,
         height: 400,
@@ -495,7 +496,7 @@ class _AddMemberDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ],
     );
@@ -545,12 +546,12 @@ class _MemberSettingsDialogState extends State<_MemberSettingsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Member Settings'),
+      title: Text(AppLocalizations.of(context)!.memberSettings),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Talkativeness: ${_talkativeness.round()}%'),
+          Text(AppLocalizations.of(context)!.talkativenessLabel(_talkativeness.round())),
           Slider(
             value: _talkativeness,
             min: 0,
@@ -562,30 +563,30 @@ class _MemberSettingsDialogState extends State<_MemberSettingsDialog> {
             },
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Higher values make the character more likely to respond.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          Text(
+            AppLocalizations.of(context)!.higherValuesMoreLikely,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _triggerWordsController,
-            decoration: const InputDecoration(
-              labelText: 'Trigger Words',
-              hintText: 'word1, word2, word3',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.triggerWords,
+              hintText: AppLocalizations.of(context)!.triggerWordsHint,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Character will respond when these words appear in messages.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          Text(
+            AppLocalizations.of(context)!.characterWillRespondWhenTriggered,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -603,7 +604,7 @@ class _MemberSettingsDialogState extends State<_MemberSettingsDialog> {
               ),
             );
           },
-          child: const Text('Save'),
+          child: Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:native_tavern/data/models/tokenizer.dart';
 import 'package:native_tavern/domain/services/tokenizer_service.dart';
 import 'package:native_tavern/presentation/providers/tokenizer_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Settings and visualization screen for tokenizer
 class TokenizerSettingsScreen extends ConsumerStatefulWidget {
@@ -30,12 +31,12 @@ class _TokenizerSettingsScreenState extends ConsumerState<TokenizerSettingsScree
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tokenizer'),
+        title: Text(AppLocalizations.of(context)!.tokenizerSettings),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelpDialog(context, service),
-            tooltip: 'Help',
+            tooltip: AppLocalizations.of(context)!.tokenizerHelp,
           ),
         ],
       ),

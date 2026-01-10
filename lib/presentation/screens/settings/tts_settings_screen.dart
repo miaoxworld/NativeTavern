@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
 import 'package:native_tavern/presentation/providers/tts_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for TTS settings
 class TTSSettingsScreen extends ConsumerWidget {
@@ -16,15 +17,15 @@ class TTSSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Text-to-Speech'),
+        title: Text(AppLocalizations.of(context)!.textToSpeech),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Reset to defaults',
+            tooltip: AppLocalizations.of(context)!.resetToDefaults,
             onPressed: () {
               ref.read(ttsSettingsProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.settingsResetToDefaults)),
               );
             },
           ),
@@ -35,19 +36,20 @@ class TTSSettingsScreen extends ConsumerWidget {
         children: [
           // Enable/Disable toggle
           _buildSection(
-            title: 'General',
+            context,
+            title: AppLocalizations.of(context)!.general,
             children: [
               SwitchListTile(
-                title: const Text('Enable TTS'),
-                subtitle: const Text('Read messages aloud'),
+                title: Text(AppLocalizations.of(context)!.enableTts),
+                subtitle: Text(AppLocalizations.of(context)!.readAiResponsesAloud),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(ttsSettingsProvider.notifier).setEnabled(value);
                 },
               ),
               SwitchListTile(
-                title: const Text('Auto-play'),
-                subtitle: const Text('Automatically read new messages'),
+                title: Text(AppLocalizations.of(context)!.autoPlay),
+                subtitle: Text(AppLocalizations.of(context)!.automaticallyPlayResponses),
                 value: settings.autoPlay,
                 onChanged: settings.enabled
                     ? (value) {
@@ -72,10 +74,11 @@ class TTSSettingsScreen extends ConsumerWidget {
 
           // Provider selection
           _buildSection(
-            title: 'Provider',
+            context,
+            title: AppLocalizations.of(context)!.provider,
             children: [
               ListTile(
-                title: const Text('TTS Provider'),
+                title: Text(AppLocalizations.of(context)!.ttsProvider),
                 subtitle: Text(settings.provider.displayName),
                 trailing: DropdownButton<TTSProvider>(
                   value: settings.provider,
@@ -96,11 +99,11 @@ class TTSSettingsScreen extends ConsumerWidget {
               ),
               if (settings.provider != TTSProvider.system) ...[
                 ListTile(
-                  title: const Text('API Key'),
+                  title: Text(AppLocalizations.of(context)!.apiKey),
                   subtitle: Text(
                     settings.apiKey?.isNotEmpty == true
                         ? '••••••••${settings.apiKey!.substring(settings.apiKey!.length - 4)}'
-                        : 'Not configured',
+                        : AppLocalizations.of(context)!.notConfigured,
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: settings.enabled
@@ -115,11 +118,12 @@ class TTSSettingsScreen extends ConsumerWidget {
 
           // Voice selection
           _buildSection(
-            title: 'Voice',
+            context,
+            title: AppLocalizations.of(context)!.voice,
             children: [
               voicesAsync.when(
                 data: (voices) => ListTile(
-                  title: const Text('Voice'),
+                  title: Text(AppLocalizations.of(context)!.voice),
                   subtitle: Text(
                     voices.firstWhere(
                       (v) => v.id == settings.voiceId,
@@ -163,11 +167,12 @@ class TTSSettingsScreen extends ConsumerWidget {
 
           // Voice parameters
           _buildSection(
-            title: 'Voice Settings',
+            context,
+            title: AppLocalizations.of(context)!.voiceSettings,
             children: [
               // Rate slider
               ListTile(
-                title: const Text('Speed'),
+                title: Text(AppLocalizations.of(context)!.speed),
                 subtitle: Slider(
                   value: settings.rate,
                   min: 0.5,
@@ -188,7 +193,7 @@ class TTSSettingsScreen extends ConsumerWidget {
 
               // Pitch slider
               ListTile(
-                title: const Text('Pitch'),
+                title: Text(AppLocalizations.of(context)!.pitch),
                 subtitle: Slider(
                   value: settings.pitch,
                   min: 0.5,
@@ -209,7 +214,7 @@ class TTSSettingsScreen extends ConsumerWidget {
 
               // Volume slider
               ListTile(
-                title: const Text('Volume'),
+                title: Text(AppLocalizations.of(context)!.volume),
                 subtitle: Slider(
                   value: settings.volume,
                   min: 0.0,
@@ -234,15 +239,16 @@ class TTSSettingsScreen extends ConsumerWidget {
 
           // Test section
           _buildSection(
-            title: 'Test',
+            context,
+            title: AppLocalizations.of(context)!.test,
             children: [
               ListTile(
                 leading: Icon(
                   isSpeaking ? Icons.stop : Icons.play_arrow,
                   color: AppTheme.accentColor,
                 ),
-                title: Text(isSpeaking ? 'Stop' : 'Test Voice'),
-                subtitle: const Text('Preview the current voice settings'),
+                title: Text(isSpeaking ? AppLocalizations.of(context)!.stopListening : AppLocalizations.of(context)!.testVoice),
+                subtitle: Text(AppLocalizations.of(context)!.testVoice),
                 onTap: settings.enabled
                     ? () async {
                         if (isSpeaking) {
@@ -263,7 +269,8 @@ class TTSSettingsScreen extends ConsumerWidget {
 
           // Info section
           _buildSection(
-            title: 'Information',
+            context,
+            title: AppLocalizations.of(context)!.information,
             children: [
               const ListTile(
                 leading: Icon(Icons.info_outline, color: AppTheme.accentColor),
@@ -298,7 +305,8 @@ class TTSSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildSection(
+    BuildContext context, {
     required String title,
     required List<Widget> children,
   }) {
@@ -330,26 +338,26 @@ class TTSSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${settings.provider.displayName} API Key'),
+        title: Text('${settings.provider.displayName} ${AppLocalizations.of(context)!.apiKey}'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'API Key',
-            hintText: 'Enter your API key',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.apiKey,
+            hintText: AppLocalizations.of(context)!.enterApiKey,
           ),
           obscureText: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               ref.read(ttsSettingsProvider.notifier).setApiKey(controller.text);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),

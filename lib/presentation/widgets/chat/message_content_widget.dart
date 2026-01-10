@@ -4,6 +4,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Widget that renders message content with support for both Markdown and HTML
 ///
@@ -90,8 +91,8 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Copied to clipboard'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.copiedToClipboard),
         duration: Duration(seconds: 1),
       ),
     );
@@ -107,23 +108,23 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         Offset.zero & overlay.size,
       ),
       items: [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'copy',
           child: Row(
             children: [
-              Icon(Icons.copy, size: 20),
-              SizedBox(width: 8),
-              Text('Copy'),
+              const Icon(Icons.copy, size: 20),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.copy),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'copy_all',
           child: Row(
             children: [
-              Icon(Icons.select_all, size: 20),
-              SizedBox(width: 8),
-              Text('Copy All'),
+              const Icon(Icons.select_all, size: 20),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.copyAll),
             ],
           ),
         ),

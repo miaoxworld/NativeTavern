@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/models/quick_reply.dart';
 import '../../providers/quick_reply_providers.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing quick replies
 class QuickReplyScreen extends ConsumerWidget {
@@ -16,11 +17,11 @@ class QuickReplyScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quick Replies'),
+        title: Text(AppLocalizations.of(context)!.quickReplies),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Reset to Default',
+            tooltip: AppLocalizations.of(context)!.resetToDefault,
             onPressed: () => _showResetDialog(context, ref),
           ),
         ],
@@ -33,8 +34,8 @@ class QuickReplyScreen extends ConsumerWidget {
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Show Quick Replies'),
-                  subtitle: const Text('Display quick reply buttons in chat'),
+                  title: Text(AppLocalizations.of(context)!.showQuickReplies),
+                  subtitle: Text(AppLocalizations.of(context)!.displayQuickReplyButtons),
                   value: config.showQuickReplies,
                   onChanged: (_) {
                     ref.read(quickReplyConfigProvider.notifier).toggleShowQuickReplies();
@@ -42,10 +43,10 @@ class QuickReplyScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  title: const Text('Position Above Input'),
-                  subtitle: Text(config.showAboveInput 
-                      ? 'Quick replies appear above the input field'
-                      : 'Quick replies appear below the input field'),
+                  title: Text(AppLocalizations.of(context)!.positionAboveInput),
+                  subtitle: Text(config.showAboveInput
+                      ? AppLocalizations.of(context)!.quickRepliesAboveInput
+                      : AppLocalizations.of(context)!.quickRepliesBelowInput),
                   value: config.showAboveInput,
                   onChanged: config.showQuickReplies ? (_) {
                     ref.read(quickReplyConfigProvider.notifier).togglePosition();
@@ -61,13 +62,13 @@ class QuickReplyScreen extends ConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'Quick Replies',
+                  AppLocalizations.of(context)!.quickReplies,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
                 TextButton.icon(
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(AppLocalizations.of(context)!.add),
                   onPressed: () => _showEditDialog(context, ref, null),
                 ),
               ],
@@ -90,7 +91,7 @@ class QuickReplyScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No quick replies',
+                          AppLocalizations.of(context)!.noQuickReplies,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           ),
@@ -98,7 +99,7 @@ class QuickReplyScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: () => _showEditDialog(context, ref, null),
-                          child: const Text('Add your first quick reply'),
+                          child: Text(AppLocalizations.of(context)!.addYourFirstQuickReply),
                         ),
                       ],
                     ),
@@ -149,19 +150,19 @@ class QuickReplyScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Quick Reply'),
-        content: Text('Are you sure you want to delete "${reply.label}"?'),
+        title: Text(AppLocalizations.of(context)!.deleteQuickReply),
+        content: Text(AppLocalizations.of(context)!.deleteQuickReplyQuestion(reply.label)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(quickReplyConfigProvider.notifier).removeReply(reply.id);
               Navigator.pop(context);
             },
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -172,19 +173,19 @@ class QuickReplyScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset to Default'),
-        content: const Text('This will replace all your quick replies with the default set. Continue?'),
+        title: Text(AppLocalizations.of(context)!.resetToDefault),
+        content: Text(AppLocalizations.of(context)!.resetToDefaultQuestion2),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(quickReplyConfigProvider.notifier).resetToDefault();
               Navigator.pop(context);
             },
-            child: const Text('Reset'),
+            child: Text(AppLocalizations.of(context)!.reset),
           ),
         ],
       ),
@@ -227,7 +228,7 @@ class _QuickReplyTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          reply.message.isEmpty ? '(Continue/Empty message)' : reply.message,
+          reply.message.isEmpty ? AppLocalizations.of(context)!.continueOrEmpty : reply.message,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -255,19 +256,19 @@ class _QuickReplyTile extends StatelessWidget {
             ),
             PopupMenuButton<String>(
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Edit'),
+                    leading: const Icon(Icons.edit),
+                    title: Text(AppLocalizations.of(context)!.edit),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: Icon(Icons.delete),
-                    title: Text('Delete'),
+                    leading: const Icon(Icons.delete),
+                    title: Text(AppLocalizations.of(context)!.delete),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -325,7 +326,7 @@ class _QuickReplyEditDialogState extends State<_QuickReplyEditDialog> {
     final isEditing = widget.reply != null;
     
     return AlertDialog(
-      title: Text(isEditing ? 'Edit Quick Reply' : 'Add Quick Reply'),
+      title: Text(isEditing ? AppLocalizations.of(context)!.editQuickReplyLabel : AppLocalizations.of(context)!.addQuickReply),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -367,7 +368,7 @@ class _QuickReplyEditDialogState extends State<_QuickReplyEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         FilledButton(
           onPressed: _labelController.text.trim().isEmpty
@@ -384,7 +385,7 @@ class _QuickReplyEditDialogState extends State<_QuickReplyEditDialog> {
                   widget.onSave(newReply);
                   Navigator.pop(context);
                 },
-          child: Text(isEditing ? 'Save' : 'Add'),
+          child: Text(isEditing ? AppLocalizations.of(context)!.save : AppLocalizations.of(context)!.add),
         ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../data/models/ai_preset.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/ai_preset_providers.dart';
 import '../../theme/app_theme.dart';
 
@@ -15,6 +16,7 @@ class AIPresetsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final allPresets = ref.watch(allAIPresetsProvider);
     final activePresetId = ref.watch(activeAIPresetIdProvider);
 
@@ -24,7 +26,7 @@ class AIPresetsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Presets'),
+        title: Text(l10n.aiPresets),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -42,28 +44,28 @@ class AIPresetsScreen extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'save',
                 child: ListTile(
-                  leading: Icon(Icons.save),
-                  title: Text('Save Current as Preset'),
+                  leading: const Icon(Icons.save),
+                  title: Text(l10n.saveCurrentAsPreset),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.file_download),
-                  title: Text('Import Preset'),
+                  leading: const Icon(Icons.file_download),
+                  title: Text(l10n.importPreset),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: ListTile(
-                  leading: Icon(Icons.file_upload),
-                  title: Text('Export Current Settings'),
+                  leading: const Icon(Icons.file_upload),
+                  title: Text(l10n.exportCurrentSettings),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -87,8 +89,7 @@ class AIPresetsScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'AI Presets combine generation settings, prompt ordering, and instruct templates. '
-                    'Select a preset to apply all settings at once.',
+                    l10n.aiPresetsDescription,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -100,7 +101,7 @@ class AIPresetsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Built-in presets
-          _buildSectionHeader(context, 'Built-in Presets'),
+          _buildSectionHeader(context, l10n.builtInPresets),
           const SizedBox(height: 12),
           ...builtInPresets.map((preset) => _PresetCard(
                 preset: preset,
@@ -110,7 +111,7 @@ class AIPresetsScreen extends ConsumerWidget {
 
           if (customPresets.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Custom Presets'),
+            _buildSectionHeader(context, l10n.customPresets),
             const SizedBox(height: 12),
             ...customPresets.map((preset) => _PresetCard(
                   preset: preset,
@@ -138,23 +139,25 @@ class AIPresetsScreen extends ConsumerWidget {
   }
 
   Future<void> _applyPreset(BuildContext context, WidgetRef ref, AIPreset preset) async {
+    final l10n = AppLocalizations.of(context);
     try {
       await ref.read(aiPresetManagerProvider).applyPreset(preset);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Applied "${preset.name}" preset')),
+          SnackBar(content: Text(l10n.appliedPreset(preset.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to apply preset: $e')),
+          SnackBar(content: Text(l10n.failedToApplyPreset(e.toString()))),
         );
       }
     }
   }
 
   Future<void> _importPreset(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -178,7 +181,7 @@ class AIPresetsScreen extends ConsumerWidget {
 
       // Check if it's a valid preset format (has temperature or generationSettings)
       if (!json.containsKey('temperature') && !json.containsKey('generationSettings')) {
-        throw Exception('Invalid preset format. Expected preset with generation settings.');
+        throw Exception(l10n.invalidPresetFormat);
       }
 
       // Get name from filename if not in JSON
@@ -192,41 +195,42 @@ class AIPresetsScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported and applied "${preset.name}"')),
+          SnackBar(content: Text(l10n.importedAndApplied(preset.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e')),
+          SnackBar(content: Text(l10n.importFailed(e.toString()))),
         );
       }
     }
   }
 
   Future<void> _exportCurrentSettings(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final nameController = TextEditingController(text: 'My AI Preset');
 
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export Current Settings'),
+        title: Text(l10n.exportCurrentSettings),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Preset Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.presetName,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Export'),
+            child: Text(l10n.export),
           ),
         ],
       ),
@@ -251,37 +255,38 @@ class AIPresetsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
+          SnackBar(content: Text(l10n.exportFailed(e.toString()))),
         );
       }
     }
   }
 
   Future<void> _saveCurrentAsPreset(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final nameController = TextEditingController();
     final descController = TextEditingController();
 
     final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Save as Preset'),
+        title: Text(l10n.saveAsPreset),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Preset Name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.presetName,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.descriptionOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -290,13 +295,13 @@ class AIPresetsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
               if (nameController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a name')),
+                  SnackBar(content: Text(l10n.pleaseEnterAName)),
                 );
                 return;
               }
@@ -305,7 +310,7 @@ class AIPresetsScreen extends ConsumerWidget {
                 'description': descController.text.trim(),
               });
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -323,13 +328,13 @@ class AIPresetsScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved "${preset.name}"')),
+          SnackBar(content: Text(l10n.savedPreset(preset.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Save failed: $e')),
+          SnackBar(content: Text(l10n.saveFailed(e.toString()))),
         );
       }
     }
@@ -352,27 +357,29 @@ class AIPresetsScreen extends ConsumerWidget {
       );
     } catch (e) {
       if (context.mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
+          SnackBar(content: Text(l10n.exportFailed(e.toString()))),
         );
       }
     }
   }
 
   Future<void> _deletePreset(BuildContext context, WidgetRef ref, AIPreset preset) async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Preset'),
-        content: Text('Are you sure you want to delete "${preset.name}"?'),
+        title: Text(l10n.deletePreset),
+        content: Text(l10n.deletePresetConfirmation(preset.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -388,7 +395,7 @@ class AIPresetsScreen extends ConsumerWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Deleted "${preset.name}"')),
+        SnackBar(content: Text(l10n.deletedPreset(preset.name))),
       );
     }
   }
@@ -467,13 +474,18 @@ class _PresetCard extends StatelessWidget {
                               color: AppTheme.primaryColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Text(
-                              'Active',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Builder(
+                              builder: (context) {
+                                final l10n = AppLocalizations.of(context);
+                                return Text(
+                                  l10n.active,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -525,24 +537,27 @@ class _PresetCard extends StatelessWidget {
                     if (value == 'export') onExport?.call();
                     if (value == 'delete') onDelete?.call();
                   },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'export',
-                      child: ListTile(
-                        leading: Icon(Icons.file_upload),
-                        title: Text('Export'),
-                        contentPadding: EdgeInsets.zero,
+                  itemBuilder: (context) {
+                    final l10n = AppLocalizations.of(context);
+                    return [
+                      PopupMenuItem(
+                        value: 'export',
+                        child: ListTile(
+                          leading: const Icon(Icons.file_upload),
+                          title: Text(l10n.export),
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
-                        contentPadding: EdgeInsets.zero,
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: const Icon(Icons.delete, color: Colors.red),
+                          title: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
-                    ),
-                  ],
+                    ];
+                  },
                 ),
             ],
           ),

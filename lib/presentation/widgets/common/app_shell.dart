@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Main app shell with bottom navigation
 class AppShell extends StatelessWidget {
@@ -60,35 +61,36 @@ class _BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = _calculateSelectedIndex(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) => _onItemTapped(context, index),
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.chat_bubble_outline),
-          selectedIcon: Icon(Icons.chat_bubble),
-          label: 'Chats',
+          icon: const Icon(Icons.chat_bubble_outline),
+          selectedIcon: const Icon(Icons.chat_bubble),
+          label: l10n.chats,
         ),
         NavigationDestination(
-          icon: Icon(Icons.people_outline),
-          selectedIcon: Icon(Icons.people),
-          label: 'Characters',
+          icon: const Icon(Icons.people_outline),
+          selectedIcon: const Icon(Icons.people),
+          label: l10n.characters,
         ),
         NavigationDestination(
-          icon: Icon(Icons.auto_stories_outlined),
-          selectedIcon: Icon(Icons.auto_stories),
-          label: 'World Info',
+          icon: const Icon(Icons.auto_stories_outlined),
+          selectedIcon: const Icon(Icons.auto_stories),
+          label: l10n.worldInfo,
         ),
         NavigationDestination(
-          icon: Icon(Icons.auto_awesome_outlined),
-          selectedIcon: Icon(Icons.auto_awesome),
-          label: 'AI Config',
+          icon: const Icon(Icons.auto_awesome_outlined),
+          selectedIcon: const Icon(Icons.auto_awesome),
+          label: l10n.aiConfig,
         ),
         NavigationDestination(
-          icon: Icon(Icons.settings_outlined),
-          selectedIcon: Icon(Icons.settings),
-          label: 'Settings',
+          icon: const Icon(Icons.settings_outlined),
+          selectedIcon: const Icon(Icons.settings),
+          label: l10n.settings,
         ),
       ],
     );

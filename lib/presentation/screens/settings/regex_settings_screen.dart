@@ -5,6 +5,7 @@ import 'package:native_tavern/data/models/regex_script.dart';
 import 'package:native_tavern/domain/services/regex_service.dart';
 import 'package:native_tavern/presentation/providers/regex_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing regex scripts
 class RegexSettingsScreen extends ConsumerWidget {
@@ -17,46 +18,46 @@ class RegexSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Regex Scripts'),
+        title: Text(AppLocalizations.of(context)!.regexScripts),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Script',
+            tooltip: AppLocalizations.of(context)!.addScript,
             onPressed: () => _showScriptEditor(context, ref, null),
           ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'add_presets',
                 child: ListTile(
-                  leading: Icon(Icons.auto_awesome),
-                  title: Text('Add Presets'),
+                  leading: const Icon(Icons.auto_awesome),
+                  title: Text(AppLocalizations.of(context)!.addPresets),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.file_download),
-                  title: Text('Import'),
+                  leading: const Icon(Icons.file_download),
+                  title: Text(AppLocalizations.of(context)!.import),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: ListTile(
-                  leading: Icon(Icons.file_upload),
-                  title: Text('Export'),
+                  leading: const Icon(Icons.file_upload),
+                  title: Text(AppLocalizations.of(context)!.export),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'clear_all',
                 child: ListTile(
-                  leading: Icon(Icons.delete_sweep, color: Colors.red),
-                  title: Text('Clear All', style: TextStyle(color: Colors.red)),
+                  leading: const Icon(Icons.delete_sweep, color: Colors.red),
+                  title: Text(AppLocalizations.of(context)!.clearAll, style: const TextStyle(color: Colors.red)),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -69,11 +70,12 @@ class RegexSettingsScreen extends ConsumerWidget {
         children: [
           // Enable/Disable toggle
           _buildSection(
-            title: 'General',
+            context: context,
+            title: AppLocalizations.of(context)!.general,
             children: [
               SwitchListTile(
-                title: const Text('Enable Regex Scripts'),
-                subtitle: const Text('Apply find/replace patterns to messages'),
+                title: Text(AppLocalizations.of(context)!.enableRegexScripts),
+                subtitle: Text(AppLocalizations.of(context)!.applyFindReplacePatterns),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(regexSettingsProvider.notifier).setEnabled(value);
@@ -86,11 +88,12 @@ class RegexSettingsScreen extends ConsumerWidget {
 
           // Application settings
           _buildSection(
-            title: 'Apply To',
+            context: context,
+            title: AppLocalizations.of(context)!.applyTo,
             children: [
               SwitchListTile(
-                title: const Text('User Input'),
-                subtitle: const Text('Apply to messages before sending'),
+                title: Text(AppLocalizations.of(context)!.userInput),
+                subtitle: Text(AppLocalizations.of(context)!.applyBeforeSending),
                 value: settings.applyToUserInput,
                 onChanged: settings.enabled
                     ? (value) {
@@ -99,8 +102,8 @@ class RegexSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('AI Output'),
-                subtitle: const Text('Apply to AI responses'),
+                title: Text(AppLocalizations.of(context)!.aiOutput),
+                subtitle: Text(AppLocalizations.of(context)!.applyToAiResponses),
                 value: settings.applyToAiOutput,
                 onChanged: settings.enabled
                     ? (value) {
@@ -109,8 +112,8 @@ class RegexSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('Slash Commands'),
-                subtitle: const Text('Apply during command processing'),
+                title: Text(AppLocalizations.of(context)!.slashCommandsLabel),
+                subtitle: Text(AppLocalizations.of(context)!.applyDuringCommandProcessing),
                 value: settings.applyToSlashCommands,
                 onChanged: settings.enabled
                     ? (value) {
@@ -119,8 +122,8 @@ class RegexSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('World Info'),
-                subtitle: const Text('Apply to world info entries'),
+                title: Text(AppLocalizations.of(context)!.worldInfoLabel),
+                subtitle: Text(AppLocalizations.of(context)!.applyToWorldInfoEntries),
                 value: settings.applyToWorldInfo,
                 onChanged: settings.enabled
                     ? (value) {
@@ -135,24 +138,25 @@ class RegexSettingsScreen extends ConsumerWidget {
 
           // Scripts list
           _buildSection(
-            title: 'Scripts (${scripts.length})',
+            context: context,
+            title: AppLocalizations.of(context)!.scriptsCount(scripts.length),
             children: [
               if (scripts.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
+                Padding(
+                  padding: const EdgeInsets.all(32),
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.find_replace, size: 48, color: AppTheme.textMuted),
-                        SizedBox(height: 16),
+                        const Icon(Icons.find_replace, size: 48, color: AppTheme.textMuted),
+                        const SizedBox(height: 16),
                         Text(
-                          'No regex scripts',
-                          style: TextStyle(color: AppTheme.textMuted),
+                          AppLocalizations.of(context)!.noRegexScripts,
+                          style: const TextStyle(color: AppTheme.textMuted),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Tap + to add a script or use the menu to add presets',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          AppLocalizations.of(context)!.tapToAddOrUseMenu,
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -188,7 +192,8 @@ class RegexSettingsScreen extends ConsumerWidget {
 
           // Test section
           _buildSection(
-            title: 'Test',
+            context: context,
+            title: AppLocalizations.of(context)!.test,
             children: [
               const _RegexTestWidget(),
             ],
@@ -198,6 +203,7 @@ class RegexSettingsScreen extends ConsumerWidget {
 
           // Info section
           _buildSection(
+            context: context,
             title: 'Information',
             children: [
               const ListTile(
@@ -224,6 +230,7 @@ class RegexSettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSection({
+    required BuildContext context,
     required String title,
     required List<Widget> children,
   }) {
@@ -254,7 +261,7 @@ class RegexSettingsScreen extends ConsumerWidget {
       case 'add_presets':
         ref.read(globalRegexScriptsProvider.notifier).addPresets();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preset scripts added')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.presetScriptsAdded)),
         );
         break;
       case 'import':
@@ -292,12 +299,12 @@ class RegexSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Script'),
-        content: Text('Delete "${script.scriptName}"?'),
+        title: Text(AppLocalizations.of(context)!.deleteScript),
+        content: Text(AppLocalizations.of(context)!.deleteScriptQuestion(script.scriptName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -305,7 +312,7 @@ class RegexSettingsScreen extends ConsumerWidget {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -316,12 +323,12 @@ class RegexSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Scripts'),
-        content: const Text('This will delete all regex scripts. This cannot be undone.'),
+        title: Text(AppLocalizations.of(context)!.clearAllScripts),
+        content: Text(AppLocalizations.of(context)!.clearAllScriptsQuestion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -329,7 +336,7 @@ class RegexSettingsScreen extends ConsumerWidget {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Clear All'),
+            child: Text(AppLocalizations.of(context)!.clearAll),
           ),
         ],
       ),
@@ -342,12 +349,12 @@ class RegexSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import Scripts'),
+        title: Text(AppLocalizations.of(context)!.importScripts),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'JSON',
-            hintText: 'Paste JSON array of scripts',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.json,
+            hintText: AppLocalizations.of(context)!.pasteJsonArray,
             border: OutlineInputBorder(),
           ),
           maxLines: 5,
@@ -355,17 +362,17 @@ class RegexSettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
               final count = await ref.read(globalRegexScriptsProvider.notifier).importScripts(controller.text);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Imported $count scripts')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.importedCount(count))),
               );
             },
-            child: const Text('Import'),
+            child: Text(AppLocalizations.of(context)!.import),
           ),
         ],
       ),
@@ -378,7 +385,7 @@ class RegexSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export Scripts'),
+        title: Text(AppLocalizations.of(context)!.exportScripts),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -398,17 +405,17 @@ class RegexSettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
           ElevatedButton.icon(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: json));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Copied to clipboard')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.copiedToClipboard)),
               );
             },
             icon: const Icon(Icons.copy),
-            label: const Text('Copy'),
+            label: Text(AppLocalizations.of(context)!.copy),
           ),
         ],
       ),
@@ -556,7 +563,7 @@ class _RegexScriptEditorState extends State<_RegexScriptEditor> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.script == null ? 'New Script' : 'Edit Script',
+                      widget.script == null ? AppLocalizations.of(context)!.newScript : AppLocalizations.of(context)!.editScript,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -564,7 +571,7 @@ class _RegexScriptEditorState extends State<_RegexScriptEditor> {
                     ),
                     ElevatedButton(
                       onPressed: _save,
-                      child: const Text('Save'),
+                      child: Text(AppLocalizations.of(context)!.save),
                     ),
                   ],
                 ),

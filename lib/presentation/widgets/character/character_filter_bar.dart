@@ -5,6 +5,7 @@ import '../../providers/character_filter_providers.dart';
 import '../../providers/tag_providers.dart';
 import '../../screens/tags/tags_screen.dart';
 import '../../theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Filter bar for character list
 class CharacterFilterBar extends ConsumerWidget {
@@ -28,7 +29,7 @@ class CharacterFilterBar extends ConsumerWidget {
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search characters...',
+                    hintText: AppLocalizations.of(context)!.searchCharacters,
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: filterState.searchQuery.isNotEmpty
                         ? IconButton(
@@ -59,7 +60,7 @@ class CharacterFilterBar extends ConsumerWidget {
                   filterState.showFavoritesOnly ? Icons.favorite : Icons.favorite_border,
                   color: filterState.showFavoritesOnly ? Colors.red : null,
                 ),
-                tooltip: 'Show favorites only',
+                tooltip: AppLocalizations.of(context)!.showFavoritesOnly,
                 onPressed: () {
                   ref.read(characterFilterProvider.notifier).toggleFavoritesOnly();
                 },
@@ -67,7 +68,7 @@ class CharacterFilterBar extends ConsumerWidget {
               // Sort button
               PopupMenuButton<CharacterSortOption>(
                 icon: const Icon(Icons.sort),
-                tooltip: 'Sort by',
+                tooltip: AppLocalizations.of(context)!.sortBy,
                 onSelected: (option) {
                   ref.read(characterFilterProvider.notifier).setSortOption(option);
                 },
@@ -95,7 +96,7 @@ class CharacterFilterBar extends ConsumerWidget {
                   label: Text('${filterState.selectedTagIds.length + filterState.selectedLegacyTags.length}'),
                   child: const Icon(Icons.filter_list),
                 ),
-                tooltip: 'Filter by tags',
+                tooltip: AppLocalizations.of(context)!.filterByTags,
                 onPressed: () => _showTagFilterSheet(context, ref, newTagsAsync, legacyTagsAsync),
               ),
             ],
@@ -110,7 +111,7 @@ class CharacterFilterBar extends ConsumerWidget {
                 children: [
                   if (filterState.showFavoritesOnly)
                     _FilterChip(
-                      label: 'Favorites',
+                      label: AppLocalizations.of(context)!.favorites,
                       icon: Icons.favorite,
                       color: Colors.red,
                       onRemove: () {
@@ -150,7 +151,7 @@ class CharacterFilterBar extends ConsumerWidget {
                   if (filterState.hasActiveFilters)
                     TextButton.icon(
                       icon: const Icon(Icons.clear_all, size: 16),
-                      label: const Text('Clear all'),
+                      label: Text(AppLocalizations.of(context)!.clearAll),
                       onPressed: () {
                         ref.read(characterFilterProvider.notifier).clearFilters();
                       },
@@ -255,8 +256,8 @@ class _TagFilterSheet extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Text(
-                  'Filter by Tags',
+                Text(
+                  AppLocalizations.of(context)!.filterByTags,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -265,7 +266,7 @@ class _TagFilterSheet extends ConsumerWidget {
                 const Spacer(),
                 TextButton.icon(
                   icon: const Icon(Icons.settings, size: 18),
-                  label: const Text('Manage'),
+                  label: Text(AppLocalizations.of(context)!.manage),
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.push<void>(
@@ -279,7 +280,7 @@ class _TagFilterSheet extends ConsumerWidget {
                     onPressed: () {
                       ref.read(characterFilterProvider.notifier).clearTags();
                     },
-                    child: const Text('Clear'),
+                    child: Text(AppLocalizations.of(context)!.clear),
                   ),
               ],
             ),
@@ -312,13 +313,13 @@ class _TagFilterSheet extends ConsumerWidget {
                             Icon(Icons.label_outline, size: 48, color: AppTheme.textMuted),
                             const SizedBox(height: 8),
                             Text(
-                              'No tags created yet',
+                              AppLocalizations.of(context)!.noTagsCreatedYet,
                               style: TextStyle(color: AppTheme.textMuted),
                             ),
                             const SizedBox(height: 8),
                             TextButton.icon(
                               icon: const Icon(Icons.add),
-                              label: const Text('Create Tags'),
+                              label: Text(AppLocalizations.of(context)!.createTags),
                               onPressed: () {
                                 Navigator.pop(context);
                                 Navigator.push<void>(
@@ -341,7 +342,7 @@ class _TagFilterSheet extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                             child: Text(
-                              'Tags',
+                              AppLocalizations.of(context)!.tags,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -376,7 +377,7 @@ class _TagFilterSheet extends ConsumerWidget {
                                   Text(tag.name),
                                 ],
                               ),
-                              subtitle: Text('$count character${count == 1 ? '' : 's'}'),
+                              subtitle: Text(AppLocalizations.of(context)!.charactersCount(count)),
                               controlAffinity: ListTileControlAffinity.leading,
                               activeColor: tag.colorValue,
                             );
@@ -403,7 +404,7 @@ class _TagFilterSheet extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                           child: Text(
-                            'Character Tags (Legacy)',
+                            AppLocalizations.of(context)!.characterTagsLegacy,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -421,7 +422,7 @@ class _TagFilterSheet extends ConsumerWidget {
                               ref.read(characterFilterProvider.notifier).toggleTag(tag);
                             },
                             title: Text(tag),
-                            subtitle: Text('$count character${count == 1 ? '' : 's'}'),
+                            subtitle: Text(AppLocalizations.of(context)!.charactersCount(count)),
                             secondary: Icon(Icons.label_outline, color: AppTheme.textMuted),
                             controlAffinity: ListTileControlAffinity.leading,
                           );
@@ -443,8 +444,8 @@ class _TagFilterSheet extends ConsumerWidget {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   totalSelected == 0
-                      ? 'Done'
-                      : 'Apply ($totalSelected selected)',
+                      ? AppLocalizations.of(context)!.done
+                      : AppLocalizations.of(context)!.applyFiltersSelected(totalSelected),
                 ),
               ),
             ),

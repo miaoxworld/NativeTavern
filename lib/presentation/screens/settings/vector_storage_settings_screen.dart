@@ -6,6 +6,7 @@ import 'package:native_tavern/data/models/vector_storage.dart';
 import 'package:native_tavern/domain/services/vector_storage_service.dart';
 import 'package:native_tavern/presentation/providers/vector_storage_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Settings screen for Vector Storage / RAG
 class VectorStorageSettingsScreen extends ConsumerWidget {

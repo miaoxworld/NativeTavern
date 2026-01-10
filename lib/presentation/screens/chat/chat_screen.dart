@@ -11,6 +11,7 @@ import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/domain/services/chat_export_service.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/slash_command_service.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/bookmark_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
@@ -107,41 +108,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// Show dialog to guide user to configure API
   void _showApiConfigurationDialog() {
     final parentContext = context;
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.settings, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text('API Not Configured'),
+            const Icon(Icons.settings, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(l10n.apiNotConfigured),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(l10n.apiNotConfiguredMessage),
+            const SizedBox(height: 16),
             Text(
-              'To chat with characters, you need to configure an LLM provider first.',
+              l10n.supportedProviders,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
-            Text(
-              'Supported providers:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('• OpenAI (GPT-4, GPT-3.5)'),
-            Text('• Claude (Anthropic)'),
-            Text('• OpenRouter'),
-            Text('• Gemini (Google)'),
-            Text('• Ollama (Local)'),
-            Text('• KoboldCpp (Local)'),
+            const SizedBox(height: 8),
+            Text('• ${l10n.openai} (GPT-4, GPT-3.5)'),
+            Text('• ${l10n.claude} (Anthropic)'),
+            Text('• ${l10n.openRouter}'),
+            Text('• ${l10n.gemini} (Google)'),
+            Text('• ${l10n.ollama} (${l10n.local})'),
+            Text('• ${l10n.koboldCpp} (${l10n.local})'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Later'),
+            child: Text(l10n.later),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -150,7 +150,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               parentContext.go('/ai-config');
             },
             icon: const Icon(Icons.settings),
-            label: const Text('Configure Now'),
+            label: Text(l10n.configureNow),
           ),
         ],
       ),
@@ -159,6 +159,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Show model selector dialog
   void _showModelSelector() async {
+    final l10n = AppLocalizations.of(context);
     final llmConfig = ref.read(llmConfigProvider);
     final llmService = ref.read(llmServiceProvider);
     
@@ -166,16 +167,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
+      builder: (context) => Center(
         child: Card(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading models...'),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(l10n.loadingModels),
               ],
             ),
           ),
@@ -191,7 +192,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       Navigator.pop(context); // Close loading dialog
       
       if (models.isEmpty) {
-        _showSnackBar('No models available. Check your API configuration.');
+        _showSnackBar(l10n.noModelsAvailable);
         return;
       }
       
@@ -207,12 +208,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       
       if (selectedModel != null && selectedModel != llmConfig.model) {
         ref.read(llmConfigProvider.notifier).updateModel(selectedModel);
-        _showSnackBar('Model changed to $selectedModel');
+        _showSnackBar(l10n.modelChangedTo(selectedModel));
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context); // Close loading dialog
-      _showSnackBar('Failed to load models: $e');
+      _showSnackBar(l10n.failedToLoadModels(e.toString()));
     }
   }
 
@@ -376,12 +377,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _handleSwipeCommand(String? argument) {
+    final l10n = AppLocalizations.of(context);
     final chatState = ref.read(activeChatProvider);
     if (chatState.messages.isEmpty) return;
     
     final lastMessage = chatState.messages.last;
     if (lastMessage.swipes.length <= 1) {
-      _showSnackBar('No swipes available');
+      _showSnackBar(l10n.noSwipesAvailable);
       return;
     }
     
@@ -402,13 +404,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showSystemMessage(String content) {
+    final l10n = AppLocalizations.of(context);
     // For now, just show a snackbar. In the future, this could inject a system message
-    _showSnackBar('System: $content');
+    _showSnackBar('${l10n.system}: $content');
   }
 
   void _showHelpDialog(String? commandName) {
     if (commandName != null && commandName.isNotEmpty) {
       final slashService = ref.read(slashCommandServiceProvider);
+      final l10n = AppLocalizations.of(context);
       final help = slashService.getCommandHelp(commandName);
       showDialog(
         context: context,
@@ -418,7 +422,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(l10n.close),
             ),
           ],
         ),
@@ -432,21 +436,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showCommandError(String error) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Command Error'),
+            const Icon(Icons.error_outline, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(l10n.commandError),
           ],
         ),
         content: Text(error),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
@@ -559,6 +564,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildApiConfigBanner() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: AppTheme.primaryColor.withValues(alpha: 0.15),
@@ -566,20 +572,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         children: [
           const Icon(Icons.info_outline, color: AppTheme.primaryColor, size: 20),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'API not configured',
-                  style: TextStyle(
+                  l10n.apiNotConfigured,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
                 ),
                 Text(
-                  'Configure an LLM provider to start chatting',
-                  style: TextStyle(
+                  l10n.configureApiProvider,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
                   ),
@@ -590,7 +596,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           TextButton(
             // Use go instead of push because /ai-config is inside ShellRoute
             onPressed: () => context.go('/ai-config'),
-            child: const Text('Configure'),
+            child: Text(l10n.configure),
           ),
         ],
       ),
@@ -598,6 +604,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   AppBar _buildAppBar(ActiveChatState chatState) {
+    final l10n = AppLocalizations.of(context);
     final hasAuthorNote = chatState.chat?.authorNoteEnabled == true &&
         (chatState.chat?.authorNote.isNotEmpty ?? false);
     final llmConfig = ref.watch(llmConfigProvider);
@@ -607,7 +614,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            chatState.character?.name ?? 'Chat',
+            chatState.character?.name ?? l10n.chat,
             style: const TextStyle(fontSize: 16),
           ),
           // Model selector - tap to change model
@@ -617,7 +624,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  llmConfig.model.isEmpty ? 'Select Model' : llmConfig.model,
+                  llmConfig.model.isEmpty ? l10n.selectModel : llmConfig.model,
                   style: TextStyle(
                     fontSize: 12,
                     color: chatState.isGenerating
@@ -645,13 +652,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Icons.note_alt_outlined,
             color: hasAuthorNote ? AppTheme.accentColor : null,
           ),
-          tooltip: 'Author\'s Note',
+          tooltip: l10n.authorsNote,
           onPressed: () => showAuthorNoteDialog(context),
         ),
         // Bookmarks button
         IconButton(
           icon: const Icon(Icons.bookmark_border),
-          tooltip: 'Bookmarks',
+          tooltip: l10n.bookmarks,
           onPressed: () => _showBookmarksDialog(context),
         ),
         if (chatState.messages.isNotEmpty &&
@@ -659,16 +666,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             !chatState.isGenerating)
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Regenerate',
+            tooltip: l10n.regenerate,
             onPressed: _regenerateMessage,
           ),
         PopupMenuButton(
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'character',
               child: ListTile(
-                leading: Icon(Icons.person),
-                title: Text('View Character'),
+                leading: const Icon(Icons.person),
+                title: Text(l10n.viewCharacter),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -679,9 +686,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Icons.note_alt,
                   color: hasAuthorNote ? AppTheme.accentColor : null,
                 ),
-                title: const Text('Author\'s Note'),
+                title: Text(l10n.authorsNote),
                 subtitle: Text(
-                  hasAuthorNote ? 'Enabled' : 'Disabled',
+                  hasAuthorNote ? l10n.enabled : l10n.disabled,
                   style: TextStyle(
                     color: hasAuthorNote ? AppTheme.accentColor : AppTheme.textMuted,
                     fontSize: 12,
@@ -690,37 +697,37 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'bookmarks',
               child: ListTile(
-                leading: Icon(Icons.bookmark, color: AppTheme.accentColor),
-                title: Text('Bookmarks'),
+                leading: const Icon(Icons.bookmark, color: AppTheme.accentColor),
+                title: Text(l10n.bookmarks),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'export',
               child: ListTile(
-                leading: Icon(Icons.upload),
-                title: Text('Export Chat'),
-                subtitle: Text('Save as JSONL/JSON'),
+                leading: const Icon(Icons.upload),
+                title: Text(l10n.exportChat),
+                subtitle: Text(l10n.saveAsJsonl),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'import',
               child: ListTile(
-                leading: Icon(Icons.download),
-                title: Text('Import Chat'),
-                subtitle: Text('Load from file'),
+                leading: const Icon(Icons.download),
+                title: Text(l10n.importChat),
+                subtitle: Text(l10n.chooseFile),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'clear',
               child: ListTile(
-                leading: Icon(Icons.delete_sweep, color: Colors.orange),
-                title: Text('Clear Messages'),
+                leading: const Icon(Icons.delete_sweep, color: Colors.orange),
+                title: Text(l10n.clearMessages),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -753,6 +760,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     final character = ref.read(activeChatProvider).character;
     
     return Center(
@@ -771,12 +779,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           const SizedBox(height: 16),
           Text(
-            character?.name ?? 'Chat',
+            character?.name ?? l10n.chat,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'Start a conversation',
+            l10n.startConversation,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textMuted,
                 ),
@@ -862,22 +870,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
 
     if (result != null && mounted) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bookmark created')),
+        SnackBar(content: Text(l10n.bookmarkCreated)),
       );
     }
   }
 
   void _showDeleteConfirmation(String messageId) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Message'),
-        content: const Text('Are you sure you want to delete this message?'),
+        title: Text(l10n.deleteMessage),
+        content: Text(l10n.deleteMessageConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -885,7 +895,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ref.read(activeChatProvider.notifier).deleteMessage(messageId);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -893,17 +903,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showDeleteAndAfterConfirmation(String messageId) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Messages'),
-        content: const Text(
-          'Are you sure you want to delete this message and all messages after it?',
-        ),
+        title: Text(l10n.deleteMessages),
+        content: Text(l10n.deleteMessagesConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -911,7 +920,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ref.read(activeChatProvider.notifier).deleteMessageAndAfter(messageId);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete All'),
+            child: Text(l10n.deleteAll),
           ),
         ],
       ),
@@ -993,13 +1002,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   const Spacer(),
                   // Hint for keyboard shortcuts
                   Tooltip(
-                    message: 'Keyboard shortcuts:\n'
-                        '⌘B - Bold\n'
-                        '⌘I - Italic\n'
-                        '⌘U - Underline\n'
-                        '⌘⇧S - Strikethrough\n'
-                        '⌘` - Inline code\n'
-                        '⌘K - Link',
+                    message: '${AppLocalizations.of(context).keyboardShortcuts}\n'
+                        '⌘B - ${AppLocalizations.of(context).bold}\n'
+                        '⌘I - ${AppLocalizations.of(context).italic}\n'
+                        '⌘U - ${AppLocalizations.of(context).underline}\n'
+                        '⌘⇧S - ${AppLocalizations.of(context).strikethrough}\n'
+                        '⌘` - ${AppLocalizations.of(context).inlineCode}\n'
+                        '⌘K - ${AppLocalizations.of(context).link}',
                     child: Icon(
                       Icons.keyboard,
                       size: 16,
@@ -1018,12 +1027,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     focusNode: _focusNode,
                     maxLines: 5,
                     minLines: 1,
-                    hintText: 'Type a message...',
+                    hintText: AppLocalizations.of(context).typeMessage,
                     onSubmitted: (_) => _sendMessage(),
                     textInputAction: TextInputAction.send,
                     showToolbar: false, // We show toolbar above
                     decoration: InputDecoration(
-                      hintText: 'Type a message...',
+                      hintText: AppLocalizations.of(context).typeMessage,
                       filled: true,
                       fillColor: AppTheme.darkBackground,
                       border: OutlineInputBorder(
@@ -1130,6 +1139,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return;
     }
     
+    final l10n = AppLocalizations.of(context);
     // On mobile, show options sheet
     showModalBottomSheet(
       context: context,
@@ -1153,7 +1163,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppTheme.primaryColor),
-              title: const Text('Choose from Gallery'),
+              title: Text(l10n.chooseFromGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickImageFromGallery();
@@ -1161,7 +1171,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppTheme.accentColor),
-              title: const Text('Take Photo'),
+              title: Text(l10n.takePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _takePhoto();
@@ -1176,13 +1186,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Pick image from files using FilePicker (for desktop)
   Future<void> _pickImageFromFiles() async {
+    final l10n = AppLocalizations.of(context);
     debugPrint('📎 _pickImageFromFiles called');
     try {
       debugPrint('📎 Calling FilePicker.platform.pickFiles...');
       final result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: true,
-        dialogTitle: 'Select Images',
+        dialogTitle: l10n.selectImages,
       );
       
       debugPrint('📎 FilePicker result: $result');
@@ -1199,9 +1210,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         debugPrint('📎 No files selected or result is null');
       }
     } catch (e, stackTrace) {
+      final l10n = AppLocalizations.of(context);
       debugPrint('📎 FilePicker error: $e');
       debugPrint('📎 Stack trace: $stackTrace');
-      _showSnackBar('Failed to pick image: $e');
+      _showSnackBar(l10n.failedToPickImage(e.toString()));
     }
   }
 
@@ -1218,7 +1230,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         await _addAttachmentFromXFile(image);
       }
     } catch (e) {
-      _showSnackBar('Failed to pick image: $e');
+      final l10n = AppLocalizations.of(context);
+      _showSnackBar(l10n.failedToPickImage(e.toString()));
     }
   }
 
@@ -1236,7 +1249,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         await _addAttachmentFromXFile(image);
       }
     } catch (e) {
-      _showSnackBar('Failed to take photo: $e');
+      final l10n = AppLocalizations.of(context);
+      _showSnackBar(l10n.failedToTakePhoto(e.toString()));
     }
   }
 
@@ -1271,7 +1285,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _pendingAttachments.add(attachment);
       });
     } catch (e) {
-      _showSnackBar('Failed to add attachment: $e');
+      final l10n = AppLocalizations.of(context);
+      _showSnackBar(l10n.failedToAddAttachment(e.toString()));
     }
   }
 
@@ -1306,7 +1321,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _pendingAttachments.add(attachment);
       });
     } catch (e) {
-      _showSnackBar('Failed to add attachment: $e');
+      final l10n = AppLocalizations.of(context);
+      _showSnackBar(l10n.failedToAddAttachment(e.toString()));
     }
   }
 
@@ -1337,20 +1353,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showExportDialog() {
+    final l10n = AppLocalizations.of(context);
     final chatState = ref.read(activeChatProvider);
     if (chatState.chat == null || chatState.character == null) {
-      _showSnackBar('No chat to export');
+      _showSnackBar(l10n.noChatToExport);
       return;
     }
 
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.upload, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text('Export Chat'),
+            const Icon(Icons.upload, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(l10n.exportChat),
           ],
         ),
         content: Column(
@@ -1358,36 +1375,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Export chat with ${chatState.character!.name}',
+              l10n.exportChatWith(chatState.character!.name),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              '${chatState.messages.length} messages',
+              l10n.messagesCount(chatState.messages.length),
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
-            const Text('Choose export format:'),
+            Text(l10n.chooseExportFormat),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
               await _exportChat(useJsonl: false);
             },
-            child: const Text('JSON'),
+            child: Text(l10n.json),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
               await _exportChat(useJsonl: true);
             },
-            child: const Text('JSONL (ST Format)'),
+            child: Text(l10n.jsonlStFormat),
           ),
         ],
       ),
@@ -1411,40 +1428,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         useJsonl: useJsonl,
       );
     } catch (e) {
-      _showSnackBar('Export failed: $e');
+      final l10n = AppLocalizations.of(context);
+      _showSnackBar(l10n.exportFailed(e.toString()));
     }
   }
 
   void _showImportDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.download, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text('Import Chat'),
+            const Icon(Icons.download, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(l10n.importChat),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(l10n.importChatHistory),
+            const SizedBox(height: 16),
             Text(
-              'Import chat history from a file.',
+              l10n.supportedFormats,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Text('• ${l10n.jsonlSillyTavernFormat}'),
+            Text('• ${l10n.jsonNativeTavernFormat}'),
+            const SizedBox(height: 16),
             Text(
-              'Supported formats:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('• JSONL (SillyTavern format)'),
-            Text('• JSON (NativeTavern format)'),
-            SizedBox(height: 16),
-            Text(
-              'Note: Imported messages will be added to the current chat.',
-              style: TextStyle(
+              l10n.importNote,
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textMuted,
               ),
@@ -1454,7 +1471,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton.icon(
             onPressed: () async {
@@ -1462,7 +1479,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               await _importChat();
             },
             icon: const Icon(Icons.folder_open),
-            label: const Text('Choose File'),
+            label: Text(l10n.chooseFile),
           ),
         ],
       ),
@@ -1470,12 +1487,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _importChat() async {
+    final l10n = AppLocalizations.of(context);
     final exportService = ref.read(chatExportServiceProvider);
     
     try {
       final result = await exportService.importFromFile();
       if (result == null) {
-        _showSnackBar('No file selected or invalid format');
+        _showSnackBar(l10n.noFileSelected);
         return;
       }
 
@@ -1485,32 +1503,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Import Confirmation'),
+          title: Text(l10n.importConfirmation),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Character: ${result.characterName}'),
-              Text('User: ${result.userName}'),
-              Text('Messages: ${result.messages.length}'),
-              Text('Date: ${result.createDate.toString().split('.')[0]}'),
+              Text('${l10n.character}: ${result.characterName}'),
+              Text('${l10n.user}: ${result.userName}'),
+              Text('${l10n.messages}: ${result.messages.length}'),
+              Text('${l10n.date}: ${result.createDate.toString().split('.')[0]}'),
               if (result.authorNote != null && result.authorNote!.isNotEmpty)
-                Text('Has Author\'s Note: Yes'),
+                Text('${l10n.hasAuthorsNote}: ${l10n.yes}'),
               const SizedBox(height: 16),
-              const Text(
-                'Import these messages to the current chat?',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                l10n.importMessagesToCurrentChat,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Import'),
+              child: Text(l10n.import),
             ),
           ],
         ),
@@ -1521,7 +1539,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Import messages to current chat
       final chatState = ref.read(activeChatProvider);
       if (chatState.chat == null) {
-        _showSnackBar('No active chat');
+        _showSnackBar(l10n.noActiveChat);
         return;
       }
 
@@ -1552,28 +1570,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         }
       }
 
-      _showSnackBar('Imported ${result.messages.length} messages');
+      _showSnackBar(l10n.importedMessages(result.messages.length));
       
       // Reload chat to show imported messages
       await chatNotifier.loadChat(chatState.chat!.id);
       _scrollToBottom();
     } catch (e) {
-      _showSnackBar('Import failed: $e');
+      _showSnackBar(l10n.importFailed(e.toString()));
     }
   }
 
   void _showClearConfirmation() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Messages'),
-        content: const Text(
-          'Are you sure you want to clear all messages? This cannot be undone.',
-        ),
+        title: Text(l10n.clearMessages),
+        content: Text(l10n.clearMessagesConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -1581,7 +1598,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               // Clear all messages
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -1760,6 +1777,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
 
   /// Build the reasoning/thinking section for AI messages
   Widget _buildReasoningSection() {
+    final l10n = AppLocalizations.of(context);
     final reasoning = widget.message.currentReasoning;
     if (reasoning == null || reasoning.isEmpty) {
       return const SizedBox.shrink();
@@ -1770,7 +1788,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
       return StreamingReasoningWidget(
         reasoning: reasoning,
         isStreaming: true,
-        label: 'Thinking',
+        label: l10n.thinking,
       );
     }
     
@@ -1778,7 +1796,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
     return ReasoningWidget(
       reasoning: reasoning,
       initiallyExpanded: false,
-      label: 'Thinking',
+      label: l10n.thinking,
     );
   }
 
@@ -1886,6 +1904,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
   }
 
   Widget _buildEditField() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         TextField(
@@ -1902,14 +1921,14 @@ class _MessageBubbleState extends State<_MessageBubble> {
           children: [
             TextButton(
               onPressed: () => setState(() => _isEditing = false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 widget.onEdit(_editController.text);
                 setState(() => _isEditing = false);
               },
-              child: const Text('Save'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -1918,6 +1937,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
   }
 
   void _showMessageOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isAssistant = widget.message.role == MessageRole.assistant;
     
     showModalBottomSheet(
@@ -1945,14 +1965,14 @@ class _MessageBubbleState extends State<_MessageBubble> {
             // Copy
             ListTile(
               leading: const Icon(Icons.copy, color: AppTheme.textSecondary),
-              title: const Text('Copy'),
+              title: Text(l10n.copy),
               onTap: () {
                 Navigator.pop(context);
                 Clipboard.setData(ClipboardData(text: widget.message.content));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Copied to clipboard'),
-                    duration: Duration(seconds: 1),
+                  SnackBar(
+                    content: Text(l10n.copiedToClipboard),
+                    duration: const Duration(seconds: 1),
                   ),
                 );
               },
@@ -1961,7 +1981,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
             // Edit
             ListTile(
               leading: const Icon(Icons.edit, color: AppTheme.textSecondary),
-              title: const Text('Edit'),
+              title: Text(l10n.edit),
               onTap: () {
                 Navigator.pop(context);
                 _editController.text = widget.message.content;
@@ -1973,8 +1993,8 @@ class _MessageBubbleState extends State<_MessageBubble> {
             if (isAssistant && widget.onRegenerate != null)
               ListTile(
                 leading: const Icon(Icons.refresh, color: AppTheme.primaryColor),
-                title: const Text('Regenerate'),
-                subtitle: const Text('Generate a new response alternative'),
+                title: Text(l10n.regenerate),
+                subtitle: Text(l10n.generateNewResponse),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onRegenerate!();
@@ -1984,11 +2004,11 @@ class _MessageBubbleState extends State<_MessageBubble> {
             // Continue from here
             ListTile(
               leading: const Icon(Icons.play_arrow, color: AppTheme.accentColor),
-              title: const Text('Continue from here'),
+              title: Text(l10n.continueFromHere),
               subtitle: Text(
                 widget.message.role == MessageRole.user
-                    ? 'Delete messages after and regenerate response'
-                    : 'Delete messages after this one',
+                    ? l10n.deleteMessagesAfterAndRegenerate
+                    : l10n.deleteMessagesAfterThis,
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -1999,8 +2019,8 @@ class _MessageBubbleState extends State<_MessageBubble> {
             // Create bookmark
             ListTile(
               leading: const Icon(Icons.bookmark_add, color: AppTheme.accentColor),
-              title: const Text('Create Bookmark'),
-              subtitle: const Text('Save this point as a checkpoint'),
+              title: Text(l10n.createBookmark),
+              subtitle: Text(l10n.saveAsCheckpoint),
               onTap: () {
                 Navigator.pop(context);
                 widget.onCreateBookmark();
@@ -2012,7 +2032,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
             // Delete this message
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.orange),
-              title: const Text('Delete this message'),
+              title: Text(l10n.deleteThisMessage),
               onTap: () {
                 Navigator.pop(context);
                 widget.onDelete();
@@ -2023,9 +2043,9 @@ class _MessageBubbleState extends State<_MessageBubble> {
             if (!widget.isLast)
               ListTile(
                 leading: const Icon(Icons.delete_sweep, color: Colors.red),
-                title: const Text(
-                  'Delete this and all after',
-                  style: TextStyle(color: Colors.red),
+                title: Text(
+                  l10n.deleteThisAndAllAfter,
+                  style: const TextStyle(color: Colors.red),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -2146,6 +2166,7 @@ class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Dialog(
       backgroundColor: AppTheme.darkCard,
       shape: RoundedRectangleBorder(
@@ -2171,14 +2192,14 @@ class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
                       const Icon(Icons.smart_toy, color: AppTheme.primaryColor),
                       const SizedBox(width: 8),
                       Text(
-                        'Select Model',
+                        l10n.selectModel,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Provider: ${widget.providerName}',
+                    '${l10n.provider}: ${widget.providerName}',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,
@@ -2194,7 +2215,7 @@ class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search models...',
+                  hintText: l10n.searchModels,
                   prefixIcon: const Icon(Icons.search, size: 20),
                   isDense: true,
                   filled: true,
@@ -2220,7 +2241,7 @@ class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Text(
-                          'No models match your search',
+                          l10n.noModelsMatchSearch,
                           style: TextStyle(color: AppTheme.textMuted),
                         ),
                       ),
@@ -2264,7 +2285,7 @@ class _ModelSelectorDialogState extends State<_ModelSelectorDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ],
               ),

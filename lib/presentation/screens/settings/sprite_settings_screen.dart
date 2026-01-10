@@ -6,6 +6,7 @@ import 'package:native_tavern/data/models/sprite.dart';
 import 'package:native_tavern/presentation/providers/sprite_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/chat/sprite_display.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing sprite settings
 class SpriteSettingsScreen extends ConsumerWidget {

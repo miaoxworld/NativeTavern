@@ -8,6 +8,7 @@ import 'package:native_tavern/data/repositories/character_repository.dart';
 import 'package:native_tavern/presentation/providers/group_providers.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Groups list screen
 class GroupsScreen extends ConsumerWidget {
@@ -19,7 +20,7 @@ class GroupsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Group Chats'),
+        title: Text(AppLocalizations.of(context)!.groupChats),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -41,14 +42,14 @@ class GroupsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No group chats yet',
+                    AppLocalizations.of(context)!.noGroupChatsYet,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Create a group to chat with multiple characters',
+                    AppLocalizations.of(context)!.createGroupDescription,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textMuted,
                         ),
@@ -57,7 +58,7 @@ class GroupsScreen extends ConsumerWidget {
                   ElevatedButton.icon(
                     onPressed: () => _showCreateGroupDialog(context, ref),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create Group'),
+                    label: Text(AppLocalizations.of(context)!.createGroup),
                   ),
                 ],
               ),
@@ -79,11 +80,11 @@ class GroupsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('${AppLocalizations.of(context)!.error}: $error'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(groupListProvider.notifier).refresh(),
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -92,7 +93,7 @@ class GroupsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateGroupDialog(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('New Group'),
+        label: Text(AppLocalizations.of(context)!.newGroup),
       ),
     );
   }
@@ -146,7 +147,7 @@ class _GroupCard extends ConsumerWidget {
                           ),
                         const SizedBox(height: 4),
                         Text(
-                          '${group.members.length} members • ${group.settings.responseMode.name} mode',
+                          AppLocalizations.of(context)!.membersAndMode(group.members.length, group.settings.responseMode.name),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppTheme.textMuted,
                               ),
@@ -159,27 +160,27 @@ class _GroupCard extends ConsumerWidget {
                       PopupMenuItem(
                         value: 'chat',
                         onTap: () => _startGroupChat(context, ref),
-                        child: const ListTile(
-                          leading: Icon(Icons.chat),
-                          title: Text('Start Chat'),
+                        child: ListTile(
+                          leading: const Icon(Icons.chat),
+                          title: Text(AppLocalizations.of(context)!.startChat),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       PopupMenuItem(
                         value: 'edit',
                         onTap: () => context.push('/groups/${group.id}/edit'),
-                        child: const ListTile(
-                          leading: Icon(Icons.edit),
-                          title: Text('Edit'),
+                        child: ListTile(
+                          leading: const Icon(Icons.edit),
+                          title: Text(AppLocalizations.of(context)!.edit),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       PopupMenuItem(
                         value: 'delete',
                         onTap: () => _confirmDelete(context, ref),
-                        child: const ListTile(
-                          leading: Icon(Icons.delete, color: Colors.red),
-                          title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        child: ListTile(
+                          leading: const Icon(Icons.delete, color: Colors.red),
+                          title: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
@@ -277,7 +278,7 @@ class _GroupCard extends ConsumerWidget {
   void _startGroupChat(BuildContext context, WidgetRef ref) {
     // TODO: Create group chat and navigate to it
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Group chat will be implemented with chat integration')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.groupChatWillBeImplemented)),
     );
   }
 
@@ -285,23 +286,23 @@ class _GroupCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Group'),
-        content: Text('Are you sure you want to delete "${group.name}"? This will also delete all associated chats.'),
+        title: Text(AppLocalizations.of(context)!.deleteGroup),
+        content: Text(AppLocalizations.of(context)!.deleteGroupConfirmation(group.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(groupListProvider.notifier).deleteGroup(group.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${group.name} deleted')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.groupDeleted(group.name))),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -334,7 +335,7 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
     final charactersAsync = ref.watch(characterListProvider);
 
     return AlertDialog(
-      title: const Text('Create Group'),
+      title: Text(AppLocalizations.of(context)!.createGroup),
       content: SizedBox(
         width: 400,
         child: Column(
@@ -343,25 +344,25 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Group Name *',
-                hintText: 'Enter group name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.groupNameRequired,
+                hintText: AppLocalizations.of(context)!.enterGroupName,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Optional description',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.description,
+                hintText: AppLocalizations.of(context)!.optionalDescription,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
             const SizedBox(height: 16),
             Text(
-              'Select Characters',
+              AppLocalizations.of(context)!.selectCharacters,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
@@ -370,8 +371,8 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
               child: charactersAsync.when(
                 data: (characters) {
                   if (characters.isEmpty) {
-                    return const Center(
-                      child: Text('No characters available. Import some first.'),
+                    return Center(
+                      child: Text(AppLocalizations.of(context)!.noCharactersAvailable),
                     );
                   }
                   return ListView.builder(
@@ -411,7 +412,7 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '${_selectedCharacterIds.length} character(s) selected',
+                  AppLocalizations.of(context)!.charactersSelected(_selectedCharacterIds.length),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.accentColor,
                       ),
@@ -423,7 +424,7 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _isCreating || _nameController.text.isEmpty || _selectedCharacterIds.length < 2
@@ -435,7 +436,7 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Create'),
+              : Text(AppLocalizations.of(context)!.create),
         ),
       ],
     );
@@ -445,7 +446,7 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
     if (_nameController.text.isEmpty) return;
     if (_selectedCharacterIds.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least 2 characters')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectAtLeast2Characters)),
       );
       return;
     }
@@ -462,13 +463,13 @@ class _CreateGroupDialogState extends ConsumerState<_CreateGroupDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Group created successfully')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.groupCreatedSuccessfully)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create group: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToCreateGroup(e.toString()))),
         );
       }
     } finally {

@@ -1512,5 +1512,4275 @@
   "commandHelp": "Type / to see available commands",
   "@commandHelp": {
     "description": "Command help hint"
+  },
+  
+  "characterNotFound": "Character Not Found",
+  "@characterNotFound": {
+    "description": "Character not found title"
+  },
+  
+  "characterNotFoundMessage": "Character not found",
+  "@characterNotFoundMessage": {
+    "description": "Character not found message"
+  },
+  
+  "exportAsPng": "Export as PNG",
+  "@exportAsPng": {
+    "description": "Export as PNG menu item"
+  },
+  
+  "exportAsCharx": "Export as CharX",
+  "@exportAsCharx": {
+    "description": "Export as CharX menu item"
+  },
+  
+  "duplicate": "Duplicate",
+  "@duplicate": {
+    "description": "Duplicate menu item"
+  },
+  
+  "deleteCharacterConfirmationSimple": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteCharacterConfirmationSimple": {
+    "description": "Delete character confirmation simple",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "characterDuplicated": "{name} duplicated",
+  "@characterDuplicated": {
+    "description": "Character duplicated message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "failedToDelete": "Failed to delete: {error}",
+  "@failedToDelete": {
+    "description": "Failed to delete error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "failedToDuplicate": "Failed to duplicate: {error}",
+  "@failedToDuplicate": {
+    "description": "Failed to duplicate error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Storage full"
+      }
+    }
+  },
+  
+  "pngExportComingSoon": "PNG export coming soon",
+  "@pngExportComingSoon": {
+    "description": "PNG export coming soon message"
+  },
+  
+  "charxExportComingSoon": "CharX export coming soon",
+  "@charxExportComingSoon": {
+    "description": "CharX export coming soon message"
+  },
+  
+  "failedToCreateChat": "Failed to create chat",
+  "@failedToCreateChat": {
+    "description": "Failed to create chat message"
+  },
+  
+  "creating": "Creating...",
+  "@creating": {
+    "description": "Creating indicator"
+  },
+  
+  "byCreator": "by {creator}",
+  "@byCreator": {
+    "description": "By creator label",
+    "placeholders": {
+      "creator": {
+        "type": "String",
+        "example": "John"
+      }
+    }
+  },
+  
+  "versionLabel": "v{version}",
+  "@versionLabel": {
+    "description": "Version label with number",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  
+  "showLess": "Show less",
+  "@showLess": {
+    "description": "Show less button"
+  },
+  
+  "showMore": "Show more",
+  "@showMore": {
+    "description": "Show more button"
+  },
+  
+  "greetingNumber": "Greeting {number}",
+  "@greetingNumber": {
+    "description": "Greeting number label",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  
+  "alternateGreetingsCount": "Alternate Greetings ({count})",
+  "@alternateGreetingsCount": {
+    "description": "Alternate greetings with count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "embeddedLorebook": "Embedded Lorebook",
+  "@embeddedLorebook": {
+    "description": "Embedded lorebook label"
+  },
+  
+  "entriesEnabled": "{enabled} of {total} entries enabled",
+  "@entriesEnabled": {
+    "description": "Entries enabled count",
+    "placeholders": {
+      "enabled": {
+        "type": "int",
+        "example": "5"
+      },
+      "total": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  
+  "andMoreEntries": "... and {count} more entries",
+  "@andMoreEntries": {
+    "description": "And more entries label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "exampleMessages": "Example Messages",
+  "@exampleMessages": {
+    "description": "Example messages label"
+  },
+  
+  "postHistoryInstructions": "Post-History Instructions",
+  "@postHistoryInstructions": {
+    "description": "Post-history instructions label"
+  },
+  
+  "selectImages": "Select Images",
+  "@selectImages": {
+    "description": "Select images dialog title"
+  },
+  
+  "presetsAndTemplates": "Presets & Templates",
+  "@presetsAndTemplates": {
+    "description": "Presets and templates section header"
+  },
+  
+  "activePreset": "Active Preset",
+  "@activePreset": {
+    "description": "Active preset label"
+  },
+  
+  "change": "Change",
+  "@change": {
+    "description": "Change button"
+  },
+  
+  "noPresetSelected": "No preset selected",
+  "@noPresetSelected": {
+    "description": "No preset selected message"
+  },
+  
+  "instructTemplate": "Instruct Template",
+  "@instructTemplate": {
+    "description": "Instruct template label"
+  },
+  
+  "selectInstructTemplate": "Select Instruct Template",
+  "@selectInstructTemplate": {
+    "description": "Select instruct template dialog title"
+  },
+  
+  "instructTemplateDescription": "Instruct templates format prompts for different LLM models. Use \"None\" for API providers like OpenAI or Claude that handle formatting automatically.",
+  "@instructTemplateDescription": {
+    "description": "Instruct template description"
+  },
+  
+  "orderAndTogglePromptSections": "Order and toggle prompt sections",
+  "@orderAndTogglePromptSections": {
+    "description": "Prompt manager subtitle"
+  },
+  
+  "llmConnection": "LLM Connection",
+  "@llmConnection": {
+    "description": "LLM connection section header"
+  },
+  
+  "generationSettings": "Generation Settings",
+  "@generationSettings": {
+    "description": "Generation settings section header"
+  },
+  
+  "advancedSamplerSettings": "Advanced Sampler Settings",
+  "@advancedSamplerSettings": {
+    "description": "Advanced sampler settings label"
+  },
+  
+  "fullControlOverSampling": "Full control over sampling parameters",
+  "@fullControlOverSampling": {
+    "description": "Advanced sampler settings subtitle"
+  },
+  
+  "selectLlmProvider": "Select LLM Provider",
+  "@selectLlmProvider": {
+    "description": "Select LLM provider dialog title"
+  },
+  
+  "notSet": "Not set",
+  "@notSet": {
+    "description": "Not set placeholder"
+  },
+  
+  "enterApiKey": "Enter your API key",
+  "@enterApiKey": {
+    "description": "Enter API key hint"
+  },
+  
+  "apiEndpointUrl": "API endpoint URL",
+  "@apiEndpointUrl": {
+    "description": "API endpoint URL label"
+  },
+  
+  "modelName": "Model name",
+  "@modelName": {
+    "description": "Model name label"
+  },
+  
+  "fetchAvailableModels": "Fetch Available Models",
+  "@fetchAvailableModels": {
+    "description": "Fetch available models button"
+  },
+  
+  "fetchModelsDescription": "Fetch models from the API or enter a model name manually",
+  "@fetchModelsDescription": {
+    "description": "Fetch models description"
+  },
+  
+  "enterModelName": "Enter Model Name",
+  "@enterModelName": {
+    "description": "Enter model name dialog title"
+  },
+  
+  "fetchingModels": "Fetching models...",
+  "@fetchingModels": {
+    "description": "Fetching models indicator"
+  },
+  
+  "failedToFetchModels": "Failed to fetch models",
+  "@failedToFetchModels": {
+    "description": "Failed to fetch models message"
+  },
+  
+  "tapToTestConnection": "Tap to test API connection",
+  "@tapToTestConnection": {
+    "description": "Tap to test connection hint"
+  },
+  
+  "testing": "Testing...",
+  "@testing": {
+    "description": "Testing indicator"
+  },
+  
+  "connected": "Connected",
+  "@connected": {
+    "description": "Connected status"
+  },
+  
+  "connectionFailedSimple": "Connection failed",
+  "@connectionFailedSimple": {
+    "description": "Connection failed status"
+  },
+  
+  "maximumTokensToGenerate": "Maximum tokens to generate",
+  "@maximumTokensToGenerate": {
+    "description": "Maximum tokens to generate hint"
+  },
+  
+  "streaming": "Streaming",
+  "@streaming": {
+    "description": "Streaming label"
+  },
+  
+  "showResponseAsItGenerates": "Show response as it generates",
+  "@showResponseAsItGenerates": {
+    "description": "Streaming description"
+  },
+  
+  "selectModelCount": "Select Model ({count})",
+  "@selectModelCount": {
+    "description": "Select model with count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  
+  "refreshModels": "Refresh models",
+  "@refreshModels": {
+    "description": "Refresh models tooltip"
+  },
+  
+  "enterManually": "Enter manually",
+  "@enterManually": {
+    "description": "Enter manually tooltip"
+  },
+  
+  "noModelsFound": "No models found",
+  "@noModelsFound": {
+    "description": "No models found message"
+  },
+  
+  "tryDifferentSearchTerm": "Try a different search term",
+  "@tryDifferentSearchTerm": {
+    "description": "Try different search term hint"
+  },
+  
+  "modelsOfTotal": "{filtered} of {total} models",
+  "@modelsOfTotal": {
+    "description": "Filtered models count",
+    "placeholders": {
+      "filtered": {
+        "type": "int",
+        "example": "5"
+      },
+      "total": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  
+  "importPreset": "Import Preset",
+  "@importPreset": {
+    "description": "Import preset tooltip"
+  },
+  
+  "noGroupChatsYet": "No group chats yet",
+  "@noGroupChatsYet": {
+    "description": "No group chats empty state"
+  },
+  
+  "createGroupDescription": "Create a group to chat with multiple characters",
+  "@createGroupDescription": {
+    "description": "Create group description"
+  },
+  
+  "newGroup": "New Group",
+  "@newGroup": {
+    "description": "New group button"
+  },
+  
+  "membersAndMode": "{count} members • {mode} mode",
+  "@membersAndMode": {
+    "description": "Members and mode label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "mode": {
+        "type": "String",
+        "example": "round-robin"
+      }
+    }
+  },
+  
+  "groupChatWillBeImplemented": "Group chat will be implemented with chat integration",
+  "@groupChatWillBeImplemented": {
+    "description": "Group chat coming soon message"
+  },
+  
+  "deleteGroupConfirmation": "Are you sure you want to delete \"{name}\"? This will also delete all associated chats.",
+  "@deleteGroupConfirmation": {
+    "description": "Delete group confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Group"
+      }
+    }
+  },
+  
+  "groupDeleted": "{name} deleted",
+  "@groupDeleted": {
+    "description": "Group deleted message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Group"
+      }
+    }
+  },
+  
+  "groupNameRequired": "Group Name *",
+  "@groupNameRequired": {
+    "description": "Group name required label"
+  },
+  
+  "enterGroupName": "Enter group name",
+  "@enterGroupName": {
+    "description": "Enter group name hint"
+  },
+  
+  "optionalDescription": "Optional description",
+  "@optionalDescription": {
+    "description": "Optional description hint"
+  },
+  
+  "selectCharacters": "Select Characters",
+  "@selectCharacters": {
+    "description": "Select characters label"
+  },
+  
+  "noCharactersAvailable": "No characters available. Import some first.",
+  "@noCharactersAvailable": {
+    "description": "No characters available message"
+  },
+  
+  "charactersSelected": "{count} character(s) selected",
+  "@charactersSelected": {
+    "description": "Characters selected count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "create": "Create",
+  "@create": {
+    "description": "Create button"
+  },
+  
+  "selectAtLeast2Characters": "Select at least 2 characters",
+  "@selectAtLeast2Characters": {
+    "description": "Select at least 2 characters validation"
+  },
+  
+  "groupCreatedSuccessfully": "Group created successfully",
+  "@groupCreatedSuccessfully": {
+    "description": "Group created success message"
+  },
+  
+  "failedToCreateGroup": "Failed to create group: {error}",
+  "@failedToCreateGroup": {
+    "description": "Failed to create group error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Network error"
+      }
+    }
+  },
+  
+  "importCharacter": "Import Character",
+  "@importCharacter": {
+    "description": "Import character screen title"
+  },
+  
+  "selectCharacterCard": "Select a character card",
+  "@selectCharacterCard": {
+    "description": "Select character card message"
+  },
+  
+  "supportsPngCharxJson": "Supports PNG, CharX, and JSON formats",
+  "@supportsPngCharxJson": {
+    "description": "Supported formats description"
+  },
+  
+  "browseFiles": "Browse Files",
+  "@browseFiles": {
+    "description": "Browse files button"
+  },
+  
+  "failedToPickFile": "Failed to pick file: {error}",
+  "@failedToPickFile": {
+    "description": "Failed to pick file error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
+  },
+  
+  "failedToLoadCharacter": "Failed to load character: {error}",
+  "@failedToLoadCharacter": {
+    "description": "Failed to load character error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  
+  "unsupportedFileFormat": "Unsupported file format: {format}",
+  "@unsupportedFileFormat": {
+    "description": "Unsupported file format error",
+    "placeholders": {
+      "format": {
+        "type": "String",
+        "example": "txt"
+      }
+    }
+  },
+  
+  "pngCharacterCard": "PNG Character Card",
+  "@pngCharacterCard": {
+    "description": "PNG character card format"
+  },
+  
+  "characterDataEmbeddedInImage": "Character data embedded in image metadata",
+  "@characterDataEmbeddedInImage": {
+    "description": "PNG format description"
+  },
+  
+  "charxArchive": "CharX Archive",
+  "@charxArchive": {
+    "description": "CharX archive format"
+  },
+  
+  "zipArchiveWithCharacterData": "ZIP archive with character data and assets",
+  "@zipArchiveWithCharacterData": {
+    "description": "CharX format description"
+  },
+  
+  "plainCharacterCardJson": "Plain character card JSON file",
+  "@plainCharacterCardJson": {
+    "description": "JSON format description"
+  },
+  
+  "importedWithLorebook": "Imported \"{name}\" with embedded lorebook!",
+  "@importedWithLorebook": {
+    "description": "Imported with lorebook message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "importedSuccessfully": "Imported \"{name}\" successfully!",
+  "@importedSuccessfully": {
+    "description": "Imported successfully message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "failedToImport": "Failed to import: {error}",
+  "@failedToImport": {
+    "description": "Failed to import error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid format"
+      }
+    }
+  },
+  
+  "embeddedLorebookEntries": "Embedded Lorebook ({count} entries)",
+  "@embeddedLorebookEntries": {
+    "description": "Embedded lorebook with entry count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "saveCurrentAsPreset": "Save Current as Preset",
+  "@saveCurrentAsPreset": {
+    "description": "Save current as preset menu item"
+  },
+  
+  "exportCurrentSettings": "Export Current Settings",
+  "@exportCurrentSettings": {
+    "description": "Export current settings menu item"
+  },
+  
+  "builtInPresets": "Built-in Presets",
+  "@builtInPresets": {
+    "description": "Built-in presets section header"
+  },
+  
+  "customPresets": "Custom Presets",
+  "@customPresets": {
+    "description": "Custom presets section header"
+  },
+  
+  "aiPresetsDescription": "AI Presets combine generation settings, prompt ordering, and instruct templates. Select a preset to apply all settings at once.",
+  "@aiPresetsDescription": {
+    "description": "AI presets info description"
+  },
+  
+  "appliedPreset": "Applied \"{name}\" preset",
+  "@appliedPreset": {
+    "description": "Applied preset message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Creative"
+      }
+    }
+  },
+  
+  "failedToApplyPreset": "Failed to apply preset: {error}",
+  "@failedToApplyPreset": {
+    "description": "Failed to apply preset error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid preset"
+      }
+    }
+  },
+  
+  "invalidPresetFormat": "Invalid preset format. Expected preset with generation settings.",
+  "@invalidPresetFormat": {
+    "description": "Invalid preset format error"
+  },
+  
+  "importedAndApplied": "Imported and applied \"{name}\"",
+  "@importedAndApplied": {
+    "description": "Imported and applied preset message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "saveAsPreset": "Save as Preset",
+  "@saveAsPreset": {
+    "description": "Save as preset dialog title"
+  },
+  
+  "descriptionOptional": "Description (optional)",
+  "@descriptionOptional": {
+    "description": "Description optional label"
+  },
+  
+  "pleaseEnterAName": "Please enter a name",
+  "@pleaseEnterAName": {
+    "description": "Please enter a name validation"
+  },
+  
+  "savedPreset": "Saved \"{name}\"",
+  "@savedPreset": {
+    "description": "Saved preset message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "description": "Save failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Storage full"
+      }
+    }
+  },
+  
+  "deletePresetConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deletePresetConfirmation": {
+    "description": "Delete preset confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "deletedPreset": "Deleted \"{name}\"",
+  "@deletedPreset": {
+    "description": "Deleted preset message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "export": "Export",
+  "@export": {
+    "description": "Export button"
+  },
+  
+  "resetToDefaults": "Reset to Defaults",
+  "@resetToDefaults": {
+    "description": "Reset to defaults button"
+  },
+  
+  "basicSampling": "Basic Sampling",
+  "@basicSampling": {
+    "description": "Basic sampling section header"
+  },
+  
+  "temperatureDescription": "Controls randomness. Higher = more creative, lower = more focused.",
+  "@temperatureDescription": {
+    "description": "Temperature description"
+  },
+  
+  "topPNucleusSampling": "Top P (Nucleus Sampling)",
+  "@topPNucleusSampling": {
+    "description": "Top P label with description"
+  },
+  
+  "topPDescription": "Cumulative probability threshold for token selection.",
+  "@topPDescription": {
+    "description": "Top P description"
+  },
+  
+  "topKDescription": "Number of top tokens to consider. 0 = disabled.",
+  "@topKDescription": {
+    "description": "Top K description"
+  },
+  
+  "advancedSampling": "Advanced Sampling",
+  "@advancedSampling": {
+    "description": "Advanced sampling section header"
+  },
+  
+  "minP": "Min P",
+  "@minP": {
+    "description": "Min P label"
+  },
+  
+  "minPDescription": "Minimum probability threshold relative to top token.",
+  "@minPDescription": {
+    "description": "Min P description"
+  },
+  
+  "typicalP": "Typical P",
+  "@typicalP": {
+    "description": "Typical P label"
+  },
+  
+  "typicalPDescription": "Locally typical sampling. 1.0 = disabled.",
+  "@typicalPDescription": {
+    "description": "Typical P description"
+  },
+  
+  "topA": "Top A",
+  "@topA": {
+    "description": "Top A label"
+  },
+  
+  "topADescription": "Top-A sampling threshold. 0 = disabled.",
+  "@topADescription": {
+    "description": "Top A description"
+  },
+  
+  "tailFreeSamplingTfs": "Tail Free Sampling (TFS)",
+  "@tailFreeSamplingTfs": {
+    "description": "Tail Free Sampling label"
+  },
+  
+  "tfsDescription": "Removes low-probability tail. 1.0 = disabled.",
+  "@tfsDescription": {
+    "description": "TFS description"
+  },
+  
+  "repetitionControl": "Repetition Control",
+  "@repetitionControl": {
+    "description": "Repetition control section header"
+  },
+  
+  "repetitionPenaltyDescription": "Penalizes repeated tokens. 1.0 = no penalty.",
+  "@repetitionPenaltyDescription": {
+    "description": "Repetition penalty description"
+  },
+  
+  "repetitionPenaltyRange": "Repetition Penalty Range",
+  "@repetitionPenaltyRange": {
+    "description": "Repetition penalty range label"
+  },
+  
+  "repetitionPenaltyRangeDescription": "How many tokens to consider. 0 = all.",
+  "@repetitionPenaltyRangeDescription": {
+    "description": "Repetition penalty range description"
+  },
+  
+  "frequencyPenaltyDescription": "Penalizes tokens based on frequency in text.",
+  "@frequencyPenaltyDescription": {
+    "description": "Frequency penalty description"
+  },
+  
+  "presencePenaltyDescription": "Penalizes tokens that appear at all in text.",
+  "@presencePenaltyDescription": {
+    "description": "Presence penalty description"
+  },
+  
+  "mirostatLocalModels": "Mirostat (Local Models)",
+  "@mirostatLocalModels": {
+    "description": "Mirostat section header"
+  },
+  
+  "mirostatMode": "Mirostat Mode",
+  "@mirostatMode": {
+    "description": "Mirostat mode label"
+  },
+  
+  "adaptiveSamplingForLocalModels": "Adaptive sampling for local models",
+  "@adaptiveSamplingForLocalModels": {
+    "description": "Mirostat mode description"
+  },
+  
+  "off": "Off",
+  "@off": {
+    "description": "Off label"
+  },
+  
+  "mirostatTau": "Mirostat Tau",
+  "@mirostatTau": {
+    "description": "Mirostat Tau label"
+  },
+  
+  "mirostatTauDescription": "Target entropy/perplexity.",
+  "@mirostatTauDescription": {
+    "description": "Mirostat Tau description"
+  },
+  
+  "mirostatEta": "Mirostat Eta",
+  "@mirostatEta": {
+    "description": "Mirostat Eta label"
+  },
+  
+  "mirostatEtaDescription": "Learning rate for Mirostat.",
+  "@mirostatEtaDescription": {
+    "description": "Mirostat Eta description"
+  },
+  
+  "generationControl": "Generation Control",
+  "@generationControl": {
+    "description": "Generation control section header"
+  },
+  
+  "maxTokensDescription": "Maximum tokens to generate.",
+  "@maxTokensDescription": {
+    "description": "Max tokens description"
+  },
+  
+  "seed": "Seed",
+  "@seed": {
+    "description": "Seed label"
+  },
+  
+  "seedDescription": "Random seed for reproducibility. -1 = random.",
+  "@seedDescription": {
+    "description": "Seed description"
+  },
+  
+  "stopSequences": "Stop Sequences",
+  "@stopSequences": {
+    "description": "Stop sequences label"
+  },
+  
+  "noStopSequencesConfigured": "No stop sequences configured",
+  "@noStopSequencesConfigured": {
+    "description": "No stop sequences configured message"
+  },
+  
+  "stopSequencesDescription": "Enter one sequence per line. Generation stops when any of these are produced.",
+  "@stopSequencesDescription": {
+    "description": "Stop sequences description"
+  },
+  
+  "resetConfirmation": "This will reset all sampler settings to their default values. Continue?",
+  "@resetConfirmation": {
+    "description": "Reset confirmation message"
+  },
+  
+  "reset": "Reset",
+  "@reset": {
+    "description": "Reset button"
+  },
+  
+  "settingsResetToDefaults": "Settings reset to defaults",
+  "@settingsResetToDefaults": {
+    "description": "Settings reset to defaults message"
+  },
+  
+  "characterBackground": "Character Background",
+  "@characterBackground": {
+    "description": "Character background screen title"
+  },
+  
+  "chatBackground": "Chat Background",
+  "@chatBackground": {
+    "description": "Chat background screen title"
+  },
+  
+  "clearBackground": "Clear background",
+  "@clearBackground": {
+    "description": "Clear background tooltip"
+  },
+  
+  "gradientPresets": "Gradient Presets",
+  "@gradientPresets": {
+    "description": "Gradient presets section header"
+  },
+  
+  "solidColors": "Solid Colors",
+  "@solidColors": {
+    "description": "Solid colors section header"
+  },
+  
+  "customImage": "Custom Image",
+  "@customImage": {
+    "description": "Custom image section header"
+  },
+  
+  "adjustments": "Adjustments",
+  "@adjustments": {
+    "description": "Adjustments section header"
+  },
+  
+  "noBackgroundSelected": "No background selected",
+  "@noBackgroundSelected": {
+    "description": "No background selected message"
+  },
+  
+  "chooseImage": "Choose Image",
+  "@chooseImage": {
+    "description": "Choose image button"
+  },
+  
+  "fromUrl": "From URL",
+  "@fromUrl": {
+    "description": "From URL button"
+  },
+  
+  "localImage": "Local image: {filename}",
+  "@localImage": {
+    "description": "Local image label",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "background.jpg"
+      }
+    }
+  },
+  
+  "urlLabel": "URL: {url}",
+  "@urlLabel": {
+    "description": "URL label",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://example.com/image.jpg"
+      }
+    }
+  },
+  
+  "noImage": "No image",
+  "@noImage": {
+    "description": "No image message"
+  },
+  
+  "opacity": "Opacity",
+  "@opacity": {
+    "description": "Opacity label"
+  },
+  
+  "blurEffect": "Blur Effect",
+  "@blurEffect": {
+    "description": "Blur effect label"
+  },
+  
+  "applyBlurToBackground": "Apply blur to the background",
+  "@applyBlurToBackground": {
+    "description": "Blur effect description"
+  },
+  
+  "blurAmount": "Blur Amount",
+  "@blurAmount": {
+    "description": "Blur amount label"
+  },
+  
+  "failedToLoadImage": "Failed to load image: {error}",
+  "@failedToLoadImage": {
+    "description": "Failed to load image error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "File not found"
+      }
+    }
+  },
+  
+  "imageUrl": "Image URL",
+  "@imageUrl": {
+    "description": "Image URL dialog title"
+  },
+  
+  "enterImageUrl": "Enter image URL",
+  "@enterImageUrl": {
+    "description": "Enter image URL hint"
+  },
+  
+  "apply": "Apply",
+  "@apply": {
+    "description": "Apply button"
+  },
+  
+  "backupAndRestore": "Backup & Restore",
+  "@backupAndRestore": {
+    "description": "Backup and restore screen title"
+  },
+  
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Refresh button"
+  },
+  
+  "storage": "Storage",
+  "@storage": {
+    "description": "Storage section header"
+  },
+  
+  "totalBackupSize": "Total Backup Size",
+  "@totalBackupSize": {
+    "description": "Total backup size label"
+  },
+  
+  "calculating": "Calculating...",
+  "@calculating": {
+    "description": "Calculating indicator"
+  },
+  
+  "lastAutoBackup": "Last Auto-Backup",
+  "@lastAutoBackup": {
+    "description": "Last auto-backup label"
+  },
+  
+  "autoBackup": "Auto-Backup",
+  "@autoBackup": {
+    "description": "Auto-backup section header"
+  },
+  
+  "enableAutoBackup": "Enable Auto-Backup",
+  "@enableAutoBackup": {
+    "description": "Enable auto-backup toggle"
+  },
+  
+  "automaticallyBackupChats": "Automatically backup chats",
+  "@automaticallyBackupChats": {
+    "description": "Auto-backup description"
+  },
+  
+  "backupInterval": "Backup Interval",
+  "@backupInterval": {
+    "description": "Backup interval label"
+  },
+  
+  "backupOnExit": "Backup on Exit",
+  "@backupOnExit": {
+    "description": "Backup on exit toggle"
+  },
+  
+  "createBackupWhenClosingApp": "Create backup when closing app",
+  "@createBackupWhenClosingApp": {
+    "description": "Backup on exit description"
+  },
+  
+  "retention": "Retention",
+  "@retention": {
+    "description": "Retention section header"
+  },
+  
+  "maxChatBackups": "Max Chat Backups",
+  "@maxChatBackups": {
+    "description": "Max chat backups label"
+  },
+  
+  "keepUpToChatBackups": "Keep up to {count} chat backups",
+  "@keepUpToChatBackups": {
+    "description": "Keep up to chat backups description",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  
+  "maxFullBackups": "Max Full Backups",
+  "@maxFullBackups": {
+    "description": "Max full backups label"
+  },
+  
+  "keepUpToFullBackups": "Keep up to {count} full backups",
+  "@keepUpToFullBackups": {
+    "description": "Keep up to full backups description",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "cleanupOldBackups": "Cleanup Old Backups",
+  "@cleanupOldBackups": {
+    "description": "Cleanup old backups button"
+  },
+  
+  "deleteBackupsExceedingLimits": "Delete backups exceeding limits",
+  "@deleteBackupsExceedingLimits": {
+    "description": "Cleanup description"
+  },
+  
+  "cleanup": "Cleanup",
+  "@cleanup": {
+    "description": "Cleanup button"
+  },
+  
+  "deletedOldBackups": "Deleted {count} old backups",
+  "@deletedOldBackups": {
+    "description": "Deleted old backups message",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "chatBackups": "Chat Backups",
+  "@chatBackups": {
+    "description": "Chat backups section header"
+  },
+  
+  "noChatBackups": "No chat backups",
+  "@noChatBackups": {
+    "description": "No chat backups message"
+  },
+  
+  "viewAllBackups": "View all {count} backups",
+  "@viewAllBackups": {
+    "description": "View all backups button",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "20"
+      }
+    }
+  },
+  
+  "fullBackups": "Full Backups",
+  "@fullBackups": {
+    "description": "Full backups section header"
+  },
+  
+  "noFullBackups": "No full backups",
+  "@noFullBackups": {
+    "description": "No full backups message"
+  },
+  
+  "information": "Information",
+  "@information": {
+    "description": "Information section header"
+  },
+  
+  "aboutBackups": "About Backups",
+  "@aboutBackups": {
+    "description": "About backups label"
+  },
+  
+  "aboutBackupsDescription": "Chat backups save individual conversations. Full backups include all characters, chats, settings, and world info.",
+  "@aboutBackupsDescription": {
+    "description": "About backups description"
+  },
+  
+  "backupLocation": "Backup Location",
+  "@backupLocation": {
+    "description": "Backup location label"
+  },
+  
+  "errorReadingBackup": "Error reading backup: {error}",
+  "@errorReadingBackup": {
+    "description": "Error reading backup message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "File corrupted"
+      }
+    }
+  },
+  
+  "deleteBackup": "Delete Backup",
+  "@deleteBackup": {
+    "description": "Delete backup dialog title"
+  },
+  
+  "deleteBackupConfirmation": "Delete \"{name}\"?\n\nThis cannot be undone.",
+  "@deleteBackupConfirmation": {
+    "description": "Delete backup confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "backup_2024"
+      }
+    }
+  },
+  
+  "view": "View",
+  "@view": {
+    "description": "View button"
+  },
+  
+  "justNow": "Just now",
+  "@justNow": {
+    "description": "Just now time label"
+  },
+  
+  "minutesAgo": "{count} minutes ago",
+  "@minutesAgo": {
+    "description": "Minutes ago time label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "hoursAgo": "{count} hours ago",
+  "@hoursAgo": {
+    "description": "Hours ago time label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  
+  "enableCfgScale": "Enable CFG Scale",
+  "@enableCfgScale": {
+    "description": "Enable CFG scale toggle"
+  },
+  
+  "cfgScaleDescription": "Classifier-Free Guidance for text generation",
+  "@cfgScaleDescription": {
+    "description": "CFG scale description"
+  },
+  
+  "globalSettings": "Global Settings",
+  "@globalSettings": {
+    "description": "Global settings section header"
+  },
+  
+  "guidanceScale": "Guidance Scale",
+  "@guidanceScale": {
+    "description": "Guidance scale label"
+  },
+  
+  "negativePrompt": "Negative Prompt",
+  "@negativePrompt": {
+    "description": "Negative prompt label"
+  },
+  
+  "textToSteerAwayFrom": "Text to steer the model away from",
+  "@textToSteerAwayFrom": {
+    "description": "Negative prompt hint"
+  },
+  
+  "positivePromptOptional": "Positive Prompt (Optional)",
+  "@positivePromptOptional": {
+    "description": "Positive prompt optional label"
+  },
+  
+  "textToEnhanceInOutput": "Text to enhance in the output",
+  "@textToEnhanceInOutput": {
+    "description": "Positive prompt hint"
+  },
+  
+  "characterSettings": "Character Settings",
+  "@characterSettings": {
+    "description": "Character settings section header"
+  },
+  
+  "useCharacterSpecificSettings": "Use Character-Specific Settings",
+  "@useCharacterSpecificSettings": {
+    "description": "Use character-specific settings toggle"
+  },
+  
+  "overrideGlobalForCharacter": "Override global settings for this character",
+  "@overrideGlobalForCharacter": {
+    "description": "Override global for character description"
+  },
+  
+  "characterNegativePrompt": "Character Negative Prompt",
+  "@characterNegativePrompt": {
+    "description": "Character negative prompt label"
+  },
+  
+  "overrideGlobalNegativePrompt": "Override global negative prompt",
+  "@overrideGlobalNegativePrompt": {
+    "description": "Override global negative prompt hint"
+  },
+  
+  "chatSettings": "Chat Settings",
+  "@chatSettings": {
+    "description": "Chat settings section header"
+  },
+  
+  "chatSettingsDescription": "These settings override global and character settings for this chat only.",
+  "@chatSettingsDescription": {
+    "description": "Chat settings description"
+  },
+  
+  "chatNegativePrompt": "Chat Negative Prompt",
+  "@chatNegativePrompt": {
+    "description": "Chat negative prompt label"
+  },
+  
+  "overrideForThisChat": "Override for this chat",
+  "@overrideForThisChat": {
+    "description": "Override for this chat hint"
+  },
+  
+  "chatPositivePrompt": "Chat Positive Prompt",
+  "@chatPositivePrompt": {
+    "description": "Chat positive prompt label"
+  },
+  
+  "enhancementForThisChat": "Enhancement for this chat",
+  "@enhancementForThisChat": {
+    "description": "Enhancement for this chat hint"
+  },
+  
+  "promptCombineMode": "Prompt Combine Mode",
+  "@promptCombineMode": {
+    "description": "Prompt combine mode label"
+  },
+  
+  "replaceChatPromptOnly": "Replace (use chat prompt only)",
+  "@replaceChatPromptOnly": {
+    "description": "Replace combine mode"
+  },
+  
+  "prependChatPlusGlobal": "Prepend (chat + global)",
+  "@prependChatPlusGlobal": {
+    "description": "Prepend combine mode"
+  },
+  
+  "appendGlobalPlusChat": "Append (global + chat)",
+  "@appendGlobalPlusChat": {
+    "description": "Append combine mode"
+  },
+  
+  "aboutCfgScale": "About CFG Scale",
+  "@aboutCfgScale": {
+    "description": "About CFG scale label"
+  },
+  
+  "aboutCfgScaleDescription": "CFG (Classifier-Free Guidance) Scale controls how strongly the model follows the negative prompt to avoid certain content or styles.\n\n• Scale 1.0 = No effect (default)\n• Scale 1.5-3.0 = Subtle guidance\n• Scale 3.0-7.0 = Moderate guidance\n• Scale 7.0+ = Strong guidance (may affect coherence)",
+  "@aboutCfgScaleDescription": {
+    "description": "About CFG scale description"
+  },
+  
+  "cfgScaleHelp": "CFG Scale Help",
+  "@cfgScaleHelp": {
+    "description": "CFG scale help dialog title"
+  },
+  
+  "cfgScaleHelpContent": "Classifier-Free Guidance (CFG) Scale is a technique that allows you to guide the AI model's output by specifying what you want to avoid.\n\n**How it works:**\nThe model generates two outputs - one with your prompt and one with the negative prompt. The final output is adjusted to move away from the negative prompt direction.\n\n**Settings Priority:**\n1. Chat-specific settings (highest)\n2. Character-specific settings\n3. Global settings (lowest)\n\n**Tips:**\n• Start with low values (1.5-2.0) and increase gradually\n• Use specific negative prompts for better results\n• High values may cause repetition or incoherence\n• Not all AI backends support CFG Scale",
+  "@cfgScaleHelpContent": {
+    "description": "CFG scale help content"
+  },
+  
+  "help": "Help",
+  "@help": {
+    "description": "Help button"
+  },
+  
+  "processing": "Processing...",
+  "@processing": {
+    "description": "Processing indicator"
+  },
+  
+  "sampleMessage1": "Hello! How are you?",
+  "@sampleMessage1": {
+    "description": "Sample chat message for background preview"
+  },
+  
+  "sampleMessage2": "I'm doing great!",
+  "@sampleMessage2": {
+    "description": "Sample chat message for background preview"
+  },
+  
+  "general": "General",
+  "@general": {
+    "description": "General section header"
+  },
+  
+  "enableImageGeneration": "Enable Image Generation",
+  "@enableImageGeneration": {
+    "description": "Enable image generation toggle"
+  },
+  
+  "generateImagesUsingAi": "Generate images using AI",
+  "@generateImagesUsingAi": {
+    "description": "Image generation description"
+  },
+  
+  "imageGenerationProvider": "Image Generation Provider",
+  "@imageGenerationProvider": {
+    "description": "Image generation provider label"
+  },
+  
+  "apiEndpoint": "API Endpoint",
+  "@apiEndpoint": {
+    "description": "API endpoint label"
+  },
+  
+  "notConfigured": "Not configured",
+  "@notConfigured": {
+    "description": "Not configured message"
+  },
+  
+  "defaultParameters": "Default Parameters",
+  "@defaultParameters": {
+    "description": "Default parameters section header"
+  },
+  
+  "imageSize": "Image Size",
+  "@imageSize": {
+    "description": "Image size label"
+  },
+  
+  "steps": "Steps",
+  "@steps": {
+    "description": "Steps label for image generation"
+  },
+  
+  "sampler": "Sampler",
+  "@sampler": {
+    "description": "Sampler label"
+  },
+  
+  "defaultNegativePrompt": "Default Negative Prompt",
+  "@defaultNegativePrompt": {
+    "description": "Default negative prompt label"
+  },
+  
+  "enterTermsToAvoid": "Enter terms to avoid in generated images",
+  "@enterTermsToAvoid": {
+    "description": "Negative prompt hint for image generation"
+  },
+  
+  "test": "Test",
+  "@test": {
+    "description": "Test section header"
+  },
+  
+  "aboutImageGeneration": "About Image Generation",
+  "@aboutImageGeneration": {
+    "description": "About image generation label"
+  },
+  
+  "aboutImageGenerationDescription": "Generate images using AI models. Use the /imagine command in chat or generate character portraits from the character editor.",
+  "@aboutImageGenerationDescription": {
+    "description": "About image generation description"
+  },
+  
+  "imagineCommand": "/imagine Command",
+  "@imagineCommand": {
+    "description": "Imagine command label"
+  },
+  
+  "imagineCommandUsage": "Usage: /imagine <prompt> [--width N] [--height N] [--steps N] [--cfg N] [--seed N]",
+  "@imagineCommandUsage": {
+    "description": "Imagine command usage"
+  },
+  
+  "stableDiffusion": "Stable Diffusion",
+  "@stableDiffusion": {
+    "description": "Stable Diffusion label"
+  },
+  
+  "stableDiffusionDescription": "Connect to a local or remote Stable Diffusion WebUI instance. Requires the API to be enabled.",
+  "@stableDiffusionDescription": {
+    "description": "Stable Diffusion description"
+  },
+  
+  "dalle": "DALL-E",
+  "@dalle": {
+    "description": "DALL-E label"
+  },
+  
+  "dalleDescription": "OpenAI's DALL-E image generation. Requires an API key from OpenAI.",
+  "@dalleDescription": {
+    "description": "DALL-E description"
+  },
+  
+  "prompt": "Prompt",
+  "@prompt": {
+    "description": "Prompt label"
+  },
+  
+  "enterPromptToGenerate": "Enter a prompt to generate an image",
+  "@enterPromptToGenerate": {
+    "description": "Prompt hint for image generation"
+  },
+  
+  "generate": "Generate",
+  "@generate": {
+    "description": "Generate button"
+  },
+  
+  "generating": "Generating...",
+  "@generating": {
+    "description": "Generating indicator"
+  },
+  
+  "generationComplete": "Generation Complete",
+  "@generationComplete": {
+    "description": "Generation complete message"
+  },
+  
+  "imageWouldBeDisplayed": "Image would be displayed here",
+  "@imageWouldBeDisplayed": {
+    "description": "Image placeholder text"
+  },
+  
+  "enableLogitBias": "Enable Logit Bias",
+  "@enableLogitBias": {
+    "description": "Enable logit bias toggle"
+  },
+  
+  "adjustTokenProbabilities": "Adjust token probabilities in AI responses",
+  "@adjustTokenProbabilities": {
+    "description": "Logit bias description"
+  },
+  
+  "presets": "Presets",
+  "@presets": {
+    "description": "Presets section header"
+  },
+  
+  "activePresetLabel": "Active Preset",
+  "@activePresetLabel": {
+    "description": "Active preset label"
+  },
+  
+  "none": "None",
+  "@none": {
+    "description": "None option"
+  },
+  
+  "newPreset": "New Preset",
+  "@newPreset": {
+    "description": "New preset tooltip"
+  },
+  
+  "importPresetLabel": "Import Preset",
+  "@importPresetLabel": {
+    "description": "Import preset menu item"
+  },
+  
+  "biasEntries": "Bias Entries",
+  "@biasEntries": {
+    "description": "Bias entries section header"
+  },
+  
+  "noBiasEntries": "No bias entries",
+  "@noBiasEntries": {
+    "description": "No bias entries message"
+  },
+  
+  "addEntriesToAdjust": "Add entries to adjust token probabilities",
+  "@addEntriesToAdjust": {
+    "description": "Add entries description"
+  },
+  
+  "addEntry": "Add Entry",
+  "@addEntry": {
+    "description": "Add entry button"
+  },
+  
+  "textOrToken": "Text / Token",
+  "@textOrToken": {
+    "description": "Text or token label"
+  },
+  
+  "textTokenHint": "word, {verbatim}, or [1234]",
+  "@textTokenHint": {
+    "description": "Text or token hint"
+  },
+  
+  "bias": "Bias",
+  "@bias": {
+    "description": "Bias label"
+  },
+  
+  "logitBiasHelp": "Logit Bias Help",
+  "@logitBiasHelp": {
+    "description": "Logit bias help dialog title"
+  },
+  
+  "presetCopiedToClipboard": "Preset copied to clipboard",
+  "@presetCopiedToClipboard": {
+    "description": "Preset copied message"
+  },
+  
+  "exportPresetFailed": "Export failed: {error}",
+  "@exportPresetFailed": {
+    "description": "Export preset failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid data"
+      }
+    }
+  },
+  
+  "pastePresetJson": "Paste preset JSON here",
+  "@pastePresetJson": {
+    "description": "Paste preset JSON hint"
+  },
+  
+  "presetImportedSuccessfully": "Preset imported successfully",
+  "@presetImportedSuccessfully": {
+    "description": "Preset imported message"
+  },
+  
+  "importPresetFailed": "Import failed: {error}",
+  "@importPresetFailed": {
+    "description": "Import preset failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid JSON"
+      }
+    }
+  },
+  
+  "rename": "Rename",
+  "@rename": {
+    "description": "Rename button"
+  },
+  
+  "deletePresetQuestion": "Are you sure you want to delete this preset?",
+  "@deletePresetQuestion": {
+    "description": "Delete preset confirmation"
+  },
+  
+  "moreOptions": "More options",
+  "@moreOptions": {
+    "description": "More options tooltip"
+  },
+  
+  "loadPreset": "Load Preset",
+  "@loadPreset": {
+    "description": "Load preset label"
+  },
+  
+  "saveAsPresetLabel": "Save as Preset",
+  "@saveAsPresetLabel": {
+    "description": "Save as preset label"
+  },
+  
+  "exportPreset": "Export Preset",
+  "@exportPreset": {
+    "description": "Export preset label"
+  },
+  
+  "resetToDefault": "Reset to Default",
+  "@resetToDefault": {
+    "description": "Reset to default label"
+  },
+  
+  "dragToReorder": "Drag to reorder sections. Toggle switches to enable/disable.",
+  "@dragToReorder": {
+    "description": "Prompt manager help text"
+  },
+  
+  "deleted": "Deleted \"{name}\"",
+  "@deleted": {
+    "description": "Deleted message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "imported": "Imported \"{name}\"",
+  "@imported": {
+    "description": "Imported message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "invalidPresetFormatMessage": "Invalid preset format",
+  "@invalidPresetFormatMessage": {
+    "description": "Invalid preset format error"
+  },
+  
+  "exportPresetTitle": "Export Preset",
+  "@exportPresetTitle": {
+    "description": "Export preset dialog title"
+  },
+  
+  "presetNameLabel": "Preset Name",
+  "@presetNameLabel": {
+    "description": "Preset name label"
+  },
+  
+  "pleaseEnterNameMessage": "Please enter a name",
+  "@pleaseEnterNameMessage": {
+    "description": "Please enter name message"
+  },
+  
+  "saved": "Saved \"{name}\"",
+  "@saved": {
+    "description": "Saved message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Preset"
+      }
+    }
+  },
+  
+  "saveFailedMessage": "Save failed: {error}",
+  "@saveFailedMessage": {
+    "description": "Save failed error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Storage error"
+      }
+    }
+  },
+  
+  "resetToDefaultQuestion": "This will reset all prompt sections to their default order and enable all sections. Continue?",
+  "@resetToDefaultQuestion": {
+    "description": "Reset to default confirmation"
+  },
+  
+  "resetToDefaultConfig": "Reset to default configuration",
+  "@resetToDefaultConfig": {
+    "description": "Reset to default config message"
+  },
+  
+  "promptManagerHelp": "Prompt Manager Help",
+  "@promptManagerHelp": {
+    "description": "Prompt manager help title"
+  },
+  
+  "applied": "Applied \"{name}\" preset",
+  "@applied": {
+    "description": "Applied preset message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Creative"
+      }
+    }
+  },
+  
+  "showQuickReplies": "Show Quick Replies",
+  "@showQuickReplies": {
+    "description": "Show quick replies toggle"
+  },
+  
+  "displayQuickReplyButtons": "Display quick reply buttons in chat",
+  "@displayQuickReplyButtons": {
+    "description": "Show quick replies description"
+  },
+  
+  "positionAboveInput": "Position Above Input",
+  "@positionAboveInput": {
+    "description": "Position above input toggle"
+  },
+  
+  "quickRepliesAboveInput": "Quick replies appear above the input field",
+  "@quickRepliesAboveInput": {
+    "description": "Above input description"
+  },
+  
+  "quickRepliesBelowInput": "Quick replies appear below the input field",
+  "@quickRepliesBelowInput": {
+    "description": "Below input description"
+  },
+  
+  "add": "Add",
+  "@add": {
+    "description": "Add button"
+  },
+  
+  "noQuickReplies": "No quick replies",
+  "@noQuickReplies": {
+    "description": "No quick replies message"
+  },
+  
+  "addYourFirstQuickReply": "Add your first quick reply",
+  "@addYourFirstQuickReply": {
+    "description": "Add first quick reply button"
+  },
+  
+  "deleteQuickReplyQuestion": "Are you sure you want to delete \"{label}\"?",
+  "@deleteQuickReplyQuestion": {
+    "description": "Delete quick reply confirmation",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Continue"
+      }
+    }
+  },
+  
+  "resetToDefaultQuestion2": "This will replace all your quick replies with the default set. Continue?",
+  "@resetToDefaultQuestion2": {
+    "description": "Reset quick replies confirmation"
+  },
+  
+  "continueOrEmpty": "(Continue/Empty message)",
+  "@continueOrEmpty": {
+    "description": "Continue or empty message placeholder"
+  },
+  
+  "autoSendTooltip": "Auto-send",
+  "@autoSendTooltip": {
+    "description": "Auto-send tooltip"
+  },
+  
+  "addQuickReply": "Add Quick Reply",
+  "@addQuickReply": {
+    "description": "Add quick reply dialog title"
+  },
+  
+  "editQuickReplyLabel": "Edit Quick Reply",
+  "@editQuickReplyLabel": {
+    "description": "Edit quick reply dialog title"
+  },
+  
+  "buttonLabel": "Button Label",
+  "@buttonLabel": {
+    "description": "Button label field"
+  },
+  
+  "buttonLabelHint": "e.g., Yes, Continue, Think...",
+  "@buttonLabelHint": {
+    "description": "Button label hint"
+  },
+  
+  "messageLabel": "Message",
+  "@messageLabel": {
+    "description": "Message label"
+  },
+  
+  "leaveEmptyForContinue": "Leave empty for continue action",
+  "@leaveEmptyForContinue": {
+    "description": "Leave empty hint"
+  },
+  
+  "supportsMacros": "Supports macros like '{user}', '{char}'",
+  "@supportsMacros": {
+    "description": "Supports macros help"
+  },
+  
+  "autoSendLabel": "Auto-send",
+  "@autoSendLabel": {
+    "description": "Auto-send label"
+  },
+  
+  "messageSentImmediately": "Message will be sent immediately",
+  "@messageSentImmediately": {
+    "description": "Auto-send enabled description"
+  },
+  
+  "messageFillsInput": "Message will fill the input field",
+  "@messageFillsInput": {
+    "description": "Auto-send disabled description"
+  },
+  
+  "regexScripts": "Regex Scripts",
+  "@regexScripts": {
+    "description": "Regex scripts screen title"
+  },
+  
+  "addScript": "Add Script",
+  "@addScript": {
+    "description": "Add script tooltip"
+  },
+  
+  "addPresets": "Add Presets",
+  "@addPresets": {
+    "description": "Add presets menu item"
+  },
+  
+  "clearAll": "Clear All",
+  "@clearAll": {
+    "description": "Clear all menu item"
+  },
+  
+  "enableRegexScripts": "Enable Regex Scripts",
+  "@enableRegexScripts": {
+    "description": "Enable regex scripts toggle"
+  },
+  
+  "applyFindReplacePatterns": "Apply find/replace patterns to messages",
+  "@applyFindReplacePatterns": {
+    "description": "Regex scripts description"
+  },
+  
+  "applyTo": "Apply To",
+  "@applyTo": {
+    "description": "Apply to section header"
+  },
+  
+  "userInput": "User Input",
+  "@userInput": {
+    "description": "User input label"
+  },
+  
+  "applyBeforeSending": "Apply to messages before sending",
+  "@applyBeforeSending": {
+    "description": "User input description"
+  },
+  
+  "aiOutput": "AI Output",
+  "@aiOutput": {
+    "description": "AI output label"
+  },
+  
+  "applyToAiResponses": "Apply to AI responses",
+  "@applyToAiResponses": {
+    "description": "AI output description"
+  },
+  
+  "slashCommandsLabel": "Slash Commands",
+  "@slashCommandsLabel": {
+    "description": "Slash commands label"
+  },
+  
+  "applyDuringCommandProcessing": "Apply during command processing",
+  "@applyDuringCommandProcessing": {
+    "description": "Slash commands description"
+  },
+  
+  "worldInfoLabel": "World Info",
+  "@worldInfoLabel": {
+    "description": "World info label"
+  },
+  
+  "applyToWorldInfoEntries": "Apply to world info entries",
+  "@applyToWorldInfoEntries": {
+    "description": "World info description"
+  },
+  
+  "scriptsCount": "Scripts ({count})",
+  "@scriptsCount": {
+    "description": "Scripts count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "noRegexScripts": "No regex scripts",
+  "@noRegexScripts": {
+    "description": "No regex scripts message"
+  },
+  
+  "tapToAddOrUseMenu": "Tap + to add a script or use the menu to add presets",
+  "@tapToAddOrUseMenu": {
+    "description": "No regex scripts hint"
+  },
+  
+  "aboutRegexScripts": "About Regex Scripts",
+  "@aboutRegexScripts": {
+    "description": "About regex scripts label"
+  },
+  
+  "aboutRegexScriptsDescription": "Regex scripts allow you to find and replace text patterns in messages. Use capture groups (\\$1, \\$2) in replacements.",
+  "@aboutRegexScriptsDescription": {
+    "description": "About regex scripts description"
+  },
+  
+  "patternFormat": "Pattern Format",
+  "@patternFormat": {
+    "description": "Pattern format label"
+  },
+  
+  "patternFormatDescription": "Use /pattern/flags format (e.g., /hello/gi) or plain patterns. Flags: i=case-insensitive, m=multiline, s=dotall",
+  "@patternFormatDescription": {
+    "description": "Pattern format description"
+  },
+  
+  "presetScriptsAdded": "Preset scripts added",
+  "@presetScriptsAdded": {
+    "description": "Preset scripts added message"
+  },
+  
+  "deleteScriptQuestion": "Delete \"{name}\"?",
+  "@deleteScriptQuestion": {
+    "description": "Delete script confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Script"
+      }
+    }
+  },
+  
+  "clearAllScripts": "Clear All Scripts",
+  "@clearAllScripts": {
+    "description": "Clear all scripts dialog title"
+  },
+  
+  "clearAllScriptsQuestion": "This will delete all regex scripts. This cannot be undone.",
+  "@clearAllScriptsQuestion": {
+    "description": "Clear all scripts confirmation"
+  },
+  
+  "importScripts": "Import Scripts",
+  "@importScripts": {
+    "description": "Import scripts dialog title"
+  },
+  
+  "pasteJsonArray": "Paste JSON array of scripts",
+  "@pasteJsonArray": {
+    "description": "Paste JSON hint"
+  },
+  
+  "importedCount": "Imported {count} scripts",
+  "@importedCount": {
+    "description": "Imported count message",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "exportScripts": "Export Scripts",
+  "@exportScripts": {
+    "description": "Export scripts dialog title"
+  },
+  
+  "newScript": "New Script",
+  "@newScript": {
+    "description": "New script title"
+  },
+  
+  "editScript": "Edit Script",
+  "@editScript": {
+    "description": "Edit script title"
+  },
+  
+  "scriptName": "Script Name",
+  "@scriptName": {
+    "description": "Script name label"
+  },
+  
+  "descriptionOptionalLabel": "Description (optional)",
+  "@descriptionOptionalLabel": {
+    "description": "Description optional label"
+  },
+  
+  "findPattern": "Find Pattern",
+  "@findPattern": {
+    "description": "Find pattern label"
+  },
+  
+  "patternOrPlainPattern": "/pattern/flags or plain pattern",
+  "@patternOrPlainPattern": {
+    "description": "Find pattern hint"
+  },
+  
+  "replaceWith": "Replace With",
+  "@replaceWith": {
+    "description": "Replace with label"
+  },
+  
+  "useCaptureGroups": "Use \\$1, \\$2 for capture groups",
+  "@useCaptureGroups": {
+    "description": "Replace with hint"
+  },
+  
+  "applyToLabel": "Apply To",
+  "@applyToLabel": {
+    "description": "Apply to label"
+  },
+  
+  "options": "Options",
+  "@options": {
+    "description": "Options section header"
+  },
+  
+  "markdownOnly": "Markdown Only",
+  "@markdownOnly": {
+    "description": "Markdown only label"
+  },
+  
+  "onlyApplyDuringMarkdown": "Only apply during markdown rendering",
+  "@onlyApplyDuringMarkdown": {
+    "description": "Markdown only description"
+  },
+  
+  "promptOnly": "Prompt Only",
+  "@promptOnly": {
+    "description": "Prompt only label"
+  },
+  
+  "onlyApplyDuringPrompt": "Only apply during prompt generation",
+  "@onlyApplyDuringPrompt": {
+    "description": "Prompt only description"
+  },
+  
+  "runOnEdit": "Run on Edit",
+  "@runOnEdit": {
+    "description": "Run on edit label"
+  },
+  
+  "applyWhenEditingMessages": "Apply when editing messages",
+  "@applyWhenEditingMessages": {
+    "description": "Run on edit description"
+  },
+  
+  "macroSubstitution": "Macro Substitution",
+  "@macroSubstitution": {
+    "description": "Macro substitution label"
+  },
+  
+  "nameAndPatternRequired": "Name and pattern are required",
+  "@nameAndPatternRequired": {
+    "description": "Name and pattern required message"
+  },
+  
+  "patternLabel": "Pattern",
+  "@patternLabel": {
+    "description": "Pattern label for testing"
+  },
+  
+  "patternHint": "/pattern/flags",
+  "@patternHint": {
+    "description": "Pattern hint for testing"
+  },
+  
+  "testString": "Test String",
+  "@testString": {
+    "description": "Test string label"
+  },
+  
+  "replacementLabel": "Replacement",
+  "@replacementLabel": {
+    "description": "Replacement label for testing"
+  },
+  
+  "replacementHint": "$1, $2, '{match}'",
+  "@replacementHint": {
+    "description": "Replacement hint for testing"
+  },
+  
+  "testButton": "Test",
+  "@testButton": {
+    "description": "Test button"
+  },
+  
+  "matchesCount": "{count} match(es)",
+  "@matchesCount": {
+    "description": "Matches count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "errorLabel": "Error",
+  "@errorLabel": {
+    "description": "Error label"
+  },
+  
+  "resultLabel": "Result:",
+  "@resultLabel": {
+    "description": "Result label"
+  },
+  
+  "expressionSprites": "Expression Sprites",
+  "@expressionSprites": {
+    "description": "Expression sprites screen title"
+  },
+  
+  "enableSprites": "Enable Sprites",
+  "@enableSprites": {
+    "description": "Enable sprites toggle"
+  },
+  
+  "showCharacterExpressions": "Show character expression images in chat",
+  "@showCharacterExpressions": {
+    "description": "Enable sprites description"
+  },
+  
+  "display": "Display",
+  "@display": {
+    "description": "Display section header"
+  },
+  
+  "spriteSize": "Sprite Size",
+  "@spriteSize": {
+    "description": "Sprite size label"
+  },
+  
+  "position": "Position",
+  "@position": {
+    "description": "Position label"
+  },
+  
+  "whereToDisplaySprites": "Where to display sprites",
+  "@whereToDisplaySprites": {
+    "description": "Position description"
+  },
+  
+  "left": "Left",
+  "@left": {
+    "description": "Left position"
+  },
+  
+  "right": "Right",
+  "@right": {
+    "description": "Right position"
+  },
+  
+  "center": "Center",
+  "@center": {
+    "description": "Center position"
+  },
+  
+  "floatingLeft": "Floating Left",
+  "@floatingLeft": {
+    "description": "Floating left position"
+  },
+  
+  "floatingRight": "Floating Right",
+  "@floatingRight": {
+    "description": "Floating right position"
+  },
+  
+  "animation": "Animation",
+  "@animation": {
+    "description": "Animation section header"
+  },
+  
+  "animateTransitions": "Animate Transitions",
+  "@animateTransitions": {
+    "description": "Animate transitions toggle"
+  },
+  
+  "smoothFadeWhenSpriteChanges": "Smooth fade when sprite changes",
+  "@smoothFadeWhenSpriteChanges": {
+    "description": "Animate transitions description"
+  },
+  
+  "transitionDuration": "Transition Duration",
+  "@transitionDuration": {
+    "description": "Transition duration label"
+  },
+  
+  "showDuringStreaming": "Show During Streaming",
+  "@showDuringStreaming": {
+    "description": "Show during streaming toggle"
+  },
+  
+  "displaySpritesWhileGenerating": "Display sprites while AI is generating",
+  "@displaySpritesWhileGenerating": {
+    "description": "Show during streaming description"
+  },
+  
+  "emotionDetection": "Emotion Detection",
+  "@emotionDetection": {
+    "description": "Emotion detection section header"
+  },
+  
+  "howItWorks": "How it works",
+  "@howItWorks": {
+    "description": "How it works label"
+  },
+  
+  "spriteEmotionDetectionDescription": "Sprites are automatically selected based on emotion keywords detected in messages. Action text like *smiles* or *laughs* is prioritized.",
+  "@spriteEmotionDetectionDescription": {
+    "description": "Sprite emotion detection description"
+  },
+  
+  "supportedEmotions": "Supported Emotions",
+  "@supportedEmotions": {
+    "description": "Supported emotions label"
+  },
+  
+  "characterSprites": "{name} Sprites",
+  "@characterSprites": {
+    "description": "Character sprites title",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  
+  "importFromFolder": "Import from folder",
+  "@importFromFolder": {
+    "description": "Import from folder tooltip"
+  },
+  
+  "deleteAllSprites": "Delete All Sprites",
+  "@deleteAllSprites": {
+    "description": "Delete all sprites menu item"
+  },
+  
+  "addSprite": "Add Sprite",
+  "@addSprite": {
+    "description": "Add sprite button"
+  },
+  
+  "spritesCount": "{count} sprites",
+  "@spritesCount": {
+    "description": "Sprites count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "defaultEmotion": "Default: {emotion}",
+  "@defaultEmotion": {
+    "description": "Default emotion label",
+    "placeholders": {
+      "emotion": {
+        "type": "String",
+        "example": "neutral"
+      }
+    }
+  },
+  
+  "noSpritesYet": "No sprites yet",
+  "@noSpritesYet": {
+    "description": "No sprites message"
+  },
+  
+  "addExpressionImages": "Add expression images for this character",
+  "@addExpressionImages": {
+    "description": "Add expression images hint"
+  },
+  
+  "selectEmotion": "Select Emotion",
+  "@selectEmotion": {
+    "description": "Select emotion dialog title"
+  },
+  
+  "addedSpriteEmotion": "Added {emotion} sprite",
+  "@addedSpriteEmotion": {
+    "description": "Added sprite message",
+    "placeholders": {
+      "emotion": {
+        "type": "String",
+        "example": "happy"
+      }
+    }
+  },
+  
+  "setAsDefaultEmotion": "Set as Default",
+  "@setAsDefaultEmotion": {
+    "description": "Set as default emotion menu item"
+  },
+  
+  "changeEmotion": "Change Emotion",
+  "@changeEmotion": {
+    "description": "Change emotion menu item"
+  },
+  
+  "deleteSprite": "Delete Sprite",
+  "@deleteSprite": {
+    "description": "Delete sprite dialog title"
+  },
+  
+  "deleteSpriteConfirmation": "Delete the {emotion} sprite?",
+  "@deleteSpriteConfirmation": {
+    "description": "Delete sprite confirmation",
+    "placeholders": {
+      "emotion": {
+        "type": "String",
+        "example": "happy"
+      }
+    }
+  },
+  
+  "deleteAllSpritesConfirmation": "Are you sure you want to delete all sprites for this character? This cannot be undone.",
+  "@deleteAllSpritesConfirmation": {
+    "description": "Delete all sprites confirmation"
+  },
+  
+  "importSprites": "Import Sprites",
+  "@importSprites": {
+    "description": "Import sprites dialog title"
+  },
+  
+  "importSpritesDescription": "Import sprites from a folder. Files should be named with emotion keywords:",
+  "@importSpritesDescription": {
+    "description": "Import sprites description"
+  },
+  
+  "supportedFormatsSprites": "Supported formats: PNG, JPG, GIF, WebP",
+  "@supportedFormatsSprites": {
+    "description": "Supported formats for sprites"
+  },
+  
+  "selectFolder": "Select Folder",
+  "@selectFolder": {
+    "description": "Select folder button"
+  },
+  
+  "folderImportRequiresPackage": "Folder import requires file_picker package",
+  "@folderImportRequiresPackage": {
+    "description": "Folder import requirement message"
+  },
+  
+  "appStatistics": "App Statistics",
+  "@appStatistics": {
+    "description": "App statistics title"
+  },
+  
+  "chatStatistics": "Chat Statistics",
+  "@chatStatistics": {
+    "description": "Chat statistics title"
+  },
+  
+  "resetStatistics": "Reset statistics",
+  "@resetStatistics": {
+    "description": "Reset statistics tooltip"
+  },
+  
+  "resetStatisticsConfirmation": "Are you sure you want to reset all statistics? This cannot be undone.",
+  "@resetStatisticsConfirmation": {
+    "description": "Reset statistics confirmation"
+  },
+  
+  "statisticsReset": "Statistics reset",
+  "@statisticsReset": {
+    "description": "Statistics reset message"
+  },
+  
+  "overview": "Overview",
+  "@overview": {
+    "description": "Overview section header"
+  },
+  
+  "firstUsed": "First Used",
+  "@firstUsed": {
+    "description": "First used label"
+  },
+  
+  "unknown": "Unknown",
+  "@unknown": {
+    "description": "Unknown label"
+  },
+  
+  "totalGroups": "Total Groups",
+  "@totalGroups": {
+    "description": "Total groups statistic"
+  },
+  
+  "totalGenerations": "Total Generations",
+  "@totalGenerations": {
+    "description": "Total generations statistic"
+  },
+  
+  "tokenUsage": "Token Usage",
+  "@tokenUsage": {
+    "description": "Token usage section header"
+  },
+  
+  "totalTokensUsed": "Total Tokens Used",
+  "@totalTokensUsed": {
+    "description": "Total tokens used label"
+  },
+  
+  "avgTokensPerGeneration": "Avg Tokens/Generation",
+  "@avgTokensPerGeneration": {
+    "description": "Average tokens per generation label"
+  },
+  
+  "performance": "Performance",
+  "@performance": {
+    "description": "Performance section header"
+  },
+  
+  "totalGenerationTime": "Total Generation Time",
+  "@totalGenerationTime": {
+    "description": "Total generation time label"
+  },
+  
+  "avgGenerationTime": "Avg Generation Time",
+  "@avgGenerationTime": {
+    "description": "Average generation time label"
+  },
+  
+  "userMessages": "User Messages",
+  "@userMessages": {
+    "description": "User messages count"
+  },
+  
+  "assistantMessages": "Assistant Messages",
+  "@assistantMessages": {
+    "description": "Assistant messages count"
+  },
+  
+  "systemMessages": "System Messages",
+  "@systemMessages": {
+    "description": "System messages count"
+  },
+  
+  "timeline": "Timeline",
+  "@timeline": {
+    "description": "Timeline section header"
+  },
+  
+  "firstMessage_": "First Message",
+  "@firstMessage_": {
+    "description": "First message timestamp label"
+  },
+  
+  "lastMessage": "Last Message",
+  "@lastMessage": {
+    "description": "Last message timestamp label"
+  },
+  
+  "chatDuration": "Chat Duration",
+  "@chatDuration": {
+    "description": "Chat duration label"
+  },
+  
+  "promptTokens": "Prompt Tokens",
+  "@promptTokens": {
+    "description": "Prompt tokens count"
+  },
+  
+  "completionTokens": "Completion Tokens",
+  "@completionTokens": {
+    "description": "Completion tokens count"
+  },
+  
+  "avgTokensPerMessage": "Avg Tokens/Message",
+  "@avgTokensPerMessage": {
+    "description": "Average tokens per message label"
+  },
+  
+  "generationPerformance": "Generation Performance",
+  "@generationPerformance": {
+    "description": "Generation performance section header"
+  },
+  
+  "generationCount": "Total Generations",
+  "@generationCount": {
+    "description": "Generation count label"
+  },
+  
+  "speechToText": "Speech-to-Text",
+  "@speechToText": {
+    "description": "Speech-to-text screen title"
+  },
+  
+  "enableStt": "Enable STT",
+  "@enableStt": {
+    "description": "Enable STT toggle"
+  },
+  
+  "useVoiceInputForMessages": "Use voice input for messages",
+  "@useVoiceInputForMessages": {
+    "description": "Enable STT description"
+  },
+  
+  "autoSendStt": "Auto-send",
+  "@autoSendStt": {
+    "description": "Auto-send toggle for STT"
+  },
+  
+  "automaticallySendAfterSpeaking": "Automatically send message after speaking",
+  "@automaticallySendAfterSpeaking": {
+    "description": "Auto-send STT description"
+  },
+  
+  "continuousListening": "Continuous Listening",
+  "@continuousListening": {
+    "description": "Continuous listening toggle"
+  },
+  
+  "keepListeningAfterPhrase": "Keep listening after each phrase",
+  "@keepListeningAfterPhrase": {
+    "description": "Continuous listening description"
+  },
+  
+  "showPartialResults": "Show Partial Results",
+  "@showPartialResults": {
+    "description": "Show partial results toggle"
+  },
+  
+  "displayTextAsYouSpeak": "Display text as you speak",
+  "@displayTextAsYouSpeak": {
+    "description": "Show partial results description"
+  },
+  
+  "sttProvider": "STT Provider",
+  "@sttProvider": {
+    "description": "STT provider label"
+  },
+  
+  "recognitionLanguage": "Recognition Language",
+  "@recognitionLanguage": {
+    "description": "Recognition language label"
+  },
+  
+  "testVoiceInput": "Test Voice Input",
+  "@testVoiceInput": {
+    "description": "Test voice input label"
+  },
+  
+  "stopListening": "Stop Listening",
+  "@stopListening": {
+    "description": "Stop listening label"
+  },
+  
+  "tapToStop": "Tap to stop",
+  "@tapToStop": {
+    "description": "Tap to stop hint"
+  },
+  
+  "tapToTestSpeechRecognition": "Tap to test speech recognition",
+  "@tapToTestSpeechRecognition": {
+    "description": "Test speech recognition hint"
+  },
+  
+  "final_": "Final",
+  "@final_": {
+    "description": "Final status label"
+  },
+  
+  "listening": "Listening...",
+  "@listening": {
+    "description": "Listening status"
+  },
+  
+  "aboutStt": "About STT",
+  "@aboutStt": {
+    "description": "About STT label"
+  },
+  
+  "aboutSttDescription": "Speech-to-Text allows you to dictate messages using your voice. Tap the microphone button in the chat input to start speaking.",
+  "@aboutSttDescription": {
+    "description": "About STT description"
+  },
+  
+  "systemStt": "System STT",
+  "@systemStt": {
+    "description": "System STT label"
+  },
+  
+  "systemSttDescription": "Using your device's built-in speech recognition. Accuracy depends on your system settings.",
+  "@systemSttDescription": {
+    "description": "System STT description"
+  },
+  
+  "whisper": "Whisper",
+  "@whisper": {
+    "description": "Whisper label"
+  },
+  
+  "whisperDescription": "OpenAI's Whisper model for high-accuracy transcription. Requires an API key.",
+  "@whisperDescription": {
+    "description": "Whisper description"
+  },
+  
+  "voiceInput": "Voice input",
+  "@voiceInput": {
+    "description": "Voice input tooltip"
+  },
+  
+  "speechRecognitionNotAvailable": "Speech recognition may not be available on this device.",
+  "@speechRecognitionNotAvailable": {
+    "description": "Speech recognition not available warning"
+  },
+  
+  "themes": "Themes",
+  "@themes": {
+    "description": "Themes screen title"
+  },
+  
+  "createCustomTheme": "Create custom theme",
+  "@createCustomTheme": {
+    "description": "Create custom theme tooltip"
+  },
+  
+  "builtInThemes": "Built-in Themes",
+  "@builtInThemes": {
+    "description": "Built-in themes section"
+  },
+  
+  "preview": "Preview",
+  "@preview": {
+    "description": "Preview section header"
+  },
+  
+  "chatPreview": "Chat Preview",
+  "@chatPreview": {
+    "description": "Chat preview label"
+  },
+  
+  "helloHowCanIHelp": "Hello! How can I help you today?",
+  "@helloHowCanIHelp": {
+    "description": "Sample AI message"
+  },
+  
+  "tellMeAStory": "Tell me a story!",
+  "@tellMeAStory": {
+    "description": "Sample user message"
+  },
+  
+  "typeAMessage": "Type a message...",
+  "@typeAMessage": {
+    "description": "Message input placeholder"
+  },
+  
+  "createTheme": "Create Theme",
+  "@createTheme": {
+    "description": "Create theme dialog title"
+  },
+  
+  "editTheme": "Edit Theme",
+  "@editTheme": {
+    "description": "Edit theme dialog title"
+  },
+  
+  "deleteTheme": "Delete Theme",
+  "@deleteTheme": {
+    "description": "Delete theme dialog title"
+  },
+  
+  "deleteThemeConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteThemeConfirmation": {
+    "description": "Delete theme confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Theme"
+      }
+    }
+  },
+  
+  "themeName": "Theme Name",
+  "@themeName": {
+    "description": "Theme name label"
+  },
+  
+  "background": "Background",
+  "@background": {
+    "description": "Background color label"
+  },
+  
+  "surface": "Surface",
+  "@surface": {
+    "description": "Surface color label"
+  },
+  
+  "card": "Card",
+  "@card": {
+    "description": "Card color label"
+  },
+  
+  "selectThemeColor": "Select {label}",
+  "@selectThemeColor": {
+    "description": "Select color dialog title",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Primary Color"
+      }
+    }
+  },
+  
+  "hexColor": "Hex Color",
+  "@hexColor": {
+    "description": "Hex color label"
+  },
+  
+  "tokenizerSettings": "Tokenizer",
+  "@tokenizerSettings": {
+    "description": "Tokenizer screen title"
+  },
+  
+  "tokenizerHelp": "Help",
+  "@tokenizerHelp": {
+    "description": "Tokenizer help tooltip"
+  },
+  
+  "tokenizerLabel": "Tokenizer",
+  "@tokenizerLabel": {
+    "description": "Tokenizer selection label"
+  },
+  
+  "showTokenCount": "Show Token Count",
+  "@showTokenCount": {
+    "description": "Show token count toggle"
+  },
+  
+  "displayTokenCountInInput": "Display token count in chat input",
+  "@displayTokenCountInInput": {
+    "description": "Show token count description"
+  },
+  
+  "showTokenVisualization": "Show Token Visualization",
+  "@showTokenVisualization": {
+    "description": "Show token visualization toggle"
+  },
+  
+  "highlightIndividualTokens": "Highlight individual tokens",
+  "@highlightIndividualTokens": {
+    "description": "Show token visualization description"
+  },
+  
+  "cacheResults": "Cache Results",
+  "@cacheResults": {
+    "description": "Cache results toggle"
+  },
+  
+  "cacheTokenizationForPerformance": "Cache tokenization for performance",
+  "@cacheTokenizationForPerformance": {
+    "description": "Cache results description"
+  },
+  
+  "tokenVisualization": "Token Visualization",
+  "@tokenVisualization": {
+    "description": "Token visualization section header"
+  },
+  
+  "enterTextToTokenize": "Enter text to tokenize",
+  "@enterTextToTokenize": {
+    "description": "Text to tokenize label"
+  },
+  
+  "typePasteTextHere": "Type or paste text here...",
+  "@typePasteTextHere": {
+    "description": "Type or paste text hint"
+  },
+  
+  "quickEstimate": "Quick Estimate",
+  "@quickEstimate": {
+    "description": "Quick estimate label"
+  },
+  
+  "approximateTokens": "~{count} tokens",
+  "@approximateTokens": {
+    "description": "Approximate tokens count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  
+  "chars": "{count} chars",
+  "@chars": {
+    "description": "Characters count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  
+  "statisticsLabel": "Statistics",
+  "@statisticsLabel": {
+    "description": "Statistics section label"
+  },
+  
+  "totalTokens": "Total Tokens",
+  "@totalTokens": {
+    "description": "Total tokens label"
+  },
+  
+  "unique": "Unique",
+  "@unique": {
+    "description": "Unique tokens label"
+  },
+  
+  "charsPerToken": "Chars/Token",
+  "@charsPerToken": {
+    "description": "Characters per token label"
+  },
+  
+  "avgLength": "Avg Length",
+  "@avgLength": {
+    "description": "Average length label"
+  },
+  
+  "longest": "Longest",
+  "@longest": {
+    "description": "Longest token label"
+  },
+  
+  "shortest": "Shortest",
+  "@shortest": {
+    "description": "Shortest token label"
+  },
+  
+  "mostCommonTokens": "Most Common Tokens",
+  "@mostCommonTokens": {
+    "description": "Most common tokens label"
+  },
+  
+  "tokenBreakdown": "Token Breakdown",
+  "@tokenBreakdown": {
+    "description": "Token breakdown label"
+  },
+  
+  "tokensCount": "{count} tokens",
+  "@tokensCount": {
+    "description": "Tokens count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  
+  "tokenIdLength": "Token ID: {id}\nLength: {length} chars",
+  "@tokenIdLength": {
+    "description": "Token tooltip info",
+    "placeholders": {
+      "id": {
+        "type": "String",
+        "example": "1234"
+      },
+      "length": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "translationSettings": "Translation",
+  "@translationSettings": {
+    "description": "Translation settings screen title"
+  },
+  
+  "enableTranslation": "Enable Translation",
+  "@enableTranslation": {
+    "description": "Enable translation toggle"
+  },
+  
+  "translateMessagesAutomatically": "Translate messages automatically",
+  "@translateMessagesAutomatically": {
+    "description": "Enable translation description"
+  },
+  
+  "translationProvider": "Translation Provider",
+  "@translationProvider": {
+    "description": "Translation provider label"
+  },
+  
+  "sourceLanguage": "Source Language",
+  "@sourceLanguage": {
+    "description": "Source language label"
+  },
+  
+  "targetLanguage": "Target Language",
+  "@targetLanguage": {
+    "description": "Target language label"
+  },
+  
+  "autoDetect": "Auto-detect",
+  "@autoDetect": {
+    "description": "Auto-detect option"
+  },
+  
+  "translateUserMessages": "Translate User Messages",
+  "@translateUserMessages": {
+    "description": "Translate user messages toggle"
+  },
+  
+  "translateAiResponses": "Translate AI Responses",
+  "@translateAiResponses": {
+    "description": "Translate AI responses toggle"
+  },
+  
+  "textToSpeech": "Text-to-Speech",
+  "@textToSpeech": {
+    "description": "Text-to-speech screen title"
+  },
+  
+  "enableTts": "Enable TTS",
+  "@enableTts": {
+    "description": "Enable TTS toggle"
+  },
+  
+  "readAiResponsesAloud": "Read AI responses aloud",
+  "@readAiResponsesAloud": {
+    "description": "Enable TTS description"
+  },
+  
+  "ttsProvider": "TTS Provider",
+  "@ttsProvider": {
+    "description": "TTS provider label"
+  },
+  
+  "voiceSettings": "Voice Settings",
+  "@voiceSettings": {
+    "description": "Voice settings section header"
+  },
+  
+  "voice": "Voice",
+  "@voice": {
+    "description": "Voice label"
+  },
+  
+  "speed": "Speed",
+  "@speed": {
+    "description": "Speed label"
+  },
+  
+  "pitch": "Pitch",
+  "@pitch": {
+    "description": "Pitch label"
+  },
+  
+  "volume": "Volume",
+  "@volume": {
+    "description": "Volume label"
+  },
+  
+  "autoPlay": "Auto-play",
+  "@autoPlay": {
+    "description": "Auto-play toggle"
+  },
+  
+  "automaticallyPlayResponses": "Automatically play AI responses",
+  "@automaticallyPlayResponses": {
+    "description": "Auto-play description"
+  },
+  
+  "testVoice": "Test Voice",
+  "@testVoice": {
+    "description": "Test voice button"
+  },
+  
+  "chatVariables": "Chat Variables",
+  "@chatVariables": {
+    "description": "Chat variables screen title"
+  },
+  
+  "variableSystem": "Variable System",
+  "@variableSystem": {
+    "description": "Variable system section header"
+  },
+  
+  "globalVariables": "Global Variables",
+  "@globalVariables": {
+    "description": "Global variables label"
+  },
+  
+  "globalVariablesCount": "{count} global variables",
+  "@globalVariablesCount": {
+    "description": "Global variables count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "localVariables": "Local Variables",
+  "@localVariables": {
+    "description": "Local variables label"
+  },
+  
+  "localVariablesCount": "{count} local variables",
+  "@localVariablesCount": {
+    "description": "Local variables count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "addVariable": "Add Variable",
+  "@addVariable": {
+    "description": "Add variable button"
+  },
+  
+  "variableName": "Variable Name",
+  "@variableName": {
+    "description": "Variable name label"
+  },
+  
+  "variableValue": "Variable Value",
+  "@variableValue": {
+    "description": "Variable value label"
+  },
+  
+  "scope": "Scope",
+  "@scope": {
+    "description": "Scope label"
+  },
+  
+  "global": "Global",
+  "@global": {
+    "description": "Global scope"
+  },
+  
+  "vectorStorageRag": "Vector Storage (RAG)",
+  "@vectorStorageRag": {
+    "description": "Vector storage screen title"
+  },
+  
+  "enableRag": "Enable RAG",
+  "@enableRag": {
+    "description": "Enable RAG toggle"
+  },
+  
+  "useVectorStorageForContext": "Use vector storage for context retrieval",
+  "@useVectorStorageForContext": {
+    "description": "Enable RAG description"
+  },
+  
+  "collections": "Collections",
+  "@collections": {
+    "description": "Collections section header"
+  },
+  
+  "createCollection": "Create Collection",
+  "@createCollection": {
+    "description": "Create collection button"
+  },
+  
+  "collectionName": "Collection Name",
+  "@collectionName": {
+    "description": "Collection name label"
+  },
+  
+  "embeddingProvider": "Embedding Provider",
+  "@embeddingProvider": {
+    "description": "Embedding provider label"
+  },
+  
+  "embeddingModel": "Embedding Model",
+  "@embeddingModel": {
+    "description": "Embedding model label"
+  },
+  
+  "chunkSize": "Chunk Size",
+  "@chunkSize": {
+    "description": "Chunk size label"
+  },
+  
+  "chunkOverlap": "Chunk Overlap",
+  "@chunkOverlap": {
+    "description": "Chunk overlap label"
+  },
+  
+  "topKResults": "Top K Results",
+  "@topKResults": {
+    "description": "Top K results label"
+  },
+  
+  "similarityThreshold": "Similarity Threshold",
+  "@similarityThreshold": {
+    "description": "Similarity threshold label"
+  },
+  
+  "characterEditor": "Character Editor",
+  "@characterEditor": {
+    "description": "Character editor screen title"
+  },
+  
+  "basic": "Basic",
+  "@basic": {
+    "description": "Basic tab label"
+  },
+  
+  "prompts": "Prompts",
+  "@prompts": {
+    "description": "Prompts tab label"
+  },
+  
+  "meta": "Meta",
+  "@meta": {
+    "description": "Meta tab label"
+  },
+  
+  "nameRequired": "Name *",
+  "@nameRequired": {
+    "description": "Name required field"
+  },
+  
+  "characterName": "Character name",
+  "@characterName": {
+    "description": "Character name hint"
+  },
+  
+  "nameIsRequired": "Name is required",
+  "@nameIsRequired": {
+    "description": "Name is required validation"
+  },
+  
+  "characterDescription": "Character description, background, appearance...",
+  "@characterDescription": {
+    "description": "Description hint"
+  },
+  
+  "characterPersonalityTraits": "Character personality traits...",
+  "@characterPersonalityTraits": {
+    "description": "Personality hint"
+  },
+  
+  "currentCircumstancesContext": "The current circumstances and context...",
+  "@currentCircumstancesContext": {
+    "description": "Scenario hint"
+  },
+  
+  "customInstructionsSystemMessage": "Custom instructions sent as part of the system message.",
+  "@customInstructionsSystemMessage": {
+    "description": "System prompt description"
+  },
+  
+  "systemPromptHint": "You are {char}. You will...",
+  "@systemPromptHint": {
+    "description": "System prompt hint"
+  },
+  
+  "instructionsInsertedAfterHistory": "Instructions inserted after the chat history (also known as \"jailbreak\").",
+  "@instructionsInsertedAfterHistory": {
+    "description": "Post-history instructions description"
+  },
+  
+  "postHistoryInstructionsHint": "Continue the roleplay as {char}...",
+  "@postHistoryInstructionsHint": {
+    "description": "Post-history instructions hint"
+  },
+  
+  "firstMessageGreeting": "First Message (Greeting)",
+  "@firstMessageGreeting": {
+    "description": "First message section title"
+  },
+  
+  "firstMessageSentByCharacter": "The first message sent by the character when starting a new chat.",
+  "@firstMessageSentByCharacter": {
+    "description": "First message description"
+  },
+  
+  "firstMessageHint": "*walks into the room* Hello, {user}!",
+  "@firstMessageHint": {
+    "description": "First message hint"
+  },
+  
+  "alternateGreetingsCanSwipe": "Alternative first messages that can be swiped through.",
+  "@alternateGreetingsCanSwipe": {
+    "description": "Alternate greetings description"
+  },
+  
+  "greeting": "Greeting {index}",
+  "@greeting": {
+    "description": "Greeting index label",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  
+  "alternativeGreetingMessage": "Alternative greeting message...",
+  "@alternativeGreetingMessage": {
+    "description": "Alternative greeting hint"
+  },
+  
+  "removeGreeting": "Remove greeting",
+  "@removeGreeting": {
+    "description": "Remove greeting tooltip"
+  },
+  
+  "moveUp": "Move up",
+  "@moveUp": {
+    "description": "Move up tooltip"
+  },
+  
+  "moveDown": "Move down",
+  "@moveDown": {
+    "description": "Move down tooltip"
+  },
+  
+  "noAlternateGreetings": "No alternate greetings. Tap + to add one.",
+  "@noAlternateGreetings": {
+    "description": "No alternate greetings message"
+  },
+  
+  "exampleDialogueDemonstrate": "Example dialogue to demonstrate how the character speaks.\\nFormat: <START>\\n{user}: Hello\\n{char}: Hi there!",
+  "@exampleDialogueDemonstrate": {
+    "description": "Example messages description"
+  },
+  
+  "exampleMessagesHint": "<START>\\n{user}: How are you?\\n{char}: I'm doing well, thanks for asking!",
+  "@exampleMessagesHint": {
+    "description": "Example messages hint"
+  },
+  
+  "creatorNotesNotSentToAi": "Notes from the character creator (not sent to the AI).",
+  "@creatorNotesNotSentToAi": {
+    "description": "Creator notes description"
+  },
+  
+  "creatorNotesHint": "Recommended settings, backstory notes...",
+  "@creatorNotesHint": {
+    "description": "Creator notes hint"
+  },
+  
+  "tagsCommaSeparated": "Comma-separated list of tags",
+  "@tagsCommaSeparated": {
+    "description": "Tags helper text"
+  },
+  
+  "tagsHint": "fantasy, female, adventure",
+  "@tagsHint": {
+    "description": "Tags hint"
+  },
+  
+  "creator": "Creator",
+  "@creator": {
+    "description": "Creator label"
+  },
+  
+  "yourNameOrUsername": "Your name or username",
+  "@yourNameOrUsername": {
+    "description": "Creator hint"
+  },
+  
+  "versionNumber": "1.0.0",
+  "@versionNumber": {
+    "description": "Version number hint"
+  },
+  
+  "characterInfo": "Character Info",
+  "@characterInfo": {
+    "description": "Character info section title"
+  },
+  
+  "characterId": "ID: {id}",
+  "@characterId": {
+    "description": "Character ID label",
+    "placeholders": {
+      "id": {
+        "type": "String",
+        "example": "abc123"
+      }
+    }
+  },
+  
+  "created": "Created: {date}",
+  "@created": {
+    "description": "Created date label",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "2024-01-01"
+      }
+    }
+  },
+  
+  "modified": "Modified: {date}",
+  "@modified": {
+    "description": "Modified date label",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "2024-01-01"
+      }
+    }
+  },
+  
+  "characterSavedSuccessfully": "Character saved successfully",
+  "@characterSavedSuccessfully": {
+    "description": "Character saved message"
+  },
+  
+  "failedToSaveCharacter": "Failed to save character: {error}",
+  "@failedToSaveCharacter": {
+    "description": "Failed to save character error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Storage full"
+      }
+    }
+  },
+  
+  "addAlternateGreeting": "Add alternate greeting",
+  "@addAlternateGreeting": {
+    "description": "Add alternate greeting tooltip"
+  },
+  
+  "groupInfo": "Group Info",
+  "@groupInfo": {
+    "description": "Group info section title"
+  },
+  
+  "descriptionOptionalLabel": "Description (optional)",
+  "@descriptionOptionalLabel": {
+    "description": "Description optional field"
+  },
+  
+  "responseMode": "Response Mode",
+  "@responseMode": {
+    "description": "Response mode section title"
+  },
+  
+  "howCharactersTakeTurns": "How characters take turns responding",
+  "@howCharactersTakeTurns": {
+    "description": "Response mode description"
+  },
+  
+  "sequential": "Sequential",
+  "@sequential": {
+    "description": "Sequential response mode"
+  },
+  
+  "charactersRespondInOrder": "Characters respond in order",
+  "@charactersRespondInOrder": {
+    "description": "Sequential mode description"
+  },
+  
+  "random": "Random",
+  "@random": {
+    "description": "Random response mode"
+  },
+  
+  "randomCharacterResponds": "Random character responds each turn",
+  "@randomCharacterResponds": {
+    "description": "Random mode description"
+  },
+  
+  "allAtOnce": "All at Once",
+  "@allAtOnce": {
+    "description": "All at once response mode"
+  },
+  
+  "allNonMutedCharactersRespond": "All non-muted characters respond",
+  "@allNonMutedCharactersRespond": {
+    "description": "All at once mode description"
+  },
+  
+  "manual": "Manual",
+  "@manual": {
+    "description": "Manual response mode"
+  },
+  
+  "youSelectWhoResponds": "You select which character responds",
+  "@youSelectWhoResponds": {
+    "description": "Manual mode description"
+  },
+  
+  "natural": "Natural",
+  "@natural": {
+    "description": "Natural response mode"
+  },
+  
+  "aiDecidesBasedOnContext": "AI decides based on context and trigger words",
+  "@aiDecidesBasedOnContext": {
+    "description": "Natural mode description"
+  },
+  
+  "membersCount": "Members ({count})",
+  "@membersCount": {
+    "description": "Members count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  
+  "noMembersYet": "No members yet. Add characters to this group.",
+  "@noMembersYet": {
+    "description": "No members message"
+  },
+  
+  "talkativenessPercent": "Talkativeness: {percent}%",
+  "@talkativenessPercent": {
+    "description": "Talkativeness label",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  
+  "triggers": "Triggers: {words}",
+  "@triggers": {
+    "description": "Triggers label",
+    "placeholders": {
+      "words": {
+        "type": "String",
+        "example": "hello, hi"
+      }
+    }
+  },
+  
+  "mute": "Mute",
+  "@mute": {
+    "description": "Mute tooltip"
+  },
+  
+  "unmute": "Unmute",
+  "@unmute": {
+    "description": "Unmute tooltip"
+  },
+  
+  "memberSettings": "Member Settings",
+  "@memberSettings": {
+    "description": "Member settings dialog title"
+  },
+  
+  "talkativenessLabel": "Talkativeness: {percent}%",
+  "@talkativenessLabel": {
+    "description": "Talkativeness slider label",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  
+  "higherValuesMoreLikely": "Higher values make the character more likely to respond.",
+  "@higherValuesMoreLikely": {
+    "description": "Talkativeness help text"
+  },
+  
+  "triggerWords": "Trigger Words",
+  "@triggerWords": {
+    "description": "Trigger words label"
+  },
+  
+  "triggerWordsHint": "word1, word2, word3",
+  "@triggerWordsHint": {
+    "description": "Trigger words hint"
+  },
+  
+  "characterWillRespondWhenTriggered": "Character will respond when these words appear in messages.",
+  "@characterWillRespondWhenTriggered": {
+    "description": "Trigger words help text"
+  },
+  
+  "addMemberToGroup": "Add Member",
+  "@addMemberToGroup": {
+    "description": "Add member dialog title"
+  },
+  
+  "noMoreCharactersAvailable": "No more characters available to add",
+  "@noMoreCharactersAvailable": {
+    "description": "No more characters message"
+  },
+  
+  "groupSaved": "Group saved",
+  "@groupSaved": {
+    "description": "Group saved message"
+  },
+  
+  "deleteGroupAndChats": "Are you sure you want to delete \"{name}\"?",
+  "@deleteGroupAndChats": {
+    "description": "Delete group confirmation short",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Group"
+      }
+    }
+  },
+  
+  "startChatAction": "Start Chat",
+  "@startChatAction": {
+    "description": "Start chat tooltip"
+  },
+  
+  "noTagsYet": "No tags yet",
+  "@noTagsYet": {
+    "description": "No tags empty state"
+  },
+  
+  "createTagsToOrganize": "Create tags to organize your characters",
+  "@createTagsToOrganize": {
+    "description": "Create tags description"
+  },
+  
+  "characterCount": "{count} character{plural}",
+  "@characterCount": {
+    "description": "Character count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      },
+      "plural": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
+  
+  "deleteTagConfirmation": "Are you sure you want to delete the tag \"{name}\"?\\n\\nThis will remove the tag from all characters.",
+  "@deleteTagConfirmation": {
+    "description": "Delete tag confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Fantasy"
+      }
+    }
+  },
+  
+  "enterTagName": "Enter tag name",
+  "@enterTagName": {
+    "description": "Tag name hint"
+  },
+  
+  "iconEmoji": "Icon (emoji)",
+  "@iconEmoji": {
+    "description": "Icon emoji label"
+  },
+  
+  "enterEmojiOptional": "Enter an emoji (optional)",
+  "@enterEmojiOptional": {
+    "description": "Icon emoji hint"
+  },
+  
+  "pleaseEnterTagName": "Please enter a tag name",
+  "@pleaseEnterTagName": {
+    "description": "Please enter tag name validation"
+  },
+  
+  "worldInfoLorebooks": "World Info / Lorebooks",
+  "@worldInfoLorebooks": {
+    "description": "World info screen title"
+  },
+  
+  "createLorebook": "Create Lorebook",
+  "@createLorebook": {
+    "description": "Create lorebook tooltip"
+  },
+  
+  "noLorebooksYet": "No Lorebooks yet",
+  "@noLorebooksYet": {
+    "description": "No lorebooks empty state"
+  },
+  
+  "lorebooksInjectContext": "Lorebooks inject context into your chats when keywords are detected.",
+  "@lorebooksInjectContext": {
+    "description": "Lorebooks description"
+  },
+  
+  "entriesCount": "{count} entries",
+  "@entriesCount": {
+    "description": "Entries count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  
+  "deleteLorebookConfirmation": "Are you sure you want to delete \"{name}\" and all its entries?",
+  "@deleteLorebookConfirmation": {
+    "description": "Delete lorebook confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "My Lorebook"
+      }
+    }
+  },
+  
+  "enterLorebookName": "Enter lorebook name",
+  "@enterLorebookName": {
+    "description": "Lorebook name hint"
+  },
+  
+  "optionalDescriptionHint": "Optional description",
+  "@optionalDescriptionHint": {
+    "description": "Optional description hint"
+  },
+  
+  "globalScope": "Global",
+  "@globalScope": {
+    "description": "Global scope label"
+  },
+  
+  "applyToAllChats": "Apply to all chats",
+  "@applyToAllChats": {
+    "description": "Global toggle description"
+  },
+  
+  "pleaseEnterName2": "Please enter a name",
+  "@pleaseEnterName2": {
+    "description": "Please enter name validation alternate"
+  },
+  
+  "noEntriesYet": "No entries yet",
+  "@noEntriesYet": {
+    "description": "No entries empty state"
+  },
+  
+  "addEntriesWithKeywords": "Add entries with keywords to inject context into chats",
+  "@addEntriesWithKeywords": {
+    "description": "Add entries description"
+  },
+  
+  "deleteEntryConfirmation": "Are you sure you want to delete this entry?\\n\\nKeys: {keys}",
+  "@deleteEntryConfirmation": {
+    "description": "Delete entry confirmation",
+    "placeholders": {
+      "keys": {
+        "type": "String",
+        "example": "dragon, wyrm"
+      }
+    }
+  },
+  
+  "constant": "Constant",
+  "@constant": {
+    "description": "Constant badge"
+  },
+  
+  "selective": "Selective",
+  "@selective": {
+    "description": "Selective badge"
+  },
+  
+  "keywordsCommaSeparated": "Keywords (comma-separated)",
+  "@keywordsCommaSeparated": {
+    "description": "Keywords label"
+  },
+  
+  "keywordsHint": "dragon, wyrm, serpent",
+  "@keywordsHint": {
+    "description": "Keywords hint"
+  },
+  
+  "entryActivatesWhenKeywordFound": "Entry activates when any keyword is found in chat",
+  "@entryActivatesWhenKeywordFound": {
+    "description": "Keywords helper text"
+  },
+  
+  "secondaryKeysOptional": "Secondary Keys (optional)",
+  "@secondaryKeysOptional": {
+    "description": "Secondary keys label"
+  },
+  
+  "secondaryKeysHint": "fire, flame",
+  "@secondaryKeysHint": {
+    "description": "Secondary keys hint"
+  },
+  
+  "bothPrimaryAndSecondaryMustMatch": "If set, both primary AND secondary must match (selective mode)",
+  "@bothPrimaryAndSecondaryMustMatch": {
+    "description": "Secondary keys helper text"
+  },
+  
+  "commentOptional": "Comment (optional)",
+  "@commentOptional": {
+    "description": "Comment label"
+  },
+  
+  "noteForThisEntry": "Note for this entry",
+  "@noteForThisEntry": {
+    "description": "Comment hint"
+  },
+  
+  "contentLabel": "Content",
+  "@contentLabel": {
+    "description": "Content field label"
+  },
+  
+  "contextToInjectWhenMatches": "The context to inject when keywords match...",
+  "@contextToInjectWhenMatches": {
+    "description": "Content hint"
+  },
+  
+  "pleaseEnterAtLeastOneKeyword": "Please enter at least one keyword",
+  "@pleaseEnterAtLeastOneKeyword": {
+    "description": "Keywords validation"
+  },
+  
+  "pleaseEnterContent": "Please enter content",
+  "@pleaseEnterContent": {
+    "description": "Content validation"
+  },
+  
+  "anthropic": "Anthropic",
+  "@anthropic": {
+    "description": "Anthropic provider name"
+  },
+  
+  "cohere": "Cohere",
+  "@cohere": {
+    "description": "Cohere provider name"
+  },
+  
+  "customProvider": "Custom",
+  "@customProvider": {
+    "description": "Custom provider name"
+  },
+  
+  "apiEndpointHint": "https://api.example.com/v1",
+  "@apiEndpointHint": {
+    "description": "API endpoint hint"
+  },
+  
+  "apiKeyHint": "sk-...",
+  "@apiKeyHint": {
+    "description": "API key hint"
+  },
+  
+  "temperatureValue": "{value}",
+  "@temperatureValue": {
+    "description": "Temperature value display",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "maxTokensValue": "{value}",
+  "@maxTokensValue": {
+    "description": "Max tokens value display",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "topPValue": "{value}",
+  "@topPValue": {
+    "description": "Top P value display",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "frequencyPenaltyValue": "{value}",
+  "@frequencyPenaltyValue": {
+    "description": "Frequency penalty value display",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "presencePenaltyValue": "{value}",
+  "@presencePenaltyValue": {
+    "description": "Presence penalty value display",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "streamResponse": "Stream Response",
+  "@streamResponse": {
+    "description": "Stream response label"
+  },
+  
+  "streamTokensAsGenerated": "Stream tokens as they are generated",
+  "@streamTokensAsGenerated": {
+    "description": "Stream response description"
+  },
+  
+  "useSystemPrompt": "Use System Prompt",
+  "@useSystemPrompt": {
+    "description": "Use system prompt label"
+  },
+  
+  "includeSystemInstructions": "Include system instructions",
+  "@includeSystemInstructions": {
+    "description": "Use system prompt description"
+  },
+  
+  "configurationSavedSuccessfully": "Configuration saved successfully",
+  "@configurationSavedSuccessfully": {
+    "description": "Configuration saved message"
+  },
+  
+  "errorSavingConfiguration": "Error saving configuration",
+  "@errorSavingConfiguration": {
+    "description": "Error saving configuration message"
+  },
+  
+  "copyAll": "Copy All",
+  "@copyAll": {
+    "description": "Copy all action"
+  },
+  
+  "showFavoritesOnly": "Show favorites only",
+  "@showFavoritesOnly": {
+    "description": "Show favorites only tooltip"
+  },
+  
+  "sortBy": "Sort by",
+  "@sortBy": {
+    "description": "Sort by tooltip"
+  },
+  
+  "filterByTags": "Filter by tags",
+  "@filterByTags": {
+    "description": "Filter by tags tooltip"
+  },
+  
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Favorites filter label"
+  },
+  
+  "manage": "Manage",
+  "@manage": {
+    "description": "Manage button"
+  },
+  
+  "noTagsCreatedYet": "No tags created yet",
+  "@noTagsCreatedYet": {
+    "description": "No tags created message"
+  },
+  
+  "createTags": "Create Tags",
+  "@createTags": {
+    "description": "Create tags button"
+  },
+  
+  "charactersCount": "{count, plural, =1{1 character} other{{count} characters}}",
+  "@charactersCount": {
+    "description": "Characters count with plural",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "characterTagsLegacy": "Character Tags (Legacy)",
+  "@characterTagsLegacy": {
+    "description": "Legacy character tags section"
+  },
+  
+  "done": "Done",
+  "@done": {
+    "description": "Done button"
+  },
+  
+  "applyFiltersSelected": "Apply ({count} selected)",
+  "@applyFiltersSelected": {
+    "description": "Apply filters with count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "enterPresetName": "Enter preset name",
+  "@enterPresetName": {
+    "description": "Enter preset name hint"
+  },
+  
+  "deleteScript": "Delete Script",
+  "@deleteScript": {
+    "description": "Delete script title"
+  },
+  
+  "textTokenHint": "word, {verbatim}, or [1234]",
+  "@textTokenHint": {
+    "description": "Text token hint for logit bias"
+  },
+  
+  "aiConfig": "AI Config",
+  "@aiConfig": {
+    "description": "AI config navigation label"
+  },
+  
+  "authorsNoteDescription": "Add context or instructions that will be injected into the conversation at a specific depth.",
+  "@authorsNoteDescription": {
+    "description": "Author's note description"
+  },
+  
+  "enableAuthorsNote": "Enable Author's Note",
+  "@enableAuthorsNote": {
+    "description": "Enable author's note toggle"
+  },
+  
+  "injectNoteIntoContext": "Inject note into conversation context",
+  "@injectNoteIntoContext": {
+    "description": "Inject note description"
+  },
+  
+  "injectionDepth": "Injection Depth",
+  "@injectionDepth": {
+    "description": "Injection depth label"
+  },
+  
+  "messagesFromEndWhereInserted": "Messages from the end where note is inserted",
+  "@messagesFromEndWhereInserted": {
+    "description": "Injection depth description"
+  },
+  
+  "noteContent": "Note Content",
+  "@noteContent": {
+    "description": "Note content label"
+  },
+  
+  "authorsNoteHint": "Enter your author's note here...\\n\\nExamples:\\n• [Style: Write in a poetic, descriptive manner]\\n• [Focus on emotional depth and character development]\\n• [The character is feeling melancholic today]",
+  "@authorsNoteHint": {
+    "description": "Author's note hint text"
+  },
+  
+  "enterNameForCheckpoint": "Enter a name for this checkpoint",
+  "@enterNameForCheckpoint": {
+    "description": "Bookmark name hint"
+  },
+  
+  "addDescription": "Add a description",
+  "@addDescription": {
+    "description": "Add description hint"
+  },
+  
+  "createCheckpointAtMessage": "This will create a checkpoint at message {index}.",
+  "@createCheckpointAtMessage": {
+    "description": "Create checkpoint confirmation",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "longPressMessageToBookmark": "Long-press a message to create a bookmark",
+  "@longPressMessageToBookmark": {
+    "description": "Long press to bookmark hint"
+  },
+  
+  "branchFromBookmark": "Branch from Bookmark",
+  "@branchFromBookmark": {
+    "description": "Branch from bookmark title"
+  },
+  
+  "branchFromBookmarkWarning": "This will delete all messages after \"{name}\" and continue from that point. You can create a new bookmark before doing this to save the current state.",
+  "@branchFromBookmarkWarning": {
+    "description": "Branch from bookmark warning",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "branch": "Branch",
+  "@branch": {
+    "description": "Branch button"
+  },
+  
+  "branchedFrom": "Branched from \"{name}\"",
+  "@branchedFrom": {
+    "description": "Branched from message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "deleteBookmarkConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteBookmarkConfirmation": {
+    "description": "Delete bookmark confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "messageIndexAndDate": "Message {index} • {date}",
+  "@messageIndexAndDate": {
+    "description": "Message index and date label",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "branchFromHere": "Branch from here",
+  "@branchFromHere": {
+    "description": "Branch from here tooltip"
+  },
+  
+  "previewBookmark": "Preview: {name}",
+  "@previewBookmark": {
+    "description": "Preview bookmark title",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "messageNotFoundInChat": "Message not found in current chat",
+  "@messageNotFoundInChat": {
+    "description": "Message not found message"
+  },
+  
+  "you": "You",
+  "@you": {
+    "description": "You label for user messages"
+  },
+  
+  "assistant": "Assistant",
+  "@assistant": {
+    "description": "Assistant label"
+  },
+  
+  "reasoningCopiedToClipboard": "Reasoning copied to clipboard",
+  "@reasoningCopiedToClipboard": {
+    "description": "Reasoning copied message"
+  },
+  
+  "charsCount": "{count} chars",
+  "@charsCount": {
+    "description": "Characters count for reasoning",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "copyReasoning": "Copy reasoning",
+  "@copyReasoning": {
+    "description": "Copy reasoning tooltip"
+  },
+  
+  "commands": "Commands",
+  "@commands": {
+    "description": "Commands label"
+  },
+  
+  "aliasesLabel": "Aliases: {aliases}",
+  "@aliasesLabel": {
+    "description": "Aliases label with list",
+    "placeholders": {
+      "aliases": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "noSpritesAddedYet": "No sprites added yet",
+  "@noSpritesAddedYet": {
+    "description": "No sprites message"
+  },
+  
+  "errorLoadingSprites": "Error loading sprites",
+  "@errorLoadingSprites": {
+    "description": "Error loading sprites message"
   }
 }

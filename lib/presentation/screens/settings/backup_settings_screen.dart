@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/backup_service.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/backup_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
@@ -12,6 +13,7 @@ class BackupSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final settings = ref.watch(backupSettingsProvider);
     final operationState = ref.watch(backupOperationProvider);
     final chatBackupsAsync = ref.watch(chatBackupsProvider);
@@ -20,11 +22,11 @@ class BackupSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Backup & Restore'),
+        title: Text(l10n.backupAndRestore),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
             onPressed: () {
               ref.invalidate(chatBackupsProvider);
               ref.invalidate(fullBackupsProvider);
@@ -40,7 +42,7 @@ class BackupSettingsScreen extends ConsumerWidget {
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
-                  Text(operationState.currentOperation ?? 'Processing...'),
+                  Text(operationState.currentOperation ?? l10n.processing),
                 ],
               ),
             )
@@ -49,22 +51,23 @@ class BackupSettingsScreen extends ConsumerWidget {
               children: [
                 // Storage info
                 _buildSection(
-                  title: 'Storage',
+                  context: context,
+                  title: l10n.storage,
                   children: [
                     ListTile(
                       leading: const Icon(Icons.storage, color: AppTheme.accentColor),
-                      title: const Text('Total Backup Size'),
+                      title: Text(l10n.totalBackupSize),
                       subtitle: totalSizeAsync.when(
-                        loading: () => const Text('Calculating...'),
-                        error: (_, __) => const Text('Error'),
+                        loading: () => Text(l10n.calculating),
+                        error: (_, __) => Text(l10n.error),
                         data: (size) => Text(BackupService.instance.formatFileSize(size)),
                       ),
                     ),
                     if (settings.lastAutoBackup != null)
                       ListTile(
                         leading: const Icon(Icons.schedule, color: AppTheme.textMuted),
-                        title: const Text('Last Auto-Backup'),
-                        subtitle: Text(_formatDateTime(settings.lastAutoBackup!)),
+                        title: Text(l10n.lastAutoBackup),
+                        subtitle: Text(_formatDateTime(context, settings.lastAutoBackup!)),
                       ),
                   ],
                 ),
@@ -73,18 +76,19 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 // Auto-backup settings
                 _buildSection(
-                  title: 'Auto-Backup',
+                  context: context,
+                  title: l10n.autoBackup,
                   children: [
                     SwitchListTile(
-                      title: const Text('Enable Auto-Backup'),
-                      subtitle: const Text('Automatically backup chats'),
+                      title: Text(l10n.enableAutoBackup),
+                      subtitle: Text(l10n.automaticallyBackupChats),
                       value: settings.autoBackupEnabled,
                       onChanged: (value) {
                         ref.read(backupSettingsProvider.notifier).setAutoBackupEnabled(value);
                       },
                     ),
                     ListTile(
-                      title: const Text('Backup Interval'),
+                      title: Text(l10n.backupInterval),
                       subtitle: Text(settings.autoBackupInterval.displayName),
                       trailing: DropdownButton<AutoBackupInterval>(
                         value: settings.autoBackupInterval,
@@ -104,8 +108,8 @@ class BackupSettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     SwitchListTile(
-                      title: const Text('Backup on Exit'),
-                      subtitle: const Text('Create backup when closing app'),
+                      title: Text(l10n.backupOnExit),
+                      subtitle: Text(l10n.createBackupWhenClosingApp),
                       value: settings.backupOnExit,
                       onChanged: (value) {
                         ref.read(backupSettingsProvider.notifier).setBackupOnExit(value);
@@ -118,11 +122,12 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 // Retention settings
                 _buildSection(
-                  title: 'Retention',
+                  context: context,
+                  title: l10n.retention,
                   children: [
                     ListTile(
-                      title: const Text('Max Chat Backups'),
-                      subtitle: Text('Keep up to ${settings.maxChatBackups} chat backups'),
+                      title: Text(l10n.maxChatBackups),
+                      subtitle: Text(l10n.keepUpToChatBackups(settings.maxChatBackups)),
                       trailing: SizedBox(
                         width: 80,
                         child: TextField(
@@ -143,8 +148,8 @@ class BackupSettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     ListTile(
-                      title: const Text('Max Full Backups'),
-                      subtitle: Text('Keep up to ${settings.maxFullBackups} full backups'),
+                      title: Text(l10n.maxFullBackups),
+                      subtitle: Text(l10n.keepUpToFullBackups(settings.maxFullBackups)),
                       trailing: SizedBox(
                         width: 80,
                         child: TextField(
@@ -166,18 +171,18 @@ class BackupSettingsScreen extends ConsumerWidget {
                     ),
                     ListTile(
                       leading: const Icon(Icons.cleaning_services),
-                      title: const Text('Cleanup Old Backups'),
-                      subtitle: const Text('Delete backups exceeding limits'),
+                      title: Text(l10n.cleanupOldBackups),
+                      subtitle: Text(l10n.deleteBackupsExceedingLimits),
                       trailing: ElevatedButton(
                         onPressed: () async {
                           final deleted = await ref.read(backupOperationProvider.notifier).cleanupOldBackups();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Deleted $deleted old backups')),
+                              SnackBar(content: Text(l10n.deletedOldBackups(deleted))),
                             );
                           }
                         },
-                        child: const Text('Cleanup'),
+                        child: Text(l10n.cleanup),
                       ),
                     ),
                   ],
@@ -187,7 +192,8 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 // Chat backups
                 _buildSection(
-                  title: 'Chat Backups',
+                  context: context,
+                  title: l10n.chatBackups,
                   children: [
                     chatBackupsAsync.when(
                       loading: () => const Padding(
@@ -202,16 +208,16 @@ class BackupSettingsScreen extends ConsumerWidget {
                       ),
                       data: (backups) {
                         if (backups.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(32),
+                          return Padding(
+                            padding: const EdgeInsets.all(32),
                             child: Center(
                               child: Column(
                                 children: [
-                                  Icon(Icons.backup, size: 48, color: AppTheme.textMuted),
-                                  SizedBox(height: 16),
+                                  const Icon(Icons.backup, size: 48, color: AppTheme.textMuted),
+                                  const SizedBox(height: 16),
                                   Text(
-                                    'No chat backups',
-                                    style: TextStyle(color: AppTheme.textMuted),
+                                    l10n.noChatBackups,
+                                    style: const TextStyle(color: AppTheme.textMuted),
                                   ),
                                 ],
                               ),
@@ -231,7 +237,7 @@ class BackupSettingsScreen extends ConsumerWidget {
                         chatBackupsAsync.valueOrNull!.length > 10)
                       TextButton(
                         onPressed: () => _showAllBackups(context, ref, BackupType.chat),
-                        child: Text('View all ${chatBackupsAsync.valueOrNull!.length} backups'),
+                        child: Text(l10n.viewAllBackups(chatBackupsAsync.valueOrNull!.length)),
                       ),
                   ],
                 ),
@@ -240,7 +246,8 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 // Full backups
                 _buildSection(
-                  title: 'Full Backups',
+                  context: context,
+                  title: l10n.fullBackups,
                   children: [
                     fullBackupsAsync.when(
                       loading: () => const Padding(
@@ -255,16 +262,16 @@ class BackupSettingsScreen extends ConsumerWidget {
                       ),
                       data: (backups) {
                         if (backups.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(32),
+                          return Padding(
+                            padding: const EdgeInsets.all(32),
                             child: Center(
                               child: Column(
                                 children: [
-                                  Icon(Icons.backup, size: 48, color: AppTheme.textMuted),
-                                  SizedBox(height: 16),
+                                  const Icon(Icons.backup, size: 48, color: AppTheme.textMuted),
+                                  const SizedBox(height: 16),
                                   Text(
-                                    'No full backups',
-                                    style: TextStyle(color: AppTheme.textMuted),
+                                    l10n.noFullBackups,
+                                    style: const TextStyle(color: AppTheme.textMuted),
                                   ),
                                 ],
                               ),
@@ -287,20 +294,18 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 // Info section
                 _buildSection(
-                  title: 'Information',
+                  context: context,
+                  title: l10n.information,
                   children: [
-                    const ListTile(
-                      leading: Icon(Icons.info_outline, color: AppTheme.accentColor),
-                      title: Text('About Backups'),
-                      subtitle: Text(
-                        'Chat backups save individual conversations. '
-                        'Full backups include all characters, chats, settings, and world info.',
-                      ),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline, color: AppTheme.accentColor),
+                      title: Text(l10n.aboutBackups),
+                      subtitle: Text(l10n.aboutBackupsDescription),
                     ),
-                    const ListTile(
-                      leading: Icon(Icons.folder, color: AppTheme.textMuted),
-                      title: Text('Backup Location'),
-                      subtitle: Text('Documents/NativeTavern/backups/'),
+                    ListTile(
+                      leading: const Icon(Icons.folder, color: AppTheme.textMuted),
+                      title: Text(l10n.backupLocation),
+                      subtitle: const Text('Documents/NativeTavern/backups/'),
                     ),
                   ],
                 ),
@@ -341,6 +346,7 @@ class BackupSettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSection({
+    required BuildContext context,
     required String title,
     required List<Widget> children,
   }) {
@@ -366,14 +372,15 @@ class BackupSettingsScreen extends ConsumerWidget {
     );
   }
 
-  String _formatDateTime(DateTime dateTime) {
+  String _formatDateTime(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final diff = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes} minutes ago';
-    if (diff.inDays < 1) return '${diff.inHours} hours ago';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inMinutes < 1) return l10n.justNow;
+    if (diff.inHours < 1) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.hoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.daysAgo(diff.inDays);
 
     return '${dateTime.month}/${dateTime.day}/${dateTime.year}';
   }
@@ -396,7 +403,7 @@ class BackupSettingsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error reading backup: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).errorReadingBackup(e.toString()))),
         );
       }
     }
@@ -423,17 +430,17 @@ class BackupSettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context).close),
           ),
           ElevatedButton.icon(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: jsonContent));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Copied to clipboard')),
+                SnackBar(content: Text(AppLocalizations.of(context).copiedToClipboard)),
               );
             },
             icon: const Icon(Icons.copy),
-            label: const Text('Copy'),
+            label: Text(AppLocalizations.of(context).copy),
           ),
         ],
       ),
@@ -441,15 +448,16 @@ class BackupSettingsScreen extends ConsumerWidget {
   }
 
   void _confirmDeleteBackup(BuildContext context, WidgetRef ref, BackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Backup'),
-        content: Text('Delete "${backup.name}"?\n\nThis cannot be undone.'),
+        title: Text(l10n.deleteBackup),
+        content: Text(l10n.deleteBackupConfirmation(backup.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -461,7 +469,7 @@ class BackupSettingsScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -567,12 +575,12 @@ class _BackupTile extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.visibility, size: 20),
             onPressed: onView,
-            tooltip: 'View',
+            tooltip: AppLocalizations.of(context).view,
           ),
           IconButton(
             icon: const Icon(Icons.delete, size: 20, color: Colors.red),
             onPressed: onDelete,
-            tooltip: 'Delete',
+            tooltip: AppLocalizations.of(context).delete,
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../data/models/chat_background.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/background_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/chat/chat_background_widget.dart';
@@ -51,16 +52,17 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isCharacterSpecific = widget.characterId != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isCharacterSpecific ? 'Character Background' : 'Chat Background'),
+        title: Text(isCharacterSpecific ? l10n.characterBackground : l10n.chatBackground),
         actions: [
           if (_currentBackground.type != BackgroundType.none)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Clear background',
+              tooltip: l10n.clearBackground,
               onPressed: () => _saveBackground(ChatBackground.none),
             ),
         ],
@@ -73,26 +75,26 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
           const SizedBox(height: 24),
 
           // Preset gradients
-          _buildSectionHeader('Gradient Presets'),
+          _buildSectionHeader(l10n.gradientPresets),
           const SizedBox(height: 8),
           _buildGradientPresets(),
           const SizedBox(height: 24),
 
           // Solid colors
-          _buildSectionHeader('Solid Colors'),
+          _buildSectionHeader(l10n.solidColors),
           const SizedBox(height: 8),
           _buildColorPresets(),
           const SizedBox(height: 24),
 
           // Custom image
-          _buildSectionHeader('Custom Image'),
+          _buildSectionHeader(l10n.customImage),
           const SizedBox(height: 8),
           _buildImageSection(),
           const SizedBox(height: 24),
 
           // Adjustments
           if (_currentBackground.type != BackgroundType.none) ...[
-            _buildSectionHeader('Adjustments'),
+            _buildSectionHeader(l10n.adjustments),
             const SizedBox(height: 8),
             _buildAdjustments(),
           ],
@@ -124,15 +126,15 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
             else
               Container(
                 color: AppTheme.darkBackground,
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.wallpaper, size: 48, color: AppTheme.textMuted),
-                      SizedBox(height: 8),
+                      const Icon(Icons.wallpaper, size: 48, color: AppTheme.textMuted),
+                      const SizedBox(height: 8),
                       Text(
-                        'No background selected',
-                        style: TextStyle(color: AppTheme.textMuted),
+                        AppLocalizations.of(context).noBackgroundSelected,
+                        style: const TextStyle(color: AppTheme.textMuted),
                       ),
                     ],
                   ),
@@ -152,9 +154,9 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
                       color: AppTheme.darkCard.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'Hello! How are you?',
-                      style: TextStyle(color: AppTheme.textPrimary),
+                    child: Text(
+                      AppLocalizations.of(context).sampleMessage1,
+                      style: const TextStyle(color: AppTheme.textPrimary),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -166,9 +168,9 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
                         color: AppTheme.accentColor.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'I\'m doing great!',
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        AppLocalizations.of(context).sampleMessage2,
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
@@ -223,7 +225,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.image),
-                label: const Text('Choose Image'),
+                label: Text(AppLocalizations.of(context).chooseImage),
                 onPressed: _isLoading ? null : _pickImage,
               ),
             ),
@@ -231,7 +233,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.link),
-                label: const Text('From URL'),
+                label: Text(AppLocalizations.of(context).fromUrl),
                 onPressed: _isLoading ? null : _showUrlDialog,
               ),
             ),
@@ -241,10 +243,10 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
           const SizedBox(height: 12),
           Text(
             _currentBackground.imagePath != null
-                ? 'Local image: ${p.basename(_currentBackground.imagePath!)}'
+                ? AppLocalizations.of(context).localImage(p.basename(_currentBackground.imagePath!))
                 : _currentBackground.imageUrl != null
-                    ? 'URL: ${_currentBackground.imageUrl}'
-                    : 'No image',
+                    ? AppLocalizations.of(context).urlLabel(_currentBackground.imageUrl!)
+                    : AppLocalizations.of(context).noImage,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppTheme.textMuted,
             ),
@@ -267,7 +269,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
               children: [
                 const Icon(Icons.opacity, size: 20),
                 const SizedBox(width: 12),
-                const Text('Opacity'),
+                Text(AppLocalizations.of(context).opacity),
                 const Spacer(),
                 Text('${(_currentBackground.opacity * 100).round()}%'),
               ],
@@ -285,8 +287,8 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
             
             // Blur toggle
             SwitchListTile(
-              title: const Text('Blur Effect'),
-              subtitle: const Text('Apply blur to the background'),
+              title: Text(AppLocalizations.of(context).blurEffect),
+              subtitle: Text(AppLocalizations.of(context).applyBlurToBackground),
               value: _currentBackground.blur,
               onChanged: (value) {
                 _saveBackground(_currentBackground.copyWith(blur: value));
@@ -300,7 +302,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
                 children: [
                   const Icon(Icons.blur_on, size: 20),
                   const SizedBox(width: 12),
-                  const Text('Blur Amount'),
+                  Text(AppLocalizations.of(context).blurAmount),
                   const Spacer(),
                   Text('${_currentBackground.blurAmount.round()}'),
                 ],
@@ -353,7 +355,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load image: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).failedToLoadImage(e.toString()))),
         );
       }
     } finally {
@@ -364,25 +366,26 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
   }
 
   void _showUrlDialog() {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Image URL'),
+        title: Text(l10n.imageUrl),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Enter image URL',
+          decoration: InputDecoration(
+            labelText: l10n.enterImageUrl,
             hintText: 'https://example.com/image.jpg',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -397,7 +400,7 @@ class _BackgroundSettingsScreenState extends ConsumerState<BackgroundSettingsScr
                 Navigator.pop(context);
               }
             },
-            child: const Text('Apply'),
+            child: Text(l10n.apply),
           ),
         ],
       ),

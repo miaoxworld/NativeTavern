@@ -8,6 +8,7 @@ import 'package:native_tavern/presentation/providers/prompt_manager_providers.da
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing prompt section order and visibility
 class PromptManagerScreen extends ConsumerWidget {
@@ -21,11 +22,11 @@ class PromptManagerScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Prompt Manager'),
+        title: Text(AppLocalizations.of(context)!.promptManager),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            tooltip: 'More options',
+            tooltip: AppLocalizations.of(context)!.moreOptions,
             onSelected: (value) {
               switch (value) {
                 case 'presets':
@@ -49,53 +50,53 @@ class PromptManagerScreen extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'presets',
                 child: ListTile(
-                  leading: Icon(Icons.list),
-                  title: Text('Load Preset'),
+                  leading: const Icon(Icons.list),
+                  title: Text(AppLocalizations.of(context)!.loadPreset),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'save',
                 child: ListTile(
-                  leading: Icon(Icons.save),
-                  title: Text('Save as Preset'),
+                  leading: const Icon(Icons.save),
+                  title: Text(AppLocalizations.of(context)!.saveAsPresetLabel),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: ListTile(
-                  leading: Icon(Icons.file_download),
-                  title: Text('Import Preset'),
+                  leading: const Icon(Icons.file_download),
+                  title: Text(AppLocalizations.of(context)!.importPresetLabel),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: ListTile(
-                  leading: Icon(Icons.file_upload),
-                  title: Text('Export Preset'),
+                  leading: const Icon(Icons.file_upload),
+                  title: Text(AppLocalizations.of(context)!.exportPreset),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'reset',
                 child: ListTile(
-                  leading: Icon(Icons.restore),
-                  title: Text('Reset to Default'),
+                  leading: const Icon(Icons.restore),
+                  title: Text(AppLocalizations.of(context)!.resetToDefault),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'help',
                 child: ListTile(
-                  leading: Icon(Icons.help_outline),
-                  title: Text('Help'),
+                  leading: const Icon(Icons.help_outline),
+                  title: Text(AppLocalizations.of(context)!.help),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -119,7 +120,7 @@ class PromptManagerScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Drag to reorder sections. Toggle switches to enable/disable.',
+                    AppLocalizations.of(context)!.dragToReorder,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -184,9 +185,9 @@ class PromptManagerScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.list, color: AppTheme.accentColor),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Load Preset',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    AppLocalizations.of(context)!.loadPreset,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   IconButton(
@@ -219,7 +220,7 @@ class PromptManagerScreen extends ConsumerWidget {
                             onPressed: () {
                               ref.read(customPresetsProvider.notifier).deletePreset(preset.id);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Deleted "${preset.name}"')),
+                                SnackBar(content: Text(AppLocalizations.of(context)!.deleted(preset.name))),
                               );
                             },
                           ),
@@ -228,7 +229,7 @@ class PromptManagerScreen extends ConsumerWidget {
                       ref.read(activePresetIdProvider.notifier).setActivePreset(preset.id);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Applied "${preset.name}" preset')),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.applied(preset.name))),
                       );
                     },
                   );
@@ -272,16 +273,16 @@ class PromptManagerScreen extends ConsumerWidget {
         
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Imported "${preset.name}"')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.imported(preset.name))),
           );
         }
       } else {
-        throw Exception('Invalid preset format');
+        throw Exception(AppLocalizations.of(context)!.invalidPresetFormatMessage);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.importPresetFailed(e.toString()))),
         );
       }
     }
@@ -293,11 +294,11 @@ class PromptManagerScreen extends ConsumerWidget {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export Preset'),
+        title: Text(AppLocalizations.of(context)!.exportPresetTitle),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Preset Name',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.presetNameLabel,
             border: OutlineInputBorder(),
           ),
           autofocus: true,
@@ -305,11 +306,11 @@ class PromptManagerScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Export'),
+            child: Text(AppLocalizations.of(context)!.export),
           ),
         ],
       ),
@@ -335,7 +336,7 @@ class PromptManagerScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.exportPresetFailed(e.toString()))),
         );
       }
     }
@@ -348,14 +349,14 @@ class PromptManagerScreen extends ConsumerWidget {
     final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Save as Preset'),
+        title: Text(AppLocalizations.of(context)!.saveAsPreset),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Preset Name',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.presetName,
                 border: OutlineInputBorder(),
               ),
               autofocus: true,
@@ -363,8 +364,8 @@ class PromptManagerScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             TextField(
               controller: descController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.descriptionOptional,
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
@@ -374,13 +375,13 @@ class PromptManagerScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () {
               if (nameController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a name')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterNameMessage)),
                 );
                 return;
               }
@@ -389,7 +390,7 @@ class PromptManagerScreen extends ConsumerWidget {
                 'description': descController.text.trim(),
               });
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -408,13 +409,13 @@ class PromptManagerScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved "${preset.name}"')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.saved(preset.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Save failed: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.saveFailedMessage(e.toString()))),
         );
       }
     }
@@ -424,14 +425,12 @@ class PromptManagerScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset to Default'),
-        content: const Text(
-          'This will reset all prompt sections to their default order and enable all sections. Continue?',
-        ),
+        title: Text(AppLocalizations.of(context)!.resetToDefault),
+        content: Text(AppLocalizations.of(context)!.resetToDefaultQuestion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -439,10 +438,10 @@ class PromptManagerScreen extends ConsumerWidget {
               ref.read(activePresetIdProvider.notifier).setActivePreset(null);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Reset to default configuration')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.resetToDefaultConfig)),
               );
             },
-            child: const Text('Reset'),
+            child: Text(AppLocalizations.of(context)!.reset),
           ),
         ],
       ),
@@ -453,11 +452,11 @@ class PromptManagerScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.help_outline, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text('Prompt Manager Help'),
+            const Icon(Icons.help_outline, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.of(context)!.promptManagerHelp),
           ],
         ),
         content: const SingleChildScrollView(
@@ -504,7 +503,7 @@ class PromptManagerScreen extends ConsumerWidget {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
+            child: Text(AppLocalizations.of(context)!.ok),
           ),
         ],
       ),
@@ -623,7 +622,7 @@ class PromptManagerScreen extends ConsumerWidget {
             ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -653,7 +652,7 @@ class PromptManagerScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -822,7 +821,7 @@ class _PromptSectionTile extends StatelessWidget {
                   color: section.enabled ? AppTheme.accentColor : AppTheme.textMuted,
                 ),
                 onPressed: section.enabled ? onEdit : null,
-                tooltip: 'Edit content',
+                tooltip: AppLocalizations.of(context)!.edit,
               ),
             Switch(
               value: section.enabled,

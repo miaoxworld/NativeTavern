@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/sprite.dart';
 import 'package:native_tavern/presentation/providers/sprite_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Widget for displaying character expression sprites
 class SpriteDisplay extends ConsumerWidget {
@@ -426,19 +427,19 @@ class SpriteGrid extends ConsumerWidget {
     return packAsync.when(
       data: (pack) {
         if (!pack.hasSprites) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.image_not_supported,
                   size: 48,
                   color: AppTheme.textMuted,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'No sprites added yet',
-                  style: TextStyle(color: AppTheme.textMuted),
+                  AppLocalizations.of(context)!.noSpritesAddedYet,
+                  style: const TextStyle(color: AppTheme.textMuted),
                 ),
               ],
             ),
@@ -471,7 +472,7 @@ class SpriteGrid extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
         child: Text(
-          'Error loading sprites: $error',
+          '${AppLocalizations.of(context)!.errorLoadingSprites}: $error',
           style: const TextStyle(color: Colors.red),
         ),
       ),

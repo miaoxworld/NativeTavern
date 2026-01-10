@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/services/slash_command_service.dart';
 import '../../theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Widget that shows slash command suggestions
 class SlashCommandSuggestions extends ConsumerWidget {
@@ -54,7 +55,7 @@ class SlashCommandSuggestions extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Commands',
+                  AppLocalizations.of(context)!.commands,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: AppTheme.textMuted,
                   ),
@@ -139,7 +140,7 @@ class _CommandSuggestionTile extends StatelessWidget {
                   ),
                   if (command.aliases.isNotEmpty)
                     Text(
-                      'Aliases: ${command.aliases.map((a) => '/$a').join(', ')}',
+                      AppLocalizations.of(context)!.aliasesLabel(command.aliases.map((a) => '/$a').join(', ')),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textMuted,
                         fontSize: 10,
@@ -164,11 +165,11 @@ class SlashCommandHelpDialog extends ConsumerWidget {
     final slashService = ref.watch(slashCommandServiceProvider);
 
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.terminal, color: AppTheme.accentColor),
-          SizedBox(width: 8),
-          Text('Slash Commands'),
+          const Icon(Icons.terminal, color: AppTheme.accentColor),
+          const SizedBox(width: 8),
+          Text(AppLocalizations.of(context)!.slashCommands),
         ],
       ),
       content: SizedBox(
@@ -233,7 +234,7 @@ class SlashCommandHelpDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(AppLocalizations.of(context)!.close),
         ),
       ],
     );

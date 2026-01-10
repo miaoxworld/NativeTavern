@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../data/models/app_theme_config.dart';
 import '../../providers/theme_providers.dart';
 import '../../theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing app themes
 class ThemeSettingsScreen extends ConsumerWidget {
@@ -22,11 +23,11 @@ class ThemeSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Themes'),
+        title: Text(AppLocalizations.of(context)!.themes),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Create custom theme',
+            tooltip: AppLocalizations.of(context)!.createCustomTheme,
             onPressed: () => _showCreateThemeDialog(context, ref),
           ),
         ],
@@ -35,7 +36,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // Built-in themes
-          _buildSectionHeader(context, 'Built-in Themes'),
+          _buildSectionHeader(context, AppLocalizations.of(context)!.builtInThemes),
           const SizedBox(height: 12),
           _buildThemeGrid(context, ref, builtInThemes, activeThemeId),
           

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing World Info / Lorebooks
 class WorldInfoScreen extends ConsumerWidget {
@@ -14,11 +15,11 @@ class WorldInfoScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('World Info / Lorebooks'),
+        title: Text(AppLocalizations.of(context)!.worldInfoLorebooks),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Create Lorebook',
+            tooltip: AppLocalizations.of(context)!.createLorebook,
             onPressed: () => _showCreateDialog(context, ref),
           ),
         ],
@@ -35,7 +36,7 @@ class WorldInfoScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(worldInfoNotifierProvider.notifier).refresh(),
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -79,27 +80,27 @@ class WorldInfoScreen extends ConsumerWidget {
             color: AppTheme.textMuted,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No Lorebooks yet',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.noLorebooksYet,
+            style: const TextStyle(
               fontSize: 18,
               color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Lorebooks inject context into your chats when keywords are detected.',
+              AppLocalizations.of(context)!.lorebooksInjectContext,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textMuted),
+              style: const TextStyle(color: AppTheme.textMuted),
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _showCreateDialog(context, ref),
             icon: const Icon(Icons.add),
-            label: const Text('Create Lorebook'),
+            label: Text(AppLocalizations.of(context)!.createLorebook),
           ),
         ],
       ),
@@ -110,7 +111,7 @@ class WorldInfoScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _WorldInfoDialog(
-        title: 'Create Lorebook',
+        title: AppLocalizations.of(context)!.createLorebook,
         onSave: (name, description, isGlobal) async {
           await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
             name: name,
@@ -126,7 +127,7 @@ class WorldInfoScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _WorldInfoDialog(
-        title: 'Edit Lorebook',
+        title: AppLocalizations.of(context)!.editGroup,
         initialName: worldInfo.name,
         initialDescription: worldInfo.description,
         initialIsGlobal: worldInfo.isGlobal,
@@ -147,12 +148,12 @@ class WorldInfoScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Lorebook'),
-        content: Text('Are you sure you want to delete "${worldInfo.name}" and all its entries?'),
+        title: Text(AppLocalizations.of(context)!.deleteGroup),
+        content: Text(AppLocalizations.of(context)!.deleteLorebookConfirmation(worldInfo.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -160,7 +161,7 @@ class WorldInfoScreen extends ConsumerWidget {
               ref.read(worldInfoNotifierProvider.notifier).deleteWorldInfo(worldInfo.id);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -248,9 +249,9 @@ class _WorldInfoCard extends StatelessWidget {
                               color: AppTheme.accentColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'Global',
-                              style: TextStyle(
+                            child: Text(
+                              AppLocalizations.of(context)!.globalScope,
+                              style: const TextStyle(
                                 fontSize: 10,
                                 color: AppTheme.accentColor,
                                 fontWeight: FontWeight.bold,
@@ -261,7 +262,7 @@ class _WorldInfoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${worldInfo.entries.length} entries',
+                      AppLocalizations.of(context)!.entriesCount(worldInfo.entries.length),
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 14,
@@ -301,19 +302,19 @@ class _WorldInfoCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: ListTile(
-                      leading: Icon(Icons.edit),
-                      title: Text('Edit'),
+                      leading: const Icon(Icons.edit),
+                      title: Text(AppLocalizations.of(context)!.edit),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete, color: Colors.red),
-                      title: Text('Delete', style: TextStyle(color: Colors.red)),
+                      leading: const Icon(Icons.delete, color: Colors.red),
+                      title: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -378,27 +379,27 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'Enter lorebook name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.name,
+                hintText: AppLocalizations.of(context)!.enterLorebookName,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Optional description',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.description,
+                hintText: AppLocalizations.of(context)!.optionalDescriptionHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Global'),
-              subtitle: const Text('Apply to all chats'),
+              title: Text(AppLocalizations.of(context)!.globalScope),
+              subtitle: Text(AppLocalizations.of(context)!.applyToAllChats),
               value: _isGlobal,
               onChanged: (value) => setState(() => _isGlobal = value),
             ),
@@ -408,7 +409,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,
@@ -418,7 +419,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );
@@ -428,7 +429,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterName2)),
       );
       return;
     }
@@ -447,7 +448,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')),
         );
         setState(() => _isSaving = false);
       }
@@ -496,7 +497,7 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Entry',
+            tooltip: AppLocalizations.of(context)!.addEntry,
             onPressed: () => _showEntryDialog(context, ref, null),
           ),
         ],
@@ -538,23 +539,23 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
             color: AppTheme.textMuted,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No entries yet',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.noEntriesYet,
+            style: const TextStyle(
               fontSize: 18,
               color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Add entries with keywords to inject context into chats',
-            style: TextStyle(color: AppTheme.textMuted),
+          Text(
+            AppLocalizations.of(context)!.addEntriesWithKeywords,
+            style: const TextStyle(color: AppTheme.textMuted),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _showEntryDialog(context, ref, null),
             icon: const Icon(Icons.add),
-            label: const Text('Add Entry'),
+            label: Text(AppLocalizations.of(context)!.addEntry),
           ),
         ],
       ),
@@ -565,7 +566,7 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
     showDialog(
       context: context,
       builder: (context) => _WorldInfoEntryDialog(
-        title: entry == null ? 'Add Entry' : 'Edit Entry',
+        title: entry == null ? AppLocalizations.of(context)!.addEntry : AppLocalizations.of(context)!.editEntry,
         entry: entry,
         onSave: (keys, content, comment, secondaryKeys) async {
           if (entry == null) {
@@ -595,12 +596,12 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: Text('Are you sure you want to delete this entry?\n\nKeys: ${entry.keys.join(", ")}'),
+        title: Text(AppLocalizations.of(context)!.deleteEntry),
+        content: Text(AppLocalizations.of(context)!.deleteEntryConfirmation(entry.keys.join(", "))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -608,7 +609,7 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
               ref.read(worldInfoNotifierProvider.notifier).deleteEntry(entry.id);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -691,9 +692,9 @@ class _WorldInfoEntryCard extends StatelessWidget {
                 Row(
                   children: [
                     if (entry.constant)
-                      _buildBadge('Constant', Colors.orange),
+                      _buildBadge(AppLocalizations.of(context)!.constant, Colors.orange),
                     if (entry.selective)
-                      _buildBadge('Selective', Colors.purple),
+                      _buildBadge(AppLocalizations.of(context)!.selective, Colors.purple),
                   ],
                 ),
               ],
@@ -787,39 +788,39 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
             children: [
               TextField(
                 controller: _keysController,
-                decoration: const InputDecoration(
-                  labelText: 'Keywords (comma-separated)',
-                  hintText: 'dragon, wyrm, serpent',
-                  border: OutlineInputBorder(),
-                  helperText: 'Entry activates when any keyword is found in chat',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.keywordsCommaSeparated,
+                  hintText: AppLocalizations.of(context)!.keywordsHint,
+                  border: const OutlineInputBorder(),
+                  helperText: AppLocalizations.of(context)!.entryActivatesWhenKeywordFound,
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _secondaryKeysController,
-                decoration: const InputDecoration(
-                  labelText: 'Secondary Keys (optional)',
-                  hintText: 'fire, flame',
-                  border: OutlineInputBorder(),
-                  helperText: 'If set, both primary AND secondary must match (selective mode)',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.secondaryKeysOptional,
+                  hintText: AppLocalizations.of(context)!.secondaryKeysHint,
+                  border: const OutlineInputBorder(),
+                  helperText: AppLocalizations.of(context)!.bothPrimaryAndSecondaryMustMatch,
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Comment (optional)',
-                  hintText: 'Note for this entry',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.commentOptional,
+                  hintText: AppLocalizations.of(context)!.noteForThisEntry,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Content',
-                  hintText: 'The context to inject when keywords match...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.contentLabel,
+                  hintText: AppLocalizations.of(context)!.contextToInjectWhenMatches,
+                  border: const OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
                 maxLines: 6,
@@ -831,7 +832,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,
@@ -841,7 +842,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );
@@ -856,7 +857,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
 
     if (keys.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter at least one keyword')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterAtLeastOneKeyword)),
       );
       return;
     }
@@ -864,7 +865,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter content')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterContent)),
       );
       return;
     }
@@ -890,7 +891,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')),
         );
         setState(() => _isSaving = false);
       }

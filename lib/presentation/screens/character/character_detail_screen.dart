@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/data/models/character.dart';
 import 'package:native_tavern/data/repositories/character_repository.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
@@ -24,15 +25,16 @@ class CharacterDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final characterAsync = ref.watch(characterDetailProvider(characterId));
     
     return characterAsync.when(
       data: (character) {
         if (character == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Character Not Found')),
-            body: const Center(
-              child: Text('Character not found'),
+            appBar: AppBar(title: Text(l10n.characterNotFound)),
+            body: Center(
+              child: Text(l10n.characterNotFoundMessage),
             ),
           );
         }
@@ -43,14 +45,14 @@ class CharacterDetailScreen extends ConsumerWidget {
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
+        appBar: AppBar(title: Text(l10n.error)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('${l10n.error}: $error'),
             ],
           ),
         ),
@@ -82,14 +84,16 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
       if (chatId != null && mounted) {
         context.push('/chat/$chatId');
       } else if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create chat')),
+          SnackBar(content: Text(l10n.failedToCreateChat)),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     } finally {
@@ -100,6 +104,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
   }
 
   Future<void> _handleMenuAction(String action, Character character) async {
+    final l10n = AppLocalizations.of(context);
     switch (action) {
       case 'delete':
         await _confirmDelete(character);
@@ -110,33 +115,34 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
       case 'export':
         // TODO: Implement PNG export
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PNG export coming soon')),
+          SnackBar(content: Text(l10n.pngExportComingSoon)),
         );
         break;
       case 'export_charx':
         // TODO: Implement CharX export
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('CharX export coming soon')),
+          SnackBar(content: Text(l10n.charxExportComingSoon)),
         );
         break;
     }
   }
 
   Future<void> _confirmDelete(Character character) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Character'),
-        content: Text('Are you sure you want to delete "${character.name}"? This action cannot be undone.'),
+        title: Text(l10n.deleteCharacter),
+        content: Text(l10n.deleteCharacterConfirmationSimple(character.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -148,14 +154,14 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
         await repo.deleteCharacter(character.id);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${character.name} deleted')),
+            SnackBar(content: Text(l10n.characterDeleted)),
           );
           context.pop();
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete: $e')),
+            SnackBar(content: Text(l10n.failedToDelete(e.toString()))),
           );
         }
       }
@@ -163,6 +169,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
   }
 
   Future<void> _duplicateCharacter(Character character) async {
+    final l10n = AppLocalizations.of(context);
     try {
       final repo = ref.read(characterRepositoryProvider);
       final newCharacter = character.copyWith(
@@ -174,13 +181,13 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
       await repo.createCharacter(newCharacter);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${character.name} duplicated')),
+          SnackBar(content: Text(l10n.characterDuplicated(character.name))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to duplicate: $e')),
+          SnackBar(content: Text(l10n.failedToDuplicate(e.toString()))),
         );
       }
     }
@@ -188,6 +195,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final character = widget.character;
     
     return Scaffold(
@@ -213,21 +221,21 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
               PopupMenuButton<String>(
                 onSelected: (value) => _handleMenuAction(value, character),
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'export',
-                    child: Text('Export as PNG'),
+                    child: Text(l10n.exportAsPng),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'export_charx',
-                    child: Text('Export as CharX'),
+                    child: Text(l10n.exportAsCharx),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'duplicate',
-                    child: Text('Duplicate'),
+                    child: Text(l10n.duplicate),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
-                    child: Text('Delete', style: TextStyle(color: Colors.red)),
+                    child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
@@ -258,7 +266,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                         const Icon(Icons.person_outline, size: 16, color: AppTheme.textMuted),
                         const SizedBox(width: 4),
                         Text(
-                          'by ${character.creator}',
+                          l10n.byCreator(character.creator),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppTheme.textMuted,
                               ),
@@ -269,7 +277,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                         const Icon(Icons.update, size: 16, color: AppTheme.textMuted),
                         const SizedBox(width: 4),
                         Text(
-                          'v${character.version}',
+                          l10n.versionLabel(character.version),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppTheme.textMuted,
                               ),
@@ -282,7 +290,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Description section
                   if (character.description.isNotEmpty)
                     _SectionCard(
-                      title: 'Description',
+                      title: l10n.description,
                       content: character.description,
                       icon: Icons.description,
                     ),
@@ -291,7 +299,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Personality section
                   if (character.personality.isNotEmpty)
                     _SectionCard(
-                      title: 'Personality',
+                      title: l10n.personality,
                       content: character.personality,
                       icon: Icons.psychology,
                     ),
@@ -300,7 +308,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Scenario section
                   if (character.scenario.isNotEmpty)
                     _SectionCard(
-                      title: 'Scenario',
+                      title: l10n.scenario,
                       content: character.scenario,
                       icon: Icons.movie,
                     ),
@@ -309,7 +317,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // First message section
                   if (character.firstMessage.isNotEmpty)
                     _SectionCard(
-                      title: 'First Message',
+                      title: l10n.firstMessage,
                       content: character.firstMessage,
                       icon: Icons.chat_bubble,
                     ),
@@ -326,7 +334,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Example messages section
                   if (character.exampleMessages.isNotEmpty)
                     _SectionCard(
-                      title: 'Example Messages',
+                      title: l10n.exampleMessages,
                       content: character.exampleMessages,
                       icon: Icons.format_quote,
                     ),
@@ -335,7 +343,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // System prompt section
                   if (character.systemPrompt.isNotEmpty)
                     _SectionCard(
-                      title: 'System Prompt',
+                      title: l10n.systemPrompt,
                       content: character.systemPrompt,
                       icon: Icons.settings_suggest,
                     ),
@@ -344,7 +352,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Post-history instructions section
                   if (character.postHistoryInstructions.isNotEmpty)
                     _SectionCard(
-                      title: 'Post-History Instructions',
+                      title: l10n.postHistoryInstructions,
                       content: character.postHistoryInstructions,
                       icon: Icons.rule,
                     ),
@@ -353,7 +361,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                   // Creator notes section
                   if (character.creatorNotes.isNotEmpty)
                     _SectionCard(
-                      title: 'Creator Notes',
+                      title: l10n.creatorNotes,
                       content: character.creatorNotes,
                       icon: Icons.note,
                     ),
@@ -385,7 +393,7 @@ class _CharacterDetailContentState extends ConsumerState<_CharacterDetailContent
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               )
             : const Icon(Icons.chat),
-        label: Text(_isCreatingChat ? 'Creating...' : 'Start Chat'),
+        label: Text(_isCreatingChat ? l10n.creating : l10n.startChat),
       ),
     );
   }
@@ -456,6 +464,7 @@ class _SectionCardState extends State<_SectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final lines = widget.content.split('\n');
     final shouldShowExpand = lines.length > widget.maxLines || widget.content.length > 500;
     final displayContent = _expanded || !shouldShowExpand
@@ -484,7 +493,7 @@ class _SectionCardState extends State<_SectionCard> {
                   IconButton(
                     icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
                     onPressed: () => setState(() => _expanded = !_expanded),
-                    tooltip: _expanded ? 'Show less' : 'Show more',
+                    tooltip: _expanded ? l10n.showLess : l10n.showMore,
                   ),
               ],
             ),
@@ -507,6 +516,7 @@ class _AlternateGreetingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -518,7 +528,7 @@ class _AlternateGreetingsCard extends StatelessWidget {
                 const Icon(Icons.waving_hand, size: 20, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Alternate Greetings (${greetings.length})',
+                  l10n.alternateGreetingsCount(greetings.length),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppTheme.primaryColor,
                       ),
@@ -539,7 +549,7 @@ class _AlternateGreetingsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Greeting ${entry.key + 1}',
+                      l10n.greetingNumber(entry.key + 1),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppTheme.textMuted,
                           ),
@@ -569,6 +579,7 @@ class _CharacterBookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final enabledEntries = characterBook.entries.where((e) => e.enabled).length;
     
     return Card(
@@ -586,13 +597,13 @@ class _CharacterBookCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        characterBook.name ?? 'Embedded Lorebook',
+                        characterBook.name ?? l10n.embeddedLorebook,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: AppTheme.primaryColor,
                             ),
                       ),
                       Text(
-                        '$enabledEntries of ${characterBook.entries.length} entries enabled',
+                        l10n.entriesEnabled(enabledEntries, characterBook.entries.length),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppTheme.textMuted,
                             ),
@@ -687,7 +698,7 @@ class _CharacterBookCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '... and ${characterBook.entries.length - 5} more entries',
+                  l10n.andMoreEntries(characterBook.entries.length - 5),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textMuted,
                         fontStyle: FontStyle.italic,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
@@ -9,15 +10,16 @@ class AdvancedSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final config = ref.watch(llmConfigProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced Settings'),
+        title: Text(l10n.advancedSettings),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Reset to Defaults',
+            tooltip: l10n.resetToDefaults,
             onPressed: () => _showResetConfirmation(context, ref),
           ),
         ],
@@ -26,11 +28,11 @@ class AdvancedSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           // Basic Sampling
-          _buildSectionHeader(context, 'Basic Sampling'),
+          _buildSectionHeader(context, l10n.basicSampling),
           _buildSliderTile(
             context: context,
-            title: 'Temperature',
-            subtitle: 'Controls randomness. Higher = more creative, lower = more focused.',
+            title: l10n.temperature,
+            subtitle: l10n.temperatureDescription,
             value: config.temperature,
             min: 0.0,
             max: 2.0,
@@ -39,8 +41,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Top P (Nucleus Sampling)',
-            subtitle: 'Cumulative probability threshold for token selection.',
+            title: l10n.topPNucleusSampling,
+            subtitle: l10n.topPDescription,
             value: config.topP,
             min: 0.0,
             max: 1.0,
@@ -49,8 +51,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildIntSliderTile(
             context: context,
-            title: 'Top K',
-            subtitle: 'Number of top tokens to consider. 0 = disabled.',
+            title: l10n.topK,
+            subtitle: l10n.topKDescription,
             value: config.topK,
             min: 0,
             max: 200,
@@ -58,11 +60,11 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Advanced Sampling'),
+          _buildSectionHeader(context, l10n.advancedSampling),
           _buildSliderTile(
             context: context,
-            title: 'Min P',
-            subtitle: 'Minimum probability threshold relative to top token.',
+            title: l10n.minP,
+            subtitle: l10n.minPDescription,
             value: config.minP,
             min: 0.0,
             max: 1.0,
@@ -71,8 +73,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Typical P',
-            subtitle: 'Locally typical sampling. 1.0 = disabled.',
+            title: l10n.typicalP,
+            subtitle: l10n.typicalPDescription,
             value: config.typicalP,
             min: 0.0,
             max: 1.0,
@@ -81,8 +83,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Top A',
-            subtitle: 'Top-A sampling threshold. 0 = disabled.',
+            title: l10n.topA,
+            subtitle: l10n.topADescription,
             value: config.topA,
             min: 0.0,
             max: 1.0,
@@ -91,8 +93,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Tail Free Sampling (TFS)',
-            subtitle: 'Removes low-probability tail. 1.0 = disabled.',
+            title: l10n.tailFreeSamplingTfs,
+            subtitle: l10n.tfsDescription,
             value: config.tailFreeSampling,
             min: 0.0,
             max: 1.0,
@@ -101,11 +103,11 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Repetition Control'),
+          _buildSectionHeader(context, l10n.repetitionControl),
           _buildSliderTile(
             context: context,
-            title: 'Repetition Penalty',
-            subtitle: 'Penalizes repeated tokens. 1.0 = no penalty.',
+            title: l10n.repetitionPenalty,
+            subtitle: l10n.repetitionPenaltyDescription,
             value: config.repetitionPenalty,
             min: 1.0,
             max: 2.0,
@@ -114,8 +116,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildIntSliderTile(
             context: context,
-            title: 'Repetition Penalty Range',
-            subtitle: 'How many tokens to consider. 0 = all.',
+            title: l10n.repetitionPenaltyRange,
+            subtitle: l10n.repetitionPenaltyRangeDescription,
             value: config.repetitionPenaltyRange,
             min: 0,
             max: 4096,
@@ -123,8 +125,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Frequency Penalty',
-            subtitle: 'Penalizes tokens based on frequency in text.',
+            title: l10n.frequencyPenalty,
+            subtitle: l10n.frequencyPenaltyDescription,
             value: config.frequencyPenalty,
             min: 0.0,
             max: 2.0,
@@ -133,8 +135,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
-            title: 'Presence Penalty',
-            subtitle: 'Penalizes tokens that appear at all in text.',
+            title: l10n.presencePenalty,
+            subtitle: l10n.presencePenaltyDescription,
             value: config.presencePenalty,
             min: 0.0,
             max: 2.0,
@@ -143,13 +145,13 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Mirostat (Local Models)'),
+          _buildSectionHeader(context, l10n.mirostatLocalModels),
           _buildMirostatModeTile(context, ref, config.mirostatMode),
           if (config.mirostatMode > 0) ...[
             _buildSliderTile(
               context: context,
-              title: 'Mirostat Tau',
-              subtitle: 'Target entropy/perplexity.',
+              title: l10n.mirostatTau,
+              subtitle: l10n.mirostatTauDescription,
               value: config.mirostatTau,
               min: 0.0,
               max: 10.0,
@@ -158,8 +160,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
             ),
             _buildSliderTile(
               context: context,
-              title: 'Mirostat Eta',
-              subtitle: 'Learning rate for Mirostat.',
+              title: l10n.mirostatEta,
+              subtitle: l10n.mirostatEtaDescription,
               value: config.mirostatEta,
               min: 0.0,
               max: 1.0,
@@ -169,20 +171,20 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ],
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Generation Control'),
+          _buildSectionHeader(context, l10n.generationControl),
           _buildIntInputTile(
             context: context,
             ref: ref,
-            title: 'Max Tokens',
-            subtitle: 'Maximum tokens to generate.',
+            title: l10n.maxTokens,
+            subtitle: l10n.maxTokensDescription,
             value: config.maxTokens,
             onChanged: (v) => ref.read(llmConfigProvider.notifier).updateMaxTokens(v),
           ),
           _buildIntInputTile(
             context: context,
             ref: ref,
-            title: 'Seed',
-            subtitle: 'Random seed for reproducibility. -1 = random.',
+            title: l10n.seed,
+            subtitle: l10n.seedDescription,
             value: config.seed,
             onChanged: (v) => ref.read(llmConfigProvider.notifier).updateSeed(v),
           ),
@@ -285,14 +287,15 @@ class AdvancedSettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildMirostatModeTile(BuildContext context, WidgetRef ref, int mode) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
-      title: const Text('Mirostat Mode'),
-      subtitle: const Text('Adaptive sampling for local models'),
+      title: Text(l10n.mirostatMode),
+      subtitle: Text(l10n.adaptiveSamplingForLocalModels),
       trailing: SegmentedButton<int>(
-        segments: const [
-          ButtonSegment(value: 0, label: Text('Off')),
-          ButtonSegment(value: 1, label: Text('v1')),
-          ButtonSegment(value: 2, label: Text('v2')),
+        segments: [
+          ButtonSegment(value: 0, label: Text(l10n.off)),
+          const ButtonSegment(value: 1, label: Text('v1')),
+          const ButtonSegment(value: 2, label: Text('v2')),
         ],
         selected: {mode},
         onSelectionChanged: (selected) {
@@ -372,11 +375,12 @@ class AdvancedSettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     List<String> sequences,
   ) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
-      title: const Text('Stop Sequences'),
+      title: Text(l10n.stopSequences),
       subtitle: Text(
         sequences.isEmpty
-            ? 'No stop sequences configured'
+            ? l10n.noStopSequencesConfigured
             : sequences.join(', '),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -391,20 +395,21 @@ class AdvancedSettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     List<String> currentSequences,
   ) {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController(
       text: currentSequences.join('\n'),
     );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Stop Sequences'),
+        title: Text(l10n.stopSequences),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter one sequence per line. Generation stops when any of these are produced.',
-              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+            Text(
+              l10n.stopSequencesDescription,
+              style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -420,7 +425,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -432,7 +437,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
               ref.read(llmConfigProvider.notifier).updateStopSequences(sequences);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -440,27 +445,26 @@ class AdvancedSettingsScreen extends ConsumerWidget {
   }
 
   void _showResetConfirmation(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset to Defaults'),
-        content: const Text(
-          'This will reset all sampler settings to their default values. Continue?',
-        ),
+        title: Text(l10n.resetToDefaults),
+        content: Text(l10n.resetConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
               ref.read(llmConfigProvider.notifier).resetToDefaults();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults')),
+                SnackBar(content: Text(l10n.settingsResetToDefaults)),
               );
             },
-            child: const Text('Reset'),
+            child: Text(l10n.reset),
           ),
         ],
       ),

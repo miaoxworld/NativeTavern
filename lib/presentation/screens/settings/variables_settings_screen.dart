@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/variables_service.dart';
 import 'package:native_tavern/presentation/providers/variables_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing variables
 class VariablesSettingsScreen extends ConsumerWidget {
@@ -18,11 +19,11 @@ class VariablesSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(chatId != null ? 'Chat Variables' : 'Variables'),
+        title: Text(chatId != null ? AppLocalizations.of(context)!.chatVariables : AppLocalizations.of(context)!.variables),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Variable',
+            tooltip: AppLocalizations.of(context)!.addVariable,
             onPressed: () => _showAddVariableDialog(context, ref),
           ),
           PopupMenuButton<String>(

@@ -9,6 +9,7 @@ import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing user personas
 class PersonasScreen extends ConsumerWidget {
@@ -21,11 +22,11 @@ class PersonasScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Personas'),
+        title: Text(AppLocalizations.of(context)!.personas),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Create Persona',
+            tooltip: AppLocalizations.of(context)!.createPersona,
             onPressed: () => _showCreatePersonaDialog(context, ref),
           ),
         ],
@@ -42,7 +43,7 @@ class PersonasScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(personaNotifierProvider.notifier).refresh(),
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -91,23 +92,23 @@ class PersonasScreen extends ConsumerWidget {
             color: AppTheme.textMuted,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No personas yet',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.noPersonasYet,
+            style: const TextStyle(
               fontSize: 18,
               color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Create a persona to represent yourself in chats',
-            style: TextStyle(color: AppTheme.textMuted),
+          Text(
+            AppLocalizations.of(context)!.createPersonaDescription,
+            style: const TextStyle(color: AppTheme.textMuted),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _showCreatePersonaDialog(context, ref),
             icon: const Icon(Icons.add),
-            label: const Text('Create Persona'),
+            label: Text(AppLocalizations.of(context)!.createPersona),
           ),
         ],
       ),
@@ -118,7 +119,7 @@ class PersonasScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _PersonaDialog(
-        title: 'Create Persona',
+        title: AppLocalizations.of(context)!.createPersona,
         onSave: (name, description, avatarPath) async {
           await ref.read(personaNotifierProvider.notifier).createPersona(
                 name: name,
@@ -134,7 +135,7 @@ class PersonasScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _PersonaDialog(
-        title: 'Edit Persona',
+        title: AppLocalizations.of(context)!.editPersona,
         initialName: persona.name,
         initialDescription: persona.description,
         initialAvatarPath: persona.avatarPath,
@@ -155,12 +156,12 @@ class PersonasScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Persona'),
-        content: Text('Are you sure you want to delete "${persona.name}"?'),
+        title: Text(AppLocalizations.of(context)!.deletePersona),
+        content: Text(AppLocalizations.of(context)!.deletePersonaConfirmation(persona.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -168,7 +169,7 @@ class PersonasScreen extends ConsumerWidget {
               ref.read(personaNotifierProvider.notifier).deletePersona(persona.id);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -313,29 +314,29 @@ class _PersonaCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: ListTile(
-                      leading: Icon(Icons.edit),
-                      title: Text('Edit'),
+                      leading: const Icon(Icons.edit),
+                      title: Text(AppLocalizations.of(context)!.edit),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
                   if (onSetDefault != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'default',
                       child: ListTile(
-                        leading: Icon(Icons.star),
-                        title: Text('Set as Default'),
+                        leading: const Icon(Icons.star),
+                        title: Text(AppLocalizations.of(context)!.setAsDefault),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   if (onDelete != null)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: ListTile(
-                        leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        leading: const Icon(Icons.delete, color: Colors.red),
+                        title: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -429,27 +430,27 @@ class _PersonaDialogState extends State<_PersonaDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'Enter persona name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.name,
+                hintText: AppLocalizations.of(context)!.enterPersonaName,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Describe this persona (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.description,
+                hintText: AppLocalizations.of(context)!.describePersona,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 4,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'The description will be included in the system prompt to help the AI understand who you are.',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.personaDescriptionHelp,
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textMuted,
               ),
@@ -460,7 +461,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,
@@ -470,7 +471,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );
@@ -555,7 +556,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppTheme.primaryColor),
-              title: const Text('Choose from Gallery'),
+              title: Text(AppLocalizations.of(context)!.chooseFromGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickImageFromGallery();
@@ -563,7 +564,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppTheme.accentColor),
-              title: const Text('Take Photo'),
+              title: Text(AppLocalizations.of(context)!.takePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _takePhoto();
@@ -572,7 +573,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
             if (_avatarPath != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Remove Avatar', style: TextStyle(color: Colors.red)),
+                title: Text(AppLocalizations.of(context)!.removeAvatar, style: const TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(context);
                   setState(() => _avatarPath = null);
@@ -600,7 +601,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToPickImage(e.toString()))),
         );
       }
     }
@@ -622,7 +623,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToPickImage(e.toString()))),
         );
       }
     }
@@ -644,7 +645,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to take photo: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToTakePhoto(e.toString()))),
         );
       }
     }
@@ -673,7 +674,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save avatar: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToSaveAvatar(e.toString()))),
         );
       }
     }
@@ -683,7 +684,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterName)),
       );
       return;
     }
@@ -698,7 +699,7 @@ class _PersonaDialogState extends State<_PersonaDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')),
         );
         setState(() => _isSaving = false);
       }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/data/repositories/character_repository.dart';
 import 'package:native_tavern/data/repositories/chat_repository.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
@@ -14,18 +15,20 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NativeTavern'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.groups),
-            tooltip: 'Group Chats',
+            tooltip: l10n.groupChats,
             onPressed: () => context.push(AppRoutes.groups),
           ),
           IconButton(
             icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Import',
+            tooltip: l10n.import,
             onPressed: () => context.push(AppRoutes.import_),
           ),
         ],
@@ -34,7 +37,7 @@ class HomeScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.characters),
         icon: const Icon(Icons.add),
-        label: const Text('New Chat'),
+        label: Text(l10n.newChat),
       ),
     );
   }
@@ -45,6 +48,7 @@ class _ChatListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final chatsAsync = ref.watch(allChatsProvider);
 
     return chatsAsync.when(
@@ -55,11 +59,11 @@ class _ChatListView extends ConsumerWidget {
           children: [
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 16),
-            Text('Error loading chats: $error'),
+            Text(l10n.errorLoadingChats(error.toString())),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => ref.invalidate(allChatsProvider),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -77,14 +81,14 @@ class _ChatListView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No chats yet',
+                  l10n.noChatsYet,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Start a new conversation with a character',
+                  l10n.startNewConversation,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textMuted,
                       ),
@@ -93,7 +97,7 @@ class _ChatListView extends ConsumerWidget {
                 ElevatedButton.icon(
                   onPressed: () => context.push(AppRoutes.characters),
                   icon: const Icon(Icons.people),
-                  label: const Text('Browse Characters'),
+                  label: Text(l10n.browseCharacters),
                 ),
               ],
             ),
@@ -125,6 +129,7 @@ class _ChatListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final characterAsync = ref.watch(_characterForChatProvider(chat.characterId));
     final lastMessageAsync = ref.watch(_lastMessageProvider(chat.id));
 
@@ -151,15 +156,15 @@ class _ChatListTile extends ConsumerWidget {
           },
         ),
         title: characterAsync.when(
-          loading: () => const Text('Loading...'),
+          loading: () => Text(l10n.loading),
           error: (_, __) => Text(chat.title),
           data: (character) => Text(character?.name ?? chat.title),
         ),
         subtitle: lastMessageAsync.when(
           loading: () => const Text('...'),
-          error: (_, __) => const Text('No messages'),
+          error: (_, __) => Text(l10n.noMessages),
           data: (message) => Text(
-            message?.content ?? 'No messages yet',
+            message?.content ?? l10n.noMessagesYet,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -168,7 +173,7 @@ class _ChatListTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _formatTime(chat.updatedAt),
+              _formatTime(context, chat.updatedAt),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.textMuted,
                   ),
@@ -178,13 +183,13 @@ class _ChatListTile extends ConsumerWidget {
               padding: EdgeInsets.zero,
               onSelected: (value) => _handleMenuAction(context, ref, value),
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
+                      const Icon(Icons.delete, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(l10n.delete, style: const TextStyle(color: Colors.red)),
                     ],
                   ),
                 ),
@@ -200,7 +205,8 @@ class _ChatListTile extends ConsumerWidget {
     );
   }
 
-  String _formatTime(DateTime dateTime) {
+  String _formatTime(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final diff = now.difference(dateTime);
 
@@ -210,9 +216,9 @@ class _ChatListTile extends ConsumerWidget {
       final minute = dateTime.minute.toString().padLeft(2, '0');
       return '$hour:$minute';
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
+      return l10n.daysAgo(diff.inDays);
     } else {
       // Show date
       return '${dateTime.month}/${dateTime.day}';
@@ -228,15 +234,17 @@ class _ChatListTile extends ConsumerWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
+    final l10n = AppLocalizations.of(context);
+    
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Chat'),
-        content: const Text('Are you sure you want to delete this chat? This action cannot be undone.'),
+        title: Text(l10n.deleteChat),
+        content: Text(l10n.deleteChatConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -245,12 +253,12 @@ class _ChatListTile extends ConsumerWidget {
               ref.invalidate(allChatsProvider);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Chat deleted')),
+                  SnackBar(content: Text(l10n.chatDeleted)),
                 );
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

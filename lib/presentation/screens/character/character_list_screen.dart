@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/data/models/character.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
@@ -22,30 +23,31 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final charactersAsync = ref.watch(characterListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Characters'),
+        title: Text(l10n.characters),
         actions: [
           IconButton(
             icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
             onPressed: () => setState(() => _isGridView = !_isGridView),
-            tooltip: _isGridView ? 'List view' : 'Grid view',
+            tooltip: _isGridView ? l10n.listView : l10n.gridView,
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Create Character',
+            tooltip: l10n.createCharacter,
             onPressed: () => context.push(AppRoutes.characterCreate),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: l10n.retry,
             onPressed: () => ref.read(characterListProvider.notifier).refresh(),
           ),
           IconButton(
             icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Import',
+            tooltip: l10n.import,
             onPressed: () => context.push(AppRoutes.import_),
           ),
         ],
@@ -82,11 +84,11 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                   children: [
                     const Icon(Icons.error_outline, size: 48, color: Colors.red),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('${l10n.error}: $error'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.read(characterListProvider.notifier).refresh(),
-                      child: const Text('Retry'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -106,12 +108,14 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: 'Search characters...',
+          hintText: l10n.searchCharacters,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: IconButton(
             icon: const Icon(Icons.filter_list),
@@ -170,6 +174,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -181,14 +187,14 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No characters yet',
+            l10n.noCharactersYet,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: AppTheme.textSecondary,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Import a character card to get started',
+            l10n.importCharacter,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textMuted,
                 ),
@@ -200,13 +206,13 @@ class _EmptyState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () => context.push(AppRoutes.characterCreate),
                 icon: const Icon(Icons.add),
-                label: const Text('Create Character'),
+                label: Text(l10n.createCharacter),
               ),
               const SizedBox(width: 16),
               OutlinedButton.icon(
                 onPressed: () => context.push(AppRoutes.import_),
                 icon: const Icon(Icons.file_download),
-                label: const Text('Import'),
+                label: Text(l10n.import),
               ),
             ],
           ),
@@ -300,6 +306,8 @@ class _CharacterListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -314,9 +322,9 @@ class _CharacterListTile extends ConsumerWidget {
         ),
         title: Text(character.name),
         subtitle: Text(
-          character.description.isNotEmpty 
-              ? character.description 
-              : 'No description',
+          character.description.isNotEmpty
+              ? character.description
+              : l10n.description,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -324,27 +332,27 @@ class _CharacterListTile extends ConsumerWidget {
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'chat',
-              child: const ListTile(
-                leading: Icon(Icons.chat),
-                title: Text('Start Chat'),
+              child: ListTile(
+                leading: const Icon(Icons.chat),
+                title: Text(l10n.startChat),
                 contentPadding: EdgeInsets.zero,
               ),
               onTap: () => _startChat(context, ref),
             ),
             PopupMenuItem(
               value: 'edit',
-              child: const ListTile(
-                leading: Icon(Icons.edit),
-                title: Text('Edit'),
+              child: ListTile(
+                leading: const Icon(Icons.edit),
+                title: Text(l10n.edit),
                 contentPadding: EdgeInsets.zero,
               ),
               onTap: () => context.push('/characters/${character.id}'),
             ),
             PopupMenuItem(
               value: 'export',
-              child: const ListTile(
-                leading: Icon(Icons.file_upload),
-                title: Text('Export'),
+              child: ListTile(
+                leading: const Icon(Icons.file_upload),
+                title: Text(l10n.exportChat),
                 contentPadding: EdgeInsets.zero,
               ),
               onTap: () {
@@ -354,9 +362,9 @@ class _CharacterListTile extends ConsumerWidget {
             PopupMenuItem(
               value: 'delete',
               onTap: () => _confirmDelete(context, ref),
-              child: const ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete', style: TextStyle(color: Colors.red)),
+              child: ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -368,45 +376,49 @@ class _CharacterListTile extends ConsumerWidget {
   }
 
   Future<void> _startChat(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    
     try {
       final chatId = await ref.read(activeChatProvider.notifier).createChat(character.id);
       if (chatId != null && context.mounted) {
         context.push('/chat/$chatId');
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create chat')),
+          SnackBar(content: Text(l10n.error)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog(
+    final l10n = AppLocalizations.of(context);
+    
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Character'),
-        content: Text('Are you sure you want to delete "${character.name}"? This action cannot be undone.'),
+        title: Text(l10n.deleteCharacter),
+        content: Text(l10n.deleteCharacterConfirmation(character.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(characterListProvider.notifier).deleteCharacter(character.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${character.name} deleted')),
+                SnackBar(content: Text(l10n.characterDeleted)),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

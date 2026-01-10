@@ -6,6 +6,7 @@ import 'package:native_tavern/data/models/logit_bias.dart';
 import 'package:native_tavern/domain/services/logit_bias_service.dart';
 import 'package:native_tavern/presentation/providers/logit_bias_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Settings screen for Logit Bias configuration
 class LogitBiasSettingsScreen extends ConsumerStatefulWidget {
@@ -32,12 +33,12 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Logit Bias'),
+        title: Text(AppLocalizations.of(context)!.logitBias),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelpDialog(context, service),
-            tooltip: 'Help',
+            tooltip: AppLocalizations.of(context)!.help,
           ),
         ],
       ),
@@ -46,8 +47,8 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
         children: [
           // Enable toggle
           SwitchListTile(
-            title: const Text('Enable Logit Bias'),
-            subtitle: const Text('Adjust token probabilities in AI responses'),
+            title: Text(AppLocalizations.of(context)!.enableLogitBias),
+            subtitle: Text(AppLocalizations.of(context)!.adjustTokenProbabilities),
             value: settings.enabled,
             onChanged: (value) {
               ref.read(logitBiasSettingsProvider.notifier).setEnabled(value);
@@ -56,7 +57,7 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
           const Divider(height: 32),
 
           // Preset selector
-          _buildSectionHeader(context, 'Presets'),
+          _buildSectionHeader(context, AppLocalizations.of(context)!.presets),
           const SizedBox(height: 8),
           _PresetSelector(
             presets: settings.presets,
@@ -76,7 +77,7 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
 
           if (settings.activePreset != null) ...[
             const Divider(height: 32),
-            _buildSectionHeader(context, 'Bias Entries'),
+            _buildSectionHeader(context, AppLocalizations.of(context)!.biasEntries),
             const SizedBox(height: 8),
             _BiasEntriesList(
               entries: settings.activePreset!.entries,
@@ -119,14 +120,14 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logit Bias Help'),
+        title: Text(AppLocalizations.of(context)!.logitBiasHelp),
         content: SingleChildScrollView(
           child: Text(service.getHelpText()),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
         ],
       ),
@@ -138,19 +139,19 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Preset'),
+        title: Text(AppLocalizations.of(context)!.newPreset),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Preset Name',
-            hintText: 'Enter preset name',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.presetName,
+            hintText: AppLocalizations.of(context)!.enterPresetName,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -161,7 +162,7 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
                 Navigator.pop(context);
               }
             },
-            child: const Text('Create'),
+            child: Text(AppLocalizations.of(context)!.create),
           ),
         ],
       ),
@@ -173,18 +174,18 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Preset'),
+        title: Text(AppLocalizations.of(context)!.editPreset),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Preset Name',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.presetName,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -194,7 +195,7 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
                 Navigator.pop(context);
               }
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -205,12 +206,12 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Preset'),
-        content: const Text('Are you sure you want to delete this preset?'),
+        title: Text(AppLocalizations.of(context)!.deletePreset),
+        content: Text(AppLocalizations.of(context)!.deletePresetQuestion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -218,7 +219,7 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -231,11 +232,11 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
       final jsonString = const JsonEncoder.withIndent('  ').convert(json);
       Clipboard.setData(ClipboardData(text: jsonString));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preset copied to clipboard')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.presetCopiedToClipboard)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.exportPresetFailed(e.toString()))),
       );
     }
   }
@@ -245,19 +246,19 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import Preset'),
+        title: Text(AppLocalizations.of(context)!.importPresetLabel),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'JSON',
-            hintText: 'Paste preset JSON here',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.json,
+            hintText: AppLocalizations.of(context)!.pastePresetJson,
           ),
           maxLines: 5,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -266,15 +267,15 @@ class _LogitBiasSettingsScreenState extends ConsumerState<LogitBiasSettingsScree
                 ref.read(logitBiasSettingsProvider.notifier).importPreset(json);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Preset imported successfully')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.presetImportedSuccessfully)),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Import failed: $e')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.importPresetFailed(e.toString()))),
                 );
               }
             },
-            child: const Text('Import'),
+            child: Text(AppLocalizations.of(context)!.import),
           ),
         ],
       ),
@@ -316,14 +317,14 @@ class _PresetSelector extends StatelessWidget {
             Expanded(
               child: DropdownButtonFormField<String>(
                 value: activePresetId,
-                decoration: const InputDecoration(
-                  labelText: 'Active Preset',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.activePresetLabel,
                   border: OutlineInputBorder(),
                 ),
                 items: [
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('None'),
+                    child: Text(AppLocalizations.of(context)!.none),
                   ),
                   ...presets.map((preset) => DropdownMenuItem(
                         value: preset.id,
@@ -337,7 +338,7 @@ class _PresetSelector extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: onAddPreset,
-              tooltip: 'New Preset',
+              tooltip: AppLocalizations.of(context)!.newPreset,
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
@@ -349,11 +350,11 @@ class _PresetSelector extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'import',
                   child: ListTile(
-                    leading: Icon(Icons.file_download),
-                    title: Text('Import Preset'),
+                    leading: const Icon(Icons.file_download),
+                    title: Text(AppLocalizations.of(context)!.importPresetLabel),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -368,7 +369,7 @@ class _PresetSelector extends StatelessWidget {
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Rename'),
+                label: Text(AppLocalizations.of(context)!.rename),
                 onPressed: () {
                   final preset = presets.firstWhere((p) => p.id == activePresetId);
                   onEditPreset(preset);
@@ -376,17 +377,17 @@ class _PresetSelector extends StatelessWidget {
               ),
               TextButton.icon(
                 icon: const Icon(Icons.copy, size: 18),
-                label: const Text('Duplicate'),
+                label: Text(AppLocalizations.of(context)!.duplicate),
                 onPressed: () => onDuplicatePreset(activePresetId!),
               ),
               TextButton.icon(
                 icon: const Icon(Icons.file_upload, size: 18),
-                label: const Text('Export'),
+                label: Text(AppLocalizations.of(context)!.export),
                 onPressed: () => onExportPreset(activePresetId!),
               ),
               TextButton.icon(
                 icon: const Icon(Icons.delete, size: 18),
-                label: const Text('Delete'),
+                label: Text(AppLocalizations.of(context)!.delete),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 onPressed: () => onDeletePreset(activePresetId!),
               ),
@@ -434,15 +435,15 @@ class _BiasEntriesList extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No bias entries',
+                    AppLocalizations.of(context)!.noBiasEntries,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  const Text('Add entries to adjust token probabilities'),
+                  Text(AppLocalizations.of(context)!.addEntriesToAdjust),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Entry'),
+                    label: Text(AppLocalizations.of(context)!.addEntry),
                     onPressed: onAddEntry,
                   ),
                 ],
@@ -469,7 +470,7 @@ class _BiasEntriesList extends StatelessWidget {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             icon: const Icon(Icons.add),
-            label: const Text('Add Entry'),
+            label: Text(AppLocalizations.of(context)!.addEntry),
             onPressed: onAddEntry,
           ),
         ],
@@ -562,7 +563,7 @@ class _BiasEntryCardState extends ConsumerState<_BiasEntryCard> {
                   child: TextField(
                     controller: _textController,
                     decoration: InputDecoration(
-                      labelText: 'Text / Token',
+                      labelText: AppLocalizations.of(context)!.textOrToken,
                       hintText: 'word, {verbatim}, or [1234]',
                       isDense: true,
                       border: const OutlineInputBorder(),
@@ -580,8 +581,8 @@ class _BiasEntryCardState extends ConsumerState<_BiasEntryCard> {
                   width: 100,
                   child: TextField(
                     controller: _valueController,
-                    decoration: const InputDecoration(
-                      labelText: 'Bias',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.bias,
                       isDense: true,
                       border: OutlineInputBorder(),
                     ),
@@ -603,7 +604,7 @@ class _BiasEntryCardState extends ConsumerState<_BiasEntryCard> {
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: widget.onDelete,
-                  tooltip: 'Delete',
+                  tooltip: AppLocalizations.of(context)!.delete,
                 ),
               ],
             ),

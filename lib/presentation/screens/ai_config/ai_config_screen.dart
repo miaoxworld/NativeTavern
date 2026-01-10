@@ -9,6 +9,7 @@ import '../../providers/instruct_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../router/app_router.dart';
 import '../../theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// AI Configuration screen - top-level entry for all AI-related settings
 class AIConfigScreen extends ConsumerWidget {
@@ -20,11 +21,11 @@ class AIConfigScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Configuration'),
+        title: Text(AppLocalizations.of(context)!.aiConfiguration),
         actions: [
           IconButton(
             icon: const Icon(Icons.file_download),
-            tooltip: 'Import Preset',
+            tooltip: AppLocalizations.of(context)!.importPreset,
             onPressed: () => context.push(AppRoutes.aiPresets),
           ),
         ],
@@ -67,9 +68,9 @@ class AIConfigScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Active Preset',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.activePreset,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppTheme.textMuted,
                           ),
@@ -86,31 +87,31 @@ class AIConfigScreen extends ConsumerWidget {
                   ),
                   TextButton(
                     onPressed: () => context.push(AppRoutes.aiPresets),
-                    child: const Text('Change'),
+                    child: Text(AppLocalizations.of(context)!.change),
                   ),
                 ],
               ),
             ),
 
-          _buildSectionHeader(context, 'Presets & Templates'),
+          _buildSectionHeader(context, AppLocalizations.of(context)!.presetsAndTemplates),
           ListTile(
             leading: const Icon(Icons.auto_awesome),
-            title: const Text('AI Presets'),
-            subtitle: Text(activePreset?.name ?? 'No preset selected'),
+            title: Text(AppLocalizations.of(context)!.aiPresets),
+            subtitle: Text(activePreset?.name ?? AppLocalizations.of(context)!.noPresetSelected),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.aiPresets),
           ),
           const _InstructTemplateTile(),
           ListTile(
             leading: const Icon(Icons.reorder),
-            title: const Text('Prompt Manager'),
-            subtitle: const Text('Order and toggle prompt sections'),
+            title: Text(AppLocalizations.of(context)!.promptManager),
+            subtitle: Text(AppLocalizations.of(context)!.orderAndTogglePromptSections),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.promptManager),
           ),
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'LLM Connection'),
+          _buildSectionHeader(context, AppLocalizations.of(context)!.llmConnection),
           const _LLMProviderTile(),
           const _ApiKeyTile(),
           const _ApiUrlTile(),
@@ -118,15 +119,15 @@ class AIConfigScreen extends ConsumerWidget {
           const _ConnectionTestTile(),
 
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Generation Settings'),
+          _buildSectionHeader(context, AppLocalizations.of(context)!.generationSettings),
           const _MaxTokensTile(),
           const _TemperatureTile(),
           const _TopPTile(),
           const _StreamingTile(),
           ListTile(
             leading: const Icon(Icons.tune),
-            title: const Text('Advanced Sampler Settings'),
-            subtitle: const Text('Full control over sampling parameters'),
+            title: Text(AppLocalizations.of(context)!.advancedSamplerSettings),
+            subtitle: Text(AppLocalizations.of(context)!.fullControlOverSampling),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.advancedSettings),
           ),
@@ -161,7 +162,7 @@ class _InstructTemplateTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.code),
-      title: const Text('Instruct Template'),
+      title: Text(AppLocalizations.of(context)!.instructTemplate),
       subtitle: Text(activeTemplate.name),
       onTap: () => _showTemplatePicker(context, ref, activeTemplate, allTemplates),
     );
@@ -184,22 +185,21 @@ class _InstructTemplateTile extends ConsumerWidget {
         builder: (context, scrollController) => SafeArea(
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Select Instruct Template',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.selectInstructTemplate,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  'Instruct templates format prompts for different LLM models. '
-                  'Use "None" for API providers like OpenAI or Claude that handle formatting automatically.',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.instructTemplateDescription,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textMuted,
                   ),
@@ -255,7 +255,7 @@ class _LLMProviderTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.cloud),
-      title: const Text('Provider'),
+      title: Text(AppLocalizations.of(context)!.provider),
       subtitle: Text(_providerName(config.provider)),
       onTap: () => _showProviderPicker(context, ref, config),
     );
@@ -285,11 +285,11 @@ class _LLMProviderTile extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'Select LLM Provider',
-                style: TextStyle(
+                AppLocalizations.of(context)!.selectLlmProvider,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -339,6 +339,7 @@ class _ApiKeyTile extends ConsumerStatefulWidget {
   ConsumerState<_ApiKeyTile> createState() => _ApiKeyTileState();
 }
 
+
 class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
   bool _obscureText = true;
 
@@ -352,10 +353,10 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
 
     return ListTile(
       leading: const Icon(Icons.key),
-      title: const Text('API Key'),
+      title: Text(AppLocalizations.of(context)!.apiKey),
       subtitle: Text(
         config.apiKey.isEmpty
-            ? 'Not set'
+            ? AppLocalizations.of(context)!.notSet
             : _obscureText
                 ? '••••••••${config.apiKey.length > 8 ? config.apiKey.substring(config.apiKey.length - 4) : ''}'
                 : config.apiKey,
@@ -374,11 +375,11 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('API Key'),
+        title: Text(AppLocalizations.of(context)!.apiKey),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Enter your API key',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.enterApiKey,
             hintText: 'sk-...',
           ),
           obscureText: true,
@@ -387,14 +388,14 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(llmConfigProvider.notifier).updateApiKey(controller.text);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -411,7 +412,7 @@ class _ApiUrlTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.link),
-      title: const Text('API URL'),
+      title: Text(AppLocalizations.of(context)!.apiUrl),
       subtitle: Text(config.apiUrl),
       onTap: () => _showApiUrlDialog(context, ref, config),
     );
@@ -423,25 +424,25 @@ class _ApiUrlTile extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('API URL'),
+        title: Text(AppLocalizations.of(context)!.apiUrl),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'API endpoint URL',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.apiEndpointUrl,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(llmConfigProvider.notifier).updateApiUrl(controller.text);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -474,7 +475,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(next.errorMessage ?? 'Failed to fetch models'),
+                content: Text(next.errorMessage ?? AppLocalizations.of(context)!.failedToFetchModels),
                 backgroundColor: Colors.red,
               ),
             );
@@ -485,7 +486,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
 
     return ListTile(
       leading: const Icon(Icons.memory),
-      title: const Text('Model'),
+      title: Text(AppLocalizations.of(context)!.model),
       subtitle: _buildSubtitle(config, modelFetchState),
       trailing: modelFetchState.status == ModelFetchStatus.loading
           ? const SizedBox(
@@ -502,9 +503,9 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
 
   Widget _buildSubtitle(LLMConfig config, ModelFetchState modelFetchState) {
     if (modelFetchState.status == ModelFetchStatus.loading) {
-      return const Text('Fetching models...');
+      return Text(AppLocalizations.of(context)!.fetchingModels);
     }
-    return Text(config.model.isEmpty ? 'Not set' : config.model);
+    return Text(config.model.isEmpty ? AppLocalizations.of(context)!.notSet : config.model);
   }
 
   void _showModelPicker(BuildContext context, WidgetRef ref, LLMConfig config,
@@ -549,14 +550,14 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Model'),
+        title: Text(AppLocalizations.of(context)!.model),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Model name',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.modelName,
                 hintText: 'e.g., gpt-4o',
               ),
               autofocus: true,
@@ -566,7 +567,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.cloud_download),
-                label: const Text('Fetch Available Models'),
+                label: Text(AppLocalizations.of(context)!.fetchAvailableModels),
                 onPressed: () {
                   Navigator.pop(dialogContext);
                   final currentConfig = ref.read(llmConfigProvider);
@@ -576,7 +577,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Fetch models from the API or enter a model name manually',
+              AppLocalizations.of(context)!.fetchModelsDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.textMuted,
                   ),
@@ -587,14 +588,14 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(llmConfigProvider.notifier).updateModel(controller.text);
               Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -607,11 +608,11 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Enter Model Name'),
+        title: Text(AppLocalizations.of(context)!.enterModelName),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Model name',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.modelName,
             hintText: 'e.g., gpt-4o',
           ),
           autofocus: true,
@@ -619,14 +620,14 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(llmConfigProvider.notifier).updateModel(controller.text);
               Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -647,8 +648,8 @@ class _ConnectionTestTile extends ConsumerWidget {
         _getStatusIcon(testState.status),
         color: _getStatusColor(testState.status),
       ),
-      title: const Text('Test Connection'),
-      subtitle: Text(_getStatusText(testState)),
+      title: Text(AppLocalizations.of(context)!.testConnection),
+      subtitle: Text(_getStatusText(context, testState)),
       trailing: testState.status == ConnectionStatus.testing
           ? const SizedBox(
               width: 20,
@@ -688,16 +689,17 @@ class _ConnectionTestTile extends ConsumerWidget {
     }
   }
 
-  String _getStatusText(ConnectionTestState state) {
+  String _getStatusText(BuildContext context, ConnectionTestState state) {
+    final l10n = AppLocalizations.of(context)!;
     switch (state.status) {
       case ConnectionStatus.idle:
-        return 'Tap to test API connection';
+        return l10n.tapToTestConnection;
       case ConnectionStatus.testing:
-        return 'Testing...';
+        return l10n.testing;
       case ConnectionStatus.success:
-        return state.message ?? 'Connected';
+        return state.message ?? l10n.connected;
       case ConnectionStatus.error:
-        return state.message ?? 'Connection failed';
+        return state.message ?? l10n.connectionFailedSimple;
     }
   }
 }
@@ -711,7 +713,7 @@ class _MaxTokensTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.format_list_numbered),
-      title: const Text('Max Tokens'),
+      title: Text(AppLocalizations.of(context)!.maxTokens),
       subtitle: Text('${config.maxTokens}'),
       onTap: () => _showMaxTokensDialog(context, ref, config),
     );
@@ -723,12 +725,12 @@ class _MaxTokensTile extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Max Tokens'),
+        title: Text(AppLocalizations.of(context)!.maxTokens),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Maximum tokens to generate',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.maximumTokensToGenerate,
             hintText: '1000000',
           ),
           autofocus: true,
@@ -736,7 +738,7 @@ class _MaxTokensTile extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -746,7 +748,7 @@ class _MaxTokensTile extends ConsumerWidget {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -763,7 +765,7 @@ class _TemperatureTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.thermostat),
-      title: const Text('Temperature'),
+      title: Text(AppLocalizations.of(context)!.temperature),
       subtitle: Slider(
         value: config.temperature,
         min: 0.0,
@@ -787,7 +789,7 @@ class _TopPTile extends ConsumerWidget {
 
     return ListTile(
       leading: const Icon(Icons.pie_chart),
-      title: const Text('Top P'),
+      title: Text(AppLocalizations.of(context)!.topP),
       subtitle: Slider(
         value: config.topP,
         min: 0.0,
@@ -811,8 +813,8 @@ class _StreamingTile extends ConsumerWidget {
 
     return SwitchListTile(
       secondary: const Icon(Icons.stream),
-      title: const Text('Streaming'),
-      subtitle: const Text('Show response as it generates'),
+      title: Text(AppLocalizations.of(context)!.streaming),
+      subtitle: Text(AppLocalizations.of(context)!.showResponseAsItGenerates),
       value: config.streamEnabled,
       onChanged: (value) {
         ref.read(llmConfigProvider.notifier).updateStreamEnabled(value);
@@ -887,18 +889,18 @@ class _ModelSelectionSheetState extends State<_ModelSelectionSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Select Model (${widget.models.length})',
+                      AppLocalizations.of(context)!.selectModelCount(widget.models.length),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh),
-                    tooltip: 'Refresh models',
+                    tooltip: AppLocalizations.of(context)!.refreshModels,
                     onPressed: widget.onRefresh,
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit),
-                    tooltip: 'Enter manually',
+                    tooltip: AppLocalizations.of(context)!.enterManually,
                     onPressed: widget.onManualEntry,
                   ),
                 ],
@@ -909,7 +911,7 @@ class _ModelSelectionSheetState extends State<_ModelSelectionSheet> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search models...',
+                  hintText: AppLocalizations.of(context)!.searchModels,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -950,14 +952,14 @@ class _ModelSelectionSheetState extends State<_ModelSelectionSheet> {
                           const Icon(Icons.search_off, size: 48, color: AppTheme.textMuted),
                           const SizedBox(height: 16),
                           Text(
-                            'No models found',
+                            AppLocalizations.of(context)!.noModelsFound,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: AppTheme.textMuted,
                                 ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Try a different search term',
+                            AppLocalizations.of(context)!.tryDifferentSearchTerm,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppTheme.textMuted,
                                 ),

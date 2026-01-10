@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/chat/message_content_widget.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// A collapsible widget that displays AI reasoning/thinking content
 /// 
@@ -85,8 +86,8 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
   void _copyReasoning() {
     Clipboard.setData(ClipboardData(text: widget.reasoning));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reasoning copied to clipboard'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.reasoningCopiedToClipboard),
         duration: Duration(seconds: 1),
       ),
     );
@@ -138,7 +139,7 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
                   ),
                   // Character count
                   Text(
-                    '${widget.reasoning.length} chars',
+                    AppLocalizations.of(context)!.charsCount(widget.reasoning.length),
                     style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 11,
@@ -158,7 +159,7 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
                       minWidth: 24,
                       minHeight: 24,
                     ),
-                    tooltip: 'Copy reasoning',
+                    tooltip: AppLocalizations.of(context)!.copyReasoning,
                   ),
                   // Expand/collapse arrow
                   RotationTransition(
@@ -361,7 +362,7 @@ class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
                 ),
                 // Character count
                 Text(
-                  '${widget.reasoning.length} chars',
+                  AppLocalizations.of(context)!.charsCount(widget.reasoning.length),
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 11,
@@ -393,7 +394,7 @@ class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                'Thinking...',
+                AppLocalizations.of(context)!.thinking,
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontStyle: FontStyle.italic,

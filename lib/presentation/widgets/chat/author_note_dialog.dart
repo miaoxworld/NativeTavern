@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Dialog for editing Author's Note settings
 class AuthorNoteDialog extends ConsumerStatefulWidget {
@@ -74,7 +75,7 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Author\'s Note',
+                    AppLocalizations.of(context)!.authorsNote,
                     style: theme.textTheme.titleLarge,
                   ),
                   const Spacer(),
@@ -86,7 +87,7 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Add context or instructions that will be injected into the conversation at a specific depth.',
+                AppLocalizations.of(context)!.authorsNoteDescription,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -95,8 +96,8 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
 
               // Enable toggle
               SwitchListTile(
-                title: const Text('Enable Author\'s Note'),
-                subtitle: const Text('Inject note into conversation context'),
+                title: Text(AppLocalizations.of(context)!.enableAuthorsNote),
+                subtitle: Text(AppLocalizations.of(context)!.injectNoteIntoContext),
                 value: _enabled,
                 onChanged: (value) {
                   setState(() {
@@ -116,12 +117,12 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Injection Depth',
+                          AppLocalizations.of(context)!.injectionDepth,
                           style: theme.textTheme.titleSmall,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Messages from the end where note is inserted',
+                          AppLocalizations.of(context)!.messagesFromEndWhereInserted,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -163,7 +164,7 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
 
               // Content field
               Text(
-                'Note Content',
+                AppLocalizations.of(context)!.noteContent,
                 style: theme.textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
@@ -174,11 +175,7 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
                   decoration: InputDecoration(
-                    hintText: 'Enter your author\'s note here...\n\n'
-                        'Examples:\n'
-                        '• [Style: Write in a poetic, descriptive manner]\n'
-                        '• [Focus on emotional depth and character development]\n'
-                        '• [{{char}} is feeling melancholic today]',
+                    hintText: AppLocalizations.of(context)!.authorsNoteHint,
                     border: const OutlineInputBorder(),
                     filled: true,
                     fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
@@ -187,7 +184,7 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Supports macros: {{user}}, {{char}}, {{time}}, {{date}}, etc.',
+                'Supports macros like {{char}}, {{user}}, etc.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -201,13 +198,13 @@ class _AuthorNoteDialogState extends ConsumerState<AuthorNoteDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(AppLocalizations.of(context)!.cancel),
                   ),
                   const SizedBox(width: 12),
                   FilledButton.icon(
                     onPressed: _save,
                     icon: const Icon(Icons.save),
-                    label: const Text('Save'),
+                    label: Text(AppLocalizations.of(context)!.save),
                   ),
                 ],
               ),

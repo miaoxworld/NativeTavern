@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
 import 'package:native_tavern/presentation/providers/stt_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for STT settings
 class STTSettingsScreen extends ConsumerWidget {
@@ -16,15 +17,15 @@ class STTSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Speech-to-Text'),
+        title: Text(AppLocalizations.of(context)!.speechToText),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Reset to defaults',
+            tooltip: AppLocalizations.of(context)!.resetToDefaults,
             onPressed: () {
               ref.read(sttSettingsProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.settingsResetToDefaults)),
               );
             },
           ),
@@ -39,16 +40,16 @@ class STTSettingsScreen extends ConsumerWidget {
                 ? const SizedBox.shrink()
                 : Card(
                     color: Colors.orange.withValues(alpha: 0.2),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.warning, color: Colors.orange),
-                          SizedBox(width: 12),
+                          const Icon(Icons.warning, color: Colors.orange),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Speech recognition may not be available on this device.',
-                              style: TextStyle(color: Colors.orange),
+                              AppLocalizations.of(context)!.speechRecognitionNotAvailable,
+                              style: const TextStyle(color: Colors.orange),
                             ),
                           ),
                         ],
@@ -61,19 +62,20 @@ class STTSettingsScreen extends ConsumerWidget {
 
           // Enable/Disable toggle
           _buildSection(
-            title: 'General',
+            context,
+            title: AppLocalizations.of(context)!.general,
             children: [
               SwitchListTile(
-                title: const Text('Enable STT'),
-                subtitle: const Text('Use voice input for messages'),
+                title: Text(AppLocalizations.of(context)!.enableStt),
+                subtitle: Text(AppLocalizations.of(context)!.useVoiceInputForMessages),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(sttSettingsProvider.notifier).setEnabled(value);
                 },
               ),
               SwitchListTile(
-                title: const Text('Auto-send'),
-                subtitle: const Text('Automatically send message after speaking'),
+                title: Text(AppLocalizations.of(context)!.autoSendStt),
+                subtitle: Text(AppLocalizations.of(context)!.automaticallySendAfterSpeaking),
                 value: settings.autoSend,
                 onChanged: settings.enabled
                     ? (value) {
@@ -82,8 +84,8 @@ class STTSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('Continuous Listening'),
-                subtitle: const Text('Keep listening after each phrase'),
+                title: Text(AppLocalizations.of(context)!.continuousListening),
+                subtitle: Text(AppLocalizations.of(context)!.keepListeningAfterPhrase),
                 value: settings.continuousListening,
                 onChanged: settings.enabled
                     ? (value) {
@@ -92,8 +94,8 @@ class STTSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('Show Partial Results'),
-                subtitle: const Text('Display text as you speak'),
+                title: Text(AppLocalizations.of(context)!.showPartialResults),
+                subtitle: Text(AppLocalizations.of(context)!.displayTextAsYouSpeak),
                 value: settings.showPartialResults,
                 onChanged: settings.enabled
                     ? (value) {
@@ -108,10 +110,11 @@ class STTSettingsScreen extends ConsumerWidget {
 
           // Provider selection
           _buildSection(
-            title: 'Provider',
+            context,
+            title: AppLocalizations.of(context)!.provider,
             children: [
               ListTile(
-                title: const Text('STT Provider'),
+                title: Text(AppLocalizations.of(context)!.sttProvider),
                 subtitle: Text(settings.provider.displayName),
                 trailing: DropdownButton<STTProvider>(
                   value: settings.provider,
@@ -132,11 +135,11 @@ class STTSettingsScreen extends ConsumerWidget {
               ),
               if (settings.provider != STTProvider.system) ...[
                 ListTile(
-                  title: const Text('API Key'),
+                  title: Text(AppLocalizations.of(context)!.apiKey),
                   subtitle: Text(
                     settings.apiKey?.isNotEmpty == true
                         ? '••••••••${settings.apiKey!.substring(settings.apiKey!.length - 4)}'
-                        : 'Not configured',
+                        : AppLocalizations.of(context)!.notConfigured,
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: settings.enabled
@@ -151,10 +154,11 @@ class STTSettingsScreen extends ConsumerWidget {
 
           // Language selection
           _buildSection(
-            title: 'Language',
+            context,
+            title: AppLocalizations.of(context)!.language,
             children: [
               ListTile(
-                title: const Text('Recognition Language'),
+                title: Text(AppLocalizations.of(context)!.recognitionLanguage),
                 subtitle: Text(
                   STTLanguage.fromCode(settings.language)?.name ?? settings.language,
                 ),
@@ -182,18 +186,19 @@ class STTSettingsScreen extends ConsumerWidget {
 
           // Test section
           _buildSection(
-            title: 'Test',
+            context,
+            title: AppLocalizations.of(context)!.test,
             children: [
               ListTile(
                 leading: Icon(
                   isListening ? Icons.mic : Icons.mic_none,
                   color: isListening ? Colors.red : AppTheme.accentColor,
                 ),
-                title: Text(isListening ? 'Stop Listening' : 'Test Voice Input'),
+                title: Text(isListening ? AppLocalizations.of(context)!.stopListening : AppLocalizations.of(context)!.testVoiceInput),
                 subtitle: Text(
                   isListening
-                      ? 'Tap to stop'
-                      : 'Tap to test speech recognition',
+                      ? AppLocalizations.of(context)!.tapToStop
+                      : AppLocalizations.of(context)!.tapToTestSpeechRecognition,
                 ),
                 onTap: settings.enabled
                     ? () async {
@@ -234,7 +239,7 @@ class STTSettingsScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                result.isFinal ? 'Final' : 'Listening...',
+                                result.isFinal ? AppLocalizations.of(context)!.final_ : AppLocalizations.of(context)!.listening,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: result.isFinal
@@ -262,7 +267,8 @@ class STTSettingsScreen extends ConsumerWidget {
 
           // Info section
           _buildSection(
-            title: 'Information',
+            context,
+            title: AppLocalizations.of(context)!.information,
             children: [
               const ListTile(
                 leading: Icon(Icons.info_outline, color: AppTheme.accentColor),
@@ -297,7 +303,8 @@ class STTSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildSection(
+    BuildContext context, {
     required String title,
     required List<Widget> children,
   }) {
@@ -329,26 +336,26 @@ class STTSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${settings.provider.displayName} API Key'),
+        title: Text('${settings.provider.displayName} ${AppLocalizations.of(context)!.apiKey}'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'API Key',
-            hintText: 'Enter your API key',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.apiKey,
+            hintText: AppLocalizations.of(context)!.enterApiKey,
           ),
           obscureText: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               ref.read(sttSettingsProvider.notifier).setApiKey(controller.text);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -388,7 +395,7 @@ class VoiceInputButton extends ConsumerWidget {
         size: size,
         color: isListening ? Colors.red : null,
       ),
-      tooltip: isListening ? 'Stop listening' : 'Voice input',
+      tooltip: isListening ? AppLocalizations.of(context)!.stopListening : AppLocalizations.of(context)!.voiceInput,
       onPressed: () async {
         await ref.read(sttToggleListeningProvider)();
       },

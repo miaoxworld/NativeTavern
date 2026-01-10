@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/translation_service.dart';
 import 'package:native_tavern/presentation/providers/translation_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for translation settings
 class TranslationSettingsScreen extends ConsumerWidget {
@@ -14,15 +15,15 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Translation'),
+        title: Text(AppLocalizations.of(context)!.translationSettings),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Reset to defaults',
+            tooltip: AppLocalizations.of(context)!.resetToDefaults,
             onPressed: () {
               ref.read(translationSettingsProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings reset to defaults')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.settingsResetToDefaults)),
               );
             },
           ),
@@ -33,19 +34,20 @@ class TranslationSettingsScreen extends ConsumerWidget {
         children: [
           // Enable/Disable toggle
           _buildSection(
-            title: 'General',
+            context,
+            title: AppLocalizations.of(context)!.general,
             children: [
               SwitchListTile(
-                title: const Text('Enable Translation'),
-                subtitle: const Text('Translate messages between languages'),
+                title: Text(AppLocalizations.of(context)!.enableTranslation),
+                subtitle: Text(AppLocalizations.of(context)!.translateMessagesAutomatically),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(translationSettingsProvider.notifier).setEnabled(value);
                 },
               ),
               SwitchListTile(
-                title: const Text('Auto-translate Incoming'),
-                subtitle: const Text('Automatically translate AI messages'),
+                title: Text(AppLocalizations.of(context)!.translateAiResponses),
+                subtitle: Text(AppLocalizations.of(context)!.translateAiResponses),
                 value: settings.autoTranslateIncoming,
                 onChanged: settings.enabled
                     ? (value) {
@@ -54,8 +56,8 @@ class TranslationSettingsScreen extends ConsumerWidget {
                     : null,
               ),
               SwitchListTile(
-                title: const Text('Auto-translate Outgoing'),
-                subtitle: const Text('Automatically translate your messages'),
+                title: Text(AppLocalizations.of(context)!.translateUserMessages),
+                subtitle: Text(AppLocalizations.of(context)!.translateUserMessages),
                 value: settings.autoTranslateOutgoing,
                 onChanged: settings.enabled
                     ? (value) {
@@ -80,10 +82,11 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
           // Provider selection
           _buildSection(
-            title: 'Provider',
+            context,
+            title: AppLocalizations.of(context)!.provider,
             children: [
               ListTile(
-                title: const Text('Translation Provider'),
+                title: Text(AppLocalizations.of(context)!.translationProvider),
                 subtitle: Text(settings.provider.displayName),
                 trailing: DropdownButton<TranslationProvider>(
                   value: settings.provider,
@@ -104,11 +107,11 @@ class TranslationSettingsScreen extends ConsumerWidget {
               ),
               if (settings.provider != TranslationProvider.libre) ...[
                 ListTile(
-                  title: const Text('API Key'),
+                  title: Text(AppLocalizations.of(context)!.apiKey),
                   subtitle: Text(
                     settings.apiKey?.isNotEmpty == true
                         ? '••••••••${settings.apiKey!.substring(settings.apiKey!.length - 4)}'
-                        : 'Not configured',
+                        : AppLocalizations.of(context)!.notConfigured,
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: settings.enabled
@@ -123,11 +126,12 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
           // Language selection
           _buildSection(
-            title: 'Languages',
+            context,
+            title: AppLocalizations.of(context)!.language,
             children: [
               // Source language
               ListTile(
-                title: const Text('Source Language'),
+                title: Text(AppLocalizations.of(context)!.sourceLanguage),
                 subtitle: Text(
                   TranslationLanguage.fromCode(settings.sourceLanguage)?.name ?? 
                   settings.sourceLanguage,
@@ -165,7 +169,7 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
               // Target language
               ListTile(
-                title: const Text('Target Language'),
+                title: Text(AppLocalizations.of(context)!.targetLanguage),
                 subtitle: Text(
                   TranslationLanguage.fromCode(settings.targetLanguage)?.name ?? 
                   settings.targetLanguage,
@@ -194,7 +198,8 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
           // Test section
           _buildSection(
-            title: 'Test',
+            context,
+            title: AppLocalizations.of(context)!.test,
             children: [
               _TranslationTestWidget(enabled: settings.enabled),
             ],
@@ -204,7 +209,8 @@ class TranslationSettingsScreen extends ConsumerWidget {
 
           // Info section
           _buildSection(
-            title: 'Information',
+            context,
+            title: AppLocalizations.of(context)!.information,
             children: [
               const ListTile(
                 leading: Icon(Icons.info_outline, color: AppTheme.accentColor),
@@ -248,7 +254,8 @@ class TranslationSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildSection(
+    BuildContext context, {
     required String title,
     required List<Widget> children,
   }) {
@@ -280,26 +287,26 @@ class TranslationSettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${settings.provider.displayName} API Key'),
+        title: Text('${settings.provider.displayName} ${AppLocalizations.of(context)!.apiKey}'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'API Key',
-            hintText: 'Enter your API key',
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.apiKey,
+            hintText: AppLocalizations.of(context)!.enterApiKey,
           ),
           obscureText: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               ref.read(translationSettingsProvider.notifier).setApiKey(controller.text);
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -337,10 +344,10 @@ class _TranslationTestWidgetState extends ConsumerState<_TranslationTestWidget> 
         children: [
           TextField(
             controller: _controller,
-            decoration: const InputDecoration(
-              labelText: 'Text to translate',
-              hintText: 'Enter text to test translation',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.enterTextToTokenize,
+              hintText: AppLocalizations.of(context)!.enterTextToTokenize,
+              border: const OutlineInputBorder(),
             ),
             maxLines: 3,
             enabled: widget.enabled,
@@ -359,7 +366,7 @@ class _TranslationTestWidgetState extends ConsumerState<_TranslationTestWidget> 
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.translate),
-            label: const Text('Translate'),
+            label: Text(AppLocalizations.of(context)!.translation),
           ),
           if (translationState.result != null) ...[
             const SizedBox(height: 16),

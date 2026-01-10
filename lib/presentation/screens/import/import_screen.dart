@@ -9,6 +9,7 @@ import 'package:native_tavern/data/repositories/world_info_repository.dart';
 import 'package:native_tavern/domain/services/import_service.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Import service provider
 final importServiceProvider = Provider<ImportService>((ref) {
@@ -69,7 +70,7 @@ class ImportNotifier extends StateNotifier<ImportState> {
         }
       }
     } catch (e) {
-      state = state.copyWith(error: 'Failed to pick file: $e');
+      state = state.copyWith(error: 'Failed to pick file: $e'); // Error already handled in UI
     }
   }
 
@@ -91,7 +92,7 @@ class ImportNotifier extends StateNotifier<ImportState> {
           format = ImportFormat.json;
           break;
         default:
-          throw Exception('Unsupported file format: $extension');
+          throw Exception('Unsupported file format: $extension'); // Will be caught and shown
       }
 
       Character? character;
@@ -149,13 +150,13 @@ class ImportScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import Character'),
+        title: Text(AppLocalizations.of(context)!.importCharacter),
         actions: [
           if (importState.previewCharacter != null)
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => ref.read(importStateProvider.notifier).clear(),
-              tooltip: 'Clear',
+              tooltip: AppLocalizations.of(context)!.clear,
             ),
         ],
       ),
@@ -210,7 +211,7 @@ class ImportScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to import: $e'),
+            content: Text(AppLocalizations.of(context)!.failedToImport(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -321,7 +322,7 @@ class _FilePickerView extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: onPickFile,
                       icon: const Icon(Icons.folder_open),
-                      label: const Text('Browse Files'),
+                      label: Text(AppLocalizations.of(context)!.browseFiles),
                     ),
                   ],
                 ],
@@ -362,7 +363,7 @@ class _FilePickerView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Supported Formats',
+          AppLocalizations.of(context)!.supportedFormats,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: AppTheme.accentColor,
               ),
@@ -370,20 +371,20 @@ class _FilePickerView extends StatelessWidget {
         const SizedBox(height: 12),
         _FormatTile(
           icon: Icons.image,
-          title: 'PNG Character Card',
-          description: 'Character data embedded in image metadata',
+          title: AppLocalizations.of(context)!.pngCharacterCard,
+          description: AppLocalizations.of(context)!.characterDataEmbeddedInImage,
         ),
         const SizedBox(height: 8),
         _FormatTile(
           icon: Icons.archive,
-          title: 'CharX Archive',
-          description: 'ZIP archive with character data and assets',
+          title: AppLocalizations.of(context)!.charxArchive,
+          description: AppLocalizations.of(context)!.zipArchiveWithCharacterData,
         ),
         const SizedBox(height: 8),
         _FormatTile(
           icon: Icons.code,
-          title: 'JSON',
-          description: 'Plain character card JSON file',
+          title: AppLocalizations.of(context)!.json,
+          description: AppLocalizations.of(context)!.plainCharacterCardJson,
         ),
       ],
     );
@@ -522,7 +523,7 @@ class _CharacterPreview extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tags',
+                      AppLocalizations.of(context)!.tags,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: AppTheme.accentColor,
                           ),
@@ -587,7 +588,7 @@ class _CharacterPreview extends StatelessWidget {
                         Icon(Icons.format_list_bulleted, size: 20, color: AppTheme.accentColor),
                         const SizedBox(width: 8),
                         Text(
-                          'Alternate Greetings (${character.alternateGreetings.length})',
+                          AppLocalizations.of(context)!.alternateGreetingsCount(character.alternateGreetings.length),
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 color: AppTheme.accentColor,
                               ),
@@ -623,7 +624,7 @@ class _CharacterPreview extends StatelessWidget {
                         Icon(Icons.auto_stories, size: 20, color: AppTheme.accentColor),
                         const SizedBox(width: 8),
                         Text(
-                          'Embedded Lorebook (${character.characterBook!.entries.length} entries)',
+                          AppLocalizations.of(context)!.embeddedLorebookEntries(character.characterBook!.entries.length),
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 color: AppTheme.accentColor,
                               ),
@@ -665,7 +666,7 @@ class _CharacterPreview extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onImport,
             icon: const Icon(Icons.download),
-            label: const Text('Import Character'),
+            label: Text(AppLocalizations.of(context)!.importCharacter),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.all(16),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/cfg_scale.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/cfg_scale_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
@@ -17,23 +18,24 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final settings = ref.watch(cfgScaleSettingsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CFG Scale'),
+        title: Text(l10n.cfgScale),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () => _showHelpDialog(context),
-            tooltip: 'Help',
+            tooltip: l10n.help,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               ref.read(cfgScaleSettingsProvider.notifier).resetToDefaults();
             },
-            tooltip: 'Reset to Defaults',
+            tooltip: l10n.resetToDefaults,
           ),
         ],
       ),
@@ -42,8 +44,8 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
         children: [
           // Enable toggle
           SwitchListTile(
-            title: const Text('Enable CFG Scale'),
-            subtitle: const Text('Classifier-Free Guidance for text generation'),
+            title: Text(l10n.enableCfgScale),
+            subtitle: Text(l10n.cfgScaleDescription),
             value: settings.enabled,
             onChanged: (value) {
               ref.read(cfgScaleSettingsProvider.notifier).setEnabled(value);
@@ -52,7 +54,7 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
           const Divider(height: 32),
 
           // Global settings
-          _buildSectionHeader(context, 'Global Settings'),
+          _buildSectionHeader(context, l10n.globalSettings),
           const SizedBox(height: 16),
           _GuidanceScaleSlider(
             value: settings.globalGuidanceScale,
@@ -64,8 +66,8 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _PromptTextField(
-            label: 'Negative Prompt',
-            hint: 'Text to steer the model away from',
+            label: l10n.negativePrompt,
+            hint: l10n.textToSteerAwayFrom,
             value: settings.globalNegativePrompt,
             enabled: settings.enabled,
             onChanged: (value) {
@@ -74,8 +76,8 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _PromptTextField(
-            label: 'Positive Prompt (Optional)',
-            hint: 'Text to enhance in the output',
+            label: l10n.positivePromptOptional,
+            hint: l10n.textToEnhanceInOutput,
             value: settings.globalPositivePrompt,
             enabled: settings.enabled,
             onChanged: (value) {
@@ -118,20 +120,13 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'About CFG Scale',
+                        l10n.aboutCfgScale,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'CFG (Classifier-Free Guidance) Scale controls how strongly the model '
-                    'follows the negative prompt to avoid certain content or styles.\n\n'
-                    '• Scale 1.0 = No effect (default)\n'
-                    '• Scale 1.5-3.0 = Subtle guidance\n'
-                    '• Scale 3.0-7.0 = Moderate guidance\n'
-                    '• Scale 7.0+ = Strong guidance (may affect coherence)',
-                  ),
+                  Text(l10n.aboutCfgScaleDescription),
                 ],
               ),
             ),
@@ -152,33 +147,18 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
   }
 
   void _showHelpDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('CFG Scale Help'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Classifier-Free Guidance (CFG) Scale is a technique that allows you to '
-            'guide the AI model\'s output by specifying what you want to avoid.\n\n'
-            '**How it works:**\n'
-            'The model generates two outputs - one with your prompt and one with the '
-            'negative prompt. The final output is adjusted to move away from the '
-            'negative prompt direction.\n\n'
-            '**Settings Priority:**\n'
-            '1. Chat-specific settings (highest)\n'
-            '2. Character-specific settings\n'
-            '3. Global settings (lowest)\n\n'
-            '**Tips:**\n'
-            '• Start with low values (1.5-2.0) and increase gradually\n'
-            '• Use specific negative prompts for better results\n'
-            '• High values may cause repetition or incoherence\n'
-            '• Not all AI backends support CFG Scale',
-          ),
+        title: Text(l10n.cfgScaleHelp),
+        content: SingleChildScrollView(
+          child: Text(l10n.cfgScaleHelpContent),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -207,7 +187,7 @@ class _GuidanceScaleSlider extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Guidance Scale',
+              AppLocalizations.of(context).guidanceScale,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             Container(
@@ -365,7 +345,7 @@ class _CharacterCFGSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Character Settings',
+          AppLocalizations.of(context).characterSettings,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: AppTheme.accentColor,
                 fontWeight: FontWeight.bold,
@@ -373,8 +353,8 @@ class _CharacterCFGSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         SwitchListTile(
-          title: const Text('Use Character-Specific Settings'),
-          subtitle: const Text('Override global settings for this character'),
+          title: Text(AppLocalizations.of(context).useCharacterSpecificSettings),
+          subtitle: Text(AppLocalizations.of(context).overrideGlobalForCharacter),
           value: charSettings.useCharacterSettings,
           onChanged: globalEnabled
               ? (value) {
@@ -398,8 +378,8 @@ class _CharacterCFGSection extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _PromptTextField(
-            label: 'Character Negative Prompt',
-            hint: 'Override global negative prompt',
+            label: AppLocalizations.of(context).characterNegativePrompt,
+            hint: AppLocalizations.of(context).overrideGlobalNegativePrompt,
             value: charSettings.negativePrompt ?? '',
             enabled: globalEnabled,
             onChanged: (value) {
@@ -426,6 +406,7 @@ class _ChatCFGSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final chatSettings = ref.watch(chatCFGSettingsProvider(chatId));
 
     return Column(
@@ -435,7 +416,7 @@ class _ChatCFGSection extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Chat Settings',
+              l10n.chatSettings,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppTheme.accentColor,
                     fontWeight: FontWeight.bold,
@@ -447,14 +428,14 @@ class _ChatCFGSection extends ConsumerWidget {
                       ref.read(chatCFGSettingsProvider(chatId).notifier).clearSettings();
                     }
                   : null,
-              child: const Text('Clear'),
+              child: Text(l10n.clear),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
-          'These settings override global and character settings for this chat only.',
-          style: TextStyle(color: Colors.grey),
+        Text(
+          l10n.chatSettingsDescription,
+          style: const TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 16),
         _GuidanceScaleSlider(
@@ -467,8 +448,8 @@ class _ChatCFGSection extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _PromptTextField(
-          label: 'Chat Negative Prompt',
-          hint: 'Override for this chat',
+          label: l10n.chatNegativePrompt,
+          hint: l10n.overrideForThisChat,
           value: chatSettings.negativePrompt ?? '',
           enabled: globalEnabled,
           onChanged: (value) {
@@ -477,8 +458,8 @@ class _ChatCFGSection extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _PromptTextField(
-          label: 'Chat Positive Prompt',
-          hint: 'Enhancement for this chat',
+          label: l10n.chatPositivePrompt,
+          hint: l10n.enhancementForThisChat,
           value: chatSettings.positivePrompt ?? '',
           enabled: globalEnabled,
           onChanged: (value) {
@@ -488,14 +469,14 @@ class _ChatCFGSection extends ConsumerWidget {
         const SizedBox(height: 16),
         DropdownButtonFormField<PromptCombineMode>(
           value: chatSettings.promptCombineMode,
-          decoration: const InputDecoration(
-            labelText: 'Prompt Combine Mode',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.promptCombineMode,
+            border: const OutlineInputBorder(),
           ),
           items: PromptCombineMode.values.map((mode) {
             return DropdownMenuItem(
               value: mode,
-              child: Text(_getCombineModeLabel(mode)),
+              child: Text(_getCombineModeLabel(context, mode)),
             );
           }).toList(),
           onChanged: globalEnabled
@@ -510,14 +491,15 @@ class _ChatCFGSection extends ConsumerWidget {
     );
   }
 
-  String _getCombineModeLabel(PromptCombineMode mode) {
+  String _getCombineModeLabel(BuildContext context, PromptCombineMode mode) {
+    final l10n = AppLocalizations.of(context);
     switch (mode) {
       case PromptCombineMode.replace:
-        return 'Replace (use chat prompt only)';
+        return l10n.replaceChatPromptOnly;
       case PromptCombineMode.prepend:
-        return 'Prepend (chat + global)';
+        return l10n.prependChatPlusGlobal;
       case PromptCombineMode.append:
-        return 'Append (global + chat)';
+        return l10n.appendGlobalPlusChat;
     }
   }
 }
