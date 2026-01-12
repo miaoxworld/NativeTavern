@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/data/models/character.dart';
@@ -462,6 +463,17 @@ class _SectionCard extends StatefulWidget {
 class _SectionCardState extends State<_SectionCard> {
   bool _expanded = false;
 
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: widget.content));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${l10n.copiedToClipboard}: ${widget.title}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -471,38 +483,46 @@ class _SectionCardState extends State<_SectionCard> {
         ? widget.content
         : '${widget.content.substring(0, widget.content.length.clamp(0, 500))}...';
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(widget.icon, size: 20, color: AppTheme.primaryColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.primaryColor,
-                        ),
+    return GestureDetector(
+      onLongPress: _copyToClipboard,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(widget.icon, size: 20, color: AppTheme.primaryColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppTheme.primaryColor,
+                          ),
+                    ),
                   ),
-                ),
-                if (shouldShowExpand)
                   IconButton(
-                    icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-                    onPressed: () => setState(() => _expanded = !_expanded),
-                    tooltip: _expanded ? l10n.showLess : l10n.showMore,
+                    icon: const Icon(Icons.copy, size: 18),
+                    onPressed: _copyToClipboard,
+                    tooltip: l10n.copiedToClipboard,
                   ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              displayContent,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+                  if (shouldShowExpand)
+                    IconButton(
+                      icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+                      onPressed: () => setState(() => _expanded = !_expanded),
+                      tooltip: _expanded ? l10n.showLess : l10n.showMore,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                displayContent,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -513,6 +533,31 @@ class _AlternateGreetingsCard extends StatelessWidget {
   final List<String> greetings;
 
   const _AlternateGreetingsCard({required this.greetings});
+
+  void _copyGreeting(BuildContext context, String greeting, int index) {
+    Clipboard.setData(ClipboardData(text: greeting));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${l10n.copiedToClipboard}: ${l10n.greetingNumber(index + 1)}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _copyAllGreetings(BuildContext context) {
+    final allText = greetings.asMap().entries
+        .map((e) => '--- Greeting ${e.key + 1} ---\n${e.value}')
+        .join('\n\n');
+    Clipboard.setData(ClipboardData(text: allText));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${l10n.copiedToClipboard}: ${l10n.alternateGreetingsCount(greetings.length)}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -527,41 +572,64 @@ class _AlternateGreetingsCard extends StatelessWidget {
               children: [
                 const Icon(Icons.waving_hand, size: 20, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                Text(
-                  l10n.alternateGreetingsCount(greetings.length),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppTheme.primaryColor,
-                      ),
+                Expanded(
+                  child: Text(
+                    l10n.alternateGreetingsCount(greetings.length),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.primaryColor,
+                        ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy_all, size: 18),
+                  onPressed: () => _copyAllGreetings(context),
+                  tooltip: l10n.copiedToClipboard,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             ...greetings.asMap().entries.map((entry) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.darkSurface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.darkDivider),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.greetingNumber(entry.key + 1),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppTheme.textMuted,
+              child: GestureDetector(
+                onLongPress: () => _copyGreeting(context, entry.value, entry.key),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.darkSurface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.darkDivider),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.greetingNumber(entry.key + 1),
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppTheme.textMuted,
+                                  ),
+                            ),
                           ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      entry.value.length > 200
-                          ? '${entry.value.substring(0, 200)}...'
-                          : entry.value,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                          IconButton(
+                            icon: const Icon(Icons.copy, size: 14),
+                            onPressed: () => _copyGreeting(context, entry.value, entry.key),
+                            tooltip: l10n.copiedToClipboard,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        entry.value.length > 200
+                            ? '${entry.value.substring(0, 200)}...'
+                            : entry.value,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )),
@@ -576,6 +644,18 @@ class _CharacterBookCard extends StatelessWidget {
   final CharacterBook characterBook;
 
   const _CharacterBookCard({required this.characterBook});
+
+  void _copyEntry(BuildContext context, CharacterBookEntry entry) {
+    final text = 'Name: ${entry.name}\nKeys: ${entry.keys.join(", ")}\nContent: ${entry.content}';
+    Clipboard.setData(ClipboardData(text: text));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${l10n.copiedToClipboard}: ${entry.name.isNotEmpty ? entry.name : entry.keys.join(", ")}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -628,69 +708,79 @@ class _CharacterBookCard extends StatelessWidget {
             const SizedBox(height: 8),
             ...characterBook.entries.take(5).map((entry) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: entry.enabled ? AppTheme.darkSurface : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: entry.enabled ? AppTheme.primaryColor.withValues(alpha: 0.3) : AppTheme.darkDivider,
+              child: GestureDetector(
+                onLongPress: () => _copyEntry(context, entry),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: entry.enabled ? AppTheme.darkSurface : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: entry.enabled ? AppTheme.primaryColor.withValues(alpha: 0.3) : AppTheme.darkDivider,
+                    ),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          entry.enabled ? Icons.check_circle : Icons.cancel,
-                          size: 14,
-                          color: entry.enabled ? Colors.green : AppTheme.textMuted,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            entry.name.isNotEmpty ? entry.name : entry.keys.join(', '),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: entry.enabled ? null : AppTheme.textMuted,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            entry.enabled ? Icons.check_circle : Icons.cancel,
+                            size: 14,
+                            color: entry.enabled ? Colors.green : AppTheme.textMuted,
                           ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              entry.name.isNotEmpty ? entry.name : entry.keys.join(', '),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: entry.enabled ? null : AppTheme.textMuted,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.copy, size: 14),
+                            onPressed: () => _copyEntry(context, entry),
+                            tooltip: l10n.copiedToClipboard,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                      if (entry.keys.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 2,
+                          children: entry.keys.take(5).map((key) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              key,
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                          )).toList(),
                         ),
                       ],
-                    ),
-                    if (entry.keys.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 2,
-                        children: entry.keys.take(5).map((key) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            key,
-                            style: Theme.of(context).textTheme.labelSmall,
-                          ),
-                        )).toList(),
+                      Text(
+                        entry.content.length > 100
+                            ? '${entry.content.substring(0, 100)}...'
+                            : entry.content,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.textMuted,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    const SizedBox(height: 4),
-                    Text(
-                      entry.content.length > 100
-                          ? '${entry.content.substring(0, 100)}...'
-                          : entry.content,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textMuted,
-                          ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             )),

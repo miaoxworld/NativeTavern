@@ -303,6 +303,21 @@ LazyDatabase _openConnection() {
     // Ensure directory exists
     await file.parent.create(recursive: true);
     
-    return NativeDatabase.createInBackground(file);
+    // Use foreground database (not background isolate) for reliable writes
+    // Background isolate can be killed by OS when app goes to background,
+    // causing data loss
+    final db = NativeDatabase(
+      file,
+      setup: (database) {
+        // Enable WAL mode for better concurrency
+        database.execute('PRAGMA journal_mode=WAL;');
+        // Set synchronous mode to FULL to ensure data is written to disk
+        database.execute('PRAGMA synchronous=FULL;');
+        // Enable foreign keys
+        database.execute('PRAGMA foreign_keys=ON;');
+      },
+    );
+    
+    return db;
   });
 }

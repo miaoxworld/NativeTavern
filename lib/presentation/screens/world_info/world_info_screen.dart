@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
@@ -750,13 +751,29 @@ class _WorldInfoEntryCard extends StatelessWidget {
     required this.onToggle,
   });
 
+  void _copyToClipboard(BuildContext context) {
+    final text = 'Keys: ${entry.keys.join(", ")}\n'
+        '${entry.comment.isNotEmpty ? "Comment: ${entry.comment}\n" : ""}'
+        'Content: ${entry.content}';
+    Clipboard.setData(ClipboardData(text: text));
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${l10n!.copiedToClipboard}: ${entry.keys.join(", ")}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: AppTheme.darkCard,
       child: InkWell(
         onTap: onTap,
+        onLongPress: () => _copyToClipboard(context),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -776,6 +793,11 @@ class _WorldInfoEntryCard extends StatelessWidget {
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       )).toList(),
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    onPressed: () => _copyToClipboard(context),
+                    tooltip: l10n.copiedToClipboard,
                   ),
                   Switch(
                     value: entry.enabled,
@@ -810,9 +832,9 @@ class _WorldInfoEntryCard extends StatelessWidget {
                 Row(
                   children: [
                     if (entry.constant)
-                      _buildBadge(AppLocalizations.of(context)!.constant, Colors.orange),
+                      _buildBadge(l10n.constant, Colors.orange),
                     if (entry.selective)
-                      _buildBadge(AppLocalizations.of(context)!.selective, Colors.purple),
+                      _buildBadge(l10n.selective, Colors.purple),
                   ],
                 ),
               ],

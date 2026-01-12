@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
@@ -146,6 +147,15 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.version),
             subtitle: const Text('1.0.0 (Build 1)'),
+            onLongPress: () {
+              Clipboard.setData(const ClipboardData(text: '1.0.0 (Build 1)'));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${l10n.copiedToClipboard}: 1.0.0 (Build 1)'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.description),
@@ -191,6 +201,16 @@ class _PersonaTile extends ConsumerWidget {
       ),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => context.push(AppRoutes.personas),
+      onLongPress: () {
+        final personaName = activePersonaAsync.valueOrNull?.name ?? l10n.default_;
+        Clipboard.setData(ClipboardData(text: personaName));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.copiedToClipboard}: $personaName'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
     );
   }
 }
@@ -263,6 +283,15 @@ class _LanguageTile extends ConsumerWidget {
       subtitle: Text(currentLanguage),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => _showLanguageSelector(context, ref),
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: currentLanguage));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.copiedToClipboard}: $currentLanguage'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
     );
   }
 

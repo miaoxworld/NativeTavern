@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/instruct_template.dart';
@@ -252,12 +253,24 @@ class _LLMProviderTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(llmConfigProvider);
+    final providerName = _providerName(config.provider);
 
     return ListTile(
       leading: const Icon(Icons.cloud),
       title: Text(AppLocalizations.of(context)!.provider),
-      subtitle: Text(_providerName(config.provider)),
+      subtitle: Text(providerName),
       onTap: () => _showProviderPicker(context, ref, config),
+      onLongPress: () => _copyToClipboard(context, providerName),
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${AppLocalizations.of(context)!.copiedToClipboard}: $text'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -366,6 +379,17 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
         onPressed: () => setState(() => _obscureText = !_obscureText),
       ),
       onTap: () => _showApiKeyDialog(context, ref, config),
+      onLongPress: config.apiKey.isNotEmpty ? () => _copyToClipboard(context, config.apiKey) : null,
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.copiedToClipboard),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -415,6 +439,17 @@ class _ApiUrlTile extends ConsumerWidget {
       title: Text(AppLocalizations.of(context)!.apiUrl),
       subtitle: Text(config.apiUrl),
       onTap: () => _showApiUrlDialog(context, ref, config),
+      onLongPress: config.apiUrl.isNotEmpty ? () => _copyToClipboard(context, config.apiUrl) : null,
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${AppLocalizations.of(context)!.copiedToClipboard}: $text'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -710,12 +745,24 @@ class _MaxTokensTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(llmConfigProvider);
+    final tokenValue = '${config.maxTokens}';
 
     return ListTile(
       leading: const Icon(Icons.format_list_numbered),
       title: Text(AppLocalizations.of(context)!.maxTokens),
-      subtitle: Text('${config.maxTokens}'),
+      subtitle: Text(tokenValue),
       onTap: () => _showMaxTokensDialog(context, ref, config),
+      onLongPress: () => _copyToClipboard(context, tokenValue),
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${AppLocalizations.of(context)!.copiedToClipboard}: $text'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 

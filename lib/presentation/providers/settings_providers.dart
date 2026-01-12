@@ -39,6 +39,7 @@ final llmServiceProvider = Provider<LLMService>((ref) {
 class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   final SharedPreferences _prefs;
   static const _configKey = 'llm_config';
+  static const _providerConfigKeyPrefix = 'llm_provider_config_';
 
   LLMConfigNotifier(this._prefs) : super(_defaultConfig()) {
     _loadConfig();
@@ -60,6 +61,87 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
     );
   }
 
+  /// Get default URL for a provider
+  static String _getDefaultUrl(LLMProvider provider) {
+    switch (provider) {
+      case LLMProvider.openai:
+        return 'https://api.openai.com/v1';
+      case LLMProvider.claude:
+        return 'https://api.anthropic.com';
+      case LLMProvider.openRouter:
+        return 'https://openrouter.ai/api/v1';
+      case LLMProvider.gemini:
+        return 'https://generativelanguage.googleapis.com/v1';
+      case LLMProvider.ollama:
+        return 'http://localhost:11434';
+      case LLMProvider.koboldCpp:
+        return 'http://localhost:5001';
+    }
+  }
+
+  /// Get default model for a provider
+  static String _getDefaultModel(LLMProvider provider) {
+    switch (provider) {
+      case LLMProvider.openai:
+        return 'gpt-4o';
+      case LLMProvider.claude:
+        return 'claude-3-5-sonnet-20241022';
+      case LLMProvider.openRouter:
+        return 'anthropic/claude-3.5-sonnet';
+      case LLMProvider.gemini:
+        return 'gemini-1.5-pro';
+      case LLMProvider.ollama:
+        return 'llama3.2';
+      case LLMProvider.koboldCpp:
+        return '';
+    }
+  }
+
+  /// Get the storage key for a provider's configuration
+  String _getProviderConfigKey(LLMProvider provider) {
+    return '$_providerConfigKeyPrefix${provider.name}';
+  }
+
+  /// Save the current provider's connection settings (apiKey, apiUrl, model)
+  Future<void> _saveCurrentProviderConfig() async {
+    final key = _getProviderConfigKey(state.provider);
+    final providerConfig = {
+      'apiKey': state.apiKey,
+      'apiUrl': state.apiUrl,
+      'model': state.model,
+    };
+    await _prefs.setString(key, jsonEncode(providerConfig));
+    _log('Saved config for provider ${state.provider.name}: apiUrl=${state.apiUrl}, model=${state.model}');
+  }
+
+  /// Load a provider's connection settings, or return defaults if none exist
+  Map<String, String> _loadProviderConfig(LLMProvider provider) {
+    final key = _getProviderConfigKey(provider);
+    final json = _prefs.getString(key);
+    
+    if (json != null) {
+      try {
+        final map = jsonDecode(json) as Map<String, dynamic>;
+        _log('Loaded saved config for provider ${provider.name}: apiUrl=${map['apiUrl']}, model=${map['model']}');
+        return {
+          'apiKey': map['apiKey'] as String? ?? '',
+          'apiUrl': map['apiUrl'] as String? ?? _getDefaultUrl(provider),
+          'model': map['model'] as String? ?? _getDefaultModel(provider),
+        };
+      } catch (e) {
+        _log('Failed to load config for provider ${provider.name}: $e');
+      }
+    }
+    
+    // Return defaults if no saved config
+    _log('Using default config for provider ${provider.name}');
+    return {
+      'apiKey': '',
+      'apiUrl': _getDefaultUrl(provider),
+      'model': _getDefaultModel(provider),
+    };
+  }
+
   void _loadConfig() {
     final json = _prefs.getString(_configKey);
     if (json != null) {
@@ -77,43 +159,26 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   }
 
   void updateProvider(LLMProvider provider) {
-    // Set default URL and model for each provider
-    String defaultUrl;
-    String defaultModel;
-    
-    switch (provider) {
-      case LLMProvider.openai:
-        defaultUrl = 'https://api.openai.com/v1';
-        defaultModel = 'gpt-4o';
-        break;
-      case LLMProvider.claude:
-        defaultUrl = 'https://api.anthropic.com';
-        defaultModel = 'claude-3-5-sonnet-20241022';
-        break;
-      case LLMProvider.openRouter:
-        defaultUrl = 'https://openrouter.ai/api/v1';
-        defaultModel = 'anthropic/claude-3.5-sonnet';
-        break;
-      case LLMProvider.gemini:
-        defaultUrl = 'https://generativelanguage.googleapis.com/v1';
-        defaultModel = 'gemini-1.5-pro';
-        break;
-      case LLMProvider.ollama:
-        defaultUrl = 'http://localhost:11434';
-        defaultModel = 'llama3.2';
-        break;
-      case LLMProvider.koboldCpp:
-        defaultUrl = 'http://localhost:5001';
-        defaultModel = '';
-        break;
+    // Don't do anything if switching to the same provider
+    if (provider == state.provider) {
+      return;
     }
+
+    // Save current provider's connection settings first
+    _saveCurrentProviderConfig();
+    
+    // Load the new provider's saved settings (or defaults)
+    final newProviderConfig = _loadProviderConfig(provider);
 
     state = state.copyWith(
       provider: provider,
-      apiUrl: defaultUrl,
-      model: defaultModel,
+      apiKey: newProviderConfig['apiKey'],
+      apiUrl: newProviderConfig['apiUrl'],
+      model: newProviderConfig['model'],
     );
     _saveConfig();
+    
+    _log('Switched to provider ${provider.name}: apiUrl=${state.apiUrl}, model=${state.model}');
   }
 
   void updateApiKey(String apiKey) {

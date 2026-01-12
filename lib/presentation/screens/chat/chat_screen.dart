@@ -94,6 +94,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  /// Scroll to bottom immediately without animation (for initial load)
+  void _scrollToBottomImmediate() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
   /// Check if API is properly configured
   bool _isApiConfigured(LLMConfig config) {
     // Local providers (Ollama, KoboldCpp) don't need API key
@@ -493,10 +502,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final llmConfig = ref.watch(llmConfigProvider);
     final isConfigured = _isApiConfigured(llmConfig);
     
-    // Scroll to bottom when new messages arrive
+    // Scroll to bottom when new messages arrive or when chat finishes loading
     ref.listen(activeChatProvider, (previous, next) {
-      if (previous?.messages.length != next.messages.length) {
-        _scrollToBottom();
+      // Scroll to bottom when:
+      // 1. New messages are added during conversation
+      // 2. Chat finishes loading (transitions from loading to loaded with messages)
+      final messageCountChanged = previous?.messages.length != next.messages.length;
+      final loadingFinished = previous?.isLoading == true &&
+                              next.isLoading == false &&
+                              next.messages.isNotEmpty;
+      
+      if (messageCountChanged || loadingFinished) {
+        _scrollToBottomImmediate();
       }
     });
 

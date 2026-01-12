@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:native_tavern/data/models/character.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/data/repositories/world_info_repository.dart';
@@ -52,6 +53,7 @@ class ImportState {
 /// Import state notifier
 class ImportNotifier extends StateNotifier<ImportState> {
   final ImportService _importService;
+  final ImagePicker _imagePicker = ImagePicker();
 
   ImportNotifier(this._importService) : super(const ImportState());
 
@@ -71,6 +73,30 @@ class ImportNotifier extends StateNotifier<ImportState> {
       }
     } catch (e) {
       state = state.copyWith(error: 'Failed to pick file: $e'); // Error already handled in UI
+    }
+  }
+
+  /// Pick character card image from photo gallery (for mobile)
+  Future<void> pickFromGallery() async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 4096,
+        maxHeight: 4096,
+      );
+
+      if (image != null) {
+        await loadFile(image.path);
+      } else {
+        state = state.copyWith(isLoading: false);
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to pick from gallery: $e',
+      );
     }
   }
 
@@ -183,6 +209,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               isLoading: importState.isLoading,
               error: importState.error,
               onPickFile: () => ref.read(importStateProvider.notifier).pickFile(),
+              onPickFromGallery: () => ref.read(importStateProvider.notifier).pickFromGallery(),
             ),
     );
   }
@@ -284,15 +311,21 @@ class _FilePickerView extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final VoidCallback onPickFile;
+  final VoidCallback onPickFromGallery;
 
   const _FilePickerView({
     required this.isLoading,
     required this.error,
     required this.onPickFile,
+    required this.onPickFromGallery,
   });
+
+  /// Check if running on mobile platform
+  bool get _isMobile => Platform.isIOS || Platform.isAndroid;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -333,11 +366,32 @@ class _FilePickerView extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: onPickFile,
-                      icon: const Icon(Icons.folder_open),
-                      label: Text(AppLocalizations.of(context)!.browseFiles),
-                    ),
+                    // On mobile, show both options
+                    if (_isMobile) ...[
+                      ElevatedButton.icon(
+                        onPressed: onPickFromGallery,
+                        icon: const Icon(Icons.photo_library),
+                        label: Text(l10n.chooseFromGallery),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(200, 48),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: onPickFile,
+                        icon: const Icon(Icons.folder_open),
+                        label: Text(l10n.browseFiles),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(200, 48),
+                        ),
+                      ),
+                    ] else
+                      // On desktop, just show file picker
+                      ElevatedButton.icon(
+                        onPressed: onPickFile,
+                        icon: const Icon(Icons.folder_open),
+                        label: Text(l10n.browseFiles),
+                      ),
                   ],
                 ],
               ),
