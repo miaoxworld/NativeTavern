@@ -240,13 +240,13 @@ class PromptManagerConfig {
           order: 4,
         ),
         PromptSection(
-          type: PromptSectionType.worldInfo,
-          name: PromptSection.getDisplayName(PromptSectionType.worldInfo),
+          type: PromptSectionType.exampleMessages,
+          name: PromptSection.getDisplayName(PromptSectionType.exampleMessages),
           order: 5,
         ),
         PromptSection(
-          type: PromptSectionType.exampleMessages,
-          name: PromptSection.getDisplayName(PromptSectionType.exampleMessages),
+          type: PromptSectionType.worldInfo,
+          name: PromptSection.getDisplayName(PromptSectionType.worldInfo),
           order: 6,
         ),
         PromptSection(
@@ -255,9 +255,19 @@ class PromptManagerConfig {
           order: 7,
         ),
         PromptSection(
+          type: PromptSectionType.chatHistory,
+          name: PromptSection.getDisplayName(PromptSectionType.chatHistory),
+          order: 8,
+        ),
+        PromptSection(
+          type: PromptSectionType.worldInfoAfter,
+          name: PromptSection.getDisplayName(PromptSectionType.worldInfoAfter),
+          order: 9,
+        ),
+        PromptSection(
           type: PromptSectionType.postHistoryInstructions,
           name: PromptSection.getDisplayName(PromptSectionType.postHistoryInstructions),
-          order: 8,
+          order: 10,
           content: PromptSection.getDefaultContent(PromptSectionType.postHistoryInstructions),
         ),
       ],
@@ -485,6 +495,7 @@ class PromptManagerConfig {
     }
 
     // Add any missing built-in section types with default values (disabled)
+    // Order: worldInfo before chat, chatHistory, worldInfoAfter after chat
     final builtInTypes = [
       PromptSectionType.systemPrompt,
       PromptSectionType.persona,
@@ -494,6 +505,8 @@ class PromptManagerConfig {
       PromptSectionType.exampleMessages,
       PromptSectionType.worldInfo,
       PromptSectionType.authorNote,
+      PromptSectionType.chatHistory,
+      PromptSectionType.worldInfoAfter,
       PromptSectionType.postHistoryInstructions,
     ];
     

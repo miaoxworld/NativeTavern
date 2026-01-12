@@ -85,6 +85,10 @@ class WorldInfoNotifier extends StateNotifier<AsyncValue<List<WorldInfo>>> {
     required String content,
     List<String>? secondaryKeys,
     String? comment,
+    WorldInfoPosition? position,
+    bool? constant,
+    bool? selective,
+    int? insertionOrder,
   }) async {
     final entry = await _repository.addEntry(
       worldInfoId: worldInfoId,
@@ -92,6 +96,10 @@ class WorldInfoNotifier extends StateNotifier<AsyncValue<List<WorldInfo>>> {
       content: content,
       secondaryKeys: secondaryKeys,
       comment: comment,
+      position: position,
+      constant: constant,
+      selective: selective,
+      insertionOrder: insertionOrder,
     );
     await _loadWorldInfos();
     return entry;

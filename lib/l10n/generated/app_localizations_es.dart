@@ -468,6 +468,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get maxTokens => 'Tokens máximos';
 
   @override
+  String get contextLength => 'Context Length';
+
+  @override
+  String get contextWindowSize => 'Context Window Size';
+
+  @override
+  String get contextLengthDescription =>
+      'Maximum number of tokens the model can process as input context.';
+
+  @override
   String get topP => 'Top P';
 
   @override
@@ -3399,4 +3409,48 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get errorLoadingSprites => 'Error loading sprites';
+
+  @override
+  String get insertionPosition => 'Insertion Position';
+
+  @override
+  String get beforeCharacterDefinition => 'Before Character Definition';
+
+  @override
+  String get afterCharacterDefinition => 'After Character Definition';
+
+  @override
+  String get beforeExampleMessages => 'Before Example Messages';
+
+  @override
+  String get afterExampleMessages => 'After Example Messages';
+
+  @override
+  String get beforeAuthorNote => 'Before Author\'s Note';
+
+  @override
+  String get afterAuthorNote => 'After Author\'s Note';
+
+  @override
+  String get atDepth => 'At Depth';
+
+  @override
+  String get beforeSystemPrompt => 'Before System Prompt';
+
+  @override
+  String get afterSystemPrompt => 'After System Prompt';
+
+  @override
+  String get insertionOrder => 'Insertion Order';
+
+  @override
+  String get lowerOrderInsertsFirst => 'Lower order values are inserted first';
+
+  @override
+  String get alwaysIncludeInPrompt =>
+      'Always include in prompt (ignore keywords)';
+
+  @override
+  String get requiresSecondaryKey =>
+      'Requires both primary AND secondary key to match';
 }

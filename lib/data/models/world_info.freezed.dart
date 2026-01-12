@@ -752,7 +752,7 @@ class _$WorldInfoEntryImpl implements _WorldInfoEntry {
       this.useGroupScoring = false,
       this.automationId = false,
       this.probability = 0,
-      this.position = WorldInfoPosition.beforeCharDefs,
+      this.position = WorldInfoPosition.before,
       this.depth = 0,
       this.group,
       this.groupWeight = 0,

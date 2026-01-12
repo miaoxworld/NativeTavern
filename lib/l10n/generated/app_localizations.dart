@@ -967,6 +967,24 @@ abstract class AppLocalizations {
   /// **'Max Tokens'**
   String get maxTokens;
 
+  /// Context length label
+  ///
+  /// In en, this message translates to:
+  /// **'Context Length'**
+  String get contextLength;
+
+  /// Context window size label
+  ///
+  /// In en, this message translates to:
+  /// **'Context Window Size'**
+  String get contextWindowSize;
+
+  /// Context length description
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum number of tokens the model can process as input context.'**
+  String get contextLengthDescription;
+
   /// Top P label
   ///
   /// In en, this message translates to:
@@ -6222,6 +6240,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading sprites'**
   String get errorLoadingSprites;
+
+  /// Insertion position label for world info entry
+  ///
+  /// In en, this message translates to:
+  /// **'Insertion Position'**
+  String get insertionPosition;
+
+  /// World info position: before character definition
+  ///
+  /// In en, this message translates to:
+  /// **'Before Character Definition'**
+  String get beforeCharacterDefinition;
+
+  /// World info position: after character definition
+  ///
+  /// In en, this message translates to:
+  /// **'After Character Definition'**
+  String get afterCharacterDefinition;
+
+  /// World info position: before example messages
+  ///
+  /// In en, this message translates to:
+  /// **'Before Example Messages'**
+  String get beforeExampleMessages;
+
+  /// World info position: after example messages
+  ///
+  /// In en, this message translates to:
+  /// **'After Example Messages'**
+  String get afterExampleMessages;
+
+  /// World info position: before author's note
+  ///
+  /// In en, this message translates to:
+  /// **'Before Author\'s Note'**
+  String get beforeAuthorNote;
+
+  /// World info position: after author's note
+  ///
+  /// In en, this message translates to:
+  /// **'After Author\'s Note'**
+  String get afterAuthorNote;
+
+  /// World info position: at specific depth
+  ///
+  /// In en, this message translates to:
+  /// **'At Depth'**
+  String get atDepth;
+
+  /// World info position: before system prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Before System Prompt'**
+  String get beforeSystemPrompt;
+
+  /// World info position: after system prompt
+  ///
+  /// In en, this message translates to:
+  /// **'After System Prompt'**
+  String get afterSystemPrompt;
+
+  /// Insertion order label for world info entry
+  ///
+  /// In en, this message translates to:
+  /// **'Insertion Order'**
+  String get insertionOrder;
+
+  /// Helper text for insertion order
+  ///
+  /// In en, this message translates to:
+  /// **'Lower order values are inserted first'**
+  String get lowerOrderInsertsFirst;
+
+  /// Helper text for constant toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Always include in prompt (ignore keywords)'**
+  String get alwaysIncludeInPrompt;
+
+  /// Helper text for selective toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Requires both primary AND secondary key to match'**
+  String get requiresSecondaryKey;
 }
 
 class _AppLocalizationsDelegate

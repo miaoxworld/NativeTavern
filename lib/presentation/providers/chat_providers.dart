@@ -1004,29 +1004,29 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
                 ? character!.systemPrompt
                 : PromptSection.getDefaultContent(PromptSectionType.systemPrompt));
         if (content.isNotEmpty) {
-          // Add world info before system prompt
-          final beforeEntries = groupedEntries[WorldInfoPosition.beforeSystemPrompt];
-          if (beforeEntries != null) {
-            for (final entry in beforeEntries) {
-              messages.add({
-                'role': role,
-                'content': '[${entry.comment.isNotEmpty ? entry.comment : "World Info"}]\n${processMacros(entry.content)}',
-              });
+          // Add world info before system prompt (using 'before' position as proxy)
+            final beforeEntries = groupedEntries[WorldInfoPosition.before];
+            if (beforeEntries != null) {
+              for (final entry in beforeEntries) {
+                messages.add({
+                  'role': role,
+                  'content': '[${entry.comment.isNotEmpty ? entry.comment : "World Info"}]\n${processMacros(entry.content)}',
+                });
+              }
             }
-          }
-          
-          messages.add({'role': role, 'content': processMacros(content)});
-          
-          // Add world info after system prompt
-          final afterEntries = groupedEntries[WorldInfoPosition.afterSystemPrompt];
-          if (afterEntries != null) {
-            for (final entry in afterEntries) {
-              messages.add({
-                'role': role,
-                'content': '[${entry.comment.isNotEmpty ? entry.comment : "World Info"}]\n${processMacros(entry.content)}',
-              });
+            
+            messages.add({'role': role, 'content': processMacros(content)});
+            
+            // Add world info after system prompt (using 'after' position as proxy)
+            final afterEntries = groupedEntries[WorldInfoPosition.after];
+            if (afterEntries != null) {
+              for (final entry in afterEntries) {
+                messages.add({
+                  'role': role,
+                  'content': '[${entry.comment.isNotEmpty ? entry.comment : "World Info"}]\n${processMacros(entry.content)}',
+                });
+              }
             }
-          }
         }
         break;
         
@@ -1044,7 +1044,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       case PromptSectionType.characterDescription:
         if (character != null && character.description.isNotEmpty) {
           // Add world info before character definitions
-          final beforeEntries = groupedEntries[WorldInfoPosition.beforeCharDefs];
+          final beforeEntries = groupedEntries[WorldInfoPosition.before];
           if (beforeEntries != null) {
             for (final entry in beforeEntries) {
               messages.add({
@@ -1078,7 +1078,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
           });
           
           // Add world info after character definitions
-          final afterEntries = groupedEntries[WorldInfoPosition.afterCharDefs];
+          final afterEntries = groupedEntries[WorldInfoPosition.after];
           if (afterEntries != null) {
             for (final entry in afterEntries) {
               messages.add({
@@ -1092,8 +1092,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         
       case PromptSectionType.exampleMessages:
         if (character != null && character.exampleMessages.isNotEmpty) {
-          // Add world info before examples
-          final beforeEntries = groupedEntries[WorldInfoPosition.beforeExample];
+          // Add world info before examples (using EMTop)
+          final beforeEntries = groupedEntries[WorldInfoPosition.EMTop];
           if (beforeEntries != null) {
             for (final entry in beforeEntries) {
               messages.add({
@@ -1108,8 +1108,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
             'content': 'Example dialogue:\n${processMacros(character.exampleMessages)}',
           });
           
-          // Add world info after examples
-          final afterEntries = groupedEntries[WorldInfoPosition.afterExample];
+          // Add world info after examples (using EMBottom)
+          final afterEntries = groupedEntries[WorldInfoPosition.EMBottom];
           if (afterEntries != null) {
             for (final entry in afterEntries) {
               messages.add({
@@ -1123,16 +1123,9 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         
       case PromptSectionType.worldInfo:
         // World info entries that don't have a specific position
+        // Only include entries with outlet position (all other positions are handled elsewhere)
         final generalEntries = worldInfoEntries.where((e) =>
-          e.position != WorldInfoPosition.atDepth &&
-          e.position != WorldInfoPosition.beforeSystemPrompt &&
-          e.position != WorldInfoPosition.afterSystemPrompt &&
-          e.position != WorldInfoPosition.beforeCharDefs &&
-          e.position != WorldInfoPosition.afterCharDefs &&
-          e.position != WorldInfoPosition.beforeExample &&
-          e.position != WorldInfoPosition.afterExample &&
-          e.position != WorldInfoPosition.beforeAuthorNote &&
-          e.position != WorldInfoPosition.afterAuthorNote
+          e.position == WorldInfoPosition.outlet
         ).toList();
         for (final entry in generalEntries) {
           messages.add({
@@ -1143,7 +1136,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         break;
         
       case PromptSectionType.worldInfoAfter:
-        final afterEntries = groupedEntries[WorldInfoPosition.afterCharDefs];
+        final afterEntries = groupedEntries[WorldInfoPosition.after];
         if (afterEntries != null) {
           for (final entry in afterEntries) {
             messages.add({
@@ -1156,7 +1149,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         
       case PromptSectionType.authorNote:
         // Author's note is handled separately with depth injection
-        final beforeEntries = groupedEntries[WorldInfoPosition.beforeAuthorNote];
+        // ANTop = before Author's Note
+        final beforeEntries = groupedEntries[WorldInfoPosition.ANTop];
         if (beforeEntries != null) {
           for (final entry in beforeEntries) {
             messages.add({
@@ -1165,7 +1159,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
             });
           }
         }
-        final afterEntries = groupedEntries[WorldInfoPosition.afterAuthorNote];
+        // ANBottom = after Author's Note
+        final afterEntries = groupedEntries[WorldInfoPosition.ANBottom];
         if (afterEntries != null) {
           for (final entry in afterEntries) {
             messages.add({

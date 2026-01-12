@@ -82,11 +82,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
+  /// Scroll to bottom with animation (for new messages)
+  /// With reverse: true ListView, position 0 is the bottom (newest messages)
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          0, // With reverse: true, position 0 is the bottom
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -95,10 +97,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   /// Scroll to bottom immediately without animation (for initial load)
+  /// With reverse: true ListView, position 0 is the bottom (newest messages)
   void _scrollToBottomImmediate() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        _scrollController.jumpTo(0); // With reverse: true, position 0 is the bottom
       }
     });
   }
@@ -822,15 +825,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     
     return ListView.builder(
       controller: _scrollController,
+      reverse: true, // Build from bottom up - newest messages at bottom, always visible
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: chatState.messages.length,
       itemBuilder: (context, index) {
-        final message = chatState.messages[index];
-        final isLast = index == chatState.messages.length - 1;
+        // With reverse: true, we need to reverse the index to maintain correct message order
+        // index 0 in reversed list = last message (newest) = should be at bottom
+        final actualIndex = chatState.messages.length - 1 - index;
+        final message = chatState.messages[actualIndex];
+        final isLast = actualIndex == chatState.messages.length - 1;
         
         return _MessageBubble(
           message: message,
-          messageIndex: index,
+          messageIndex: actualIndex, // Use actual index for bookmarks and other features
           chatId: widget.chatId,
           character: chatState.character,
           isGenerating: isLast && chatState.isGenerating,
@@ -868,7 +875,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             _showDeleteAndAfterConfirmation(message.id);
           },
           onCreateBookmark: () {
-            _showCreateBookmarkDialog(message.id, index);
+            _showCreateBookmarkDialog(message.id, actualIndex);
           },
         );
       },

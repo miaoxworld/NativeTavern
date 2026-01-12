@@ -121,6 +121,7 @@ class AIConfigScreen extends ConsumerWidget {
 
           const Divider(height: 32),
           _buildSectionHeader(context, AppLocalizations.of(context)!.generationSettings),
+          const _ContextLengthTile(),
           const _MaxTokensTile(),
           const _TemperatureTile(),
           const _TopPTile(),
@@ -739,6 +740,85 @@ class _ConnectionTestTile extends ConsumerWidget {
   }
 }
 
+/// Context Length tile - shows the context window size (input tokens)
+class _ContextLengthTile extends ConsumerWidget {
+  const _ContextLengthTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(llmConfigProvider);
+    final contextValue = '${config.contextLength}';
+
+    return ListTile(
+      leading: const Icon(Icons.memory),
+      title: Text(AppLocalizations.of(context)!.contextLength),
+      subtitle: Text('$contextValue tokens'),
+      onTap: () => _showContextLengthDialog(context, ref, config),
+      onLongPress: () => _copyToClipboard(context, contextValue),
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${AppLocalizations.of(context)!.copiedToClipboard}: $text'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showContextLengthDialog(BuildContext context, WidgetRef ref, LLMConfig config) {
+    final controller = TextEditingController(text: config.contextLength.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.contextLength),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.contextWindowSize,
+                hintText: '1000000',
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.contextLengthDescription,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final value = int.tryParse(controller.text);
+              if (value != null && value > 0) {
+                ref.read(llmConfigProvider.notifier).updateContextLength(value);
+              }
+              Navigator.pop(context);
+            },
+            child: Text(AppLocalizations.of(context)!.save),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Max Tokens tile - shows the maximum output tokens
 class _MaxTokensTile extends ConsumerWidget {
   const _MaxTokensTile();
 
@@ -750,7 +830,7 @@ class _MaxTokensTile extends ConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.format_list_numbered),
       title: Text(AppLocalizations.of(context)!.maxTokens),
-      subtitle: Text(tokenValue),
+      subtitle: Text('$tokenValue tokens'),
       onTap: () => _showMaxTokensDialog(context, ref, config),
       onLongPress: () => _copyToClipboard(context, tokenValue),
     );
@@ -773,14 +853,27 @@ class _MaxTokensTile extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.maxTokens),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.maximumTokensToGenerate,
-            hintText: '1000000',
-          ),
-          autofocus: true,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.maximumTokensToGenerate,
+                hintText: '512',
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.maxTokensDescription,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(

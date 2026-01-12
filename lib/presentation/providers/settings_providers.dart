@@ -51,7 +51,7 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
       model: 'gpt-4o',
       apiKey: '',
       apiUrl: 'https://api.openai.com/v1',
-      maxTokens: 1000000,
+      maxTokens: 8192,
       temperature: 0.8,
       topP: 0.95,
       topK: 40,
@@ -184,20 +184,28 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   void updateApiKey(String apiKey) {
     state = state.copyWith(apiKey: apiKey);
     _saveConfig();
+    _saveCurrentProviderConfig(); // Also save to per-provider config for persistence
   }
 
   void updateApiUrl(String apiUrl) {
     state = state.copyWith(apiUrl: apiUrl);
     _saveConfig();
+    _saveCurrentProviderConfig(); // Also save to per-provider config for persistence
   }
 
   void updateModel(String model) {
     state = state.copyWith(model: model);
     _saveConfig();
+    _saveCurrentProviderConfig(); // Also save to per-provider config for persistence
   }
 
   void updateMaxTokens(int maxTokens) {
     state = state.copyWith(maxTokens: maxTokens);
+    _saveConfig();
+  }
+
+  void updateContextLength(int contextLength) {
+    state = state.copyWith(contextLength: contextLength);
     _saveConfig();
   }
 

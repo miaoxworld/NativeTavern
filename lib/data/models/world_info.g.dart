@@ -59,7 +59,7 @@ _$WorldInfoEntryImpl _$$WorldInfoEntryImplFromJson(Map<String, dynamic> json) =>
       probability: (json['probability'] as num?)?.toInt() ?? 0,
       position:
           $enumDecodeNullable(_$WorldInfoPositionEnumMap, json['position']) ??
-              WorldInfoPosition.beforeCharDefs,
+              WorldInfoPosition.before,
       depth: (json['depth'] as num?)?.toInt() ?? 0,
       group: json['group'] as String?,
       groupWeight: (json['groupWeight'] as num?)?.toInt() ?? 0,
@@ -98,15 +98,14 @@ Map<String, dynamic> _$$WorldInfoEntryImplToJson(
     };
 
 const _$WorldInfoPositionEnumMap = {
-  WorldInfoPosition.beforeCharDefs: 0,
-  WorldInfoPosition.afterCharDefs: 1,
-  WorldInfoPosition.beforeExample: 2,
-  WorldInfoPosition.afterExample: 3,
-  WorldInfoPosition.beforeAuthorNote: 4,
-  WorldInfoPosition.afterAuthorNote: 5,
-  WorldInfoPosition.atDepth: 6,
-  WorldInfoPosition.beforeSystemPrompt: 7,
-  WorldInfoPosition.afterSystemPrompt: 8,
+  WorldInfoPosition.before: 0,
+  WorldInfoPosition.after: 1,
+  WorldInfoPosition.ANTop: 2,
+  WorldInfoPosition.ANBottom: 3,
+  WorldInfoPosition.atDepth: 4,
+  WorldInfoPosition.EMTop: 5,
+  WorldInfoPosition.EMBottom: 6,
+  WorldInfoPosition.outlet: 7,
 };
 
 _$WorldInfoExportImpl _$$WorldInfoExportImplFromJson(

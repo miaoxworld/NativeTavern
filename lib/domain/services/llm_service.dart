@@ -47,6 +47,7 @@ class LLMConfig {
   final String apiKey;
   final String apiUrl;
   final int maxTokens;
+  final int contextLength;
   final double temperature;
   final double topP;
   final int topK;
@@ -72,7 +73,8 @@ class LLMConfig {
     required this.model,
     required this.apiKey,
     required this.apiUrl,
-    this.maxTokens = 1000000,
+    this.maxTokens = 8192,
+    this.contextLength = 1000000,
     this.temperature = 1,
     this.topP = 0.95,
     this.topK = 40,
@@ -99,6 +101,7 @@ class LLMConfig {
     String? apiKey,
     String? apiUrl,
     int? maxTokens,
+    int? contextLength,
     double? temperature,
     double? topP,
     int? topK,
@@ -123,6 +126,7 @@ class LLMConfig {
       apiKey: apiKey ?? this.apiKey,
       apiUrl: apiUrl ?? this.apiUrl,
       maxTokens: maxTokens ?? this.maxTokens,
+      contextLength: contextLength ?? this.contextLength,
       temperature: temperature ?? this.temperature,
       topP: topP ?? this.topP,
       topK: topK ?? this.topK,
@@ -149,6 +153,7 @@ class LLMConfig {
         'apiKey': apiKey,
         'apiUrl': apiUrl,
         'maxTokens': maxTokens,
+        'contextLength': contextLength,
         'temperature': temperature,
         'topP': topP,
         'topK': topK,
@@ -176,7 +181,8 @@ class LLMConfig {
         model: json['model'] as String? ?? 'gpt-4o',
         apiKey: json['apiKey'] as String? ?? '',
         apiUrl: json['apiUrl'] as String? ?? 'https://api.openai.com/v1',
-        maxTokens: json['maxTokens'] as int? ?? 1000000,
+        maxTokens: json['maxTokens'] as int? ?? 8192,
+        contextLength: json['contextLength'] as int? ?? 1000000,
         temperature: (json['temperature'] as num?)?.toDouble() ?? 0.8,
         topP: (json['topP'] as num?)?.toDouble() ?? 0.95,
         topK: json['topK'] as int? ?? 40,

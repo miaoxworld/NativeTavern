@@ -285,13 +285,13 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       WorldInfoPosition position;
       switch (entry.position) {
         case 0:
-          position = WorldInfoPosition.beforeCharDefs;
+          position = WorldInfoPosition.before;  // Before Character Definition
           break;
         case 1:
-          position = WorldInfoPosition.afterCharDefs;
+          position = WorldInfoPosition.after;   // After Character Definition
           break;
         default:
-          position = WorldInfoPosition.afterCharDefs;
+          position = WorldInfoPosition.after;
       }
       
       await worldInfoRepo.addEntry(

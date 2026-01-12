@@ -247,7 +247,8 @@ class GenerationPreset {
   final int mirostatMode;
   final double mirostatTau;
   final double mirostatEta;
-  final int maxTokens;
+  final int maxTokens;      // Maximum OUTPUT tokens to generate
+  final int contextLength;  // Maximum INPUT context window size
   final List<String> stopSequences;
   final int seed;
   final bool streamEnabled;
@@ -267,7 +268,8 @@ class GenerationPreset {
     this.mirostatMode = 0,
     this.mirostatTau = 5.0,
     this.mirostatEta = 0.1,
-    this.maxTokens = 512,
+    this.maxTokens = 8192,        // Default max output tokens
+    this.contextLength = 1000000,   // Default context window (1M)
     this.stopSequences = const [],
     this.seed = -1,
     this.streamEnabled = true,
@@ -289,6 +291,7 @@ class GenerationPreset {
     double? mirostatTau,
     double? mirostatEta,
     int? maxTokens,
+    int? contextLength,
     List<String>? stopSequences,
     int? seed,
     bool? streamEnabled,
@@ -309,6 +312,7 @@ class GenerationPreset {
       mirostatTau: mirostatTau ?? this.mirostatTau,
       mirostatEta: mirostatEta ?? this.mirostatEta,
       maxTokens: maxTokens ?? this.maxTokens,
+      contextLength: contextLength ?? this.contextLength,
       stopSequences: stopSequences ?? this.stopSequences,
       seed: seed ?? this.seed,
       streamEnabled: streamEnabled ?? this.streamEnabled,
@@ -332,6 +336,7 @@ class GenerationPreset {
         'mirostat_tau': mirostatTau,
         'mirostat_eta': mirostatEta,
         'openai_max_tokens': maxTokens,
+        'openai_max_context': contextLength,
         'stop_sequences': stopSequences,
         'seed': seed,
         'stream_openai': streamEnabled,
@@ -370,7 +375,10 @@ class GenerationPreset {
                    (json['mirostatEta'] as num?)?.toDouble() ?? 0.1,
       maxTokens: (json['openai_max_tokens'] as num?)?.toInt() ??
                  (json['max_tokens'] as num?)?.toInt() ??
-                 (json['maxTokens'] as num?)?.toInt() ?? 512,
+                 (json['maxTokens'] as num?)?.toInt() ?? 8192,
+      contextLength: (json['openai_max_context'] as num?)?.toInt() ??
+                     (json['max_context'] as num?)?.toInt() ??
+                     (json['contextLength'] as num?)?.toInt() ?? 1000000,
       stopSequences: (json['stop_sequences'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -403,7 +411,8 @@ class BuiltInAIPresets {
       temperature: 1.0,
       topP: 0.95,
       topK: 40,
-      maxTokens: 512,
+      maxTokens: 8192,        // Max output tokens
+      contextLength: 1000000,   // Context window size
     ),
   );
 
@@ -419,7 +428,8 @@ class BuiltInAIPresets {
       topP: 0.98,
       topK: 100,
       minP: 0.05,
-      maxTokens: 1024,
+      maxTokens: 8192,       // Allow longer creative outputs
+      contextLength: 1000000,
     ),
   );
 
@@ -434,7 +444,8 @@ class BuiltInAIPresets {
       temperature: 0.7,
       topP: 0.9,
       topK: 20,
-      maxTokens: 512,
+      maxTokens: 8192,
+      contextLength: 1000000,
     ),
   );
 
@@ -449,7 +460,8 @@ class BuiltInAIPresets {
       temperature: 0.1,
       topP: 0.5,
       topK: 10,
-      maxTokens: 512,
+      maxTokens: 8192,
+      contextLength: 1000000,
       seed: 42,
     ),
   );
@@ -465,7 +477,8 @@ class BuiltInAIPresets {
       temperature: 0.9,
       topP: 0.95,
       topK: 40,
-      maxTokens: 2048,
+      maxTokens: 8192,       // Allow much longer outputs
+      contextLength: 1000000,  // Larger context for long form
       repetitionPenalty: 1.15,
     ),
   );
@@ -482,7 +495,8 @@ class BuiltInAIPresets {
       mirostatMode: 2,
       mirostatTau: 5.0,
       mirostatEta: 0.1,
-      maxTokens: 512,
+      maxTokens: 8192,
+      contextLength: 1000000,
     ),
   );
 

@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +12,26 @@ import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+/// Log a message to the console
+void _log(String message, {String? error, StackTrace? stackTrace}) {
+  final timestamp = DateTime.now().toIso8601String();
+  final logMessage = '[$timestamp] WorldInfoScreen: $message';
+  
+  if (kDebugMode) {
+    debugPrint(logMessage);
+    if (error != null) {
+      debugPrint('  Error: $error');
+    }
+  }
+  
+  developer.log(
+    message,
+    name: 'WorldInfoScreen',
+    error: error,
+    stackTrace: stackTrace,
+  );
+}
 
 /// Screen for managing World Info / Lorebooks
 class WorldInfoScreen extends ConsumerWidget {
@@ -191,14 +213,20 @@ class WorldInfoScreen extends ConsumerWidget {
   Future<void> _importWorldInfo(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     try {
+      _log('Starting world info import...');
+      
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
       );
 
-      if (result == null || result.files.isEmpty) return;
+      if (result == null || result.files.isEmpty) {
+        _log('No file selected');
+        return;
+      }
 
       final file = result.files.first;
+      _log('Selected file: ${file.name}');
       String jsonString;
 
       if (file.bytes != null) {
@@ -209,55 +237,151 @@ class WorldInfoScreen extends ConsumerWidget {
         throw Exception('Could not read file');
       }
 
+      _log('File content length: ${jsonString.length} chars');
+      
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      _log('Parsed JSON keys: ${json.keys.toList()}');
       
-      // Ensure required fields have default values to prevent null casting errors
-      final sanitizedJson = {
-        'id': json['id'] ?? 'imported_${DateTime.now().millisecondsSinceEpoch}',
-        'name': json['name'] as String? ?? 'Imported Lorebook',
-        'description': json['description'] as String?,
-        'entries': json['entries'] ?? [],
-        'enabled': json['enabled'] ?? true,
-        'isGlobal': json['isGlobal'] ?? false,
-        'characterId': json['characterId'] as String?,
-        'createdAt': json['createdAt'] ?? DateTime.now().toIso8601String(),
-        'modifiedAt': json['modifiedAt'] ?? DateTime.now().toIso8601String(),
-      };
+      // Parse entries from different formats
+      final parsedEntries = _parseWorldInfoEntries(json);
+      _log('Parsed ${parsedEntries.length} entries');
       
-      final worldInfo = WorldInfo.fromJson(sanitizedJson);
-
+      // Get world info name
+      final name = json['name']?.toString() ??
+                   json['originalData']?['name']?.toString() ??
+                   file.name.replaceAll('.json', '');
+      final description = json['description']?.toString();
+      
+      _log('Creating world info: $name');
+      
       await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
-        name: worldInfo.name,
-        description: worldInfo.description,
-        isGlobal: worldInfo.isGlobal,
+        name: name,
+        description: description,
+        isGlobal: json['isGlobal'] == true,
       );
 
       // Import entries
       final createdWorldInfos = ref.read(worldInfoNotifierProvider).valueOrNull ?? [];
-      final createdWorldInfo = createdWorldInfos.firstWhere((w) => w.name == worldInfo.name);
+      final createdWorldInfo = createdWorldInfos.firstWhere((w) => w.name == name);
       
-      for (final entry in worldInfo.entries) {
-        await ref.read(worldInfoNotifierProvider.notifier).addEntry(
-          worldInfoId: createdWorldInfo.id,
-          keys: entry.keys,
-          content: entry.content,
-          comment: entry.comment,
-          secondaryKeys: entry.secondaryKeys,
-        );
+      _log('Adding ${parsedEntries.length} entries to world info: ${createdWorldInfo.id}');
+      
+      for (final entry in parsedEntries) {
+        try {
+          await ref.read(worldInfoNotifierProvider.notifier).addEntry(
+            worldInfoId: createdWorldInfo.id,
+            keys: entry['keys'] as List<String>,
+            content: entry['content'] as String,
+            comment: entry['comment'] as String? ?? '',
+            secondaryKeys: entry['secondaryKeys'] as List<String>? ?? [],
+          );
+        } catch (e, st) {
+          _log('Failed to add entry: ${entry['keys']}', error: e.toString(), stackTrace: st);
+        }
       }
 
+      _log('Import completed successfully');
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n!.importedAndApplied(worldInfo.name))),
+          SnackBar(content: Text(l10n!.importedAndApplied(name))),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      _log('Import failed', error: e.toString(), stackTrace: st);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppLocalizations.of(context)!.importFailed(e.toString())}')),
         );
       }
     }
+  }
+  
+  /// Parse world info entries from various formats (SillyTavern, NativeTavern, etc.)
+  List<Map<String, dynamic>> _parseWorldInfoEntries(Map<String, dynamic> json) {
+    final entries = <Map<String, dynamic>>[];
+    
+    // Check for SillyTavern format: entries is a Map<String, Entry>
+    if (json['entries'] is Map) {
+      _log('Detected SillyTavern format (entries as Map)');
+      final entriesMap = json['entries'] as Map<String, dynamic>;
+      
+      for (final entry in entriesMap.entries) {
+        try {
+          final entryData = entry.value as Map<String, dynamic>;
+          entries.add(_parseEntry(entryData));
+        } catch (e, st) {
+          _log('Failed to parse entry ${entry.key}', error: e.toString(), stackTrace: st);
+        }
+      }
+    }
+    // Check for NativeTavern format: entries is a List<Entry>
+    else if (json['entries'] is List) {
+      _log('Detected NativeTavern format (entries as List)');
+      final entriesList = json['entries'] as List<dynamic>;
+      
+      for (var i = 0; i < entriesList.length; i++) {
+        try {
+          final entryData = entriesList[i] as Map<String, dynamic>;
+          entries.add(_parseEntry(entryData));
+        } catch (e, st) {
+          _log('Failed to parse entry at index $i', error: e.toString(), stackTrace: st);
+        }
+      }
+    }
+    
+    return entries;
+  }
+  
+  /// Parse a single entry, handling type conversions
+  Map<String, dynamic> _parseEntry(Map<String, dynamic> data) {
+    // Handle keys - SillyTavern uses 'key', NativeTavern uses 'keys'
+    List<String> keys;
+    if (data['keys'] != null) {
+      keys = _parseStringList(data['keys']);
+    } else if (data['key'] != null) {
+      keys = _parseStringList(data['key']);
+    } else {
+      keys = [];
+    }
+    
+    // Handle secondary keys
+    List<String> secondaryKeys;
+    if (data['secondaryKeys'] != null) {
+      secondaryKeys = _parseStringList(data['secondaryKeys']);
+    } else if (data['secondary_keys'] != null) {
+      secondaryKeys = _parseStringList(data['secondary_keys']);
+    } else if (data['keysecondary'] != null) {
+      secondaryKeys = _parseStringList(data['keysecondary']);
+    } else {
+      secondaryKeys = [];
+    }
+    
+    // Handle content
+    final content = data['content']?.toString() ?? '';
+    
+    // Handle comment
+    final comment = data['comment']?.toString() ?? '';
+    
+    return {
+      'keys': keys,
+      'secondaryKeys': secondaryKeys,
+      'content': content,
+      'comment': comment,
+    };
+  }
+  
+  /// Safely parse a list of strings from various formats
+  List<String> _parseStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      return value.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+    }
+    if (value is String) {
+      // Handle comma-separated string
+      return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
+    return [];
   }
 }
 
@@ -687,7 +811,7 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
       builder: (context) => _WorldInfoEntryDialog(
         title: entry == null ? AppLocalizations.of(context)!.addEntry : AppLocalizations.of(context)!.editEntry,
         entry: entry,
-        onSave: (keys, content, comment, secondaryKeys) async {
+        onSave: (keys, content, comment, secondaryKeys, position, constant, selective, insertionOrder) async {
           if (entry == null) {
             await ref.read(worldInfoNotifierProvider.notifier).addEntry(
               worldInfoId: _worldInfo.id,
@@ -695,6 +819,10 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
               content: content,
               comment: comment,
               secondaryKeys: secondaryKeys,
+              position: position,
+              constant: constant,
+              selective: selective,
+              insertionOrder: insertionOrder,
             );
           } else {
             await ref.read(worldInfoNotifierProvider.notifier).updateEntry(
@@ -703,6 +831,10 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
                 content: content,
                 comment: comment,
                 secondaryKeys: secondaryKeys,
+                position: position,
+                constant: constant,
+                selective: selective,
+                insertionOrder: insertionOrder,
               ),
             );
           }
@@ -870,6 +1002,10 @@ class _WorldInfoEntryDialog extends StatefulWidget {
     String content,
     String comment,
     List<String> secondaryKeys,
+    WorldInfoPosition position,
+    bool constant,
+    bool selective,
+    int insertionOrder,
   ) onSave;
 
   const _WorldInfoEntryDialog({
@@ -887,6 +1023,10 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
   late TextEditingController _secondaryKeysController;
   late TextEditingController _contentController;
   late TextEditingController _commentController;
+  late TextEditingController _orderController;
+  late WorldInfoPosition _position;
+  late bool _constant;
+  late bool _selective;
   bool _isSaving = false;
 
   @override
@@ -904,6 +1044,12 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     _commentController = TextEditingController(
       text: widget.entry?.comment ?? '',
     );
+    _orderController = TextEditingController(
+      text: widget.entry?.insertionOrder.toString() ?? '0',
+    );
+    _position = widget.entry?.position ?? WorldInfoPosition.before;
+    _constant = widget.entry?.constant ?? false;
+    _selective = widget.entry?.selective ?? false;
   }
 
   @override
@@ -912,11 +1058,35 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     _secondaryKeysController.dispose();
     _contentController.dispose();
     _commentController.dispose();
+    _orderController.dispose();
     super.dispose();
+  }
+
+  String _getPositionLabel(BuildContext context, WorldInfoPosition position) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (position) {
+      case WorldInfoPosition.before:
+        return l10n.beforeCharacterDefinition;  // ↑Char
+      case WorldInfoPosition.after:
+        return l10n.afterCharacterDefinition;   // ↓Char
+      case WorldInfoPosition.ANTop:
+        return l10n.beforeAuthorNote;           // ↑AT
+      case WorldInfoPosition.ANBottom:
+        return l10n.afterAuthorNote;            // ↓AT
+      case WorldInfoPosition.atDepth:
+        return l10n.atDepth;                    // @D
+      case WorldInfoPosition.EMTop:
+        return l10n.beforeExampleMessages;      // ↑EM
+      case WorldInfoPosition.EMBottom:
+        return l10n.afterExampleMessages;       // ↓EM
+      case WorldInfoPosition.outlet:
+        return 'Outlet';                        // Named outlet
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(widget.title),
       content: SizedBox(
@@ -929,28 +1099,28 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
               TextField(
                 controller: _keysController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.keywordsCommaSeparated,
-                  hintText: AppLocalizations.of(context)!.keywordsHint,
+                  labelText: l10n.keywordsCommaSeparated,
+                  hintText: l10n.keywordsHint,
                   border: const OutlineInputBorder(),
-                  helperText: AppLocalizations.of(context)!.entryActivatesWhenKeywordFound,
+                  helperText: l10n.entryActivatesWhenKeywordFound,
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _secondaryKeysController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.secondaryKeysOptional,
-                  hintText: AppLocalizations.of(context)!.secondaryKeysHint,
+                  labelText: l10n.secondaryKeysOptional,
+                  hintText: l10n.secondaryKeysHint,
                   border: const OutlineInputBorder(),
-                  helperText: AppLocalizations.of(context)!.bothPrimaryAndSecondaryMustMatch,
+                  helperText: l10n.bothPrimaryAndSecondaryMustMatch,
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _commentController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.commentOptional,
-                  hintText: AppLocalizations.of(context)!.noteForThisEntry,
+                  labelText: l10n.commentOptional,
+                  hintText: l10n.noteForThisEntry,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -958,12 +1128,61 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
               TextField(
                 controller: _contentController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.contentLabel,
-                  hintText: AppLocalizations.of(context)!.contextToInjectWhenMatches,
+                  labelText: l10n.contentLabel,
+                  hintText: l10n.contextToInjectWhenMatches,
                   border: const OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
                 maxLines: 6,
+              ),
+              const SizedBox(height: 16),
+              // Position dropdown
+              DropdownButtonFormField<WorldInfoPosition>(
+                value: _position,
+                decoration: InputDecoration(
+                  labelText: l10n.insertionPosition,
+                  border: const OutlineInputBorder(),
+                ),
+                items: WorldInfoPosition.values.map((pos) {
+                  return DropdownMenuItem(
+                    value: pos,
+                    child: Text(_getPositionLabel(context, pos)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _position = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              // Insertion order
+              TextField(
+                controller: _orderController,
+                decoration: InputDecoration(
+                  labelText: l10n.insertionOrder,
+                  hintText: '0',
+                  border: const OutlineInputBorder(),
+                  helperText: l10n.lowerOrderInsertsFirst,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              // Constant switch
+              SwitchListTile(
+                title: Text(l10n.constant),
+                subtitle: Text(l10n.alwaysIncludeInPrompt),
+                value: _constant,
+                onChanged: (value) => setState(() => _constant = value),
+                contentPadding: EdgeInsets.zero,
+              ),
+              // Selective switch
+              SwitchListTile(
+                title: Text(l10n.selective),
+                subtitle: Text(l10n.requiresSecondaryKey),
+                value: _selective,
+                onChanged: (value) => setState(() => _selective = value),
+                contentPadding: EdgeInsets.zero,
               ),
             ],
           ),
@@ -972,7 +1191,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context)!.cancel),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,
@@ -982,13 +1201,14 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(AppLocalizations.of(context)!.save),
+              : Text(l10n.save),
         ),
       ],
     );
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     final keys = _keysController.text
         .split(',')
         .map((k) => k.trim())
@@ -997,7 +1217,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
 
     if (keys.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterAtLeastOneKeyword)),
+        SnackBar(content: Text(l10n.pleaseEnterAtLeastOneKeyword)),
       );
       return;
     }
@@ -1005,7 +1225,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterContent)),
+        SnackBar(content: Text(l10n.pleaseEnterContent)),
       );
       return;
     }
@@ -1016,6 +1236,8 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
         .where((k) => k.isNotEmpty)
         .toList();
 
+    final insertionOrder = int.tryParse(_orderController.text.trim()) ?? 0;
+
     setState(() => _isSaving = true);
 
     try {
@@ -1024,6 +1246,10 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
         content,
         _commentController.text.trim(),
         secondaryKeys,
+        _position,
+        _constant,
+        _selective,
+        insertionOrder,
       );
       if (mounted) {
         Navigator.pop(context);
@@ -1031,7 +1257,7 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
         setState(() => _isSaving = false);
       }

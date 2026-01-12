@@ -41,7 +41,7 @@ class WorldInfoEntry with _$WorldInfoEntry {
     @Default(false) bool useGroupScoring,
     @Default(false) bool automationId,
     @Default(0) int probability, // 0-100, 0 = always trigger
-    @Default(WorldInfoPosition.beforeCharDefs) WorldInfoPosition position,
+    @Default(WorldInfoPosition.before) WorldInfoPosition position,
     @Default(0) int depth, // For depth-based insertion
     String? group, // Grouping for mutual exclusivity
     @Default(0) int groupWeight,
@@ -55,25 +55,38 @@ class WorldInfoEntry with _$WorldInfoEntry {
 }
 
 /// World Info insertion position
+/// Matches SillyTavern's world_info_position exactly
 enum WorldInfoPosition {
   @JsonValue(0)
-  beforeCharDefs,
+  before,         // ↑Char - Before Character Definition (also: beforeCharDefs)
   @JsonValue(1)
-  afterCharDefs,
+  after,          // ↓Char - After Character Definition (also: afterCharDefs)
   @JsonValue(2)
-  beforeExample,
+  ANTop,          // ↑AT - Before Author's Note (also: beforeAuthorNote)
   @JsonValue(3)
-  afterExample,
+  ANBottom,       // ↓AT - After Author's Note (also: afterAuthorNote)
   @JsonValue(4)
-  beforeAuthorNote,
+  atDepth,        // @D - At specific depth in chat history
   @JsonValue(5)
-  afterAuthorNote,
+  EMTop,          // ↑EM - Before Example Messages (also: beforeExample)
   @JsonValue(6)
-  atDepth,
+  EMBottom,       // ↓EM - After Example Messages (also: afterExample)
   @JsonValue(7)
-  beforeSystemPrompt,
-  @JsonValue(8)
-  afterSystemPrompt,
+  outlet,         // Outlet - Named outlet for insertion
+}
+
+// Backwards compatibility - static getters for old names
+// These are used internally in NativeTavern for prompt building
+class WorldInfoPositionAlias {
+  static const WorldInfoPosition beforeCharDefs = WorldInfoPosition.before;
+  static const WorldInfoPosition afterCharDefs = WorldInfoPosition.after;
+  static const WorldInfoPosition beforeAuthorNote = WorldInfoPosition.ANTop;
+  static const WorldInfoPosition afterAuthorNote = WorldInfoPosition.ANBottom;
+  static const WorldInfoPosition beforeExample = WorldInfoPosition.EMTop;
+  static const WorldInfoPosition afterExample = WorldInfoPosition.EMBottom;
+  // Additional positions used in prompt building (map to closest equivalent)
+  static const WorldInfoPosition beforeSystemPrompt = WorldInfoPosition.before;
+  static const WorldInfoPosition afterSystemPrompt = WorldInfoPosition.after;
 }
 
 /// World Info export format for SillyTavern compatibility

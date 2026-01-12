@@ -165,16 +165,23 @@ class WorldInfoRepository {
     required String content,
     List<String>? secondaryKeys,
     String? comment,
-    models.WorldInfoPosition position = models.WorldInfoPosition.afterCharDefs,
+    models.WorldInfoPosition? position,  // SillyTavern default is 0 (before)
+    bool? constant,
+    bool? selective,
+    int? insertionOrder,
     int depth = 4,
   }) async {
     final id = _uuid.v4();
     
-    // Get the next insertion order
+    // Get the next insertion order if not provided
     final existingEntries = await getEntriesForWorldInfo(worldInfoId);
-    final insertionOrder = existingEntries.isEmpty 
-        ? 0 
-        : existingEntries.map((e) => e.insertionOrder).reduce((a, b) => a > b ? a : b) + 1;
+    final actualInsertionOrder = insertionOrder ?? (existingEntries.isEmpty
+        ? 0
+        : existingEntries.map((e) => e.insertionOrder).reduce((a, b) => a > b ? a : b) + 1);
+    
+    final actualPosition = position ?? models.WorldInfoPosition.before;
+    final actualConstant = constant ?? false;
+    final actualSelective = selective ?? (secondaryKeys?.isNotEmpty ?? false);
     
     final companion = WorldInfoEntriesCompanion(
       id: Value(id),
@@ -184,15 +191,15 @@ class WorldInfoRepository {
       content: Value(content),
       comment: Value(comment ?? ''),
       enabled: const Value(true),
-      constant: const Value(false),
-      selective: Value(secondaryKeys?.isNotEmpty ?? false),
-      insertionOrder: Value(insertionOrder),
+      constant: Value(actualConstant),
+      selective: Value(actualSelective),
+      insertionOrder: Value(actualInsertionOrder),
       caseSensitive: const Value(false),
       matchWholeWords: const Value(false),
       useGroupScoring: const Value(false),
       automationId: const Value(''),
       probability: const Value(100),
-      position: Value(position.index),
+      position: Value(actualPosition.index),
       depth: Value(depth),
       groupWeight: const Value(100),
       preventRecursion: const Value(false),
@@ -216,13 +223,13 @@ class WorldInfoRepository {
       content: content,
       comment: comment ?? '',
       enabled: true,
-      constant: false,
-      selective: secondaryKeys?.isNotEmpty ?? false,
-      insertionOrder: insertionOrder,
+      constant: actualConstant,
+      selective: actualSelective,
+      insertionOrder: actualInsertionOrder,
       caseSensitive: false,
       matchWholeWords: false,
       probability: 100,
-      position: position,
+      position: actualPosition,
       depth: depth,
       groupWeight: 100,
       preventRecursion: false,

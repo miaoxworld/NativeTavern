@@ -63,8 +63,8 @@ _$GenerationSettingsImpl _$$GenerationSettingsImplFromJson(
       repetitionPenalty: (json['repetitionPenalty'] as num?)?.toDouble() ?? 1.1,
       frequencyPenalty: (json['frequencyPenalty'] as num?)?.toDouble() ?? 0.0,
       presencePenalty: (json['presencePenalty'] as num?)?.toDouble() ?? 0.0,
-      maxTokens: (json['maxTokens'] as num?)?.toInt() ?? 512,
-      contextLength: (json['contextLength'] as num?)?.toInt() ?? 4096,
+      maxTokens: (json['maxTokens'] as num?)?.toInt() ?? 8192,
+      contextLength: (json['contextLength'] as num?)?.toInt() ?? 1000000,
       stopSequences: (json['stopSequences'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -101,7 +101,7 @@ _$LocalModelConfigImpl _$$LocalModelConfigImplFromJson(
       filePath: json['filePath'] as String,
       fileSize: (json['fileSize'] as num).toInt(),
       description: json['description'] as String?,
-      contextLength: (json['contextLength'] as num?)?.toInt() ?? 1000000,
+      contextLength: (json['contextLength'] as num?)?.toInt() ?? 8192,
       batchSize: (json['batchSize'] as num?)?.toInt() ?? 512,
       gpuLayers: (json['gpuLayers'] as num?)?.toInt() ?? 0,
       threads: (json['threads'] as num?)?.toInt() ?? 4,

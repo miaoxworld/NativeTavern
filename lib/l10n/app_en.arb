@@ -780,6 +780,21 @@
     "description": "Max tokens label"
   },
   
+  "contextLength": "Context Length",
+  "@contextLength": {
+    "description": "Context length label"
+  },
+  
+  "contextWindowSize": "Context Window Size",
+  "@contextWindowSize": {
+    "description": "Context window size label"
+  },
+  
+  "contextLengthDescription": "Maximum number of tokens the model can process as input context.",
+  "@contextLengthDescription": {
+    "description": "Context length description"
+  },
+  
   "topP": "Top P",
   "@topP": {
     "description": "Top P label"
@@ -5787,5 +5802,75 @@
   "errorLoadingSprites": "Error loading sprites",
   "@errorLoadingSprites": {
     "description": "Error loading sprites message"
+  },
+  
+  "insertionPosition": "Insertion Position",
+  "@insertionPosition": {
+    "description": "Insertion position label for world info entry"
+  },
+  
+  "beforeCharacterDefinition": "Before Character Definition",
+  "@beforeCharacterDefinition": {
+    "description": "World info position: before character definition"
+  },
+  
+  "afterCharacterDefinition": "After Character Definition",
+  "@afterCharacterDefinition": {
+    "description": "World info position: after character definition"
+  },
+  
+  "beforeExampleMessages": "Before Example Messages",
+  "@beforeExampleMessages": {
+    "description": "World info position: before example messages"
+  },
+  
+  "afterExampleMessages": "After Example Messages",
+  "@afterExampleMessages": {
+    "description": "World info position: after example messages"
+  },
+  
+  "beforeAuthorNote": "Before Author's Note",
+  "@beforeAuthorNote": {
+    "description": "World info position: before author's note"
+  },
+  
+  "afterAuthorNote": "After Author's Note",
+  "@afterAuthorNote": {
+    "description": "World info position: after author's note"
+  },
+  
+  "atDepth": "At Depth",
+  "@atDepth": {
+    "description": "World info position: at specific depth"
+  },
+  
+  "beforeSystemPrompt": "Before System Prompt",
+  "@beforeSystemPrompt": {
+    "description": "World info position: before system prompt"
+  },
+  
+  "afterSystemPrompt": "After System Prompt",
+  "@afterSystemPrompt": {
+    "description": "World info position: after system prompt"
+  },
+  
+  "insertionOrder": "Insertion Order",
+  "@insertionOrder": {
+    "description": "Insertion order label for world info entry"
+  },
+  
+  "lowerOrderInsertsFirst": "Lower order values are inserted first",
+  "@lowerOrderInsertsFirst": {
+    "description": "Helper text for insertion order"
+  },
+  
+  "alwaysIncludeInPrompt": "Always include in prompt (ignore keywords)",
+  "@alwaysIncludeInPrompt": {
+    "description": "Helper text for constant toggle"
+  },
+  
+  "requiresSecondaryKey": "Requires both primary AND secondary key to match",
+  "@requiresSecondaryKey": {
+    "description": "Helper text for selective toggle"
   }
 }
