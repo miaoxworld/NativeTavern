@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/presentation/widgets/chat/html_webview_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
@@ -21,6 +23,7 @@ class MessageContentWidget extends StatefulWidget {
   final double? fontSize;
   final VoidCallback? onCopy;
   final void Function(String)? onCopySelection;
+  final VoidCallback? onLongPress;
 
   const MessageContentWidget({
     super.key,
@@ -30,6 +33,7 @@ class MessageContentWidget extends StatefulWidget {
     this.fontSize,
     this.onCopy,
     this.onCopySelection,
+    this.onLongPress,
   });
 
   @override
@@ -99,6 +103,12 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
   }
 
   void _showContextMenu(BuildContext context, Offset position) {
+    // If onLongPress callback is provided, use it instead of showing copy menu
+    if (widget.onLongPress != null) {
+      widget.onLongPress!();
+      return;
+    }
+    
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     
     showMenu<String>(
@@ -156,8 +166,17 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
 
     Widget contentWidget;
     
-    // If content has HTML, use HTML renderer (it handles mixed content better)
-    if (hasHtml) {
+    // If content has complex HTML (flexbox, grid, shadows, etc.), use WebView
+    if (hasHtml && isComplexHtml(widget.content)) {
+      contentWidget = HtmlWebViewWidget(
+        htmlContent: widget.content,
+        textColor: widget.textColor,
+        fontSize: widget.fontSize,
+        onLongPress: widget.onLongPress,
+      );
+    }
+    // If content has simple HTML, use flutter_html renderer
+    else if (hasHtml) {
       contentWidget = _buildHtmlContent(context);
     }
     // If content has Markdown, use Markdown renderer
@@ -169,7 +188,11 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
       contentWidget = _buildPlainText(context);
     }
 
-    // Wrap with gesture detector for context menu
+    // Wrap with gesture detector for context menu (except for WebView which handles its own)
+    if (hasHtml && isComplexHtml(widget.content)) {
+      return contentWidget;
+    }
+    
     return GestureDetector(
       onSecondaryTapDown: (details) => _showContextMenu(context, details.globalPosition),
       onLongPressStart: (details) => _showContextMenu(context, details.globalPosition),
@@ -192,6 +215,9 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         'body': Style(
           margin: Margins.zero,
           padding: HtmlPaddings.zero,
+        ),
+        'div': Style(
+          margin: Margins.only(bottom: 12),
         ),
         'p': Style(
           margin: Margins.only(bottom: 8),
@@ -299,7 +325,76 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         'center': Style(
           textAlign: TextAlign.center,
         ),
+        'img': Style(
+          width: Width(100, Unit.percent),
+          margin: Margins.symmetric(vertical: 8),
+        ),
       },
+      extensions: [
+        // Custom image extension for better image handling with CachedNetworkImage
+        ImageExtension(
+          builder: (extensionContext) {
+            final src = extensionContext.attributes['src'];
+            if (src == null || src.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            
+            // Parse style attribute for dimensions
+            final style = extensionContext.attributes['style'] ?? '';
+            double? width;
+            double? height;
+            
+            // Extract width from style
+            final widthMatch = RegExp(r'width:\s*(\d+)').firstMatch(style);
+            if (widthMatch != null) {
+              width = double.tryParse(widthMatch.group(1) ?? '');
+            }
+            
+            // Extract height from style
+            final heightMatch = RegExp(r'height:\s*(\d+)').firstMatch(style);
+            if (heightMatch != null) {
+              height = double.tryParse(heightMatch.group(1) ?? '');
+            }
+            
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: src,
+                width: width,
+                height: height,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  width: width ?? double.infinity,
+                  height: height ?? 150,
+                  color: AppTheme.darkBackground,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  width: width ?? double.infinity,
+                  height: height ?? 150,
+                  color: AppTheme.darkBackground,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.broken_image, color: AppTheme.textMuted),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Image failed to load',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
       onLinkTap: (url, _, __) {
         if (url != null) {
           _launchUrl(url);

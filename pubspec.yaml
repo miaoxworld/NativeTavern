@@ -1,7 +1,7 @@
 name: native_tavern
 description: A native cross-platform SillyTavern client for iOS and Android
 publish_to: 'none'
-version: 0.0.5+3
+version: 0.0.8+7
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -55,6 +55,7 @@ dependencies:
   cached_network_image: ^3.3.0
   flutter_markdown: ^0.6.18
   flutter_html: ^3.0.0-beta.2
+  flutter_inappwebview: ^6.0.0
   shimmer: ^3.0.0
   share_plus: ^12.0.1
   url_launcher: ^6.2.2

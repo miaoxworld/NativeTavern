@@ -76,6 +76,12 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         return 'http://localhost:11434';
       case LLMProvider.koboldCpp:
         return 'http://localhost:5001';
+      case LLMProvider.deepSeek:
+        return 'https://api.deepseek.com/v1';
+      case LLMProvider.qwen:
+        return 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+      case LLMProvider.openAICompatible:
+        return 'http://localhost:8080/v1';
     }
   }
 
@@ -93,6 +99,12 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
       case LLMProvider.ollama:
         return 'llama3.2';
       case LLMProvider.koboldCpp:
+        return '';
+      case LLMProvider.deepSeek:
+        return 'deepseek-chat';
+      case LLMProvider.qwen:
+        return 'qwen-plus';
+      case LLMProvider.openAICompatible:
         return '';
     }
   }
@@ -596,6 +608,9 @@ class ModelFetchNotifier extends StateNotifier<ModelFetchState> {
           case LLMProvider.openai:
           case LLMProvider.openRouter:
           case LLMProvider.gemini:
+          case LLMProvider.deepSeek:
+          case LLMProvider.qwen:
+          case LLMProvider.openAICompatible:
             message = 'No models found. Check your API key.';
             break;
           case LLMProvider.ollama:

@@ -7,9 +7,12 @@ import 'package:flutter/foundation.dart';
 /// LLM Provider enum
 enum LLMProvider {
   openai,
+  openAICompatible,
   claude,
-  openRouter,
   gemini,
+  deepSeek,
+  qwen,
+  openRouter,
   ollama,
   koboldCpp,
 }
@@ -369,6 +372,9 @@ class LLMService {
   ) async {
     switch (config.provider) {
       case LLMProvider.openai:
+      case LLMProvider.deepSeek:
+      case LLMProvider.qwen:
+      case LLMProvider.openAICompatible:
         return _generateOpenAI(messages, config);
       case LLMProvider.claude:
         return _generateClaude(messages, config);
@@ -402,6 +408,9 @@ class LLMService {
   ) {
     switch (config.provider) {
       case LLMProvider.openai:
+      case LLMProvider.deepSeek:
+      case LLMProvider.qwen:
+      case LLMProvider.openAICompatible:
         return _streamOpenAIWithReasoning(messages, config);
       case LLMProvider.claude:
         return _streamClaudeWithReasoning(messages, config);
@@ -426,6 +435,9 @@ class LLMService {
       switch (config.provider) {
         case LLMProvider.openai:
         case LLMProvider.openRouter:
+        case LLMProvider.deepSeek:
+        case LLMProvider.qwen:
+        case LLMProvider.openAICompatible:
           if (config.apiKey.isEmpty) {
             _log('Error: API key is empty');
             throw Exception('API key is required');
@@ -627,6 +639,9 @@ class LLMService {
       switch (config.provider) {
         case LLMProvider.openai:
         case LLMProvider.openRouter:
+        case LLMProvider.deepSeek:
+        case LLMProvider.qwen:
+        case LLMProvider.openAICompatible:
           _log('Fetching models from ${config.apiUrl}/models');
           final response = await _dio.get(
             '${config.apiUrl}/models',

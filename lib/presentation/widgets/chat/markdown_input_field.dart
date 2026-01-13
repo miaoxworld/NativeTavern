@@ -88,8 +88,19 @@ class _MarkdownInputFieldState extends State<MarkdownInputField> {
   }
 
   void _applyFormat(MarkdownFormat format) {
+    // Ensure we have a valid selection before applying format
+    // If the text field has never been focused, selection might be invalid (offset -1)
+    var currentValue = widget.controller.value;
+    if (!currentValue.selection.isValid) {
+      // Set selection to end of text
+      currentValue = currentValue.copyWith(
+        selection: TextSelection.collapsed(offset: currentValue.text.length),
+      );
+      widget.controller.value = currentValue;
+    }
+    
     final newValue = MarkdownHotkeyService.applyFormat(
-      value: widget.controller.value,
+      value: currentValue,
       format: format,
     );
     widget.controller.value = newValue;
@@ -277,8 +288,19 @@ class MarkdownToolbar extends StatelessWidget {
   });
 
   void _applyFormat(MarkdownFormat format) {
+    // Ensure we have a valid selection before applying format
+    // If the text field has never been focused, selection might be invalid (offset -1)
+    var currentValue = controller.value;
+    if (!currentValue.selection.isValid) {
+      // Set selection to end of text
+      currentValue = currentValue.copyWith(
+        selection: TextSelection.collapsed(offset: currentValue.text.length),
+      );
+      controller.value = currentValue;
+    }
+    
     final newValue = MarkdownHotkeyService.applyFormat(
-      value: controller.value,
+      value: currentValue,
       format: format,
     );
     controller.value = newValue;

@@ -5,12 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/instruct_template.dart';
 import '../../../domain/services/llm_service.dart';
+import '../../../domain/services/region_service.dart';
 import '../../providers/ai_preset_providers.dart';
 import '../../providers/instruct_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../router/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+
+/// Provider for China region detection
+final isChinaRegionProvider = FutureProvider<bool>((ref) async {
+  return await RegionService.isChinaRegion();
+});
 
 /// AI Configuration screen - top-level entry for all AI-related settings
 class AIConfigScreen extends ConsumerWidget {
@@ -289,40 +295,91 @@ class _LLMProviderTile extends ConsumerWidget {
         return 'Ollama (Local)';
       case LLMProvider.koboldCpp:
         return 'KoboldCpp (Local)';
+      case LLMProvider.deepSeek:
+        return 'DeepSeek';
+      case LLMProvider.qwen:
+        return 'Qwen (Alibaba)';
+      case LLMProvider.openAICompatible:
+        return 'OAI Compatible';
     }
   }
 
+  /// Check if OpenAI should be hidden based on region or language setting
+  bool _shouldHideOpenAI(BuildContext context, bool isChinaRegion) {
+    // Hide if in China region (detected via App Store/SIM)
+    if (isChinaRegion) {
+      return true;
+    }
+    
+    // Also hide if app language is set to Chinese (zh)
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /// Get filtered list of providers based on region and language
+  List<LLMProvider> _getAvailableProviders(BuildContext context, bool isChinaRegion) {
+    final hideOpenAI = _shouldHideOpenAI(context, isChinaRegion);
+    return LLMProvider.values.where((provider) {
+      // Hide OpenAI in China region or when language is Chinese
+      if (hideOpenAI && provider == LLMProvider.openai) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
   void _showProviderPicker(BuildContext context, WidgetRef ref, LLMConfig config) {
+    // Get the China region status from provider
+    final isChinaAsync = ref.read(isChinaRegionProvider);
+    final isChinaRegion = isChinaAsync.valueOrNull ?? false;
+    final availableProviders = _getAvailableProviders(context, isChinaRegion);
+    
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                AppLocalizations.of(context)!.selectLlmProvider,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  AppLocalizations.of(context)!.selectLlmProvider,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            ...LLMProvider.values.map((provider) => RadioListTile<LLMProvider>(
-                  title: Text(_providerName(provider)),
-                  subtitle: Text(_providerDescription(provider)),
-                  value: provider,
-                  groupValue: config.provider,
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref.read(llmConfigProvider.notifier).updateProvider(value);
-                      Navigator.pop(context);
-                    }
-                  },
-                )),
-            const SizedBox(height: 16),
-          ],
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  children: availableProviders.map((provider) => RadioListTile<LLMProvider>(
+                    title: Text(_providerName(provider)),
+                    subtitle: Text(_providerDescription(provider)),
+                    value: provider,
+                    groupValue: config.provider,
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref.read(llmConfigProvider.notifier).updateProvider(value);
+                        Navigator.pop(context);
+                      }
+                    },
+                  )).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -331,17 +388,23 @@ class _LLMProviderTile extends ConsumerWidget {
   String _providerDescription(LLMProvider provider) {
     switch (provider) {
       case LLMProvider.openai:
-        return 'GPT-4, GPT-3.5 Turbo';
+        return 'GPT-5.2';
       case LLMProvider.claude:
-        return 'Claude 3.5, Claude 3';
+        return 'Claude 4.5';
       case LLMProvider.openRouter:
         return 'Multiple providers';
       case LLMProvider.gemini:
-        return 'Gemini 1.5 Pro, Flash';
+        return 'Gemini 3 Pro, Flash';
       case LLMProvider.ollama:
         return 'Local models';
       case LLMProvider.koboldCpp:
         return 'GGUF models';
+      case LLMProvider.deepSeek:
+        return 'DeepSeek V3.2, DeepSeek R1';
+      case LLMProvider.qwen:
+        return 'Qwen Plus, Qwen Max';
+      case LLMProvider.openAICompatible:
+        return 'Custom OAI-compatible API';
     }
   }
 }

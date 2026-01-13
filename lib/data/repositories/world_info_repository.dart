@@ -180,7 +180,9 @@ class WorldInfoRepository {
         : existingEntries.map((e) => e.insertionOrder).reduce((a, b) => a > b ? a : b) + 1);
     
     final actualPosition = position ?? models.WorldInfoPosition.before;
-    final actualConstant = constant ?? false;
+    // If no keys are provided, the entry is constant by default (always included)
+    // Otherwise, default to the provided constant value or false
+    final actualConstant = constant ?? (keys.isEmpty ? true : false);
     final actualSelective = selective ?? (secondaryKeys?.isNotEmpty ?? false);
     
     final companion = WorldInfoEntriesCompanion(
@@ -282,22 +284,44 @@ class WorldInfoRepository {
   }
 
   /// Find matching entries for given text
+  /// Note: This method finds entries that match keywords in the text.
+  /// Constant entries (entries with constant=true OR entries with no keys) are handled
+  /// separately in WorldInfoMatcher.findMatchingEntries() to ensure they're always included.
   Future<List<models.WorldInfoEntry>> findMatchingEntries(
     String text,
     List<String> worldInfoIds,
   ) async {
+    debugPrint('=== Repository.findMatchingEntries ===');
+    debugPrint('Searching in ${worldInfoIds.length} world infos');
+    debugPrint('Text length: ${text.length}');
+    
     final matchingEntries = <models.WorldInfoEntry>[];
     
     for (final worldInfoId in worldInfoIds) {
       final entries = await getEntriesForWorldInfo(worldInfoId);
+      debugPrint('World info $worldInfoId has ${entries.length} entries');
       
       for (final entry in entries) {
-        if (!entry.enabled) continue;
+        if (!entry.enabled) {
+          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" is disabled, skipping');
+          continue;
+        }
+        
+        // Entries with no keys are treated as constant (always included)
+        // They will be handled by WorldInfoMatcher, skip them here to avoid duplicates
+        if (entry.keys.isEmpty) {
+          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : "(no keys)"}" has no keys, treating as constant');
+          continue;
+        }
         
         final textToSearch = entry.caseSensitive ? text : text.toLowerCase();
         
         bool keyMatched = false;
+        String matchedKey = '';
         for (final key in entry.keys) {
+          // Skip empty keys
+          if (key.trim().isEmpty) continue;
+          
           final searchKey = entry.caseSensitive ? key : key.toLowerCase();
           
           if (entry.matchWholeWords) {
@@ -307,10 +331,18 @@ class WorldInfoRepository {
             keyMatched = textToSearch.contains(searchKey);
           }
           
-          if (keyMatched) break;
+          if (keyMatched) {
+            matchedKey = key;
+            break;
+          }
         }
         
-        if (!keyMatched) continue;
+        if (!keyMatched) {
+          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - no key match (keys: ${entry.keys})');
+          continue;
+        }
+        
+        debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - key "$matchedKey" matched!');
         
         // Check secondary keys if selective
         if (entry.selective && entry.secondaryKeys.isNotEmpty) {
@@ -319,24 +351,35 @@ class WorldInfoRepository {
             final searchKey = entry.caseSensitive ? key : key.toLowerCase();
             if (textToSearch.contains(searchKey)) {
               secondaryMatched = true;
+              debugPrint('    Secondary key "$key" also matched');
               break;
             }
           }
-          if (!secondaryMatched) continue;
+          if (!secondaryMatched) {
+            debugPrint('    But no secondary key matched (selective mode), skipping');
+            continue;
+          }
         }
         
         // Check probability
         if (entry.probability < 100) {
           final random = DateTime.now().millisecondsSinceEpoch % 100;
-          if (random >= entry.probability) continue;
+          if (random >= entry.probability) {
+            debugPrint('    But probability check failed (${entry.probability}%), skipping');
+            continue;
+          }
         }
         
+        debugPrint('    -> ADDED to matches');
         matchingEntries.add(entry);
       }
     }
     
     // Sort by insertion order
     matchingEntries.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
+    
+    debugPrint('Total matches: ${matchingEntries.length}');
+    debugPrint('=== End Repository.findMatchingEntries ===');
     
     return matchingEntries;
   }

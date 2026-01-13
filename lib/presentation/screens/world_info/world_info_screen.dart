@@ -1048,7 +1048,8 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
       text: widget.entry?.insertionOrder.toString() ?? '0',
     );
     _position = widget.entry?.position ?? WorldInfoPosition.before;
-    _constant = widget.entry?.constant ?? false;
+    // Default constant to true for new entries (entries without keys are always included)
+    _constant = widget.entry?.constant ?? true;
     _selective = widget.entry?.selective ?? false;
   }
 
@@ -1215,17 +1216,15 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
         .where((k) => k.isNotEmpty)
         .toList();
 
-    if (keys.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.pleaseEnterAtLeastOneKeyword)),
-      );
-      return;
-    }
+    // Keys are optional - entries without keys are treated as constant (always included)
+    // No validation needed for keys
 
     final content = _contentController.text.trim();
     if (content.isEmpty) {
+      final message = l10n.pleaseEnterContent;
+      _log('Validation failed: $message');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.pleaseEnterContent)),
+        SnackBar(content: Text(message)),
       );
       return;
     }
@@ -1237,8 +1236,13 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
         .toList();
 
     final insertionOrder = int.tryParse(_orderController.text.trim()) ?? 0;
+    
+    // If no keys provided, force constant to true
+    final actualConstant = keys.isEmpty ? true : _constant;
 
     setState(() => _isSaving = true);
+    
+    _log('Saving entry: keys=$keys, constant=$actualConstant, selective=$_selective, position=$_position');
 
     try {
       await widget.onSave(
@@ -1247,17 +1251,20 @@ class _WorldInfoEntryDialogState extends State<_WorldInfoEntryDialog> {
         _commentController.text.trim(),
         secondaryKeys,
         _position,
-        _constant,
+        actualConstant,
         _selective,
         insertionOrder,
       );
       if (mounted) {
         Navigator.pop(context);
       }
-    } catch (e) {
+    } catch (e, st) {
+      _log('Failed to save entry', error: e.toString(), stackTrace: st);
       if (mounted) {
+        final message = '${l10n.error}: $e';
+        _log('Showing error: $message');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.error}: $e')),
+          SnackBar(content: Text(message)),
         );
         setState(() => _isSaving = false);
       }

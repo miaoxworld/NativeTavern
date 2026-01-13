@@ -1420,23 +1420,45 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     Character character,
     List<ChatMessage> chatMessages,
   ) async {
-    // Get active world info IDs (global + character-specific + manually enabled)
+    // Get active world info IDs (manually enabled for this chat)
     final activeIds = _ref.read(activeWorldInfoIdsProvider);
     
-    // Get global world infos
-    final globalWorldInfos = await _ref.read(globalWorldInfosProvider.future);
-    final globalIds = globalWorldInfos.map((w) => w.id).toList();
+    // Get ALL world infos and filter by enabled status
+    final allWorldInfos = await _ref.read(allWorldInfosProvider.future);
     
-    // Get character-specific world infos
-    final characterWorldInfos = await _ref.read(
-      characterWorldInfosProvider(character.id).future,
-    );
-    final characterIds = characterWorldInfos.map((w) => w.id).toList();
+    // Filter to get enabled world infos that are either:
+    // 1. Global (isGlobal = true)
+    // 2. Linked to this character
+    // 3. Enabled and not linked to any specific character (available to all)
+    // 4. Manually activated via activeWorldInfoIdsProvider
+    final enabledWorldInfoIds = allWorldInfos
+        .where((w) => w.enabled && (
+            w.isGlobal ||
+            w.characterId == character.id ||
+            w.characterId == null ||  // Not linked to any character = available to all
+            activeIds.contains(w.id)
+        ))
+        .map((w) => w.id)
+        .toList();
     
-    // Combine all active world info IDs
-    final allWorldInfoIds = <String>{...activeIds, ...globalIds, ...characterIds}.toList();
+    // Combine with manually activated IDs
+    final allWorldInfoIds = <String>{...enabledWorldInfoIds, ...activeIds}.toList();
     
-    if (allWorldInfoIds.isEmpty) return [];
+    // Debug logging
+    print('=== World Info Debug ===');
+    print('Active IDs from provider: $activeIds');
+    print('All world infos: ${allWorldInfos.length}');
+    for (final wi in allWorldInfos) {
+      final included = allWorldInfoIds.contains(wi.id);
+      print('  - ${wi.name}: ${wi.entries.length} entries, enabled=${wi.enabled}, isGlobal=${wi.isGlobal}, characterId=${wi.characterId}, INCLUDED=$included');
+    }
+    print('Final world info IDs to search: $allWorldInfoIds');
+    
+    if (allWorldInfoIds.isEmpty) {
+      print('No world info IDs to search - returning empty');
+      print('=== End World Info Debug ===');
+      return [];
+    }
     
     // Build context text from chat messages
     final contextBuffer = StringBuffer();
@@ -1449,11 +1471,23 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       contextBuffer.writeln(msg.content);
     }
     
+    final contextText = contextBuffer.toString();
+    print('Context text length: ${contextText.length} chars');
+    print('Context preview: ${contextText.substring(0, min(500, contextText.length))}...');
+    
     // Find matching entries
-    return _worldInfoMatcher.findMatchingEntries(
-      contextText: contextBuffer.toString(),
+    final matchedEntries = await _worldInfoMatcher.findMatchingEntries(
+      contextText: contextText,
       worldInfoIds: allWorldInfoIds,
     );
+    
+    print('Matched entries: ${matchedEntries.length}');
+    for (final entry in matchedEntries) {
+      print('  - [${entry.position.name}] ${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}: ${entry.content.substring(0, min(50, entry.content.length))}...');
+    }
+    print('=== End World Info Debug ===');
+    
+    return matchedEntries;
   }
 
   /// Build a multimodal message with text and images

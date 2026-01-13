@@ -520,12 +520,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     });
 
-    return GestureDetector(
-      onTap: () {
-        // Dismiss keyboard when tapping outside
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: _buildAppBar(chatState),
         body: Column(
         children: [
@@ -585,7 +580,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           _buildInputArea(chatState),
           ],
         ),
-      ),
     );
   }
 
@@ -1018,7 +1012,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   // Image attachment button
                   IconButton(
                     icon: const Icon(Icons.image, size: 20),
-                    tooltip: 'Attach image',
+                    tooltip: _isDesktop ? 'Attach image' : null, // Hide tooltip on mobile
                     onPressed: _showAttachmentOptions,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -1030,21 +1024,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     compact: true,
                   ),
                   const Spacer(),
-                  // Hint for keyboard shortcuts
-                  Tooltip(
-                    message: '${AppLocalizations.of(context).keyboardShortcuts}\n'
-                        '⌘B - ${AppLocalizations.of(context).bold}\n'
-                        '⌘I - ${AppLocalizations.of(context).italic}\n'
-                        '⌘U - ${AppLocalizations.of(context).underline}\n'
-                        '⌘⇧S - ${AppLocalizations.of(context).strikethrough}\n'
-                        '⌘` - ${AppLocalizations.of(context).inlineCode}\n'
-                        '⌘K - ${AppLocalizations.of(context).link}',
-                    child: Icon(
-                      Icons.keyboard,
-                      size: 16,
-                      color: AppTheme.textMuted,
+                  // Hint for keyboard shortcuts - only show on desktop
+                  if (_isDesktop)
+                    Tooltip(
+                      message: '${AppLocalizations.of(context).keyboardShortcuts}\n'
+                          '⌘B - ${AppLocalizations.of(context).bold}\n'
+                          '⌘I - ${AppLocalizations.of(context).italic}\n'
+                          '⌘U - ${AppLocalizations.of(context).underline}\n'
+                          '⌘⇧S - ${AppLocalizations.of(context).strikethrough}\n'
+                          '⌘` - ${AppLocalizations.of(context).inlineCode}\n'
+                          '⌘K - ${AppLocalizations.of(context).link}',
+                      child: Icon(
+                        Icons.keyboard,
+                        size: 16,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -1740,6 +1735,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                       ? Colors.white
                                       : AppTheme.textPrimary,
                                   selectable: true,
+                                  onLongPress: () => _showMessageOptions(context),
                                 ),
                             ],
                           ),
