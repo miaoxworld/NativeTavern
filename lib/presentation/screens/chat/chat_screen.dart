@@ -142,7 +142,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text('• ${l10n.openai} (GPT-4, GPT-3.5)'),
             Text('• ${l10n.claude} (Anthropic)'),
             Text('• ${l10n.openRouter}'),
             Text('• ${l10n.gemini} (Google)'),

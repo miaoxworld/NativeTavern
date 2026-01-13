@@ -6,10 +6,10 @@ import 'package:flutter/foundation.dart';
 
 /// LLM Provider enum
 enum LLMProvider {
-  openai,
   openAICompatible,
   claude,
   gemini,
+  openai,
   deepSeek,
   qwen,
   openRouter,
@@ -181,7 +181,7 @@ class LLMConfig {
           (p) => p.name == json['provider'],
           orElse: () => LLMProvider.openai,
         ),
-        model: json['model'] as String? ?? 'gpt-4o',
+        model: json['model'] as String? ?? 'claude-sonnet-4.5',
         apiKey: json['apiKey'] as String? ?? '',
         apiUrl: json['apiUrl'] as String? ?? 'https://api.openai.com/v1',
         maxTokens: json['maxTokens'] as int? ?? 8192,
@@ -371,10 +371,11 @@ class LLMService {
     LLMConfig config,
   ) async {
     switch (config.provider) {
-      case LLMProvider.openai:
+      
       case LLMProvider.deepSeek:
       case LLMProvider.qwen:
       case LLMProvider.openAICompatible:
+      case LLMProvider.openai:
         return _generateOpenAI(messages, config);
       case LLMProvider.claude:
         return _generateClaude(messages, config);
@@ -407,10 +408,11 @@ class LLMService {
     LLMConfig config,
   ) {
     switch (config.provider) {
-      case LLMProvider.openai:
+      
       case LLMProvider.deepSeek:
       case LLMProvider.qwen:
       case LLMProvider.openAICompatible:
+      case LLMProvider.openai:
         return _streamOpenAIWithReasoning(messages, config);
       case LLMProvider.claude:
         return _streamClaudeWithReasoning(messages, config);
@@ -433,11 +435,12 @@ class LLMService {
     
     try {
       switch (config.provider) {
-        case LLMProvider.openai:
+        
         case LLMProvider.openRouter:
         case LLMProvider.deepSeek:
         case LLMProvider.qwen:
         case LLMProvider.openAICompatible:
+        case LLMProvider.openai:
           if (config.apiKey.isEmpty) {
             _log('Error: API key is empty');
             throw Exception('API key is required');
@@ -490,7 +493,7 @@ class LLMService {
               validateStatus: (status) => true,
             ),
             data: {
-              'model': config.model.isNotEmpty ? config.model : 'claude-3-5-sonnet-20241022',
+              'model': config.model.isNotEmpty ? config.model : 'claude-sonnet-4-5-20250929',
               'max_tokens': 1,
               'messages': [{'role': 'user', 'content': 'Hi'}],
             },
@@ -637,11 +640,12 @@ class LLMService {
     
     try {
       switch (config.provider) {
-        case LLMProvider.openai:
+        
         case LLMProvider.openRouter:
         case LLMProvider.deepSeek:
         case LLMProvider.qwen:
         case LLMProvider.openAICompatible:
+        case LLMProvider.openai:
           _log('Fetching models from ${config.apiUrl}/models');
           final response = await _dio.get(
             '${config.apiUrl}/models',
@@ -665,11 +669,9 @@ class LLMService {
           // Claude doesn't have a models endpoint, return known models
           _log('Returning predefined Claude models');
           return [
-            'claude-3-5-sonnet-20241022',
-            'claude-3-5-haiku-20241022',
-            'claude-3-opus-20240229',
-            'claude-3-sonnet-20240229',
-            'claude-3-haiku-20240307',
+            'claude-sonnet-4-5-20250929',
+            'claude-haiku-4-5-20251001',
+            'claude-opus-4-5-20251001',
           ];
           
         case LLMProvider.gemini:

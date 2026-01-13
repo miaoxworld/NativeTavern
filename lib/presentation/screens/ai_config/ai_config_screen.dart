@@ -657,7 +657,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
               controller: controller,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.modelName,
-                hintText: 'e.g., gpt-4o',
+                hintText: 'e.g., deepseek-3.2',
               ),
               autofocus: true,
             ),
@@ -712,7 +712,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
           controller: controller,
           decoration: InputDecoration(
             labelText: AppLocalizations.of(context)!.modelName,
-            hintText: 'e.g., gpt-4o',
+            hintText: 'e.g., deepseek-3.2',
           ),
           autofocus: true,
         ),

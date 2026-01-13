@@ -47,10 +47,10 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
 
   static LLMConfig _defaultConfig() {
     return const LLMConfig(
-      provider: LLMProvider.openai,
-      model: 'gpt-4o',
+      provider: LLMProvider.claude,
+      model: 'claude-sonnet-4-5-20250929',
       apiKey: '',
-      apiUrl: 'https://api.openai.com/v1',
+      apiUrl: 'https://api.anthropic.com',
       maxTokens: 8192,
       temperature: 0.8,
       topP: 0.95,
@@ -89,9 +89,9 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   static String _getDefaultModel(LLMProvider provider) {
     switch (provider) {
       case LLMProvider.openai:
-        return 'gpt-4o';
+        return 'gpt-5.2';
       case LLMProvider.claude:
-        return 'claude-3-5-sonnet-20241022';
+        return 'claude-sonnet-4-5-20250929';
       case LLMProvider.openRouter:
         return 'anthropic/claude-3.5-sonnet';
       case LLMProvider.gemini:
@@ -605,12 +605,13 @@ class ModelFetchNotifier extends StateNotifier<ModelFetchState> {
         // Provide helpful message based on provider
         String message;
         switch (config.provider) {
-          case LLMProvider.openai:
+          
           case LLMProvider.openRouter:
           case LLMProvider.gemini:
           case LLMProvider.deepSeek:
           case LLMProvider.qwen:
           case LLMProvider.openAICompatible:
+          case LLMProvider.openai:
             message = 'No models found. Check your API key.';
             break;
           case LLMProvider.ollama:

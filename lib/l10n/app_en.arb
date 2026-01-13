@@ -249,7 +249,7 @@
     "placeholders": {
       "model": {
         "type": "String",
-        "example": "gpt-4"
+        "example": "deepseek-3.2"
       }
     }
   },
