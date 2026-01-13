@@ -1736,6 +1736,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                       : AppTheme.textPrimary,
                                   selectable: true,
                                   onLongPress: () => _showMessageOptions(context),
+                                  isStreaming: widget.isGenerating,
                                 ),
                             ],
                           ),

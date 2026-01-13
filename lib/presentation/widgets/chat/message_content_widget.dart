@@ -24,6 +24,9 @@ class MessageContentWidget extends StatefulWidget {
   final VoidCallback? onCopy;
   final void Function(String)? onCopySelection;
   final VoidCallback? onLongPress;
+  /// Whether the message is currently being streamed (AI is still generating)
+  /// When true, WebView will not be used even for complex HTML to avoid rendering issues
+  final bool isStreaming;
 
   const MessageContentWidget({
     super.key,
@@ -34,6 +37,7 @@ class MessageContentWidget extends StatefulWidget {
     this.onCopy,
     this.onCopySelection,
     this.onLongPress,
+    this.isStreaming = false,
   });
 
   @override
@@ -166,8 +170,10 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
 
     Widget contentWidget;
     
-    // If content has complex HTML (flexbox, grid, shadows, etc.), use WebView
-    if (hasHtml && isComplexHtml(widget.content)) {
+    // If content has complex HTML (flexbox, grid, shadows, etc.) AND streaming is complete,
+    // use WebView for full CSS support. During streaming, always use flutter_html to avoid
+    // rendering issues with constantly updating content.
+    if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
       contentWidget = HtmlWebViewWidget(
         htmlContent: widget.content,
         textColor: widget.textColor,
@@ -175,7 +181,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         onLongPress: widget.onLongPress,
       );
     }
-    // If content has simple HTML, use flutter_html renderer
+    // If content has HTML (simple or streaming), use flutter_html renderer
     else if (hasHtml) {
       contentWidget = _buildHtmlContent(context);
     }
@@ -189,7 +195,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     }
 
     // Wrap with gesture detector for context menu (except for WebView which handles its own)
-    if (hasHtml && isComplexHtml(widget.content)) {
+    if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
       return contentWidget;
     }
     
