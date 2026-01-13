@@ -130,19 +130,55 @@ ${widget.htmlContent}
     }
   }
   
-  // Wait for images to load before measuring height
+  // Wait for all images to load before measuring height
+  function waitForImages() {
+    const images = document.querySelectorAll('img');
+    if (images.length === 0) {
+      sendHeight();
+      return;
+    }
+    
+    let loadedCount = 0;
+    const totalImages = images.length;
+    
+    function checkAllLoaded() {
+      loadedCount++;
+      if (loadedCount >= totalImages) {
+        // All images loaded, send height
+        setTimeout(sendHeight, 100);
+      }
+    }
+    
+    images.forEach(function(img) {
+      if (img.complete) {
+        checkAllLoaded();
+      } else {
+        img.onload = checkAllLoaded;
+        img.onerror = checkAllLoaded; // Count errors too to avoid hanging
+      }
+    });
+    
+    // Fallback: send height after timeout even if images haven't loaded
+    setTimeout(sendHeight, 5000);
+  }
+  
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForImages);
+  } else {
+    waitForImages();
+  }
+  
+  // Also send height after window load (includes all resources)
   window.onload = function() {
     setTimeout(sendHeight, 100);
     setTimeout(sendHeight, 500);
   };
   
-  // Also send height after a short delay for dynamic content
-  setTimeout(sendHeight, 200);
+  // Periodic height updates for dynamic content
   setTimeout(sendHeight, 1000);
   setTimeout(sendHeight, 2000);
-  
-  // Initial call
-  sendHeight();
+  setTimeout(sendHeight, 3000);
 </script>
 </body>
 </html>

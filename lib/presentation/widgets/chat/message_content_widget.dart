@@ -1,20 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/chat/html_webview_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
-/// Widget that renders message content with support for both Markdown and HTML
+/// Widget that renders message content with support for Markdown
 ///
-/// This widget automatically detects whether the content contains HTML tags
-/// and renders using the appropriate renderer. It supports:
+/// This widget renders content using Markdown renderer. For complex HTML content
+/// (with flexbox, grid, shadows, etc.), it uses WebView for full CSS support.
+/// Simple HTML tags are converted to Markdown equivalents.
 /// - Markdown: bold, italic, strikethrough, code blocks, lists, links, etc.
-/// - HTML: common tags like <b>, <i>, <u>, <s>, <br>, <p>, <div>, <span>, etc.
-/// - Mixed content: HTML takes precedence when detected
+/// - Complex HTML: rendered via WebView for full CSS support
 /// - Text selection with context menu (copy, select all)
 class MessageContentWidget extends StatefulWidget {
   final String content;
@@ -166,12 +165,11 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     }
 
     final hasHtml = _containsHtml(widget.content);
-    final hasMarkdown = _containsMarkdown(widget.content);
 
     Widget contentWidget;
     
     // If content has complex HTML (flexbox, grid, shadows, etc.) AND streaming is complete,
-    // use WebView for full CSS support. During streaming, always use flutter_html to avoid
+    // use WebView for full CSS support. During streaming, always use Markdown to avoid
     // rendering issues with constantly updating content.
     if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
       contentWidget = HtmlWebViewWidget(
@@ -181,17 +179,11 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         onLongPress: widget.onLongPress,
       );
     }
-    // If content has HTML (simple or streaming), use flutter_html renderer
-    else if (hasHtml) {
-      contentWidget = _buildHtmlContent(context);
-    }
-    // If content has Markdown, use Markdown renderer
-    else if (hasMarkdown) {
-      contentWidget = _buildMarkdownContent(context);
-    }
-    // Plain text - use simple selectable text
+    // For all other content (including simple HTML), convert to Markdown and render
     else {
-      contentWidget = _buildPlainText(context);
+      // Convert HTML to Markdown-friendly format
+      final processedContent = hasHtml ? _convertHtmlToMarkdown(widget.content) : widget.content;
+      contentWidget = _buildMarkdownContent(context, processedContent);
     }
 
     // Wrap with gesture detector for context menu (except for WebView which handles its own)
@@ -205,181 +197,196 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
       child: contentWidget,
     );
   }
+  
+  /// Convert simple HTML tags to Markdown equivalents
+  String _convertHtmlToMarkdown(String html) {
+    var result = html;
+    
+    // Convert bold tags
+    result = result.replaceAllMapped(
+      RegExp(r'<(b|strong)>(.*?)</\1>', caseSensitive: false, dotAll: true),
+      (m) => '**${m.group(2)}**',
+    );
+    
+    // Convert italic tags
+    result = result.replaceAllMapped(
+      RegExp(r'<(i|em)>(.*?)</\1>', caseSensitive: false, dotAll: true),
+      (m) => '*${m.group(2)}*',
+    );
+    
+    // Convert underline to bold (Markdown doesn't have underline)
+    result = result.replaceAllMapped(
+      RegExp(r'<u>(.*?)</u>', caseSensitive: false, dotAll: true),
+      (m) => '**${m.group(1)}**',
+    );
+    
+    // Convert strikethrough
+    result = result.replaceAllMapped(
+      RegExp(r'<(s|del|strike)>(.*?)</\1>', caseSensitive: false, dotAll: true),
+      (m) => '~~${m.group(2)}~~',
+    );
+    
+    // Convert code tags
+    result = result.replaceAllMapped(
+      RegExp(r'<code>(.*?)</code>', caseSensitive: false, dotAll: true),
+      (m) => '`${m.group(1)}`',
+    );
+    
+    // Convert pre tags to code blocks
+    result = result.replaceAllMapped(
+      RegExp(r'<pre>(.*?)</pre>', caseSensitive: false, dotAll: true),
+      (m) => '\n```\n${m.group(1)}\n```\n',
+    );
+    
+    // Convert headers
+    result = result.replaceAllMapped(
+      RegExp(r'<h1[^>]*>(.*?)</h1>', caseSensitive: false, dotAll: true),
+      (m) => '\n# ${m.group(1)}\n',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'<h2[^>]*>(.*?)</h2>', caseSensitive: false, dotAll: true),
+      (m) => '\n## ${m.group(1)}\n',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'<h3[^>]*>(.*?)</h3>', caseSensitive: false, dotAll: true),
+      (m) => '\n### ${m.group(1)}\n',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'<h4[^>]*>(.*?)</h4>', caseSensitive: false, dotAll: true),
+      (m) => '\n#### ${m.group(1)}\n',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'<h5[^>]*>(.*?)</h5>', caseSensitive: false, dotAll: true),
+      (m) => '\n##### ${m.group(1)}\n',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'<h6[^>]*>(.*?)</h6>', caseSensitive: false, dotAll: true),
+      (m) => '\n###### ${m.group(1)}\n',
+    );
+    
+    // Convert links
+    result = result.replaceAllMapped(
+      RegExp(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>', caseSensitive: false, dotAll: true),
+      (m) => '[${m.group(2)}](${m.group(1)})',
+    );
+    
+    // Convert images - keep as Markdown image syntax
+    result = result.replaceAllMapped(
+      RegExp(r'<img[^>]*src="([^"]*)"[^>]*/?\s*>', caseSensitive: false),
+      (m) => '![image](${m.group(1)})',
+    );
+    
+    // Convert blockquote
+    result = result.replaceAllMapped(
+      RegExp(r'<blockquote[^>]*>(.*?)</blockquote>', caseSensitive: false, dotAll: true),
+      (m) {
+        final content = m.group(1) ?? '';
+        final lines = content.split('\n').map((line) => '> ${line.trim()}').join('\n');
+        return '\n$lines\n';
+      },
+    );
+    
+    // Convert horizontal rule
+    result = result.replaceAll(RegExp(r'<hr\s*/?\s*>', caseSensitive: false), '\n---\n');
+    
+    // Convert line breaks
+    result = result.replaceAll(RegExp(r'<br\s*/?\s*>', caseSensitive: false), '\n');
+    
+    // Convert paragraphs
+    result = result.replaceAllMapped(
+      RegExp(r'<p[^>]*>(.*?)</p>', caseSensitive: false, dotAll: true),
+      (m) => '\n${m.group(1)}\n',
+    );
+    
+    // Convert divs to paragraphs
+    result = result.replaceAllMapped(
+      RegExp(r'<div[^>]*>(.*?)</div>', caseSensitive: false, dotAll: true),
+      (m) => '\n${m.group(1)}\n',
+    );
+    
+    // Convert unordered lists
+    result = result.replaceAllMapped(
+      RegExp(r'<ul[^>]*>(.*?)</ul>', caseSensitive: false, dotAll: true),
+      (m) {
+        final content = m.group(1) ?? '';
+        return content.replaceAllMapped(
+          RegExp(r'<li[^>]*>(.*?)</li>', caseSensitive: false, dotAll: true),
+          (li) => '- ${li.group(1)?.trim()}\n',
+        );
+      },
+    );
+    
+    // Convert ordered lists
+    result = result.replaceAllMapped(
+      RegExp(r'<ol[^>]*>(.*?)</ol>', caseSensitive: false, dotAll: true),
+      (m) {
+        final content = m.group(1) ?? '';
+        var index = 1;
+        return content.replaceAllMapped(
+          RegExp(r'<li[^>]*>(.*?)</li>', caseSensitive: false, dotAll: true),
+          (li) => '${index++}. ${li.group(1)?.trim()}\n',
+        );
+      },
+    );
+    
+    // Remove remaining HTML tags (span, font, center, etc.)
+    result = result.replaceAll(RegExp(r'<[^>]+>'), '');
+    
+    // Clean up multiple newlines
+    result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    
+    // Decode HTML entities
+    result = _decodeHtmlEntities(result);
+    
+    return result.trim();
+  }
+  
+  /// Decode common HTML entities
+  String _decodeHtmlEntities(String text) {
+    return text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&apos;', "'")
+        .replaceAll('&mdash;', '—')
+        .replaceAll('&ndash;', '–')
+        .replaceAll('&hellip;', '…')
+        .replaceAll('&copy;', '©')
+        .replaceAll('&reg;', '®')
+        .replaceAll('&trade;', '™');
+  }
 
-  Widget _buildHtmlContent(BuildContext context) {
+  Widget _buildMarkdownContent(BuildContext context, String content) {
     final effectiveFontSize = widget.fontSize ?? 14.0;
     
-    return Html(
-      data: widget.content,
-      style: {
-        '*': Style(
-          color: widget.textColor,
-          fontSize: FontSize(effectiveFontSize),
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-        ),
-        'body': Style(
-          margin: Margins.zero,
-          padding: HtmlPaddings.zero,
-        ),
-        'div': Style(
-          margin: Margins.only(bottom: 12),
-        ),
-        'p': Style(
-          margin: Margins.only(bottom: 8),
-        ),
-        'b': Style(
-          fontWeight: FontWeight.bold,
-        ),
-        'strong': Style(
-          fontWeight: FontWeight.bold,
-        ),
-        'i': Style(
-          fontStyle: FontStyle.italic,
-        ),
-        'em': Style(
-          fontStyle: FontStyle.italic,
-        ),
-        'u': Style(
-          textDecoration: TextDecoration.underline,
-        ),
-        's': Style(
-          textDecoration: TextDecoration.lineThrough,
-        ),
-        'del': Style(
-          textDecoration: TextDecoration.lineThrough,
-        ),
-        'code': Style(
-          backgroundColor: AppTheme.darkBackground.withValues(alpha: 0.5),
-          fontFamily: 'monospace',
-          fontSize: FontSize(effectiveFontSize * 0.9),
-          padding: HtmlPaddings.symmetric(horizontal: 4, vertical: 2),
-        ),
-        'pre': Style(
-          backgroundColor: AppTheme.darkBackground.withValues(alpha: 0.5),
-          padding: HtmlPaddings.all(12),
-          margin: Margins.symmetric(vertical: 8),
-        ),
-        'blockquote': Style(
-          border: Border(
-            left: BorderSide(
-              color: AppTheme.primaryColor,
-              width: 3,
-            ),
-          ),
-          padding: HtmlPaddings.only(left: 12),
-          margin: Margins.symmetric(vertical: 8),
-          fontStyle: FontStyle.italic,
-          color: AppTheme.textSecondary,
-        ),
-        'a': Style(
-          color: AppTheme.primaryColor,
-          textDecoration: TextDecoration.underline,
-        ),
-        'h1': Style(
-          fontSize: FontSize(effectiveFontSize * 1.8),
-          fontWeight: FontWeight.bold,
-          margin: Margins.only(top: 16, bottom: 8),
-        ),
-        'h2': Style(
-          fontSize: FontSize(effectiveFontSize * 1.5),
-          fontWeight: FontWeight.bold,
-          margin: Margins.only(top: 14, bottom: 6),
-        ),
-        'h3': Style(
-          fontSize: FontSize(effectiveFontSize * 1.3),
-          fontWeight: FontWeight.bold,
-          margin: Margins.only(top: 12, bottom: 4),
-        ),
-        'h4': Style(
-          fontSize: FontSize(effectiveFontSize * 1.1),
-          fontWeight: FontWeight.bold,
-          margin: Margins.only(top: 10, bottom: 4),
-        ),
-        'ul': Style(
-          margin: Margins.only(left: 16, top: 4, bottom: 4),
-        ),
-        'ol': Style(
-          margin: Margins.only(left: 16, top: 4, bottom: 4),
-        ),
-        'li': Style(
-          margin: Margins.only(bottom: 2),
-        ),
-        'hr': Style(
-          border: Border(
-            bottom: BorderSide(
-              color: AppTheme.darkDivider,
-              width: 1,
-            ),
-          ),
-          margin: Margins.symmetric(vertical: 12),
-        ),
-        'mark': Style(
-          backgroundColor: Colors.yellow.withValues(alpha: 0.3),
-        ),
-        'sub': Style(
-          fontSize: FontSize(effectiveFontSize * 0.75),
-          verticalAlign: VerticalAlign.sub,
-        ),
-        'sup': Style(
-          fontSize: FontSize(effectiveFontSize * 0.75),
-          verticalAlign: VerticalAlign.sup,
-        ),
-        'small': Style(
-          fontSize: FontSize(effectiveFontSize * 0.85),
-        ),
-        'center': Style(
-          textAlign: TextAlign.center,
-        ),
-        'img': Style(
-          width: Width(100, Unit.percent),
-          margin: Margins.symmetric(vertical: 8),
-        ),
+    return SelectionArea(
+      onSelectionChanged: (selection) {
+        _selectedText = selection?.plainText;
       },
-      extensions: [
-        // Custom image extension for better image handling with CachedNetworkImage
-        ImageExtension(
-          builder: (extensionContext) {
-            final src = extensionContext.attributes['src'];
-            if (src == null || src.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            
-            // Parse style attribute for dimensions
-            final style = extensionContext.attributes['style'] ?? '';
-            double? width;
-            double? height;
-            
-            // Extract width from style
-            final widthMatch = RegExp(r'width:\s*(\d+)').firstMatch(style);
-            if (widthMatch != null) {
-              width = double.tryParse(widthMatch.group(1) ?? '');
-            }
-            
-            // Extract height from style
-            final heightMatch = RegExp(r'height:\s*(\d+)').firstMatch(style);
-            if (heightMatch != null) {
-              height = double.tryParse(heightMatch.group(1) ?? '');
-            }
-            
-            return ClipRRect(
+      child: MarkdownBody(
+        data: content,
+        selectable: widget.selectable,
+        imageBuilder: (uri, title, alt) {
+          // Custom image builder using CachedNetworkImage
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl: src,
-                width: width,
-                height: height,
-                fit: BoxFit.cover,
+                imageUrl: uri.toString(),
+                fit: BoxFit.contain,
                 placeholder: (context, url) => Container(
-                  width: width ?? double.infinity,
-                  height: height ?? 150,
+                  height: 200,
                   color: AppTheme.darkBackground,
                   child: const Center(
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
                 errorWidget: (context, url, error) => Container(
-                  width: width ?? double.infinity,
-                  height: height ?? 150,
+                  height: 150,
                   color: AppTheme.darkBackground,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -397,28 +404,9 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
                   ),
                 ),
               ),
-            );
-          },
-        ),
-      ],
-      onLinkTap: (url, _, __) {
-        if (url != null) {
-          _launchUrl(url);
-        }
-      },
-    );
-  }
-
-  Widget _buildMarkdownContent(BuildContext context) {
-    final effectiveFontSize = widget.fontSize ?? 14.0;
-    
-    return SelectionArea(
-      onSelectionChanged: (selection) {
-        _selectedText = selection?.plainText;
-      },
-      child: MarkdownBody(
-        data: widget.content,
-        selectable: widget.selectable,
+            ),
+          );
+        },
         styleSheet: MarkdownStyleSheet(
           p: TextStyle(
             color: widget.textColor,
