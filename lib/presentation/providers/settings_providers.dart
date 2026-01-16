@@ -89,7 +89,7 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   static String _getDefaultModel(LLMProvider provider) {
     switch (provider) {
       case LLMProvider.openai:
-        return 'gpt-5.2';
+        return '5.2';
       case LLMProvider.claude:
         return 'claude-sonnet-4-5-20250929';
       case LLMProvider.openRouter:

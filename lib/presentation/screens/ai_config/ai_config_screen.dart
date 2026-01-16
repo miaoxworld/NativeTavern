@@ -388,7 +388,7 @@ class _LLMProviderTile extends ConsumerWidget {
   String _providerDescription(LLMProvider provider) {
     switch (provider) {
       case LLMProvider.openai:
-        return 'GPT-5.2';
+        return '5.2';
       case LLMProvider.claude:
         return 'Claude 4.5';
       case LLMProvider.openRouter:

@@ -26,7 +26,7 @@ extension TokenizerTypeExtension on TokenizerType {
       case TokenizerType.gpt2:
         return 'GPT-2';
       case TokenizerType.openai:
-        return 'OpenAI (tiktoken)';
+        return 'OA Compatible (tiktoken)';
       case TokenizerType.llama:
         return 'LLaMA';
       case TokenizerType.llama3:
@@ -55,9 +55,9 @@ extension TokenizerTypeExtension on TokenizerType {
       case TokenizerType.none:
         return 'Estimates tokens based on character count (~3.35 chars/token)';
       case TokenizerType.gpt2:
-        return 'Original GPT-2 tokenizer (50,257 vocab)';
+        return 'Original 2 tokenizer (50,257 vocab)';
       case TokenizerType.openai:
-        return 'OpenAI tiktoken for GPT-3.5/4 models';
+        return 'OA Compatible tiktoken for 4 models';
       case TokenizerType.llama:
         return 'LLaMA 1/2 tokenizer (32,000 vocab)';
       case TokenizerType.llama3:

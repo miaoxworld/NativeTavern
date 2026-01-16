@@ -292,7 +292,7 @@ class STTSettingsScreen extends ConsumerWidget {
                   leading: Icon(Icons.cloud, color: AppTheme.textMuted),
                   title: Text('Whisper'),
                   subtitle: Text(
-                    'OpenAI\'s Whisper model for high-accuracy transcription. '
+                    'OA Compatible\'s Whisper model for high-accuracy transcription. '
                     'Requires an API key.',
                   ),
                 ),

@@ -49,7 +49,7 @@ class BuiltInTemplates {
   static final chatML = InstructTemplate(
     id: 'chatml',
     name: 'ChatML',
-    description: 'OpenAI ChatML format used by many models',
+    description: 'OA Compatible ChatML format used by many models',
     systemPrefix: '<|im_start|>system\n',
     systemSuffix: '<|im_end|>\n',
     userPrefix: '<|im_start|>user\n',
@@ -179,7 +179,7 @@ class BuiltInTemplates {
   static final none = InstructTemplate(
     id: 'none',
     name: 'None (API Default)',
-    description: 'No formatting - use API default (for OpenAI, Claude, etc.)',
+    description: 'No formatting - use API default (for OACompatible, Claude, etc.)',
     systemPrefix: '',
     systemSuffix: '',
     userPrefix: '',

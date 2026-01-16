@@ -96,7 +96,7 @@ class VectorCollection {
   factory VectorCollection.create({
     required String name,
     String? description,
-    int dimensions = 1536, // OpenAI default
+    int dimensions = 1536, // OA Compatible default
   }) {
     final now = DateTime.now();
     return VectorCollection(

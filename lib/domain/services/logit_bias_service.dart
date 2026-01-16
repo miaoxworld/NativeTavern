@@ -288,9 +288,9 @@ extension TokenizerTypeExtension on TokenizerType {
       case TokenizerType.none:
         return 'None';
       case TokenizerType.gpt2:
-        return 'GPT-2';
+        return 'OA-Compatible-2';
       case TokenizerType.openai:
-        return 'OpenAI (tiktoken)';
+        return 'OA Compatible (tiktoken)';
       case TokenizerType.llama:
         return 'LLaMA';
       case TokenizerType.llama3:

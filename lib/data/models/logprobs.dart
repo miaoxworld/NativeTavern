@@ -54,7 +54,7 @@ class TokenCandidate {
   });
 
   factory TokenCandidate.fromJson(Map<String, dynamic> json) {
-    // Handle both OpenAI format and generic format
+    // Handle both OA Compatible format and generic format
     if (json.containsKey('token')) {
       return TokenCandidate(
         token: json['token'] as String? ?? '',
