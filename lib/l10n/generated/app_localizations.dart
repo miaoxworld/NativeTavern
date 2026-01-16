@@ -6324,6 +6324,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Requires both primary AND secondary key to match'**
   String get requiresSecondaryKey;
+
+  /// Debug log setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Log'**
+  String get debugLog;
+
+  /// Debug log setting description
+  ///
+  /// In en, this message translates to:
+  /// **'Show floating debug button to view logs'**
+  String get debugLogDescription;
+
+  /// Auto scroll toggle tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Scroll'**
+  String get autoScroll;
+
+  /// Clear logs button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Logs'**
+  String get clearLogs;
+
+  /// Search logs placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search logs...'**
+  String get searchLogs;
+
+  /// Empty state when no logs
+  ///
+  /// In en, this message translates to:
+  /// **'No logs yet'**
+  String get noLogsYet;
 }
 
 class _AppLocalizationsDelegate

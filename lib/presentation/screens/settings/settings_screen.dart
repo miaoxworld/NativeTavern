@@ -124,6 +124,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const _ConfirmDeleteTile(),
           const _AutoSaveTile(),
+          const _DebugLogTile(),
           
           const Divider(height: 32),
           _buildSectionHeader(context, l10n.backup),
@@ -248,6 +249,26 @@ class _AutoSaveTile extends ConsumerWidget {
       value: settings.autoSaveChats,
       onChanged: (value) {
         ref.read(appSettingsProvider.notifier).updateAutoSaveChats(value);
+      },
+    );
+  }
+}
+
+class _DebugLogTile extends ConsumerWidget {
+  const _DebugLogTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.watch(appSettingsProvider);
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.bug_report),
+      title: Text(l10n.debugLog),
+      subtitle: Text(l10n.debugLogDescription),
+      value: settings.enableDebugLog,
+      onChanged: (value) {
+        ref.read(appSettingsProvider.notifier).updateDebugLog(value);
       },
     );
   }

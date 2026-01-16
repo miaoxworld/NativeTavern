@@ -281,5 +281,11 @@
   "link": "链接",
   "slashCommands": "斜杠命令",
   "availableCommands": "可用命令：",
-  "commandHelp": "输入 / 查看可用命令"
+  "commandHelp": "输入 / 查看可用命令",
+  "debugLog": "调试日志",
+  "debugLogDescription": "显示悬浮调试按钮以查看日志",
+  "autoScroll": "自动滚动",
+  "clearLogs": "清除日志",
+  "searchLogs": "搜索日志...",
+  "noLogsYet": "暂无日志"
 }

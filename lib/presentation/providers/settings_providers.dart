@@ -328,6 +328,7 @@ class AppSettings {
   final String defaultCharacterSortOrder;
   final bool confirmBeforeDelete;
   final bool autoSaveChats;
+  final bool enableDebugLog;
 
   const AppSettings({
     this.theme = 'dark',
@@ -337,6 +338,7 @@ class AppSettings {
     this.defaultCharacterSortOrder = 'name',
     this.confirmBeforeDelete = true,
     this.autoSaveChats = true,
+    this.enableDebugLog = false,
   });
 
   AppSettings copyWith({
@@ -347,6 +349,7 @@ class AppSettings {
     String? defaultCharacterSortOrder,
     bool? confirmBeforeDelete,
     bool? autoSaveChats,
+    bool? enableDebugLog,
   }) {
     return AppSettings(
       theme: theme ?? this.theme,
@@ -357,6 +360,7 @@ class AppSettings {
           defaultCharacterSortOrder ?? this.defaultCharacterSortOrder,
       confirmBeforeDelete: confirmBeforeDelete ?? this.confirmBeforeDelete,
       autoSaveChats: autoSaveChats ?? this.autoSaveChats,
+      enableDebugLog: enableDebugLog ?? this.enableDebugLog,
     );
   }
 
@@ -368,6 +372,7 @@ class AppSettings {
         'defaultCharacterSortOrder': defaultCharacterSortOrder,
         'confirmBeforeDelete': confirmBeforeDelete,
         'autoSaveChats': autoSaveChats,
+        'enableDebugLog': enableDebugLog,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -380,6 +385,7 @@ class AppSettings {
           json['defaultCharacterSortOrder'] as String? ?? 'name',
       confirmBeforeDelete: json['confirmBeforeDelete'] as bool? ?? true,
       autoSaveChats: json['autoSaveChats'] as bool? ?? true,
+      enableDebugLog: json['enableDebugLog'] as bool? ?? false,
     );
   }
 }
@@ -441,6 +447,11 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
 
   void updateAutoSaveChats(bool autoSave) {
     state = state.copyWith(autoSaveChats: autoSave);
+    _saveSettings();
+  }
+
+  void updateDebugLog(bool enabled) {
+    state = state.copyWith(enableDebugLog: enabled);
     _saveSettings();
   }
 

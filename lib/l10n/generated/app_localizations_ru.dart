@@ -3451,4 +3451,22 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get requiresSecondaryKey =>
       'Requires both primary AND secondary key to match';
+
+  @override
+  String get debugLog => 'Debug Log';
+
+  @override
+  String get debugLogDescription => 'Show floating debug button to view logs';
+
+  @override
+  String get autoScroll => 'Auto Scroll';
+
+  @override
+  String get clearLogs => 'Clear Logs';
+
+  @override
+  String get searchLogs => 'Search logs...';
+
+  @override
+  String get noLogsYet => 'No logs yet';
 }

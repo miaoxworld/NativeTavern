@@ -5872,5 +5872,35 @@
   "requiresSecondaryKey": "Requires both primary AND secondary key to match",
   "@requiresSecondaryKey": {
     "description": "Helper text for selective toggle"
+  },
+  
+  "debugLog": "Debug Log",
+  "@debugLog": {
+    "description": "Debug log setting title"
+  },
+  
+  "debugLogDescription": "Show floating debug button to view logs",
+  "@debugLogDescription": {
+    "description": "Debug log setting description"
+  },
+  
+  "autoScroll": "Auto Scroll",
+  "@autoScroll": {
+    "description": "Auto scroll toggle tooltip"
+  },
+  
+  "clearLogs": "Clear Logs",
+  "@clearLogs": {
+    "description": "Clear logs button tooltip"
+  },
+  
+  "searchLogs": "Search logs...",
+  "@searchLogs": {
+    "description": "Search logs placeholder"
+  },
+  
+  "noLogsYet": "No logs yet",
+  "@noLogsYet": {
+    "description": "Empty state when no logs"
   }
 }

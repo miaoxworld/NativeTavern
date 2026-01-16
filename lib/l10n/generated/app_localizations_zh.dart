@@ -3438,6 +3438,24 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get requiresSecondaryKey =>
       'Requires both primary AND secondary key to match';
+
+  @override
+  String get debugLog => '调试日志';
+
+  @override
+  String get debugLogDescription => '显示悬浮调试按钮以查看日志';
+
+  @override
+  String get autoScroll => '自动滚动';
+
+  @override
+  String get clearLogs => '清除日志';
+
+  @override
+  String get searchLogs => '搜索日志...';
+
+  @override
+  String get noLogsYet => '暂无日志';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
