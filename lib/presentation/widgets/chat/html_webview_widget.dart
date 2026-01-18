@@ -216,33 +216,22 @@ ${widget.htmlContent}
   var heightSent = false;
   var lastSentHeight = 0;
   var allImagesLoaded = false;
+  var heightLocked = false; // Once images loaded and height stable, lock it
   
-  // Accurate height calculation
+  // Simple and reliable height calculation
   function getContentHeight() {
-    var bodyHeight = document.body.scrollHeight;
-    var bodyOffset = document.body.offsetHeight;
-    var bodyClient = document.body.clientHeight;
-    var docHeight = document.documentElement.scrollHeight;
-    var docOffset = document.documentElement.offsetHeight;
-    
-    var height = Math.max(bodyHeight, bodyOffset, bodyClient, docHeight, docOffset);
-    
-    // Check bounding boxes of all elements
-    var allElements = document.querySelectorAll('*');
-    for (var i = 0; i < allElements.length; i++) {
-      var el = allElements[i];
-      var rect = el.getBoundingClientRect();
-      var elBottom = rect.bottom;
-      if (elBottom > height) {
-        height = elBottom;
-      }
-    }
-    
-    return Math.ceil(height);
+    // Just use body.scrollHeight - it's the most reliable metric
+    // that represents the actual content height without being affected by external factors
+    return document.body.scrollHeight;
   }
   
   // Send content height to Flutter
   function sendHeight() {
+    // If height is locked (after images loaded and stabilized), don't send updates
+    if (heightLocked) {
+      return;
+    }
+    
     try {
       var height = getContentHeight();
       if (!heightSent || Math.abs(height - lastSentHeight) > 5) {
@@ -262,6 +251,17 @@ ${widget.htmlContent}
   function notifyImagesLoaded() {
     if (!allImagesLoaded) {
       allImagesLoaded = true;
+      
+      // Send final height after a short delay to ensure layout is complete
+      setTimeout(function() {
+        sendHeight();
+        // Lock height after images loaded to prevent scroll-induced updates
+        setTimeout(function() {
+          heightLocked = true;
+          console.log('Height locked at: ' + lastSentHeight);
+        }, 500);
+      }, 100);
+      
       try {
         if (window.flutter_inappwebview) {
           window.flutter_inappwebview.callHandler('imagesLoaded', true);
@@ -463,10 +463,11 @@ ${widget.htmlContent}
     // First, defer image loading
     deferImageLoading();
     
-    sendHeight();
+    // Don't send height immediately - wait for layout to stabilize first
+    // This avoids incorrect height values during initial render
     
-    // Progressive height updates
-    setTimeout(sendHeight, 100);
+    // Progressive height updates - starting after layout settles
+    setTimeout(sendHeight, 150); // First update after initial layout
     setTimeout(sendHeight, 300);
     
     // Load images after a short delay to ensure WebView is fully ready
@@ -567,20 +568,48 @@ ${widget.htmlContent}
                 controller.addJavaScriptHandler(
                   handlerName: 'contentHeight',
                   callback: (args) {
-                    debugPrint('🌐 Received height: $args (update #$_heightUpdateCount)');
                     if (args.isNotEmpty && mounted) {
                       final height = (args[0] as num).toDouble();
-                      // Validate height - must be positive and reasonable
-                      if (height > 10) {
+                      _heightUpdateCount++;
+                      
+                      // Skip the very first height update - it's often inaccurate during initial layout
+                      if (_heightUpdateCount == 1) {
+                        debugPrint('🌐 Skipping first height: $height (often inaccurate)');
+                        return;
+                      }
+                      
+                      // Validate height - must be positive and within reasonable bounds
+                      if (height > 10 && height < 50000) {
                         final newHeight = height + 24; // Add padding
-                        // Only update if height increased or this is the first few updates
-                        if (newHeight > _contentHeight || _heightUpdateCount < 5) {
+                        final heightDiff = (newHeight - _contentHeight).abs();
+                        
+                        // Once height has stabilized (after several updates with small changes),
+                        // stop accepting more height updates to prevent scroll-induced changes
+                        if (_heightUpdateCount >= 10 && heightDiff < 50) {
+                          // Height is stable, don't update anymore
+                          debugPrint('🌐 Height stable at $_contentHeight, ignoring update $newHeight');
+                          return;
+                        }
+                        
+                        // Accept height update if:
+                        // - It's one of the first few updates (2-5)
+                        // - Height increased significantly (by more than 20px)
+                        // - Height decreased significantly (by more than 100px) - layout correction
+                        final shouldUpdate = _heightUpdateCount <= 5 || 
+                            (newHeight > _contentHeight && heightDiff > 20) ||
+                            (newHeight < _contentHeight && heightDiff > 100);
+                        
+                        if (shouldUpdate) {
+                          debugPrint('🌐 Updating height: $_contentHeight -> $newHeight (update #$_heightUpdateCount)');
                           setState(() {
                             _contentHeight = newHeight;
-                            _heightUpdateCount++;
                             _isLoading = false;
                           });
+                        } else {
+                          debugPrint('🌐 Skipping height update: $_contentHeight -> $newHeight (diff: $heightDiff)');
                         }
+                      } else if (height >= 50000) {
+                        debugPrint('🌐 Ignoring unreasonable height: $height (too large)');
                       }
                     }
                   },
