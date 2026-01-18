@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/core/services/initialization_service.dart';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
 import 'package:native_tavern/domain/services/database_backup_service.dart';
+import 'package:native_tavern/domain/services/google_drive_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/cloud_backup_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
@@ -19,6 +20,8 @@ class CloudBackupScreen extends ConsumerWidget {
     final operationState = ref.watch(cloudBackupOperationProvider);
     final iCloudAvailable = ref.watch(iCloudAvailableProvider);
     final iCloudBackupsAsync = ref.watch(iCloudBackupsProvider);
+    final isGoogleDriveSignedIn = ref.watch(googleDriveSignedInProvider);
+    final googleDriveBackupsAsync = ref.watch(googleDriveBackupsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -193,33 +196,103 @@ class CloudBackupScreen extends ConsumerWidget {
                   context: context,
                   title: 'Google Drive',
                   children: [
-                    ListTile(
-                      leading: const Icon(Icons.folder_outlined, color: Colors.orange),
-                      title: Text(l10n.googleDriveExport),
-                      subtitle: Text(l10n.googleDriveExportDescription),
-                      trailing: ElevatedButton.icon(
-                        icon: const Icon(Icons.upload_file, size: 18),
-                        label: Text(l10n.export),
-                        onPressed: () => _exportToFile(context, ref),
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.file_download, color: Colors.green),
-                      title: Text(l10n.googleDriveImport),
-                      subtitle: Text(l10n.googleDriveImportDescription),
-                      trailing: ElevatedButton.icon(
-                        icon: const Icon(Icons.download, size: 18),
-                        label: Text(l10n.import_action),
-                        onPressed: () => _showImportDialog(context, ref),
-                      ),
-                    ),
-                    if (settings.lastGoogleDriveSync != null)
+                    // Sign in/out section
+                    if (!isGoogleDriveSignedIn) ...[
                       ListTile(
-                        leading: const Icon(Icons.schedule, color: AppTheme.textMuted),
-                        title: Text(l10n.lastSync(_formatDateTime(context, settings.lastGoogleDriveSync!))),
+                        leading: const Icon(Icons.login, color: Colors.blue),
+                        title: Text(l10n.signInToGoogleDrive),
+                        subtitle: Text(l10n.signInToGoogleDriveDescription),
+                        trailing: ElevatedButton.icon(
+                          icon: const Icon(Icons.login, size: 18),
+                          label: Text(l10n.signIn),
+                          onPressed: () => _signInToGoogleDrive(context, ref),
+                        ),
                       ),
+                    ] else ...[
+                      // User info
+                      Builder(
+                        builder: (context) {
+                          final userInfo = ref.watch(googleDriveUserProvider);
+                          return ListTile(
+                            leading: userInfo['photoUrl'] != null
+                                ? CircleAvatar(
+                                    backgroundImage: NetworkImage(userInfo['photoUrl']!),
+                                  )
+                                : const CircleAvatar(child: Icon(Icons.person)),
+                            title: Text(userInfo['displayName'] ?? 'Google User'),
+                            subtitle: Text(userInfo['email'] ?? ''),
+                            trailing: TextButton(
+                              onPressed: () => _signOutFromGoogleDrive(ref),
+                              child: Text(l10n.signOut),
+                            ),
+                          );
+                        },
+                      ),
+                      // Backup button
+                      ListTile(
+                        leading: const Icon(Icons.cloud_upload, color: Colors.green),
+                        title: Text(l10n.backupToGoogleDrive),
+                        subtitle: settings.lastGoogleDriveSync != null
+                            ? Text(l10n.lastSync(_formatDateTime(context, settings.lastGoogleDriveSync!)))
+                            : Text(l10n.neverSynced),
+                        trailing: ElevatedButton.icon(
+                          icon: const Icon(Icons.backup, size: 18),
+                          label: Text(l10n.backup),
+                          onPressed: () => _backupToGoogleDrive(context, ref),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
+
+                // Google Drive backups list (only when signed in)
+                if (isGoogleDriveSignedIn) ...[
+                  const SizedBox(height: 16),
+                  _buildSection(
+                    context: context,
+                    title: l10n.googleDriveBackups,
+                    children: [
+                      googleDriveBackupsAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, _) => Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(
+                            child: Text('Error: $error', style: const TextStyle(color: Colors.red)),
+                          ),
+                        ),
+                        data: (backups) {
+                          if (backups.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.cloud_outlined, size: 48, color: AppTheme.textMuted),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      l10n.noCloudBackups,
+                                      style: const TextStyle(color: AppTheme.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return Column(
+                            children: backups.map((backup) => _GoogleDriveBackupTile(
+                              backup: backup,
+                              onRestore: () => _showGoogleDriveRestoreDialog(context, ref, backup),
+                              onDelete: () => _confirmDeleteGoogleDriveBackup(context, ref, backup),
+                            )).toList(),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
 
                 const SizedBox(height: 16),
 
@@ -505,6 +578,120 @@ class CloudBackupScreen extends ConsumerWidget {
       ),
     );
   }
+  
+  // ============ Google Drive Methods ============
+  
+  void _signInToGoogleDrive(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final success = await ref.read(cloudBackupOperationProvider.notifier).signInToGoogleDrive();
+    
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.signedInSuccessfully)),
+      );
+    }
+  }
+  
+  void _signOutFromGoogleDrive(WidgetRef ref) async {
+    await ref.read(cloudBackupOperationProvider.notifier).signOutFromGoogleDrive();
+  }
+  
+  void _backupToGoogleDrive(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    
+    // Get actual data from database
+    final db = ref.read(databaseProvider);
+    final dbBackupService = DatabaseBackupService(db);
+    final data = await dbBackupService.exportAllData();
+
+    final result = await ref.read(cloudBackupOperationProvider.notifier).uploadToGoogleDrive(data);
+    
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.backupCreated)),
+      );
+    }
+  }
+  
+  void _showGoogleDriveRestoreDialog(BuildContext context, WidgetRef ref, GoogleDriveBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.read(cloudBackupSettingsProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => _RestoreDialog(
+        backup: CloudBackupInfo(
+          id: backup.id,
+          name: backup.name,
+          size: backup.size,
+          createdAt: backup.createdAt,
+          provider: CloudProvider.googleDrive,
+          remotePath: backup.id,
+        ),
+        defaultMode: settings.defaultRestoreMode,
+        onRestore: (mode) async {
+          Navigator.pop(context);
+          
+          // Get database service
+          final db = ref.read(databaseProvider);
+          final dbBackupService = DatabaseBackupService(db);
+          final localData = await dbBackupService.exportAllData();
+          
+          final result = await ref.read(cloudBackupOperationProvider.notifier).downloadFromGoogleDrive(
+            fileId: backup.id,
+            mode: mode,
+            localData: localData,
+            restoreCallback: (data, restoreMode) async {
+              // Actually restore data to database
+              final importMode = _convertToImportMode(restoreMode);
+              final actualData = data['data'] as Map<String, dynamic>? ?? data;
+              await dbBackupService.importData(
+                data: actualData,
+                mode: importMode,
+              );
+            },
+          );
+          
+          if (result != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.restoreComplete(
+                  result.totalAdded,
+                  result.totalUpdated,
+                  result.totalSkipped,
+                )),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+  
+  void _confirmDeleteGoogleDriveBackup(BuildContext context, WidgetRef ref, GoogleDriveBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteBackup),
+        content: Text(l10n.deleteBackupConfirmation(backup.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(cloudBackupOperationProvider.notifier).deleteGoogleDriveBackup(backup.id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Tile for displaying a cloud backup
@@ -528,6 +715,65 @@ class _CloudBackupTile extends StatelessWidget {
         backup.provider == CloudProvider.iCloud ? Icons.cloud : Icons.folder,
         color: backup.provider == CloudProvider.iCloud ? Colors.blue : Colors.orange,
       ),
+      title: Text(
+        backup.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${CloudBackupService.instance.formatFileSize(backup.size)} • ${_formatDate(backup.createdAt)}',
+        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.restore, size: 20),
+            onPressed: onRestore,
+            tooltip: l10n.restoreBackup,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+            onPressed: onDelete,
+            tooltip: l10n.delete,
+          ),
+        ],
+      ),
+      onTap: onRestore,
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+
+    return '${date.month}/${date.day}/${date.year}';
+  }
+}
+
+/// Tile for displaying a Google Drive backup
+class _GoogleDriveBackupTile extends StatelessWidget {
+  final GoogleDriveBackupInfo backup;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
+
+  const _GoogleDriveBackupTile({
+    required this.backup,
+    required this.onRestore,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
+    return ListTile(
+      leading: const Icon(Icons.cloud, color: Colors.green),
       title: Text(
         backup.name,
         maxLines: 1,

@@ -6624,6 +6624,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.'**
   String get aboutRestoreModesDescription;
+
+  /// Sign in to Google Drive title
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Google Drive'**
+  String get signInToGoogleDrive;
+
+  /// Sign in to Google Drive description
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your Google account to backup and restore data'**
+  String get signInToGoogleDriveDescription;
+
+  /// Sign in button
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// Sign out button
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// Signed in successfully message
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in successfully'**
+  String get signedInSuccessfully;
+
+  /// Backup to Google Drive button
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to Google Drive'**
+  String get backupToGoogleDrive;
+
+  /// Google Drive backups section title
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive Backups'**
+  String get googleDriveBackups;
 }
 
 class _AppLocalizationsDelegate

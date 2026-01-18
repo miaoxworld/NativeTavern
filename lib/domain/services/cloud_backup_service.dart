@@ -142,41 +142,75 @@ class CloudBackupService {
     try {
       // On iOS/macOS, iCloud container is accessible via file system
       // The ubiquity container path pattern for our app
-      final appDir = await getApplicationDocumentsDirectory();
       
-      // Try the standard iCloud Documents path
-      // For macOS: ~/Library/Mobile Documents/iCloud~<bundle_id>/Documents
-      // For iOS: Container/Documents
       if (Platform.isMacOS) {
         final homeDir = Platform.environment['HOME'] ?? '';
+        // iCloud container path format: ~/Library/Mobile Documents/iCloud~<container_id>/Documents
+        // Our container ID: iCloud.com.miaomiaoxworld.nativetavern
+        // The path uses ~ instead of . for the container prefix
         final iCloudPath = path.join(
           homeDir,
           'Library',
           'Mobile Documents',
-          'iCloud~ai~nativetavern~app',
+          'iCloud~com~miaomiaoxworld~nativetavern',
           'Documents',
         );
         final iCloudDir = Directory(iCloudPath);
+        
+        print('CloudBackupService: Checking iCloud path: $iCloudPath');
+        
+        if (await iCloudDir.exists()) {
+          print('CloudBackupService: iCloud directory exists');
+          return iCloudDir;
+        }
+        
+        // Try creating it (will only work if iCloud container is properly configured)
+        try {
+          await iCloudDir.create(recursive: true);
+          print('CloudBackupService: Created iCloud directory');
+          return iCloudDir;
+        } catch (e) {
+          print('CloudBackupService: Failed to create iCloud directory: $e');
+          // iCloud container may not be available, this is expected for development
+        }
+      }
+      
+      if (Platform.isIOS) {
+        // On iOS, we need to use FileManager to get the ubiquity container URL
+        // For now, we'll try a similar path structure
+        final appDir = await getApplicationDocumentsDirectory();
+        
+        // Check if we can access the iCloud container
+        // The path on iOS is typically: /private/var/mobile/Library/Mobile Documents/iCloud~<container>/Documents
+        // But we need to use the proper API to get this path
+        
+        // Try parent directory approach for iOS
+        final parentDir = appDir.parent;
+        final iCloudPath = path.join(
+          parentDir.path,
+          'Library',
+          'Mobile Documents',
+          'iCloud~com~miaomiaoxworld~nativetavern',
+          'Documents',
+        );
+        final iCloudDir = Directory(iCloudPath);
+        
         if (await iCloudDir.exists()) {
           return iCloudDir;
         }
         
-        // Try creating it
         try {
           await iCloudDir.create(recursive: true);
           return iCloudDir;
         } catch (e) {
-          print('CloudBackupService: Failed to create iCloud directory: $e');
+          print('CloudBackupService: Failed to create iOS iCloud directory: $e');
         }
       }
       
-      // Fallback: Use a subdirectory in app documents for iCloud-like behavior
-      // This works with NSUbiquitousKeyValueStore integration
-      final fallbackDir = Directory(path.join(appDir.path, 'NativeTavern', 'icloud_backup'));
-      if (!await fallbackDir.exists()) {
-        await fallbackDir.create(recursive: true);
-      }
-      return fallbackDir;
+      // Fallback: Return null to indicate iCloud is not available
+      // This is better than using a local directory that won't sync
+      print('CloudBackupService: iCloud not available, returning null');
+      return null;
     } catch (e) {
       print('CloudBackupService: Error getting iCloud directory: $e');
       return null;

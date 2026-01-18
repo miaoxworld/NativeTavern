@@ -4,10 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
+import 'package:native_tavern/domain/services/google_drive_service.dart';
 
 /// Provider for cloud backup service
 final cloudBackupServiceProvider = Provider<CloudBackupService>((ref) {
   return CloudBackupService.instance;
+});
+
+/// Provider for Google Drive service
+final googleDriveServiceProvider = Provider<GoogleDriveService>((ref) {
+  return GoogleDriveService.instance;
 });
 
 /// Provider for checking iCloud availability
@@ -16,10 +22,19 @@ final iCloudAvailableProvider = FutureProvider<bool>((ref) async {
   return service.isICloudAvailable();
 });
 
-/// Provider for checking Google Drive availability
-final googleDriveAvailableProvider = FutureProvider<bool>((ref) async {
-  final service = ref.watch(cloudBackupServiceProvider);
-  return service.isGoogleDriveAvailable();
+/// Provider for checking if user is signed into Google Drive
+final googleDriveSignedInProvider = StateProvider<bool>((ref) {
+  return GoogleDriveService.instance.isSignedIn;
+});
+
+/// Provider for Google Drive user info
+final googleDriveUserProvider = Provider<Map<String, String?>>((ref) {
+  final service = GoogleDriveService.instance;
+  return {
+    'email': service.currentUserEmail,
+    'displayName': service.currentUserDisplayName,
+    'photoUrl': service.currentUserPhotoUrl,
+  };
 });
 
 /// Provider for iCloud backups list
@@ -27,6 +42,16 @@ final iCloudBackupsProvider = FutureProvider<List<CloudBackupInfo>>((ref) async 
   final service = ref.watch(cloudBackupServiceProvider);
   return service.listICloudBackups();
 });
+
+/// Provider for Google Drive backups list
+final googleDriveBackupsProvider = FutureProvider<List<GoogleDriveBackupInfo>>((ref) async {
+  final isSignedIn = ref.watch(googleDriveSignedInProvider);
+  if (!isSignedIn) return [];
+  
+  final service = ref.watch(googleDriveServiceProvider);
+  return service.listBackups();
+});
+
 
 /// Cloud backup settings
 class CloudBackupSettings {
@@ -481,5 +506,191 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
   
   void clearError() {
     state = state.copyWith(error: null, status: CloudBackupStatus.idle);
+  }
+  
+  // ============ Google Drive Methods ============
+  
+  GoogleDriveService get _googleDriveService => _ref.read(googleDriveServiceProvider);
+  
+  /// Sign in to Google Drive
+  Future<bool> signInToGoogleDrive() async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Signing in to Google...',
+      error: null,
+    );
+    
+    try {
+      final success = await _googleDriveService.signIn();
+      
+      if (success) {
+        _ref.read(googleDriveSignedInProvider.notifier).state = true;
+        _ref.invalidate(googleDriveUserProvider);
+        _ref.invalidate(googleDriveBackupsProvider);
+      }
+      
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        status: success ? CloudBackupStatus.success : CloudBackupStatus.idle,
+      );
+      
+      return success;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return false;
+    }
+  }
+  
+  /// Sign out from Google Drive
+  Future<void> signOutFromGoogleDrive() async {
+    await _googleDriveService.signOut();
+    _ref.read(googleDriveSignedInProvider.notifier).state = false;
+    _ref.invalidate(googleDriveUserProvider);
+    _ref.invalidate(googleDriveBackupsProvider);
+  }
+  
+  /// Upload backup to Google Drive
+  Future<GoogleDriveBackupInfo?> uploadToGoogleDrive(Map<String, dynamic> data) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Uploading to Google Drive...',
+      status: CloudBackupStatus.uploading,
+      error: null,
+    );
+    
+    try {
+      final backup = await _googleDriveService.uploadBackup(
+        data: data,
+        onProgress: (progress) {
+          state = state.copyWith(progress: progress);
+        },
+      );
+      
+      if (backup != null) {
+        _ref.read(cloudBackupSettingsProvider.notifier).updateLastGoogleDriveSync();
+        _ref.invalidate(googleDriveBackupsProvider);
+      }
+      
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        status: backup != null ? CloudBackupStatus.success : CloudBackupStatus.error,
+        error: backup == null ? 'Failed to upload backup' : null,
+      );
+      
+      return backup;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return null;
+    }
+  }
+  
+  /// Download and restore from Google Drive
+  Future<MergeResult?> downloadFromGoogleDrive({
+    required String fileId,
+    required RestoreMode mode,
+    required Map<String, dynamic> localData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode) restoreCallback,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Downloading from Google Drive...',
+      status: CloudBackupStatus.downloading,
+      error: null,
+    );
+    
+    try {
+      // Download backup
+      final backupData = await _googleDriveService.downloadBackup(
+        fileId: fileId,
+        onProgress: (progress) {
+          state = state.copyWith(progress: progress * 0.5);
+        },
+      );
+      
+      if (backupData == null) {
+        throw Exception('Failed to download backup');
+      }
+      
+      state = state.copyWith(
+        currentOperation: 'Restoring data...',
+        progress: 0.5,
+      );
+      
+      // Merge/restore data
+      final mergeResult = await _service.mergeData(
+        backupData: backupData,
+        localData: localData,
+        mode: mode,
+      );
+      
+      // Apply restored data
+      await restoreCallback(backupData, mode);
+      
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        status: CloudBackupStatus.success,
+      );
+      
+      return mergeResult;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return null;
+    }
+  }
+  
+  /// Delete backup from Google Drive
+  Future<bool> deleteGoogleDriveBackup(String fileId) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Deleting backup...',
+      error: null,
+    );
+    
+    try {
+      final success = await _googleDriveService.deleteBackup(fileId);
+      
+      if (success) {
+        _ref.invalidate(googleDriveBackupsProvider);
+      }
+      
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        status: success ? CloudBackupStatus.success : CloudBackupStatus.error,
+        error: success ? null : 'Failed to delete backup',
+      );
+      
+      return success;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return false;
+    }
   }
 }

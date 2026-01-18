@@ -376,5 +376,13 @@
   "justNow": "刚刚",
   "minutesAgo": "{count} 分钟前",
   "hoursAgo": "{count} 小时前",
-  "processing": "处理中..."
+  "processing": "处理中...",
+  
+  "signInToGoogleDrive": "登录 Google Drive",
+  "signInToGoogleDriveDescription": "使用 Google 账户登录以备份和恢复数据",
+  "signIn": "登录",
+  "signOut": "退出登录",
+  "signedInSuccessfully": "登录成功",
+  "backupToGoogleDrive": "备份到 Google Drive",
+  "googleDriveBackups": "Google Drive 备份"
 }

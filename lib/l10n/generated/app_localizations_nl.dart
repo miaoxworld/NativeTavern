@@ -3615,4 +3615,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get aboutRestoreModesDescription =>
       'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.';
+
+  @override
+  String get signInToGoogleDrive => 'Sign in to Google Drive';
+
+  @override
+  String get signInToGoogleDriveDescription =>
+      'Sign in with your Google account to backup and restore data';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get signedInSuccessfully => 'Signed in successfully';
+
+  @override
+  String get backupToGoogleDrive => 'Backup to Google Drive';
+
+  @override
+  String get googleDriveBackups => 'Google Drive Backups';
 }

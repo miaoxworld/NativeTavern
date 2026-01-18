@@ -6157,5 +6157,40 @@
   "aboutRestoreModesDescription": "Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.",
   "@aboutRestoreModesDescription": {
     "description": "About restore modes description"
+  },
+  
+  "signInToGoogleDrive": "Sign in to Google Drive",
+  "@signInToGoogleDrive": {
+    "description": "Sign in to Google Drive title"
+  },
+  
+  "signInToGoogleDriveDescription": "Sign in with your Google account to backup and restore data",
+  "@signInToGoogleDriveDescription": {
+    "description": "Sign in to Google Drive description"
+  },
+  
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button"
+  },
+  
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Sign out button"
+  },
+  
+  "signedInSuccessfully": "Signed in successfully",
+  "@signedInSuccessfully": {
+    "description": "Signed in successfully message"
+  },
+  
+  "backupToGoogleDrive": "Backup to Google Drive",
+  "@backupToGoogleDrive": {
+    "description": "Backup to Google Drive button"
+  },
+  
+  "googleDriveBackups": "Google Drive Backups",
+  "@googleDriveBackups": {
+    "description": "Google Drive backups section title"
   }
 }

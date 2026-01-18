@@ -3591,6 +3591,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get aboutRestoreModesDescription =>
       '替换：用备份数据覆盖所有本地数据。\\n合并：保留两者，冲突时新数据优先。\\n仅添加新项：仅从备份添加新项，保留所有现有数据。';
+
+  @override
+  String get signInToGoogleDrive => '登录 Google Drive';
+
+  @override
+  String get signInToGoogleDriveDescription => '使用 Google 账户登录以备份和恢复数据';
+
+  @override
+  String get signIn => '登录';
+
+  @override
+  String get signOut => '退出登录';
+
+  @override
+  String get signedInSuccessfully => '登录成功';
+
+  @override
+  String get backupToGoogleDrive => '备份到 Google Drive';
+
+  @override
+  String get googleDriveBackups => 'Google Drive 备份';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
