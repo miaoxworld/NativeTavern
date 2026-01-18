@@ -23,6 +23,24 @@ List<WorldInfoEntry>? _cachedWorldInfoEntries;
 /// Cached detailed context usage to preserve value during generation
 ContextUsage? _cachedDetailedContextUsage;
 
+/// Clear all context usage caches
+/// Call this when entering chat screen to ensure fresh calculation
+void clearContextUsageCache() {
+  _cachedContextUsage = null;
+  _cachedWorldInfoEntries = null;
+  _cachedDetailedContextUsage = null;
+}
+
+/// Refresh context usage providers
+/// Call this when entering chat screen or when world info changes
+void refreshContextUsageProviders(WidgetRef ref) {
+  // Clear caches first
+  clearContextUsageCache();
+  // Invalidate the providers to trigger recalculation
+  ref.invalidate(matchedWorldInfoEntriesProvider);
+  ref.invalidate(detailedContextUsageProvider);
+}
+
 /// Provider for matched world info entries in current chat
 /// This calculates which world info entries would be included in the context
 /// During generation (isGenerating = true), returns cached value to avoid expensive recalculation
@@ -36,7 +54,12 @@ final matchedWorldInfoEntriesProvider = FutureProvider<List<WorldInfoEntry>>((re
   
   final worldInfoMatcher = ref.watch(worldInfoMatcherProvider);
   final activeWorldInfoIds = ref.watch(activeWorldInfoIdsProvider);
-  final allWorldInfos = await ref.watch(allWorldInfosProvider.future);
+  // Use worldInfoNotifierProvider instead of allWorldInfosProvider
+  // This ensures updates (including enabled/disabled toggle) trigger recalculation
+  final worldInfosAsync = ref.watch(worldInfoNotifierProvider);
+  
+  // Handle loading/error states
+  final allWorldInfos = worldInfosAsync.valueOrNull ?? [];
 
   if (chatState.character == null) {
     _cachedWorldInfoEntries = [];

@@ -384,23 +384,44 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         messages: [...state.messages, assistantMessage],
       );
 
-      // Stream the response with reasoning support
-      final contentBuffer = StringBuffer();
-      final reasoningBuffer = StringBuffer();
-      await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
-        if (chunk.isReasoningChunk && chunk.reasoning != null) {
-          reasoningBuffer.write(chunk.reasoning);
+      String finalContent;
+      String? finalReasoning;
+
+      if (config.streamEnabled) {
+        // Stream the response with reasoning support
+        final contentBuffer = StringBuffer();
+        final reasoningBuffer = StringBuffer();
+        await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
+          if (chunk.isReasoningChunk && chunk.reasoning != null) {
+            reasoningBuffer.write(chunk.reasoning);
+          }
+          if (chunk.content != null) {
+            contentBuffer.write(chunk.content);
+          }
+          final updatedMessage = assistantMessage.copyWith(
+            content: contentBuffer.toString(),
+            swipes: [contentBuffer.toString()],
+            reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+            reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+          );
+          
+          final updatedMessages = List<ChatMessage>.from(state.messages);
+          updatedMessages[updatedMessages.length - 1] = updatedMessage;
+          state = state.copyWith(messages: updatedMessages);
         }
-        if (chunk.content != null) {
-          contentBuffer.write(chunk.content);
-        }
-        final updatedMessage = assistantMessage.copyWith(
-          content: contentBuffer.toString(),
-          swipes: [contentBuffer.toString()],
-          reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-          reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
-        );
+        finalContent = contentBuffer.toString();
+        finalReasoning = reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null;
+      } else {
+        // Non-streaming: get complete response at once with reasoning support
+        final response = await _llmService.generateWithReasoning(context, config);
+        finalContent = response.content;
+        finalReasoning = response.reasoning;
         
+        // Update the message with final content
+        final updatedMessage = assistantMessage.copyWith(
+          content: finalContent,
+          swipes: [finalContent],
+        );
         final updatedMessages = List<ChatMessage>.from(state.messages);
         updatedMessages[updatedMessages.length - 1] = updatedMessage;
         state = state.copyWith(messages: updatedMessages);
@@ -408,10 +429,10 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
 
       // Save the final message
       final finalMessage = assistantMessage.copyWith(
-        content: contentBuffer.toString(),
-        swipes: [contentBuffer.toString()],
-        reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-        reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+        content: finalContent,
+        swipes: [finalContent],
+        reasoning: finalReasoning,
+        reasoningSwipes: finalReasoning != null ? [finalReasoning] : null,
       );
       await _chatRepository.addMessage(finalMessage);
 
@@ -436,64 +457,77 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     try {
       final context = await _buildContext(excludeLastAssistant: true);
       
-      final contentBuffer = StringBuffer();
-      final reasoningBuffer = StringBuffer();
-      await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
-        if (chunk.isReasoningChunk && chunk.reasoning != null) {
-          reasoningBuffer.write(chunk.reasoning);
-        }
-        if (chunk.content != null) {
-          contentBuffer.write(chunk.content);
-        }
-        
-        final newSwipes = List<String>.from(lastMessage.swipes);
-        final newSwipeIndex = newSwipes.length;
-        newSwipes.add(contentBuffer.toString());
-        
-        // Handle reasoning swipes
-        final newReasoningSwipes = List<String>.from(lastMessage.reasoningSwipes ?? []);
-        while (newReasoningSwipes.length < newSwipeIndex) {
-          newReasoningSwipes.add('');
-        }
-        if (reasoningBuffer.isNotEmpty) {
-          if (newReasoningSwipes.length <= newSwipeIndex) {
-            newReasoningSwipes.add(reasoningBuffer.toString());
-          } else {
-            newReasoningSwipes[newSwipeIndex] = reasoningBuffer.toString();
+      String finalContent;
+      String? finalReasoning;
+      
+      if (config.streamEnabled) {
+        // Streaming mode
+        final contentBuffer = StringBuffer();
+        final reasoningBuffer = StringBuffer();
+        await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
+          if (chunk.isReasoningChunk && chunk.reasoning != null) {
+            reasoningBuffer.write(chunk.reasoning);
           }
+          if (chunk.content != null) {
+            contentBuffer.write(chunk.content);
+          }
+          
+          final newSwipes = List<String>.from(lastMessage.swipes);
+          final newSwipeIndex = newSwipes.length;
+          newSwipes.add(contentBuffer.toString());
+          
+          // Handle reasoning swipes
+          final newReasoningSwipes = List<String>.from(lastMessage.reasoningSwipes ?? []);
+          while (newReasoningSwipes.length < newSwipeIndex) {
+            newReasoningSwipes.add('');
+          }
+          if (reasoningBuffer.isNotEmpty) {
+            if (newReasoningSwipes.length <= newSwipeIndex) {
+              newReasoningSwipes.add(reasoningBuffer.toString());
+            } else {
+              newReasoningSwipes[newSwipeIndex] = reasoningBuffer.toString();
+            }
+          }
+          
+          final updatedMessage = lastMessage.copyWith(
+            content: contentBuffer.toString(),
+            swipes: newSwipes,
+            currentSwipeIndex: newSwipeIndex,
+            reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+            reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
+          );
+          
+          final updatedMessages = List<ChatMessage>.from(state.messages);
+          updatedMessages[updatedMessages.length - 1] = updatedMessage;
+          state = state.copyWith(messages: updatedMessages);
         }
-        
-        final updatedMessage = lastMessage.copyWith(
-          content: contentBuffer.toString(),
-          swipes: newSwipes,
-          currentSwipeIndex: newSwipeIndex,
-          reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-          reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
-        );
-        
-        final updatedMessages = List<ChatMessage>.from(state.messages);
-        updatedMessages[updatedMessages.length - 1] = updatedMessage;
-        state = state.copyWith(messages: updatedMessages);
+        finalContent = contentBuffer.toString();
+        finalReasoning = reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null;
+      } else {
+        // Non-streaming mode with reasoning support
+        final response = await _llmService.generateWithReasoning(context, config);
+        finalContent = response.content;
+        finalReasoning = response.reasoning;
       }
 
       // Save the updated message
       final newSwipes = List<String>.from(lastMessage.swipes);
-      newSwipes.add(contentBuffer.toString());
+      newSwipes.add(finalContent);
       
       // Handle reasoning swipes for final message
       final newReasoningSwipes = List<String>.from(lastMessage.reasoningSwipes ?? []);
       while (newReasoningSwipes.length < newSwipes.length - 1) {
         newReasoningSwipes.add('');
       }
-      if (reasoningBuffer.isNotEmpty) {
-        newReasoningSwipes.add(reasoningBuffer.toString());
+      if (finalReasoning != null && finalReasoning.isNotEmpty) {
+        newReasoningSwipes.add(finalReasoning);
       }
       
       final finalMessage = lastMessage.copyWith(
-        content: contentBuffer.toString(),
+        content: finalContent,
         swipes: newSwipes,
         currentSwipeIndex: newSwipes.length - 1,
-        reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+        reasoning: finalReasoning,
         reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
       );
       await _chatRepository.updateMessage(finalMessage);
@@ -583,68 +617,81 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       // Build context up to (but not including) this message
       final context = await _buildContextUpTo(messageIndex);
       
-      final contentBuffer = StringBuffer();
-      final reasoningBuffer = StringBuffer();
-      await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
-        if (chunk.isReasoningChunk && chunk.reasoning != null) {
-          reasoningBuffer.write(chunk.reasoning);
-        }
-        if (chunk.content != null) {
-          contentBuffer.write(chunk.content);
-        }
-        
-        final newSwipes = List<String>.from(message.swipes);
-        // Check if we're still adding to the same swipe or creating new
-        if (newSwipes.length == message.swipes.length) {
-          newSwipes.add(contentBuffer.toString());
-        } else {
-          newSwipes[newSwipes.length - 1] = contentBuffer.toString();
-        }
-        
-        // Handle reasoning swipes
-        final newReasoningSwipes = List<String>.from(message.reasoningSwipes ?? []);
-        while (newReasoningSwipes.length < newSwipes.length - 1) {
-          newReasoningSwipes.add('');
-        }
-        if (reasoningBuffer.isNotEmpty) {
-          if (newReasoningSwipes.length < newSwipes.length) {
-            newReasoningSwipes.add(reasoningBuffer.toString());
-          } else {
-            newReasoningSwipes[newSwipes.length - 1] = reasoningBuffer.toString();
+      String finalContent;
+      String? finalReasoning;
+      
+      if (config.streamEnabled) {
+        // Streaming mode
+        final contentBuffer = StringBuffer();
+        final reasoningBuffer = StringBuffer();
+        await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
+          if (chunk.isReasoningChunk && chunk.reasoning != null) {
+            reasoningBuffer.write(chunk.reasoning);
           }
+          if (chunk.content != null) {
+            contentBuffer.write(chunk.content);
+          }
+          
+          final newSwipes = List<String>.from(message.swipes);
+          // Check if we're still adding to the same swipe or creating new
+          if (newSwipes.length == message.swipes.length) {
+            newSwipes.add(contentBuffer.toString());
+          } else {
+            newSwipes[newSwipes.length - 1] = contentBuffer.toString();
+          }
+          
+          // Handle reasoning swipes
+          final newReasoningSwipes = List<String>.from(message.reasoningSwipes ?? []);
+          while (newReasoningSwipes.length < newSwipes.length - 1) {
+            newReasoningSwipes.add('');
+          }
+          if (reasoningBuffer.isNotEmpty) {
+            if (newReasoningSwipes.length < newSwipes.length) {
+              newReasoningSwipes.add(reasoningBuffer.toString());
+            } else {
+              newReasoningSwipes[newSwipes.length - 1] = reasoningBuffer.toString();
+            }
+          }
+          
+          final updatedMessage = message.copyWith(
+            content: contentBuffer.toString(),
+            swipes: newSwipes,
+            currentSwipeIndex: newSwipes.length - 1,
+            reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+            reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
+          );
+          
+          final updatedMessages = List<ChatMessage>.from(state.messages);
+          updatedMessages[messageIndex] = updatedMessage;
+          state = state.copyWith(messages: updatedMessages);
         }
-        
-        final updatedMessage = message.copyWith(
-          content: contentBuffer.toString(),
-          swipes: newSwipes,
-          currentSwipeIndex: newSwipes.length - 1,
-          reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-          reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
-        );
-        
-        final updatedMessages = List<ChatMessage>.from(state.messages);
-        updatedMessages[messageIndex] = updatedMessage;
-        state = state.copyWith(messages: updatedMessages);
+        finalContent = contentBuffer.toString();
+        finalReasoning = reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null;
+      } else {
+        // Non-streaming mode with reasoning support
+        final response = await _llmService.generateWithReasoning(context, config);
+        finalContent = response.content;
+        finalReasoning = response.reasoning;
       }
 
       // Save the updated message
       final newSwipes = List<String>.from(message.swipes);
-      newSwipes.add(contentBuffer.toString());
+      newSwipes.add(finalContent);
       
       // Handle reasoning swipes for final message
       final newReasoningSwipes = List<String>.from(message.reasoningSwipes ?? []);
       while (newReasoningSwipes.length < newSwipes.length - 1) {
         newReasoningSwipes.add('');
       }
-      if (reasoningBuffer.isNotEmpty) {
-        newReasoningSwipes.add(reasoningBuffer.toString());
+      if (finalReasoning != null && finalReasoning.isNotEmpty) {
+        newReasoningSwipes.add(finalReasoning);
       }
       
       final finalMessage = message.copyWith(
-        content: contentBuffer.toString(),
+        content: finalContent,
         swipes: newSwipes,
         currentSwipeIndex: newSwipes.length - 1,
-        reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+        reasoning: finalReasoning,
         reasoningSwipes: newReasoningSwipes.isNotEmpty ? newReasoningSwipes : null,
       );
       await _chatRepository.updateMessage(finalMessage);
@@ -742,23 +789,44 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         messages: [...state.messages, assistantMessage],
       );
 
-      // Stream the response with reasoning support
-      final contentBuffer = StringBuffer();
-      final reasoningBuffer = StringBuffer();
-      await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
-        if (chunk.isReasoningChunk && chunk.reasoning != null) {
-          reasoningBuffer.write(chunk.reasoning);
+      String finalContent;
+      String? finalReasoning;
+
+      if (config.streamEnabled) {
+        // Stream the response with reasoning support
+        final contentBuffer = StringBuffer();
+        final reasoningBuffer = StringBuffer();
+        await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
+          if (chunk.isReasoningChunk && chunk.reasoning != null) {
+            reasoningBuffer.write(chunk.reasoning);
+          }
+          if (chunk.content != null) {
+            contentBuffer.write(chunk.content);
+          }
+          final updatedMessage = assistantMessage.copyWith(
+            content: contentBuffer.toString(),
+            swipes: [contentBuffer.toString()],
+            reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+            reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+          );
+          
+          final updatedMessages = List<ChatMessage>.from(state.messages);
+          updatedMessages[updatedMessages.length - 1] = updatedMessage;
+          state = state.copyWith(messages: updatedMessages);
         }
-        if (chunk.content != null) {
-          contentBuffer.write(chunk.content);
-        }
-        final updatedMessage = assistantMessage.copyWith(
-          content: contentBuffer.toString(),
-          swipes: [contentBuffer.toString()],
-          reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-          reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
-        );
+        finalContent = contentBuffer.toString();
+        finalReasoning = reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null;
+      } else {
+        // Non-streaming: get complete response at once with reasoning support
+        final response = await _llmService.generateWithReasoning(context, config);
+        finalContent = response.content;
+        finalReasoning = response.reasoning;
         
+        // Update the message with final content
+        final updatedMessage = assistantMessage.copyWith(
+          content: finalContent,
+          swipes: [finalContent],
+        );
         final updatedMessages = List<ChatMessage>.from(state.messages);
         updatedMessages[updatedMessages.length - 1] = updatedMessage;
         state = state.copyWith(messages: updatedMessages);
@@ -766,10 +834,10 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
 
       // Save the final message
       final finalMessage = assistantMessage.copyWith(
-        content: contentBuffer.toString(),
-        swipes: [contentBuffer.toString()],
-        reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-        reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+        content: finalContent,
+        swipes: [finalContent],
+        reasoning: finalReasoning,
+        reasoningSwipes: finalReasoning != null ? [finalReasoning] : null,
       );
       await _chatRepository.addMessage(finalMessage);
 
@@ -1993,23 +2061,44 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         messages: [...state.messages, assistantMessage],
       );
 
-      // Stream the response with reasoning support
-      final contentBuffer = StringBuffer();
-      final reasoningBuffer = StringBuffer();
-      await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
-        if (chunk.isReasoningChunk && chunk.reasoning != null) {
-          reasoningBuffer.write(chunk.reasoning);
+      String finalContent;
+      String? finalReasoning;
+
+      if (config.streamEnabled) {
+        // Stream the response with reasoning support
+        final contentBuffer = StringBuffer();
+        final reasoningBuffer = StringBuffer();
+        await for (final chunk in _llmService.generateStreamWithReasoning(context, config)) {
+          if (chunk.isReasoningChunk && chunk.reasoning != null) {
+            reasoningBuffer.write(chunk.reasoning);
+          }
+          if (chunk.content != null) {
+            contentBuffer.write(chunk.content);
+          }
+          final updatedMessage = assistantMessage.copyWith(
+            content: contentBuffer.toString(),
+            swipes: [contentBuffer.toString()],
+            reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
+            reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+          );
+          
+          final updatedMessages = List<ChatMessage>.from(state.messages);
+          updatedMessages[updatedMessages.length - 1] = updatedMessage;
+          state = state.copyWith(messages: updatedMessages);
         }
-        if (chunk.content != null) {
-          contentBuffer.write(chunk.content);
-        }
-        final updatedMessage = assistantMessage.copyWith(
-          content: contentBuffer.toString(),
-          swipes: [contentBuffer.toString()],
-          reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-          reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
-        );
+        finalContent = contentBuffer.toString();
+        finalReasoning = reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null;
+      } else {
+        // Non-streaming: get complete response at once with reasoning support
+        final response = await _llmService.generateWithReasoning(context, config);
+        finalContent = response.content;
+        finalReasoning = response.reasoning;
         
+        // Update the message with final content
+        final updatedMessage = assistantMessage.copyWith(
+          content: finalContent,
+          swipes: [finalContent],
+        );
         final updatedMessages = List<ChatMessage>.from(state.messages);
         updatedMessages[updatedMessages.length - 1] = updatedMessage;
         state = state.copyWith(messages: updatedMessages);
@@ -2017,10 +2106,10 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
 
       // Save the final message
       final finalMessage = assistantMessage.copyWith(
-        content: contentBuffer.toString(),
-        swipes: [contentBuffer.toString()],
-        reasoning: reasoningBuffer.isNotEmpty ? reasoningBuffer.toString() : null,
-        reasoningSwipes: reasoningBuffer.isNotEmpty ? [reasoningBuffer.toString()] : null,
+        content: finalContent,
+        swipes: [finalContent],
+        reasoning: finalReasoning,
+        reasoningSwipes: finalReasoning != null ? [finalReasoning] : null,
       );
       await _chatRepository.addMessage(finalMessage);
 

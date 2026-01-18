@@ -390,6 +390,8 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
       child: MarkdownBody(
         data: content,
         selectable: widget.selectable,
+        shrinkWrap: true,
+        softLineBreak: true, // Enable soft line breaks for proper text wrapping
         imageBuilder: (uri, title, alt) {
           // Custom image builder using CachedNetworkImage
           return Padding(

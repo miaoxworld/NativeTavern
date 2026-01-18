@@ -380,8 +380,17 @@ class LLMService {
     _log('═══════════════════════════════════════════════════════════════');
   }
 
-  /// Generate a response (non-streaming)
+  /// Generate a response (non-streaming) - content only for backward compatibility
   Future<String> generate(
+    List<Map<String, dynamic>> messages,
+    LLMConfig config,
+  ) async {
+    final response = await generateWithReasoning(messages, config);
+    return response.content;
+  }
+
+  /// Generate a response with reasoning/thinking support (non-streaming)
+  Future<LLMResponse> generateWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -391,17 +400,17 @@ class LLMService {
       case LLMProvider.qwen:
       case LLMProvider.openAICompatible:
       case LLMProvider.openai:
-        return _generateOpenAI(messages, config);
+        return _generateOpenAIWithReasoning(messages, config);
       case LLMProvider.claude:
-        return _generateClaude(messages, config);
+        return _generateClaudeWithReasoning(messages, config);
       case LLMProvider.openRouter:
-        return _generateOpenRouter(messages, config);
+        return _generateOpenAIWithReasoning(messages, config);
       case LLMProvider.gemini:
-        return _generateGemini(messages, config);
+        return _generateGeminiWithReasoning(messages, config);
       case LLMProvider.ollama:
-        return _generateOllama(messages, config);
+        return _generateOllamaWithReasoning(messages, config);
       case LLMProvider.koboldCpp:
-        return _generateKobold(messages, config);
+        return _generateKoboldWithReasoning(messages, config);
     }
   }
 
@@ -795,8 +804,8 @@ class LLMService {
     }
   }
 
-  // OpenAI
-  Future<String> _generateOpenAI(
+  // OpenAI / OpenAI-compatible with reasoning support
+  Future<LLMResponse> _generateOpenAIWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -836,17 +845,22 @@ class LLMService {
 
     final data = response.data as Map<String, dynamic>;
     String content = '';
+    String? reasoning;
     final choices = data['choices'] as List<dynamic>?;
     if (choices != null && choices.isNotEmpty) {
       final message = (choices[0] as Map<String, dynamic>)['message'] as Map<String, dynamic>?;
       content = message?['content'] as String? ?? '';
+      // DeepSeek and some providers use reasoning_content for thinking
+      reasoning = message?['reasoning_content'] as String?;
+      // Also check for thought field (some providers)
+      reasoning ??= message?['thought'] as String?;
     }
     
     _logResponse(config.provider.name, data,
       statusCode: response.statusCode,
       contentPreview: content.length > 100 ? '${content.substring(0, 100)}...' : content);
     
-    return content;
+    return LLMResponse(content: content, reasoning: reasoning);
   }
 
   Stream<String> _streamOpenAI(
@@ -919,8 +933,8 @@ class LLMService {
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
-  // Claude
-  Future<String> _generateClaude(
+  // Claude with thinking support
+  Future<LLMResponse> _generateClaudeWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -954,16 +968,32 @@ class LLMService {
 
     final data = response.data as Map<String, dynamic>;
     String content = '';
+    String? reasoning;
     final contentList = data['content'] as List<dynamic>?;
     if (contentList != null && contentList.isNotEmpty) {
-      content = (contentList[0] as Map<String, dynamic>)['text'] as String? ?? '';
+      // Claude can return multiple content blocks, some may be 'thinking' type
+      for (final block in contentList) {
+        final blockMap = block as Map<String, dynamic>;
+        final blockType = blockMap['type'] as String?;
+        if (blockType == 'thinking') {
+          // This is a thinking/reasoning block
+          reasoning = (reasoning ?? '') + (blockMap['thinking'] as String? ?? '');
+        } else if (blockType == 'text') {
+          // Regular text content
+          content += blockMap['text'] as String? ?? '';
+        }
+      }
+      // Fallback: if no text block found, try first block's text
+      if (content.isEmpty && contentList.isNotEmpty) {
+        content = (contentList[0] as Map<String, dynamic>)['text'] as String? ?? '';
+      }
     }
     
     _logResponse(config.provider.name, data,
       statusCode: response.statusCode,
       contentPreview: content.length > 100 ? '${content.substring(0, 100)}...' : content);
     
-    return content;
+    return LLMResponse(content: content, reasoning: reasoning);
   }
 
   Stream<String> _streamClaude(
@@ -1038,16 +1068,8 @@ class LLMService {
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
-  // OpenRouter (uses OpenAI format)
-  Future<String> _generateOpenRouter(
-    List<Map<String, dynamic>> messages,
-    LLMConfig config,
-  ) async {
-    return _generateOpenAI(messages, config);
-  }
-
-  // Gemini
-  Future<String> _generateGemini(
+  // Gemini with thought support
+  Future<LLMResponse> _generateGeminiWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -1079,12 +1101,22 @@ class LLMService {
 
     final data = response.data as Map<String, dynamic>;
     String content = '';
+    String? reasoning;
     final candidates = data['candidates'] as List<dynamic>?;
     if (candidates != null && candidates.isNotEmpty) {
       final contentData = (candidates[0] as Map<String, dynamic>)['content'] as Map<String, dynamic>?;
       final parts = contentData?['parts'] as List<dynamic>?;
       if (parts != null && parts.isNotEmpty) {
-        content = (parts[0] as Map<String, dynamic>)['text'] as String? ?? '';
+        // Gemini may have thought in separate parts
+        for (final part in parts) {
+          final partMap = part as Map<String, dynamic>;
+          if (partMap.containsKey('thought')) {
+            reasoning = (reasoning ?? '') + (partMap['thought'] as String? ?? '');
+          }
+          if (partMap.containsKey('text')) {
+            content += partMap['text'] as String? ?? '';
+          }
+        }
       }
     }
     
@@ -1092,7 +1124,7 @@ class LLMService {
       statusCode: response.statusCode,
       contentPreview: content.length > 100 ? '${content.substring(0, 100)}...' : content);
     
-    return content;
+    return LLMResponse(content: content, reasoning: reasoning);
   }
 
   Stream<String> _streamGemini(
@@ -1100,13 +1132,13 @@ class LLMService {
     LLMConfig config,
   ) async* {
     // Gemini streaming is complex, fallback to non-streaming
-    final content = await _generateGemini(messages, config);
-    _logStreamComplete(config.provider.name, content);
-    yield content;
+    final response = await _generateGeminiWithReasoning(messages, config);
+    _logStreamComplete(config.provider.name, response.content);
+    yield response.content;
   }
 
-  // Ollama
-  Future<String> _generateOllama(
+  // Ollama with reasoning support
+  Future<LLMResponse> _generateOllamaWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -1136,12 +1168,15 @@ class LLMService {
     final data = response.data as Map<String, dynamic>;
     final message = data['message'] as Map<String, dynamic>?;
     final content = message?['content'] as String? ?? '';
+    // Ollama may return thinking in a separate field for some models
+    final reasoning = message?['thinking'] as String? ?? 
+                      message?['reasoning'] as String?;
     
     _logResponse(config.provider.name, data,
       statusCode: response.statusCode,
       contentPreview: content.length > 100 ? '${content.substring(0, 100)}...' : content);
     
-    return content;
+    return LLMResponse(content: content, reasoning: reasoning);
   }
 
   Stream<String> _streamOllama(
@@ -1208,8 +1243,8 @@ class LLMService {
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
-  // KoboldCpp
-  Future<String> _generateKobold(
+  // KoboldCpp (typically doesn't support reasoning)
+  Future<LLMResponse> _generateKoboldWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
@@ -1246,7 +1281,8 @@ class LLMService {
       statusCode: response.statusCode,
       contentPreview: content.length > 100 ? '${content.substring(0, 100)}...' : content);
     
-    return content;
+    // KoboldCpp doesn't typically return reasoning content
+    return LLMResponse(content: content, reasoning: null);
   }
 
   Stream<String> _streamKobold(

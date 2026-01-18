@@ -26,6 +26,7 @@ import 'package:native_tavern/presentation/widgets/chat/markdown_input_field.dar
 import 'package:native_tavern/presentation/widgets/chat/reasoning_widget.dart';
 import 'package:native_tavern/presentation/widgets/chat/slash_command_suggestions.dart';
 import 'package:native_tavern/presentation/widgets/chat/context_usage_indicator.dart';
+import 'package:native_tavern/presentation/providers/context_usage_providers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
@@ -60,6 +61,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(activeChatProvider.notifier).loadChat(widget.chatId);
       ref.read(bookmarkNotifierProvider.notifier).loadBookmarks(widget.chatId);
+      // Refresh context usage to ensure fresh calculation
+      // This handles cases where world info was updated while not in chat
+      refreshContextUsageProviders(ref);
     });
     
     // Listen for text changes to show/hide slash command suggestions
