@@ -1,25 +1,78 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:native_tavern/core/services/initialization_service.dart';
 import 'package:native_tavern/domain/services/backup_service.dart';
+import 'package:native_tavern/domain/services/cloud_backup_service.dart';
+import 'package:native_tavern/domain/services/database_backup_service.dart';
+import 'package:native_tavern/domain/services/google_drive_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/backup_providers.dart';
+import 'package:native_tavern/presentation/providers/cloud_backup_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
-/// Screen for managing backups
-class BackupSettingsScreen extends ConsumerWidget {
+/// Screen for managing backups (local + cloud)
+class BackupSettingsScreen extends ConsumerStatefulWidget {
   const BackupSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BackupSettingsScreen> createState() => _BackupSettingsScreenState();
+}
+
+class _BackupSettingsScreenState extends ConsumerState<BackupSettingsScreen> {
+  bool _isAutoLoggingIn = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Try to auto-login to Google Drive if previously signed in
+    _tryAutoLoginGoogleDrive();
+  }
+  
+  Future<void> _tryAutoLoginGoogleDrive() async {
+    // If already signed in, no need to do anything
+    if (ref.read(googleDriveSignedInProvider)) return;
+    
+    setState(() => _isAutoLoggingIn = true);
+    
+    try {
+      // Try silent sign-in only (won't show UI if no cached credentials)
+      final service = GoogleDriveService.instance;
+      final success = await service.trySilentSignIn();
+      
+      if (success && mounted) {
+        ref.read(googleDriveSignedInProvider.notifier).state = true;
+        ref.invalidate(googleDriveUserProvider);
+        ref.invalidate(googleDriveBackupsProvider);
+      }
+    } catch (e) {
+      debugPrint('Auto login to Google Drive failed: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isAutoLoggingIn = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final settings = ref.watch(backupSettingsProvider);
-    final operationState = ref.watch(backupOperationProvider);
+    final localSettings = ref.watch(backupSettingsProvider);
+    final cloudSettings = ref.watch(cloudBackupSettingsProvider);
+    final localOperationState = ref.watch(backupOperationProvider);
+    final cloudOperationState = ref.watch(cloudBackupOperationProvider);
     final chatBackupsAsync = ref.watch(chatBackupsProvider);
     final fullBackupsAsync = ref.watch(fullBackupsProvider);
     final totalSizeAsync = ref.watch(totalBackupSizeProvider);
+    final iCloudAvailable = ref.watch(iCloudAvailableProvider);
+    final iCloudBackupsAsync = ref.watch(iCloudBackupsProvider);
+    final isGoogleDriveSignedIn = ref.watch(googleDriveSignedInProvider);
+    final googleDriveBackupsAsync = ref.watch(googleDriveBackupsProvider);
+    
+    final isLoading = localOperationState.isLoading || cloudOperationState.isLoading;
+    final currentOperation = localOperationState.currentOperation ?? cloudOperationState.currentOperation;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,87 +85,66 @@ class BackupSettingsScreen extends ConsumerWidget {
               ref.invalidate(chatBackupsProvider);
               ref.invalidate(fullBackupsProvider);
               ref.invalidate(totalBackupSizeProvider);
+              ref.invalidate(iCloudBackupsProvider);
+              ref.invalidate(iCloudAvailableProvider);
+              ref.invalidate(googleDriveBackupsProvider);
             },
           ),
         ],
       ),
-      body: operationState.isLoading
+      body: isLoading
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
-                  Text(operationState.currentOperation ?? l10n.processing),
+                  Text(currentOperation ?? l10n.processing),
+                  if (cloudOperationState.progress != null) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 200,
+                      child: LinearProgressIndicator(
+                        value: cloudOperationState.progress,
+                        backgroundColor: AppTheme.darkCard,
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentColor),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${(cloudOperationState.progress! * 100).toInt()}%',
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    ),
+                  ],
                 ],
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Storage info
-                _buildSection(
-                  context: context,
-                  title: l10n.storage,
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.storage, color: AppTheme.accentColor),
-                      title: Text(l10n.totalBackupSize),
-                      subtitle: totalSizeAsync.when(
-                        loading: () => Text(l10n.calculating),
-                        error: (_, __) => Text(l10n.error),
-                        data: (size) => Text(BackupService.instance.formatFileSize(size)),
-                      ),
-                    ),
-                    if (settings.lastAutoBackup != null)
-                      ListTile(
-                        leading: const Icon(Icons.schedule, color: AppTheme.textMuted),
-                        title: Text(l10n.lastAutoBackup),
-                        subtitle: Text(_formatDateTime(context, settings.lastAutoBackup!)),
-                      ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Cloud backup entry
-                _buildSection(
-                  context: context,
-                  title: l10n.cloudBackup,
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.cloud, color: Colors.blue),
-                      title: Text(l10n.cloudBackup),
-                      subtitle: Text(l10n.cloudBackupSubtitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        context.push('/cloud-backup-settings');
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Auto-backup settings
+                // Auto-backup settings (affects both local and cloud)
                 _buildSection(
                   context: context,
                   title: l10n.autoBackup,
                   children: [
                     SwitchListTile(
+                      secondary: const Icon(Icons.backup_outlined),
                       title: Text(l10n.enableAutoBackup),
                       subtitle: Text(l10n.automaticallyBackupChats),
-                      value: settings.autoBackupEnabled,
+                      value: localSettings.autoBackupEnabled,
                       onChanged: (value) {
                         ref.read(backupSettingsProvider.notifier).setAutoBackupEnabled(value);
+                        // Also sync to cloud settings
+                        ref.read(cloudBackupSettingsProvider.notifier).setAutoSyncEnabled(value);
                       },
                     ),
                     ListTile(
+                      leading: const Icon(Icons.schedule),
                       title: Text(l10n.backupInterval),
-                      subtitle: Text(settings.autoBackupInterval.displayName),
+                      subtitle: Text(localSettings.autoBackupInterval.displayName),
                       trailing: DropdownButton<AutoBackupInterval>(
-                        value: settings.autoBackupInterval,
-                        onChanged: settings.autoBackupEnabled
+                        value: localSettings.autoBackupInterval,
+                        onChanged: localSettings.autoBackupEnabled
                             ? (value) {
                                 if (value != null) {
                                   ref.read(backupSettingsProvider.notifier).setAutoBackupInterval(value);
@@ -128,12 +160,229 @@ class BackupSettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     SwitchListTile(
+                      secondary: const Icon(Icons.exit_to_app),
                       title: Text(l10n.backupOnExit),
                       subtitle: Text(l10n.createBackupWhenClosingApp),
-                      value: settings.backupOnExit,
+                      value: localSettings.backupOnExit,
                       onChanged: (value) {
                         ref.read(backupSettingsProvider.notifier).setBackupOnExit(value);
                       },
+                    ),
+                    if (localSettings.lastAutoBackup != null)
+                      ListTile(
+                        leading: const Icon(Icons.access_time, color: AppTheme.textMuted),
+                        title: Text(l10n.lastAutoBackup),
+                        subtitle: Text(_formatDateTime(context, localSettings.lastAutoBackup!)),
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Google Drive section
+                _buildSection(
+                  context: context,
+                  title: 'Google Drive',
+                  children: [
+                    if (_isAutoLoggingIn)
+                      const ListTile(
+                        leading: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        title: Text('Connecting to Google Drive...'),
+                      )
+                    else if (!isGoogleDriveSignedIn) ...[
+                      ListTile(
+                        leading: const Icon(Icons.login, color: Colors.blue),
+                        title: Text(l10n.signInToGoogleDrive),
+                        subtitle: Text(l10n.signInToGoogleDriveDescription),
+                        trailing: ElevatedButton.icon(
+                          icon: const Icon(Icons.login, size: 18),
+                          label: Text(l10n.signIn),
+                          onPressed: () => _signInToGoogleDrive(context, ref),
+                        ),
+                      ),
+                    ] else ...[
+                      // User info
+                      Builder(
+                        builder: (context) {
+                          final userInfo = ref.watch(googleDriveUserProvider);
+                          return ListTile(
+                            leading: userInfo['photoUrl'] != null
+                                ? CircleAvatar(
+                                    backgroundImage: NetworkImage(userInfo['photoUrl']!),
+                                  )
+                                : const CircleAvatar(child: Icon(Icons.person)),
+                            title: Text(userInfo['displayName'] ?? 'Google User'),
+                            subtitle: Text(userInfo['email'] ?? ''),
+                            trailing: TextButton(
+                              onPressed: () => _signOutFromGoogleDrive(ref),
+                              child: Text(l10n.signOut),
+                            ),
+                          );
+                        },
+                      ),
+                      // Backup button
+                      ListTile(
+                        leading: const Icon(Icons.cloud_upload, color: Colors.green),
+                        title: Text(l10n.backupToGoogleDrive),
+                        subtitle: cloudSettings.lastGoogleDriveSync != null
+                            ? Text(l10n.lastSync(_formatDateTime(context, cloudSettings.lastGoogleDriveSync!)))
+                            : Text(l10n.neverSynced),
+                        trailing: ElevatedButton.icon(
+                          icon: const Icon(Icons.backup, size: 18),
+                          label: Text(l10n.backup),
+                          onPressed: () => _backupToGoogleDrive(context, ref),
+                        ),
+                      ),
+                      // Google Drive backups list
+                      googleDriveBackupsAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, _) => Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Center(
+                            child: Text('Error: $error', style: const TextStyle(color: Colors.red)),
+                          ),
+                        ),
+                        data: (backups) {
+                          if (backups.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: Text(
+                                  l10n.noCloudBackups,
+                                  style: const TextStyle(color: AppTheme.textMuted),
+                                ),
+                              ),
+                            );
+                          }
+                          return Column(
+                            children: backups.take(3).map((backup) => _GoogleDriveBackupTile(
+                              backup: backup,
+                              onRestore: () => _showGoogleDriveRestoreDialog(context, ref, backup),
+                              onDelete: () => _confirmDeleteGoogleDriveBackup(context, ref, backup),
+                            )).toList(),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // iCloud section (iOS/macOS only)
+                if (Platform.isIOS || Platform.isMacOS)
+                  _buildSection(
+                    context: context,
+                    title: 'iCloud',
+                    children: [
+                      iCloudAvailable.when(
+                        loading: () => const ListTile(
+                          leading: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          title: Text('Checking iCloud availability...'),
+                        ),
+                        error: (_, __) => ListTile(
+                          leading: const Icon(Icons.error, color: Colors.red),
+                          title: Text(l10n.iCloudNotAvailable),
+                          subtitle: Text(l10n.iCloudNotAvailableDescription),
+                        ),
+                        data: (available) {
+                          if (!available) {
+                            return ListTile(
+                              leading: const Icon(Icons.cloud_off, color: AppTheme.textMuted),
+                              title: Text(l10n.iCloudNotAvailable),
+                              subtitle: Text(l10n.iCloudNotAvailableDescription),
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              SwitchListTile(
+                                title: Text(l10n.enableICloudBackup),
+                                subtitle: Text(l10n.enableICloudBackupDescription),
+                                value: cloudSettings.iCloudEnabled,
+                                onChanged: (value) {
+                                  ref.read(cloudBackupSettingsProvider.notifier).setICloudEnabled(value);
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.cloud_upload, color: Colors.blue),
+                                title: Text(l10n.backupToICloud),
+                                subtitle: cloudSettings.lastICloudSync != null
+                                    ? Text(l10n.lastSync(_formatDateTime(context, cloudSettings.lastICloudSync!)))
+                                    : Text(l10n.neverSynced),
+                                trailing: ElevatedButton.icon(
+                                  icon: const Icon(Icons.backup, size: 18),
+                                  label: Text(l10n.backup),
+                                  onPressed: () => _backupToICloud(context, ref),
+                                ),
+                              ),
+                              // iCloud backups list
+                              iCloudBackupsAsync.when(
+                                loading: () => const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Center(child: CircularProgressIndicator()),
+                                ),
+                                error: (error, _) => Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Center(
+                                    child: Text('Error: $error', style: const TextStyle(color: Colors.red)),
+                                  ),
+                                ),
+                                data: (backups) {
+                                  if (backups.isEmpty) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Center(
+                                        child: Text(
+                                          l10n.noCloudBackups,
+                                          style: const TextStyle(color: AppTheme.textMuted),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return Column(
+                                    children: backups.take(3).map((backup) => _CloudBackupTile(
+                                      backup: backup,
+                                      onRestore: () => _showRestoreDialog(context, ref, backup),
+                                      onDelete: () => _confirmDeleteCloudBackup(context, ref, backup),
+                                    )).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                if (Platform.isIOS || Platform.isMacOS)
+                  const SizedBox(height: 16),
+
+                // Local backup storage info
+                _buildSection(
+                  context: context,
+                  title: l10n.storage,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.storage, color: AppTheme.accentColor),
+                      title: Text(l10n.totalBackupSize),
+                      subtitle: totalSizeAsync.when(
+                        loading: () => Text(l10n.calculating),
+                        error: (_, __) => Text(l10n.error),
+                        data: (size) => Text(BackupService.instance.formatFileSize(size)),
+                      ),
                     ),
                   ],
                 ),
@@ -147,11 +396,11 @@ class BackupSettingsScreen extends ConsumerWidget {
                   children: [
                     ListTile(
                       title: Text(l10n.maxChatBackups),
-                      subtitle: Text(l10n.keepUpToChatBackups(settings.maxChatBackups)),
+                      subtitle: Text(l10n.keepUpToChatBackups(localSettings.maxChatBackups)),
                       trailing: SizedBox(
                         width: 80,
                         child: TextField(
-                          controller: TextEditingController(text: settings.maxChatBackups.toString()),
+                          controller: TextEditingController(text: localSettings.maxChatBackups.toString()),
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           decoration: const InputDecoration(
@@ -169,11 +418,11 @@ class BackupSettingsScreen extends ConsumerWidget {
                     ),
                     ListTile(
                       title: Text(l10n.maxFullBackups),
-                      subtitle: Text(l10n.keepUpToFullBackups(settings.maxFullBackups)),
+                      subtitle: Text(l10n.keepUpToFullBackups(localSettings.maxFullBackups)),
                       trailing: SizedBox(
                         width: 80,
                         child: TextField(
-                          controller: TextEditingController(text: settings.maxFullBackups.toString()),
+                          controller: TextEditingController(text: localSettings.maxFullBackups.toString()),
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           decoration: const InputDecoration(
@@ -210,7 +459,7 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Chat backups
+                // Local Chat backups
                 _buildSection(
                   context: context,
                   title: l10n.chatBackups,
@@ -264,7 +513,7 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Full backups
+                // Local Full backups
                 _buildSection(
                   context: context,
                   title: l10n.fullBackups,
@@ -312,6 +561,34 @@ class BackupSettingsScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
+                // Restore settings
+                _buildSection(
+                  context: context,
+                  title: l10n.restoreSettings,
+                  children: [
+                    ListTile(
+                      title: Text(l10n.defaultRestoreMode),
+                      subtitle: Text(cloudSettings.defaultRestoreMode.description),
+                      trailing: DropdownButton<RestoreMode>(
+                        value: cloudSettings.defaultRestoreMode,
+                        onChanged: (value) {
+                          if (value != null) {
+                            ref.read(cloudBackupSettingsProvider.notifier).setDefaultRestoreMode(value);
+                          }
+                        },
+                        items: RestoreMode.values.map((mode) {
+                          return DropdownMenuItem(
+                            value: mode,
+                            child: Text(mode.displayName),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
                 // Info section
                 _buildSection(
                   context: context,
@@ -331,7 +608,7 @@ class BackupSettingsScreen extends ConsumerWidget {
                 ),
 
                 // Error display
-                if (operationState.error != null) ...[
+                if (localOperationState.error != null || cloudOperationState.error != null) ...[
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -346,7 +623,7 @@ class BackupSettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            operationState.error!,
+                            localOperationState.error ?? cloudOperationState.error!,
                             style: const TextStyle(color: Colors.red),
                           ),
                         ),
@@ -354,6 +631,7 @@ class BackupSettingsScreen extends ConsumerWidget {
                           icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () {
                             ref.read(backupOperationProvider.notifier).clearError();
+                            ref.read(cloudBackupOperationProvider.notifier).clearError();
                           },
                         ),
                       ],
@@ -559,6 +837,217 @@ class BackupSettingsScreen extends ConsumerWidget {
       );
     });
   }
+
+  // ============ Cloud Backup Methods ============
+  
+  void _backupToICloud(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    
+    // Get actual data from database
+    final db = ref.read(databaseProvider);
+    final dbBackupService = DatabaseBackupService(db);
+    final data = await dbBackupService.exportAllData();
+
+    final result = await ref.read(cloudBackupOperationProvider.notifier).uploadToICloud(data);
+    
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.backupCreated)),
+      );
+    }
+  }
+  
+  void _showRestoreDialog(BuildContext context, WidgetRef ref, CloudBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.read(cloudBackupSettingsProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => _RestoreDialog(
+        backupName: backup.name,
+        defaultMode: settings.defaultRestoreMode,
+        onRestore: (mode) async {
+          Navigator.pop(context);
+          
+          // Get database service
+          final db = ref.read(databaseProvider);
+          final dbBackupService = DatabaseBackupService(db);
+          final localData = await dbBackupService.exportAllData();
+          
+          final result = await ref.read(cloudBackupOperationProvider.notifier).downloadFromICloud(
+            backup: backup,
+            mode: mode,
+            localData: localData,
+            restoreCallback: (data, restoreMode) async {
+              // Actually restore data to database
+              final importMode = _convertToImportMode(restoreMode);
+              final actualData = data['data'] as Map<String, dynamic>? ?? data;
+              await dbBackupService.importData(
+                data: actualData,
+                mode: importMode,
+              );
+            },
+          );
+          
+          if (result != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.restoreComplete(
+                  result.totalAdded,
+                  result.totalUpdated,
+                  result.totalSkipped,
+                )),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+  
+  void _confirmDeleteCloudBackup(BuildContext context, WidgetRef ref, CloudBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteBackup),
+        content: Text(l10n.deleteBackupConfirmation(backup.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(cloudBackupOperationProvider.notifier).deleteICloudBackup(backup);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // ============ Google Drive Methods ============
+  
+  void _signInToGoogleDrive(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final success = await ref.read(cloudBackupOperationProvider.notifier).signInToGoogleDrive();
+    
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.signedInSuccessfully)),
+      );
+    }
+  }
+  
+  void _signOutFromGoogleDrive(WidgetRef ref) async {
+    await ref.read(cloudBackupOperationProvider.notifier).signOutFromGoogleDrive();
+  }
+  
+  void _backupToGoogleDrive(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    
+    // Get actual data from database
+    final db = ref.read(databaseProvider);
+    final dbBackupService = DatabaseBackupService(db);
+    final data = await dbBackupService.exportAllData();
+
+    final result = await ref.read(cloudBackupOperationProvider.notifier).uploadToGoogleDrive(data);
+    
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.backupCreated)),
+      );
+    }
+  }
+  
+  void _showGoogleDriveRestoreDialog(BuildContext context, WidgetRef ref, GoogleDriveBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.read(cloudBackupSettingsProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => _RestoreDialog(
+        backupName: backup.name,
+        defaultMode: settings.defaultRestoreMode,
+        onRestore: (mode) async {
+          Navigator.pop(context);
+          
+          // Get database service
+          final db = ref.read(databaseProvider);
+          final dbBackupService = DatabaseBackupService(db);
+          final localData = await dbBackupService.exportAllData();
+          
+          final result = await ref.read(cloudBackupOperationProvider.notifier).downloadFromGoogleDrive(
+            fileId: backup.id,
+            mode: mode,
+            localData: localData,
+            restoreCallback: (data, restoreMode) async {
+              // Actually restore data to database
+              final importMode = _convertToImportMode(restoreMode);
+              final actualData = data['data'] as Map<String, dynamic>? ?? data;
+              await dbBackupService.importData(
+                data: actualData,
+                mode: importMode,
+              );
+            },
+          );
+          
+          if (result != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.restoreComplete(
+                  result.totalAdded,
+                  result.totalUpdated,
+                  result.totalSkipped,
+                )),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+  
+  void _confirmDeleteGoogleDriveBackup(BuildContext context, WidgetRef ref, GoogleDriveBackupInfo backup) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteBackup),
+        content: Text(l10n.deleteBackupConfirmation(backup.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(cloudBackupOperationProvider.notifier).deleteGoogleDriveBackup(backup.id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Convert cloud RestoreMode to database ImportMode
+  ImportMode _convertToImportMode(RestoreMode mode) {
+    switch (mode) {
+      case RestoreMode.replace:
+        return ImportMode.replace;
+      case RestoreMode.merge:
+        return ImportMode.merge;
+      case RestoreMode.addNewOnly:
+        return ImportMode.addNewOnly;
+    }
+  }
 }
 
 /// Tile for displaying a backup
@@ -605,6 +1094,212 @@ class _BackupTile extends StatelessWidget {
         ],
       ),
       onTap: onView,
+    );
+  }
+}
+
+/// Tile for displaying a cloud backup
+class _CloudBackupTile extends StatelessWidget {
+  final CloudBackupInfo backup;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
+
+  const _CloudBackupTile({
+    required this.backup,
+    required this.onRestore,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
+    return ListTile(
+      leading: Icon(
+        backup.provider == CloudProvider.iCloud ? Icons.cloud : Icons.folder,
+        color: backup.provider == CloudProvider.iCloud ? Colors.blue : Colors.orange,
+      ),
+      title: Text(
+        backup.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${CloudBackupService.instance.formatFileSize(backup.size)} • ${_formatDate(backup.createdAt)}',
+        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.restore, size: 20),
+            onPressed: onRestore,
+            tooltip: l10n.restoreBackup,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+            onPressed: onDelete,
+            tooltip: l10n.delete,
+          ),
+        ],
+      ),
+      onTap: onRestore,
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+
+    return '${date.month}/${date.day}/${date.year}';
+  }
+}
+
+/// Tile for displaying a Google Drive backup
+class _GoogleDriveBackupTile extends StatelessWidget {
+  final GoogleDriveBackupInfo backup;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
+
+  const _GoogleDriveBackupTile({
+    required this.backup,
+    required this.onRestore,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
+    return ListTile(
+      leading: const Icon(Icons.cloud, color: Colors.green),
+      title: Text(
+        backup.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${CloudBackupService.instance.formatFileSize(backup.size)} • ${_formatDate(backup.createdAt)}',
+        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.restore, size: 20),
+            onPressed: onRestore,
+            tooltip: l10n.restoreBackup,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+            onPressed: onDelete,
+            tooltip: l10n.delete,
+          ),
+        ],
+      ),
+      onTap: onRestore,
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+
+    return '${date.month}/${date.day}/${date.year}';
+  }
+}
+
+/// Dialog for selecting restore mode
+class _RestoreDialog extends ConsumerStatefulWidget {
+  final String backupName;
+  final RestoreMode defaultMode;
+  final void Function(RestoreMode mode) onRestore;
+
+  const _RestoreDialog({
+    required this.backupName,
+    required this.defaultMode,
+    required this.onRestore,
+  });
+
+  @override
+  ConsumerState<_RestoreDialog> createState() => _RestoreDialogState();
+}
+
+class _RestoreDialogState extends ConsumerState<_RestoreDialog> {
+  late RestoreMode _selectedMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMode = widget.defaultMode;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(l10n.restoreBackup),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${l10n.selectRestoreMode}:'),
+          const SizedBox(height: 16),
+          ...RestoreMode.values.map((mode) => RadioListTile<RestoreMode>(
+            title: Text(mode.displayName),
+            subtitle: Text(mode.description),
+            value: mode,
+            groupValue: _selectedMode,
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _selectedMode = value);
+              }
+            },
+          )),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.restoreWarning,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        ElevatedButton(
+          onPressed: () => widget.onRestore(_selectedMode),
+          child: Text(l10n.restore),
+        ),
+      ],
     );
   }
 }

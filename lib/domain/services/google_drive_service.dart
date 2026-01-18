@@ -153,6 +153,32 @@ class GoogleDriveService {
     }
   }
   
+  /// Try silent sign in only (no UI) - used for auto-login on page load
+  /// Returns true if successfully signed in silently, false otherwise
+  Future<bool> trySilentSignIn() async {
+    try {
+      final googleSignIn = _getGoogleSignIn();
+      
+      // Only try silent sign in, don't show UI
+      _currentUser = await googleSignIn.signInSilently();
+      
+      if (_currentUser == null) {
+        debugPrint('GoogleDriveService: Silent sign in failed - no cached credentials');
+        return false;
+      }
+      
+      debugPrint('GoogleDriveService: Silently signed in as ${_currentUser!.email}');
+      
+      // Initialize Drive API
+      await _initDriveApi();
+      
+      return true;
+    } catch (e) {
+      debugPrint('GoogleDriveService: Silent sign in error: $e');
+      return false;
+    }
+  }
+  
   /// Sign out from Google
   Future<void> signOut() async {
     try {

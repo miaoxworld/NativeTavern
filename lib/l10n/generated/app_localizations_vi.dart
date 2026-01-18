@@ -654,6 +654,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get backup => 'Sao lưu';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Tạo bản sao lưu';
 
   @override

@@ -1339,6 +1339,12 @@ abstract class AppLocalizations {
   /// **'Backup'**
   String get backup;
 
+  /// Backup subtitle in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Local and cloud backup & restore'**
+  String get backupSubtitle;
+
   /// Create backup button
   ///
   /// In en, this message translates to:

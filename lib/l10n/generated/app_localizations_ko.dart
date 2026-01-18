@@ -644,6 +644,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backup => '백업';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => '백업 만들기';
 
   @override

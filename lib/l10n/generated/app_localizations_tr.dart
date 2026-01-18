@@ -655,6 +655,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get backup => 'Yedekleme';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Yedek Oluştur';
 
   @override

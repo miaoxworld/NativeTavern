@@ -656,6 +656,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup => 'Back-up';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Back-up Maken';
 
   @override

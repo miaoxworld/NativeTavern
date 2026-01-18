@@ -25,6 +25,13 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           _buildSectionHeader(context, l10n.user),
           _PersonaTile(),
+          ListTile(
+            leading: const Icon(Icons.backup),
+            title: Text(l10n.backup),
+            subtitle: Text(l10n.backupSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.backupSettings),
+          ),
           
           const Divider(height: 32),
           _buildSectionHeader(context, l10n.chats),
@@ -125,15 +132,6 @@ class SettingsScreen extends ConsumerWidget {
           const _ConfirmDeleteTile(),
           const _AutoSaveTile(),
           const _DebugLogTile(),
-          
-          const Divider(height: 32),
-          _buildSectionHeader(context, l10n.backup),
-          ListTile(
-            leading: const Icon(Icons.backup),
-            title: Text(l10n.backup),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(AppRoutes.backupSettings),
-          ),
           
           ListTile(
             leading: const Icon(Icons.analytics),

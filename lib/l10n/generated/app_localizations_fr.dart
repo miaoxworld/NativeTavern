@@ -659,6 +659,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup => 'Sauvegarde';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Créer une sauvegarde';
 
   @override

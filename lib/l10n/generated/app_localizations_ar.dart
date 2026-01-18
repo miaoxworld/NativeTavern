@@ -651,6 +651,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup => 'النسخ الاحتياطي';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'إنشاء نسخة احتياطية';
 
   @override

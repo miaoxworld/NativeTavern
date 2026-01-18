@@ -198,6 +198,7 @@
   "pattern": "模式",
   "replacement": "替换",
   "backup": "备份",
+  "backupSubtitle": "本地和云端备份与恢复",
   "createBackup": "创建备份",
   "restoreBackup": "恢复备份",
   "backupCreated": "备份创建成功",

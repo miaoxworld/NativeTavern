@@ -655,6 +655,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get backup => 'Kopia zapasowa';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Utwórz kopię zapasową';
 
   @override

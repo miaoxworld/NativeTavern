@@ -643,6 +643,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup => '备份';
 
   @override
+  String get backupSubtitle => '本地和云端备份与恢复';
+
+  @override
   String get createBackup => '创建备份';
 
   @override

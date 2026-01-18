@@ -655,6 +655,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get backup => 'Sandaran';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Cipta Sandaran';
 
   @override

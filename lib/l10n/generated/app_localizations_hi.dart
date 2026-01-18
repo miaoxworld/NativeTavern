@@ -654,6 +654,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get backup => 'बैकअप';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'बैकअप बनाएं';
 
   @override

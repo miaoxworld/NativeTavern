@@ -655,6 +655,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get backup => 'Резервное копирование';
 
   @override
+  String get backupSubtitle => 'Local and cloud backup & restore';
+
+  @override
   String get createBackup => 'Создать резервную копию';
 
   @override

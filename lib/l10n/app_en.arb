@@ -1096,6 +1096,11 @@
     "description": "Backup screen title"
   },
   
+  "backupSubtitle": "Local and cloud backup & restore",
+  "@backupSubtitle": {
+    "description": "Backup subtitle in settings"
+  },
+  
   "createBackup": "Create Backup",
   "@createBackup": {
     "description": "Create backup button"
