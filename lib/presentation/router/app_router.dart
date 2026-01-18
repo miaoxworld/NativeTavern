@@ -22,6 +22,7 @@ import 'package:native_tavern/presentation/screens/settings/image_gen_settings_s
 import 'package:native_tavern/presentation/screens/settings/regex_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/variables_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/backup_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/cloud_backup_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/logit_bias_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/cfg_scale_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/tokenizer_settings_screen.dart';
@@ -69,6 +70,7 @@ abstract class AppRoutes {
   static const regexSettings = '/regex-settings';
   static const variablesSettings = '/variables-settings';
   static const backupSettings = '/backup-settings';
+  static const cloudBackupSettings = '/cloud-backup-settings';
   static const logitBiasSettings = '/logit-bias-settings';
   static const cfgScaleSettings = '/cfg-scale-settings';
   static const logprobsSettings = '/logprobs-settings';
@@ -309,6 +311,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'backupSettings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BackupSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.cloudBackupSettings,
+        name: 'cloudBackupSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CloudBackupScreen(),
       ),
       GoRoute(
         path: AppRoutes.logitBiasSettings,

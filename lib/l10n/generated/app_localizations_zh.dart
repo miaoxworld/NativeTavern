@@ -1298,7 +1298,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get export => 'Export';
+  String get export => '导出';
 
   @override
   String get resetToDefaults => 'Reset to Defaults';
@@ -1498,131 +1498,130 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apply => 'Apply';
 
   @override
-  String get backupAndRestore => 'Backup & Restore';
+  String get backupAndRestore => '备份与恢复';
 
   @override
-  String get refresh => 'Refresh';
+  String get refresh => '刷新';
 
   @override
-  String get storage => 'Storage';
+  String get storage => '存储';
 
   @override
-  String get totalBackupSize => 'Total Backup Size';
+  String get totalBackupSize => '备份总大小';
 
   @override
-  String get calculating => 'Calculating...';
+  String get calculating => '计算中...';
 
   @override
-  String get lastAutoBackup => 'Last Auto-Backup';
+  String get lastAutoBackup => '上次自动备份';
 
   @override
-  String get autoBackup => 'Auto-Backup';
+  String get autoBackup => '自动备份';
 
   @override
-  String get enableAutoBackup => 'Enable Auto-Backup';
+  String get enableAutoBackup => '启用自动备份';
 
   @override
-  String get automaticallyBackupChats => 'Automatically backup chats';
+  String get automaticallyBackupChats => '自动备份聊天记录';
 
   @override
-  String get backupInterval => 'Backup Interval';
+  String get backupInterval => '备份间隔';
 
   @override
-  String get backupOnExit => 'Backup on Exit';
+  String get backupOnExit => '退出时备份';
 
   @override
-  String get createBackupWhenClosingApp => 'Create backup when closing app';
+  String get createBackupWhenClosingApp => '关闭应用时创建备份';
 
   @override
-  String get retention => 'Retention';
+  String get retention => '保留策略';
 
   @override
-  String get maxChatBackups => 'Max Chat Backups';
+  String get maxChatBackups => '最大聊天备份数';
 
   @override
   String keepUpToChatBackups(int count) {
-    return 'Keep up to $count chat backups';
+    return '最多保留 $count 个聊天备份';
   }
 
   @override
-  String get maxFullBackups => 'Max Full Backups';
+  String get maxFullBackups => '最大完整备份数';
 
   @override
   String keepUpToFullBackups(int count) {
-    return 'Keep up to $count full backups';
+    return '最多保留 $count 个完整备份';
   }
 
   @override
-  String get cleanupOldBackups => 'Cleanup Old Backups';
+  String get cleanupOldBackups => '清理旧备份';
 
   @override
-  String get deleteBackupsExceedingLimits => 'Delete backups exceeding limits';
+  String get deleteBackupsExceedingLimits => '删除超过限制的备份';
 
   @override
-  String get cleanup => 'Cleanup';
+  String get cleanup => '清理';
 
   @override
   String deletedOldBackups(int count) {
-    return 'Deleted $count old backups';
+    return '已删除 $count 个旧备份';
   }
 
   @override
-  String get chatBackups => 'Chat Backups';
+  String get chatBackups => '聊天备份';
 
   @override
-  String get noChatBackups => 'No chat backups';
+  String get noChatBackups => '暂无聊天备份';
 
   @override
   String viewAllBackups(int count) {
-    return 'View all $count backups';
+    return '查看全部 $count 个备份';
   }
 
   @override
-  String get fullBackups => 'Full Backups';
+  String get fullBackups => '完整备份';
 
   @override
-  String get noFullBackups => 'No full backups';
+  String get noFullBackups => '暂无完整备份';
 
   @override
-  String get information => 'Information';
+  String get information => '信息';
 
   @override
-  String get aboutBackups => 'About Backups';
+  String get aboutBackups => '关于备份';
 
   @override
-  String get aboutBackupsDescription =>
-      'Chat backups save individual conversations. Full backups include all characters, chats, settings, and world info.';
+  String get aboutBackupsDescription => '聊天备份保存单个对话。完整备份包含所有角色、聊天、设置和世界信息。';
 
   @override
-  String get backupLocation => 'Backup Location';
+  String get backupLocation => '备份位置';
 
   @override
   String errorReadingBackup(String error) {
-    return 'Error reading backup: $error';
+    return '读取备份错误：$error';
   }
 
   @override
-  String get deleteBackup => 'Delete Backup';
+  String get deleteBackup => '删除备份';
 
   @override
   String deleteBackupConfirmation(String name) {
-    return 'Delete \"$name\"?\n\nThis cannot be undone.';
+    return '删除 \"$name\"？\\n\\n此操作无法撤销。';
   }
 
   @override
-  String get view => 'View';
+  String get view => '查看';
 
   @override
-  String get justNow => 'Just now';
+  String get justNow => '刚刚';
 
   @override
   String minutesAgo(int count) {
-    return '$count minutes ago';
+    return '$count 分钟前';
   }
 
   @override
   String hoursAgo(int count) {
-    return '$count hours ago';
+    return '$count 小时前';
   }
 
   @override
@@ -1715,7 +1714,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get help => 'Help';
 
   @override
-  String get processing => 'Processing...';
+  String get processing => '处理中...';
 
   @override
   String get sampleMessage1 => 'Hello! How are you?';
@@ -3500,6 +3499,98 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get breakdown => '详细分解';
+
+  @override
+  String get cloudBackup => '云备份';
+
+  @override
+  String get cloudBackupInfo => '云备份';
+
+  @override
+  String get cloudBackupDescription => '跨设备同步数据';
+
+  @override
+  String get cloudBackupSubtitle => '备份到 iCloud 或 Google Drive，在任何设备上恢复';
+
+  @override
+  String get enableICloudBackup => '启用 iCloud 备份';
+
+  @override
+  String get enableICloudBackupDescription => '自动同步备份到 iCloud';
+
+  @override
+  String get iCloudNotAvailable => 'iCloud 不可用';
+
+  @override
+  String get iCloudNotAvailableDescription => '请在设置中登录 iCloud';
+
+  @override
+  String get backupToICloud => '备份到 iCloud';
+
+  @override
+  String lastSync(String time) {
+    return '上次同步：$time';
+  }
+
+  @override
+  String get neverSynced => '从未同步';
+
+  @override
+  String get iCloudBackups => 'iCloud 备份';
+
+  @override
+  String get noCloudBackups => '暂无云备份';
+
+  @override
+  String get googleDriveExport => '导出到 Google Drive';
+
+  @override
+  String get googleDriveExportDescription => '保存备份文件到 Google Drive 或其他位置';
+
+  @override
+  String get googleDriveImport => '从 Google Drive 导入';
+
+  @override
+  String get googleDriveImportDescription => '从 Google Drive 或其他位置恢复备份文件';
+
+  @override
+  String get import_action => '导入';
+
+  @override
+  String get importBackup => '导入备份';
+
+  @override
+  String get backupExported => '备份导出成功';
+
+  @override
+  String get restoreSettings => '恢复设置';
+
+  @override
+  String get defaultRestoreMode => '默认恢复模式';
+
+  @override
+  String get selectRestoreMode => '选择数据恢复方式：';
+
+  @override
+  String get restoreWarning => '根据所选模式，恢复数据可能会覆盖现有数据。请确保先备份当前数据。';
+
+  @override
+  String get restore => '恢复';
+
+  @override
+  String restoreComplete(int added, int updated, int skipped) {
+    return '恢复完成：新增 $added 项，更新 $updated 项，跳过 $skipped 项';
+  }
+
+  @override
+  String get selectFileAndImport => '选择文件并导入';
+
+  @override
+  String get aboutRestoreModes => '关于恢复模式';
+
+  @override
+  String get aboutRestoreModesDescription =>
+      '替换：用备份数据覆盖所有本地数据。\\n合并：保留两者，冲突时新数据优先。\\n仅添加新项：仅从备份添加新项，保留所有现有数据。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).

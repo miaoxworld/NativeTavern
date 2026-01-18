@@ -3504,4 +3504,102 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get breakdown => 'Breakdown';
+
+  @override
+  String get cloudBackup => 'Cloud Backup';
+
+  @override
+  String get cloudBackupInfo => 'Cloud Backup';
+
+  @override
+  String get cloudBackupDescription => 'Sync your data across devices';
+
+  @override
+  String get cloudBackupSubtitle =>
+      'Backup to iCloud or Google Drive and restore on any device';
+
+  @override
+  String get enableICloudBackup => 'Enable iCloud Backup';
+
+  @override
+  String get enableICloudBackupDescription =>
+      'Automatically sync backups to iCloud';
+
+  @override
+  String get iCloudNotAvailable => 'iCloud Not Available';
+
+  @override
+  String get iCloudNotAvailableDescription =>
+      'Please sign in to iCloud in Settings';
+
+  @override
+  String get backupToICloud => 'Backup to iCloud';
+
+  @override
+  String lastSync(String time) {
+    return 'Last sync: $time';
+  }
+
+  @override
+  String get neverSynced => 'Never synced';
+
+  @override
+  String get iCloudBackups => 'iCloud Backups';
+
+  @override
+  String get noCloudBackups => 'No cloud backups';
+
+  @override
+  String get googleDriveExport => 'Export to Google Drive';
+
+  @override
+  String get googleDriveExportDescription =>
+      'Save backup file to Google Drive or other location';
+
+  @override
+  String get googleDriveImport => 'Import from Google Drive';
+
+  @override
+  String get googleDriveImportDescription =>
+      'Restore from a backup file in Google Drive or other location';
+
+  @override
+  String get import_action => 'Import';
+
+  @override
+  String get importBackup => 'Import Backup';
+
+  @override
+  String get backupExported => 'Backup exported successfully';
+
+  @override
+  String get restoreSettings => 'Restore Settings';
+
+  @override
+  String get defaultRestoreMode => 'Default Restore Mode';
+
+  @override
+  String get selectRestoreMode => 'Select how to restore data:';
+
+  @override
+  String get restoreWarning =>
+      'Restoring data may overwrite existing data depending on the selected mode. Make sure to backup your current data first.';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String restoreComplete(int added, int updated, int skipped) {
+    return 'Restore complete: $added added, $updated updated, $skipped skipped';
+  }
+
+  @override
+  String get selectFileAndImport => 'Select File & Import';
+
+  @override
+  String get aboutRestoreModes => 'About Restore Modes';
+
+  @override
+  String get aboutRestoreModesDescription =>
+      'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.';
 }

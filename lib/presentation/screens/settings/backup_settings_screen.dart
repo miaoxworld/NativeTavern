@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:native_tavern/domain/services/backup_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/backup_providers.dart';
@@ -69,6 +70,25 @@ class BackupSettingsScreen extends ConsumerWidget {
                         title: Text(l10n.lastAutoBackup),
                         subtitle: Text(_formatDateTime(context, settings.lastAutoBackup!)),
                       ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Cloud backup entry
+                _buildSection(
+                  context: context,
+                  title: l10n.cloudBackup,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.cloud, color: Colors.blue),
+                      title: Text(l10n.cloudBackup),
+                      subtitle: Text(l10n.cloudBackupSubtitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        context.push('/cloud-backup-settings');
+                      },
+                    ),
                   ],
                 ),
 

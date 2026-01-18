@@ -5987,5 +5987,175 @@
   "breakdown": "Breakdown",
   "@breakdown": {
     "description": "Token breakdown section title"
+  },
+  
+  "cloudBackup": "Cloud Backup",
+  "@cloudBackup": {
+    "description": "Cloud backup screen title"
+  },
+  
+  "cloudBackupInfo": "Cloud Backup",
+  "@cloudBackupInfo": {
+    "description": "Cloud backup info section title"
+  },
+  
+  "cloudBackupDescription": "Sync your data across devices",
+  "@cloudBackupDescription": {
+    "description": "Cloud backup description"
+  },
+  
+  "cloudBackupSubtitle": "Backup to iCloud or Google Drive and restore on any device",
+  "@cloudBackupSubtitle": {
+    "description": "Cloud backup subtitle"
+  },
+  
+  "enableICloudBackup": "Enable iCloud Backup",
+  "@enableICloudBackup": {
+    "description": "Enable iCloud backup toggle"
+  },
+  
+  "enableICloudBackupDescription": "Automatically sync backups to iCloud",
+  "@enableICloudBackupDescription": {
+    "description": "Enable iCloud backup description"
+  },
+  
+  "iCloudNotAvailable": "iCloud Not Available",
+  "@iCloudNotAvailable": {
+    "description": "iCloud not available message"
+  },
+  
+  "iCloudNotAvailableDescription": "Please sign in to iCloud in Settings",
+  "@iCloudNotAvailableDescription": {
+    "description": "iCloud not available description"
+  },
+  
+  "backupToICloud": "Backup to iCloud",
+  "@backupToICloud": {
+    "description": "Backup to iCloud button"
+  },
+  
+  "lastSync": "Last sync: {time}",
+  "@lastSync": {
+    "description": "Last sync time",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "5 minutes ago"
+      }
+    }
+  },
+  
+  "neverSynced": "Never synced",
+  "@neverSynced": {
+    "description": "Never synced message"
+  },
+  
+  "iCloudBackups": "iCloud Backups",
+  "@iCloudBackups": {
+    "description": "iCloud backups section title"
+  },
+  
+  "noCloudBackups": "No cloud backups",
+  "@noCloudBackups": {
+    "description": "No cloud backups message"
+  },
+  
+  "googleDriveExport": "Export to Google Drive",
+  "@googleDriveExport": {
+    "description": "Google Drive export button"
+  },
+  
+  "googleDriveExportDescription": "Save backup file to Google Drive or other location",
+  "@googleDriveExportDescription": {
+    "description": "Google Drive export description"
+  },
+  
+  "googleDriveImport": "Import from Google Drive",
+  "@googleDriveImport": {
+    "description": "Google Drive import button"
+  },
+  
+  "googleDriveImportDescription": "Restore from a backup file in Google Drive or other location",
+  "@googleDriveImportDescription": {
+    "description": "Google Drive import description"
+  },
+  
+  "export": "Export",
+  "@export": {
+    "description": "Export button"
+  },
+  
+  "import_action": "Import",
+  "@import_action": {
+    "description": "Import button"
+  },
+  
+  "importBackup": "Import Backup",
+  "@importBackup": {
+    "description": "Import backup dialog title"
+  },
+  
+  "backupExported": "Backup exported successfully",
+  "@backupExported": {
+    "description": "Backup exported message"
+  },
+  
+  "restoreSettings": "Restore Settings",
+  "@restoreSettings": {
+    "description": "Restore settings section title"
+  },
+  
+  "defaultRestoreMode": "Default Restore Mode",
+  "@defaultRestoreMode": {
+    "description": "Default restore mode label"
+  },
+  
+  "selectRestoreMode": "Select how to restore data:",
+  "@selectRestoreMode": {
+    "description": "Select restore mode prompt"
+  },
+  
+  "restoreWarning": "Restoring data may overwrite existing data depending on the selected mode. Make sure to backup your current data first.",
+  "@restoreWarning": {
+    "description": "Restore warning message"
+  },
+  
+  "restore": "Restore",
+  "@restore": {
+    "description": "Restore button"
+  },
+  
+  "restoreComplete": "Restore complete: {added} added, {updated} updated, {skipped} skipped",
+  "@restoreComplete": {
+    "description": "Restore complete message",
+    "placeholders": {
+      "added": {
+        "type": "int",
+        "example": "5"
+      },
+      "updated": {
+        "type": "int",
+        "example": "3"
+      },
+      "skipped": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  
+  "selectFileAndImport": "Select File & Import",
+  "@selectFileAndImport": {
+    "description": "Select file and import button"
+  },
+  
+  "aboutRestoreModes": "About Restore Modes",
+  "@aboutRestoreModes": {
+    "description": "About restore modes label"
+  },
+  
+  "aboutRestoreModesDescription": "Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.",
+  "@aboutRestoreModesDescription": {
+    "description": "About restore modes description"
   }
 }

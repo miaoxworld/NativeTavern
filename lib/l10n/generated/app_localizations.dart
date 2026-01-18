@@ -6450,6 +6450,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Breakdown'**
   String get breakdown;
+
+  /// Cloud backup screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Backup'**
+  String get cloudBackup;
+
+  /// Cloud backup info section title
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Backup'**
+  String get cloudBackupInfo;
+
+  /// Cloud backup description
+  ///
+  /// In en, this message translates to:
+  /// **'Sync your data across devices'**
+  String get cloudBackupDescription;
+
+  /// Cloud backup subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to iCloud or Google Drive and restore on any device'**
+  String get cloudBackupSubtitle;
+
+  /// Enable iCloud backup toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable iCloud Backup'**
+  String get enableICloudBackup;
+
+  /// Enable iCloud backup description
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically sync backups to iCloud'**
+  String get enableICloudBackupDescription;
+
+  /// iCloud not available message
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Not Available'**
+  String get iCloudNotAvailable;
+
+  /// iCloud not available description
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to iCloud in Settings'**
+  String get iCloudNotAvailableDescription;
+
+  /// Backup to iCloud button
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to iCloud'**
+  String get backupToICloud;
+
+  /// Last sync time
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {time}'**
+  String lastSync(String time);
+
+  /// Never synced message
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get neverSynced;
+
+  /// iCloud backups section title
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Backups'**
+  String get iCloudBackups;
+
+  /// No cloud backups message
+  ///
+  /// In en, this message translates to:
+  /// **'No cloud backups'**
+  String get noCloudBackups;
+
+  /// Google Drive export button
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Google Drive'**
+  String get googleDriveExport;
+
+  /// Google Drive export description
+  ///
+  /// In en, this message translates to:
+  /// **'Save backup file to Google Drive or other location'**
+  String get googleDriveExportDescription;
+
+  /// Google Drive import button
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Google Drive'**
+  String get googleDriveImport;
+
+  /// Google Drive import description
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup file in Google Drive or other location'**
+  String get googleDriveImportDescription;
+
+  /// Import button
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get import_action;
+
+  /// Import backup dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Import Backup'**
+  String get importBackup;
+
+  /// Backup exported message
+  ///
+  /// In en, this message translates to:
+  /// **'Backup exported successfully'**
+  String get backupExported;
+
+  /// Restore settings section title
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Settings'**
+  String get restoreSettings;
+
+  /// Default restore mode label
+  ///
+  /// In en, this message translates to:
+  /// **'Default Restore Mode'**
+  String get defaultRestoreMode;
+
+  /// Select restore mode prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Select how to restore data:'**
+  String get selectRestoreMode;
+
+  /// Restore warning message
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring data may overwrite existing data depending on the selected mode. Make sure to backup your current data first.'**
+  String get restoreWarning;
+
+  /// Restore button
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// Restore complete message
+  ///
+  /// In en, this message translates to:
+  /// **'Restore complete: {added} added, {updated} updated, {skipped} skipped'**
+  String restoreComplete(int added, int updated, int skipped);
+
+  /// Select file and import button
+  ///
+  /// In en, this message translates to:
+  /// **'Select File & Import'**
+  String get selectFileAndImport;
+
+  /// About restore modes label
+  ///
+  /// In en, this message translates to:
+  /// **'About Restore Modes'**
+  String get aboutRestoreModes;
+
+  /// About restore modes description
+  ///
+  /// In en, this message translates to:
+  /// **'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.'**
+  String get aboutRestoreModesDescription;
 }
 
 class _AppLocalizationsDelegate
