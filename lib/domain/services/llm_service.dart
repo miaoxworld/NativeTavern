@@ -820,9 +820,19 @@ class LLMService {
           'Authorization': 'Bearer ${config.apiKey}',
           'Content-Type': 'application/json',
         },
+        validateStatus: (status) => true, // Accept all status codes
       ),
       data: requestData,
     );
+
+    // Check for HTTP errors
+    if (response.statusCode == null || response.statusCode! < 200 || response.statusCode! >= 300) {
+      _log('HTTP Error: ${response.statusCode}');
+      _log('Response data: ${response.data}');
+      
+      final errorMsg = _extractErrorMessage(response.data);
+      throw Exception('HTTP ${response.statusCode}: $errorMsg');
+    }
 
     final data = response.data as Map<String, dynamic>;
     String content = '';
@@ -1328,84 +1338,117 @@ class LLMService {
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async* {
-    final endpoint = '${config.apiUrl}/chat/completions';
-    final requestData = {
-      'model': config.model,
-      'messages': messages,
-      'max_tokens': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'frequency_penalty': config.frequencyPenalty,
-      'presence_penalty': config.presencePenalty,
-      'stream': true,
-    };
-    
-    _logRequest(endpoint, requestData, config);
-    
-    final response = await _dio.post<ResponseBody>(
-      endpoint,
-      options: Options(
-        headers: {
-          'Authorization': 'Bearer ${config.apiKey}',
-          'Content-Type': 'application/json',
-        },
-        responseType: ResponseType.stream,
-      ),
-      data: requestData,
-    );
-
-    final stream = response.data!.stream;
-    final buffer = StringBuffer();
-    final fullContent = StringBuffer();
-    final fullReasoning = StringBuffer();
-    var isFirst = true;
-    
-    await for (final bytes in stream) {
-      buffer.write(utf8.decode(bytes));
-      final lines = buffer.toString().split('\n');
-      buffer.clear();
+    try {
+      final endpoint = '${config.apiUrl}/chat/completions';
+      final requestData = {
+        'model': config.model,
+        'messages': messages,
+        'max_tokens': config.maxTokens,
+        'temperature': config.temperature,
+        'top_p': config.topP,
+        'frequency_penalty': config.frequencyPenalty,
+        'presence_penalty': config.presencePenalty,
+        'stream': true,
+      };
       
-      for (int i = 0; i < lines.length - 1; i++) {
-        final line = lines[i];
-        if (line.startsWith('data: ') && !line.contains('[DONE]')) {
-          try {
-            final json = jsonDecode(line.substring(6)) as Map<String, dynamic>;
-            final choices = json['choices'] as List<dynamic>?;
-            if (choices != null && choices.isNotEmpty) {
-              final choice = choices[0] as Map<String, dynamic>;
-              final delta = choice['delta'] as Map<String, dynamic>?;
-              
-              // Check for reasoning_content (OpenAI o1/o3 models)
-              final reasoningContent = delta?['reasoning_content'] as String?;
-              if (reasoningContent != null) {
-                _logStreamChunk(config.provider.name, '[reasoning] $reasoningContent', isFirst: isFirst);
-                isFirst = false;
-                fullReasoning.write(reasoningContent);
-                yield LLMStreamChunk(reasoning: reasoningContent, isReasoningChunk: true);
-              }
-              
-              // Regular content
-              final content = delta?['content'] as String?;
-              if (content != null) {
-                _logStreamChunk(config.provider.name, content, isFirst: isFirst);
-                isFirst = false;
-                fullContent.write(content);
-                yield LLMStreamChunk(content: content);
-              }
-            }
-          } catch (e) {
-            // Skip malformed lines
+      _logRequest(endpoint, requestData, config);
+      
+      final response = await _dio.post<ResponseBody>(
+        endpoint,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${config.apiKey}',
+            'Content-Type': 'application/json',
+          },
+          responseType: ResponseType.stream,
+          validateStatus: (status) => true, // Accept all status codes
+        ),
+        data: requestData,
+      );
+
+      // Check for HTTP errors before processing stream
+      if (response.statusCode == null || response.statusCode! < 200 || response.statusCode! >= 300) {
+        _log('HTTP Error in stream: ${response.statusCode}');
+        // For streaming, we need to read the error from the response body
+        final errorBytes = await response.data!.stream.toList();
+        final errorData = utf8.decode(errorBytes.expand((x) => x).toList());
+        _log('Error response: $errorData');
+        
+        try {
+          final errorJson = jsonDecode(errorData);
+          final errorMsg = _extractErrorMessage(errorJson);
+          throw Exception('HTTP ${response.statusCode}: $errorMsg');
+        } catch (e) {
+          if (e is Exception && e.toString().contains('HTTP')) {
+            rethrow;
           }
+          throw Exception('HTTP ${response.statusCode}: $errorData');
         }
       }
-      if (lines.isNotEmpty) {
-        buffer.write(lines.last);
+
+      final stream = response.data!.stream;
+      final buffer = StringBuffer();
+      final fullContent = StringBuffer();
+      final fullReasoning = StringBuffer();
+      var isFirst = true;
+      
+      await for (final bytes in stream) {
+        buffer.write(utf8.decode(bytes));
+        final lines = buffer.toString().split('\n');
+        buffer.clear();
+        
+        for (int i = 0; i < lines.length - 1; i++) {
+          final line = lines[i];
+          if (line.startsWith('data: ') && !line.contains('[DONE]')) {
+            try {
+              final json = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+              final choices = json['choices'] as List<dynamic>?;
+              if (choices != null && choices.isNotEmpty) {
+                final choice = choices[0] as Map<String, dynamic>;
+                final delta = choice['delta'] as Map<String, dynamic>?;
+                
+                // Check for reasoning_content (OpenAI o1/o3 models)
+                final reasoningContent = delta?['reasoning_content'] as String?;
+                if (reasoningContent != null) {
+                  _logStreamChunk(config.provider.name, '[reasoning] $reasoningContent', isFirst: isFirst);
+                  isFirst = false;
+                  fullReasoning.write(reasoningContent);
+                  yield LLMStreamChunk(reasoning: reasoningContent, isReasoningChunk: true);
+                }
+                
+                // Regular content
+                final content = delta?['content'] as String?;
+                if (content != null) {
+                  _logStreamChunk(config.provider.name, content, isFirst: isFirst);
+                  isFirst = false;
+                  fullContent.write(content);
+                  yield LLMStreamChunk(content: content);
+                }
+              }
+            } catch (e) {
+              // Skip malformed lines
+              _log('Skipping malformed JSON line: $e');
+            }
+          }
+        }
+        if (lines.isNotEmpty) {
+          buffer.write(lines.last);
+        }
       }
-    }
-    
-    _logStreamComplete(config.provider.name, fullContent.toString());
-    if (fullReasoning.isNotEmpty) {
-      _log('Reasoning content: ${fullReasoning.toString()}');
+      
+      _logStreamComplete(config.provider.name, fullContent.toString());
+      if (fullReasoning.isNotEmpty) {
+        _log('Reasoning content: ${fullReasoning.toString()}');
+      }
+    } on DioException catch (e, stackTrace) {
+      _log('DioException in stream: ${e.type}', error: e.message, stackTrace: stackTrace);
+      _log('DioException response: ${e.response?.data}');
+      
+      final errorMessage = _formatDioException(e);
+      throw Exception(errorMessage);
+    } catch (e, stackTrace) {
+      _log('Error in stream: $e', stackTrace: stackTrace);
+      throw Exception('Stream error: $e');
     }
   }
 
