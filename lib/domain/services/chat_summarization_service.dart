@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:native_tavern/data/models/chat.dart';
-import 'package:native_tavern/data/models/llm_config.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/tokenizer_service.dart';
 import 'package:uuid/uuid.dart';
@@ -16,16 +15,34 @@ class ChatSummarizationService {
   Future<bool> shouldSummarize({
     required List<ChatMessage> messages,
     required List<ChatSummary> existingSummaries,
-    required GenerationSettings settings,
+    required LLMConfig config,
   }) async {
-    if (!settings.autoSummarizeEnabled) {
+    if (!config.autoSummarizeEnabled) {
       return false;
     }
 
-    // Calculate current token usage
-    final contextTokens = await _estimateTokenCount(messages, existingSummaries);
-    final maxContext = settings.contextLength;
-    final threshold = settings.autoSummarizeThreshold;
+    // Calculate token usage based on what will actually be in context
+    int contextTokens;
+    
+    if (existingSummaries.isEmpty) {
+      // No summaries yet - count all messages
+      contextTokens = await _estimateTokenCount(messages, []);
+      debugPrint('📊 No summaries yet, counting all ${messages.length} messages');
+    } else {
+      // Have summaries - only count the latest summary + recent messages
+      final latestSummary = existingSummaries.last;
+      final recentMessages = getRecentMessages(
+        allMessages: messages,
+        latestSummary: latestSummary,
+      );
+      
+      // Count: 1 summary + recent messages
+      contextTokens = await _estimateTokenCount(recentMessages, [latestSummary]);
+      debugPrint('📊 Have ${existingSummaries.length} summaries, counting 1 summary + ${recentMessages.length} recent messages');
+    }
+    
+    final maxContext = config.contextLength;
+    final threshold = config.autoSummarizeThreshold;
     
     final currentUsage = contextTokens / maxContext;
     
@@ -44,15 +61,15 @@ class ChatSummarizationService {
     
     // Count summary tokens
     for (final summary in summaries) {
-      totalTokens += await _tokenizerService.countTokens(summary.content);
+      totalTokens += _tokenizerService.estimateTokenCount(summary.content);
     }
     
     // Count message tokens
     for (final message in messages) {
-      totalTokens += await _tokenizerService.countTokens(message.content);
+      totalTokens += _tokenizerService.estimateTokenCount(message.content);
       // Also count reasoning if present
       if (message.reasoning != null) {
-        totalTokens += await _tokenizerService.countTokens(message.reasoning!);
+        totalTokens += _tokenizerService.estimateTokenCount(message.reasoning!);
       }
     }
     
@@ -64,7 +81,6 @@ class ChatSummarizationService {
     required List<ChatMessage> messages,
     required List<ChatSummary> existingSummaries,
     required LLMConfig config,
-    required GenerationSettings settings,
     String? characterName,
     String? userName,
   }) async {
@@ -84,7 +100,6 @@ class ChatSummarizationService {
     final summaryText = await _generateSummaryText(
       prompt: prompt,
       config: config,
-      settings: settings,
     );
     
     debugPrint('📝 Generated summary: ${summaryText.substring(0, summaryText.length > 100 ? 100 : summaryText.length)}...');
@@ -154,28 +169,25 @@ class ChatSummarizationService {
   Future<String> _generateSummaryText({
     required String prompt,
     required LLMConfig config,
-    required GenerationSettings settings,
   }) async {
     final buffer = StringBuffer();
     
-    // Create a modified settings for summarization
-    final summarySettings = settings.copyWith(
+    // Create a config with modified settings for summarization
+    final summaryConfig = config.copyWith(
       temperature: 0.3, // Lower temperature for more focused summaries
       maxTokens: 1024, // Limit summary length
-      stream: false, // No streaming for summaries
     );
     
+    // Build messages for summarization
+    final messages = [
+      {'role': 'system', 'content': 'You are a helpful assistant that creates concise conversation summaries.'},
+      {'role': 'user', 'content': prompt},
+    ];
+    
     // Generate using LLM service
-    await for (final chunk in _llmService.generateStream(
-      messages: [
-        {'role': 'system', 'content': 'You are a helpful assistant that creates concise conversation summaries.'},
-        {'role': 'user', 'content': prompt},
-      ],
-      config: config,
-      settings: summarySettings,
-    )) {
-      if (chunk['type'] == 'content') {
-        buffer.write(chunk['content']);
+    await for (final chunk in _llmService.generateStreamWithReasoning(messages, summaryConfig)) {
+      if (chunk.content != null) {
+        buffer.write(chunk.content);
       }
     }
     
@@ -200,14 +212,17 @@ class ChatSummarizationService {
     required ChatSummary summary,
     required String chatId,
   }) {
+    final summaryContent = '''[Context Summary]
+
+${summary.content}''';
     return ChatMessage(
       id: 'summary_${summary.id}',
       chatId: chatId,
       role: MessageRole.assistant,
-      content: '[Context Summary]' + '
-
-' + summary.content,
+      content: summaryContent,
       timestamp: summary.createdAt,
+      swipes: [summaryContent],
+      currentSwipeIndex: 0,
     );
   }
 }

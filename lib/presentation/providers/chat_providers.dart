@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/bookmark.dart';
 import 'package:native_tavern/data/models/chat.dart';
@@ -14,6 +15,7 @@ import 'package:native_tavern/data/repositories/character_repository.dart';
 import 'package:native_tavern/data/repositories/persona_repository.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/macro_service.dart';
+import 'package:native_tavern/domain/services/chat_summarization_service.dart';
 import 'package:native_tavern/presentation/providers/group_providers.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
 import 'package:native_tavern/presentation/providers/prompt_manager_providers.dart';
@@ -87,6 +89,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   final PersonaRepository _personaRepository;
   final LLMService _llmService;
   final WorldInfoMatcher _worldInfoMatcher;
+  final ChatSummarizationService _summarizationService;
   final Ref _ref;
 
   ActiveChatNotifier({
@@ -95,12 +98,14 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     required PersonaRepository personaRepository,
     required LLMService llmService,
     required WorldInfoMatcher worldInfoMatcher,
+    required ChatSummarizationService summarizationService,
     required Ref ref,
   })  : _chatRepository = chatRepository,
         _characterRepository = characterRepository,
         _personaRepository = personaRepository,
         _llmService = llmService,
         _worldInfoMatcher = worldInfoMatcher,
+        _summarizationService = summarizationService,
         _ref = ref,
         super(const ActiveChatState());
 
@@ -356,6 +361,9 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       isGenerating: true,
       error: null,
     );
+
+    // Check if we need to summarize before generating response
+    await _checkAndSummarize(config);
 
     // Prepare context for LLM
     final context = await _buildContext();
@@ -781,11 +789,25 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     final character = state.character;
     final chat = state.chat;
 
-    // Get chat messages
+    // Get chat messages - use summaries if available
     var chatMessages = state.messages;
     if (excludeLastAssistant && chatMessages.isNotEmpty &&
         chatMessages.last.role == MessageRole.assistant) {
       chatMessages = chatMessages.sublist(0, chatMessages.length - 1);
+    }
+    
+    // Check if we have summaries and should use them
+    final summaries = chat?.summaries ?? [];
+    if (summaries.isNotEmpty) {
+      final lastSummary = summaries.last;
+      // Get only recent messages after the last summary
+      final recentMessages = _summarizationService.getRecentMessages(
+        allMessages: chatMessages,
+        latestSummary: lastSummary,
+      );
+      // Use recent messages for building context
+      chatMessages = recentMessages;
+      debugPrint('📝 Using summary + ${chatMessages.length} recent messages for context');
     }
 
     // Find matching World Info entries
@@ -878,6 +900,20 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         section, character, persona, worldInfoEntries, groupedEntries, processMacros, addWorldInfoAt,
       );
       messages.addAll(sectionMessages);
+    }
+
+    // Add summary message if we have summaries
+    if (summaries.isNotEmpty) {
+      final latestSummary = summaries.last;
+      final summaryMessage = _summarizationService.createSummaryMessage(
+        summary: latestSummary,
+        chatId: state.chat!.id,
+      );
+      messages.add({
+        'role': 'assistant',
+        'content': summaryMessage.content,
+      });
+      debugPrint('📌 Added summary to context: ${latestSummary.content.substring(0, min(100, latestSummary.content.length))}...');
     }
 
     // Add chat messages with depth-based injections
@@ -1336,6 +1372,21 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       messages.addAll(sectionMessages);
     }
 
+    // Add summary message if we have summaries
+    final summaries = chat?.summaries ?? [];
+    if (summaries.isNotEmpty) {
+      final latestSummary = summaries.last;
+      final summaryMessage = _summarizationService.createSummaryMessage(
+        summary: latestSummary,
+        chatId: state.chat!.id,
+      );
+      messages.add({
+        'role': 'assistant',
+        'content': summaryMessage.content,
+      });
+      debugPrint('📌 Added summary to context: ${latestSummary.content.substring(0, min(100, latestSummary.content.length))}...');
+    }
+
     // Add chat messages with depth-based injections
     final depthEntries = worldInfoEntries
         .where((e) => e.position == WorldInfoPosition.atDepth)
@@ -1535,6 +1586,80 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   String _generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString() +
            (DateTime.now().microsecond % 1000).toString().padLeft(3, '0');
+  }
+
+  /// Check if summarization is needed and generate summary if threshold is reached
+  Future<void> _checkAndSummarize(LLMConfig config) async {
+    final chat = state.chat;
+    if (chat == null) return;
+
+    if (!config.autoSummarizeEnabled) {
+      debugPrint('📝 Auto-summarization disabled');
+      return;
+    }
+
+    // Check if we should summarize
+    final shouldSummarize = await _summarizationService.shouldSummarize(
+      messages: state.messages,
+      existingSummaries: chat.summaries,
+      config: config,
+    );
+
+    if (!shouldSummarize) {
+      debugPrint('📝 No summarization needed');
+      return;
+    }
+
+    debugPrint('🔄 Triggering auto-summarization...');
+
+    try {
+      // Get character and persona for summary context
+      final character = state.character;
+      final activePersonaId = _ref.read(activePersonaIdProvider);
+      Persona? persona;
+      if (activePersonaId != null) {
+        persona = await _personaRepository.getPersona(activePersonaId);
+      }
+      persona ??= await _personaRepository.getDefaultPersona();
+
+      // Determine which messages to summarize
+      final messagesToSummarize = chat.summaries.isEmpty
+          ? state.messages  // First summary: summarize all messages
+          : _summarizationService.getRecentMessages(
+              allMessages: state.messages,
+              latestSummary: chat.summaries.last,
+            );  // Subsequent summaries: only new messages
+
+      if (messagesToSummarize.isEmpty) {
+        debugPrint('📝 No messages to summarize');
+        return;
+      }
+
+      debugPrint('📝 Summarizing ${messagesToSummarize.length} messages...');
+
+      // Generate summary
+      final summary = await _summarizationService.generateSummary(
+        messages: messagesToSummarize,
+        existingSummaries: chat.summaries,
+        config: config,
+        characterName: character?.name,
+        userName: (persona.name != null && persona.name!.isNotEmpty) ? persona.name! : 'User',
+      );
+
+      // Add summary to chat
+      final updatedSummaries = [...chat.summaries, summary];
+      final updatedChat = chat.copyWith(summaries: updatedSummaries);
+      await _chatRepository.updateChat(updatedChat);
+
+      // Update state
+      state = state.copyWith(chat: updatedChat);
+
+      debugPrint('✅ Summary created successfully (${updatedSummaries.length} total summaries)');
+      debugPrint('📌 Summary preview: ${summary.content.substring(0, min(100, summary.content.length))}...');
+    } catch (e) {
+      debugPrint('❌ Failed to create summary: $e');
+      // Don't fail the entire message sending if summarization fails
+    }
   }
 
   /// Clear the current chat
@@ -1984,6 +2109,7 @@ final activeChatProvider = StateNotifierProvider<ActiveChatNotifier, ActiveChatS
   final personaRepo = ref.watch(personaRepositoryProvider);
   final llmService = ref.watch(llmServiceProvider);
   final worldInfoMatcher = ref.watch(worldInfoMatcherProvider);
+  final summarizationService = ref.watch(chatSummarizationServiceProvider);
 
   return ActiveChatNotifier(
     chatRepository: chatRepo,
@@ -1991,6 +2117,7 @@ final activeChatProvider = StateNotifierProvider<ActiveChatNotifier, ActiveChatS
     personaRepository: personaRepo,
     llmService: llmService,
     worldInfoMatcher: worldInfoMatcher,
+    summarizationService: summarizationService,
     ref: ref,
   );
 });

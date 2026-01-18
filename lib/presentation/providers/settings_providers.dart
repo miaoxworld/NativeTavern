@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
+import 'package:native_tavern/domain/services/chat_summarization_service.dart';
+import 'package:native_tavern/domain/services/tokenizer_service.dart';
 
 /// Log a message to the console
 void _log(String message, {String? error, StackTrace? stackTrace}) {
@@ -675,4 +677,16 @@ final modelFetchProvider =
     StateNotifierProvider<ModelFetchNotifier, ModelFetchState>((ref) {
   final llmService = ref.watch(llmServiceProvider);
   return ModelFetchNotifier(llmService);
+});
+
+/// Provider for tokenizer service
+final tokenizerServiceProvider = Provider<TokenizerService>((ref) {
+  return TokenizerService();
+});
+
+/// Provider for chat summarization service
+final chatSummarizationServiceProvider = Provider<ChatSummarizationService>((ref) {
+  final llmService = ref.watch(llmServiceProvider);
+  final tokenizerService = ref.watch(tokenizerServiceProvider);
+  return ChatSummarizationService(llmService, tokenizerService);
 });
