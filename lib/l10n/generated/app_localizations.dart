@@ -6426,6 +6426,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please select a character'**
   String get pleaseSelectCharacter;
+
+  /// Context usage dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Context Usage'**
+  String get contextUsage;
+
+  /// Max context label
+  ///
+  /// In en, this message translates to:
+  /// **'Max Context'**
+  String get maxContext;
+
+  /// Remaining tokens label
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remaining;
+
+  /// Token breakdown section title
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get breakdown;
 }
 
 class _AppLocalizationsDelegate

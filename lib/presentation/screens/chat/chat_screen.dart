@@ -25,6 +25,7 @@ import 'package:native_tavern/presentation/widgets/chat/quick_reply_bar.dart';
 import 'package:native_tavern/presentation/widgets/chat/markdown_input_field.dart';
 import 'package:native_tavern/presentation/widgets/chat/reasoning_widget.dart';
 import 'package:native_tavern/presentation/widgets/chat/slash_command_suggestions.dart';
+import 'package:native_tavern/presentation/widgets/chat/context_usage_indicator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
@@ -1023,6 +1024,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     focusNode: _focusNode,
                     compact: true,
                   ),
+                  const SizedBox(width: 8),
+                  // Context usage indicator
+                  const ContextUsageIndicator(),
                   const Spacer(),
                   // Hint for keyboard shortcuts - only show on desktop
                   if (_isDesktop)

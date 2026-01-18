@@ -5962,5 +5962,30 @@
   "pleaseSelectCharacter": "Please select a character",
   "@pleaseSelectCharacter": {
     "description": "Character selection validation message"
+  },
+  
+  "contextUsage": "Context Usage",
+  "@contextUsage": {
+    "description": "Context usage dialog title"
+  },
+  
+  "totalTokens": "Total Tokens",
+  "@totalTokens": {
+    "description": "Total tokens label"
+  },
+  
+  "maxContext": "Max Context",
+  "@maxContext": {
+    "description": "Max context label"
+  },
+  
+  "remaining": "Remaining",
+  "@remaining": {
+    "description": "Remaining tokens label"
+  },
+  
+  "breakdown": "Breakdown",
+  "@breakdown": {
+    "description": "Token breakdown section title"
   }
 }

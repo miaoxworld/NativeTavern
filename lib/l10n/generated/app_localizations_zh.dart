@@ -2627,7 +2627,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statisticsLabel => 'Statistics';
 
   @override
-  String get totalTokens => 'Total Tokens';
+  String get totalTokens => '总令牌数';
 
   @override
   String get unique => 'Unique';
@@ -3488,6 +3488,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pleaseSelectCharacter => '请选择一个角色';
+
+  @override
+  String get contextUsage => '上下文使用';
+
+  @override
+  String get maxContext => '最大上下文';
+
+  @override
+  String get remaining => '剩余';
+
+  @override
+  String get breakdown => '详细分解';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).

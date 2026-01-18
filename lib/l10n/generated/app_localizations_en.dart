@@ -3505,4 +3505,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseSelectCharacter => 'Please select a character';
+
+  @override
+  String get contextUsage => 'Context Usage';
+
+  @override
+  String get maxContext => 'Max Context';
+
+  @override
+  String get remaining => 'Remaining';
+
+  @override
+  String get breakdown => 'Breakdown';
 }

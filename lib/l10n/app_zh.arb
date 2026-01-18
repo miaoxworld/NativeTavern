@@ -300,5 +300,11 @@
   "linkToSpecificCharacter": "仅关联到特定角色",
   "selectCharacter": "选择角色",
   "noCharactersAvailable": "暂无可用角色",
-  "pleaseSelectCharacter": "请选择一个角色"
+  "pleaseSelectCharacter": "请选择一个角色",
+  
+  "contextUsage": "上下文使用",
+  "totalTokens": "总令牌数",
+  "maxContext": "最大上下文",
+  "remaining": "剩余",
+  "breakdown": "详细分解"
 }

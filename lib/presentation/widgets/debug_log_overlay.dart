@@ -264,28 +264,32 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
             child: Row(
               children: [
                 // Level filter
-                DropdownButton<String>(
-                  value: _filterLevel,
-                  dropdownColor: Colors.grey.shade800,
-                  style: const TextStyle(color: Colors.white),
-                  underline: const SizedBox(),
-                  items: ['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR']
-                      .map((level) => DropdownMenuItem(
-                            value: level,
-                            child: Text(
-                              level,
-                              style: TextStyle(
-                                color: level == 'ALL'
-                                    ? Colors.white
-                                    : _getLevelColor(level),
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _filterLevel = value);
-                    }
+                Builder(
+                  builder: (BuildContext dropdownContext) {
+                    return DropdownButton<String>(
+                      value: _filterLevel,
+                      dropdownColor: Colors.grey.shade800,
+                      style: const TextStyle(color: Colors.white),
+                      underline: const SizedBox(),
+                      items: ['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR']
+                          .map((level) => DropdownMenuItem(
+                                value: level,
+                                child: Text(
+                                  level,
+                                  style: TextStyle(
+                                    color: level == 'ALL'
+                                        ? Colors.white
+                                        : _getLevelColor(level),
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _filterLevel = value);
+                        }
+                      },
+                    );
                   },
                 ),
                 const SizedBox(width: 12),
@@ -647,28 +651,32 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
             color: Colors.grey.shade800,
             child: Row(
               children: [
-                DropdownButton<String>(
-                  value: _filterLevel,
-                  dropdownColor: Colors.grey.shade800,
-                  style: const TextStyle(color: Colors.white),
-                  underline: const SizedBox(),
-                  items: ['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR']
-                      .map((level) => DropdownMenuItem(
-                            value: level,
-                            child: Text(
-                              level,
-                              style: TextStyle(
-                                color: level == 'ALL'
-                                    ? Colors.white
-                                    : _getLevelColor(level),
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _filterLevel = value);
-                    }
+                Builder(
+                  builder: (BuildContext dropdownContext) {
+                    return DropdownButton<String>(
+                      value: _filterLevel,
+                      dropdownColor: Colors.grey.shade800,
+                      style: const TextStyle(color: Colors.white),
+                      underline: const SizedBox(),
+                      items: ['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR']
+                          .map((level) => DropdownMenuItem(
+                                value: level,
+                                child: Text(
+                                  level,
+                                  style: TextStyle(
+                                    color: level == 'ALL'
+                                        ? Colors.white
+                                        : _getLevelColor(level),
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _filterLevel = value);
+                        }
+                      },
+                    );
                   },
                 ),
                 const SizedBox(width: 12),
