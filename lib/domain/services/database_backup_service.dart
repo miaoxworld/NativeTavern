@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:native_tavern/data/database/database.dart';
 
 /// Service for exporting and importing database data for backup purposes
@@ -48,6 +49,22 @@ class DatabaseBackupService {
     return map;
   }
   
+  /// Safely parse a DateTime from various formats (String or int timestamp)
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is int) {
+      // Assume milliseconds since epoch if > 10 billion, otherwise seconds
+      if (value > 10000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      } else {
+        return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+      }
+    }
+    return null;
+  }
+  
   /// Import data from a backup, with support for different restore modes
   Future<ImportResult> importData({
     required Map<String, dynamic> data,
@@ -55,9 +72,26 @@ class DatabaseBackupService {
   }) async {
     final result = ImportResult();
     
+    // Log backup data structure
+    debugPrint('[DatabaseBackup] Starting import with mode: $mode');
+    debugPrint('[DatabaseBackup] Backup data keys: ${data.keys.toList()}');
+    if (data.containsKey('characters')) {
+      final chars = data['characters'];
+      debugPrint('[DatabaseBackup] Characters in backup: ${chars is Map ? chars.length : 'invalid type: ${chars.runtimeType}'}');
+    }
+    if (data.containsKey('chats')) {
+      final chats = data['chats'];
+      debugPrint('[DatabaseBackup] Chats in backup: ${chats is Map ? chats.length : 'invalid type: ${chats.runtimeType}'}');
+    }
+    if (data.containsKey('messages')) {
+      final msgs = data['messages'];
+      debugPrint('[DatabaseBackup] Messages in backup: ${msgs is Map ? msgs.length : 'invalid type: ${msgs.runtimeType}'}');
+    }
+    
     // Import in order of dependencies
     // 1. Characters (no dependencies)
     if (data.containsKey('characters')) {
+      debugPrint('[DatabaseBackup] Importing characters...');
       final charResult = await _importCharacters(
         data['characters'] as Map<String, dynamic>,
         mode,
@@ -65,6 +99,9 @@ class DatabaseBackupService {
       result.charactersAdded = charResult.added;
       result.charactersUpdated = charResult.updated;
       result.charactersSkipped = charResult.skipped;
+      debugPrint('[DatabaseBackup] Characters import result: added=${charResult.added}, updated=${charResult.updated}, skipped=${charResult.skipped}');
+    } else {
+      debugPrint('[DatabaseBackup] WARNING: No characters key in backup data!');
     }
     
     // 2. Tags (no dependencies)
@@ -177,102 +214,163 @@ class DatabaseBackupService {
   Future<_ImportEntityResult> _importCharacters(Map<String, dynamic> data, ImportMode mode) async {
     int added = 0, updated = 0, skipped = 0;
     
+    debugPrint('[DatabaseBackup] _importCharacters: Processing ${data.length} character entries');
+    
     for (final entry in data.entries) {
-      final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
-      
-      final existing = await (_db.select(_db.characters)..where((t) => t.id.equals(id))).getSingleOrNull();
-      
-      if (existing == null) {
-        // Add new
-        await _db.into(_db.characters).insert(Character.fromJson(json));
-        added++;
-      } else if (mode == ImportMode.replace) {
-        // Replace
-        await (_db.update(_db.characters)..where((t) => t.id.equals(id)))
-            .write(Character.fromJson(json).toCompanion(true));
-        updated++;
-      } else if (mode == ImportMode.merge) {
-        // Merge - newer wins
-        final backupTime = DateTime.tryParse(json['modifiedAt'] as String? ?? '');
-        if (backupTime != null && backupTime.isAfter(existing.modifiedAt)) {
+      try {
+        final json = entry.value as Map<String, dynamic>;
+        final id = json['id']?.toString() ?? entry.key;
+        
+        final existing = await (_db.select(_db.characters)..where((t) => t.id.equals(id))).getSingleOrNull();
+        
+        if (existing == null) {
+          // Add new
+          await _db.into(_db.characters).insert(Character.fromJson(json));
+          added++;
+        } else if (mode == ImportMode.replace) {
+          // Replace
           await (_db.update(_db.characters)..where((t) => t.id.equals(id)))
               .write(Character.fromJson(json).toCompanion(true));
           updated++;
+        } else if (mode == ImportMode.merge) {
+          // Merge - newer wins
+          final backupTime = _parseDateTime(json['modifiedAt']);
+          if (backupTime != null && backupTime.isAfter(existing.modifiedAt)) {
+            await (_db.update(_db.characters)..where((t) => t.id.equals(id)))
+                .write(Character.fromJson(json).toCompanion(true));
+            updated++;
+          } else {
+            skipped++;
+          }
         } else {
           skipped++;
         }
-      } else {
+      } catch (e, stackTrace) {
+        debugPrint('[DatabaseBackup] Error importing character ${entry.key}: $e');
+        debugPrint('[DatabaseBackup] Stack trace: $stackTrace');
         skipped++;
       }
     }
     
+    debugPrint('[DatabaseBackup] _importCharacters completed: added=$added, updated=$updated, skipped=$skipped');
     return _ImportEntityResult(added: added, updated: updated, skipped: skipped);
   }
   
   Future<_ImportEntityResult> _importChats(Map<String, dynamic> data, ImportMode mode) async {
     int added = 0, updated = 0, skipped = 0;
+    int fkSkipped = 0;
+    
+    debugPrint('[DatabaseBackup] _importChats: Processing ${data.length} chat entries');
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
+      // Support both camelCase (JSON export) and snake_case formats
+      final characterId = (json['characterId'] ?? json['character_id'])?.toString();
       
-      final existing = await (_db.select(_db.chats)..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Check if the referenced character exists (foreign key constraint)
+      if (characterId != null) {
+        final characterExists = await (_db.select(_db.characters)..where((t) => t.id.equals(characterId))).getSingleOrNull();
+        if (characterExists == null) {
+          // Skip this chat if the character doesn't exist
+          debugPrint('[DatabaseBackup] Skipping chat $id: character_id $characterId not found');
+          skipped++;
+          fkSkipped++;
+          continue;
+        }
+      }
       
-      if (existing == null) {
-        await _db.into(_db.chats).insert(Chat.fromJson(json));
-        added++;
-      } else if (mode == ImportMode.replace) {
-        await (_db.update(_db.chats)..where((t) => t.id.equals(id)))
-            .write(Chat.fromJson(json).toCompanion(true));
-        updated++;
-      } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['updatedAt'] as String? ?? '');
-        if (backupTime != null && backupTime.isAfter(existing.updatedAt)) {
+      try {
+        final existing = await (_db.select(_db.chats)..where((t) => t.id.equals(id))).getSingleOrNull();
+        
+        if (existing == null) {
+          await _db.into(_db.chats).insert(Chat.fromJson(json));
+          added++;
+        } else if (mode == ImportMode.replace) {
           await (_db.update(_db.chats)..where((t) => t.id.equals(id)))
               .write(Chat.fromJson(json).toCompanion(true));
           updated++;
+        } else if (mode == ImportMode.merge) {
+          final backupTime = _parseDateTime(json['updatedAt']);
+          if (backupTime != null && backupTime.isAfter(existing.updatedAt)) {
+            await (_db.update(_db.chats)..where((t) => t.id.equals(id)))
+                .write(Chat.fromJson(json).toCompanion(true));
+            updated++;
+          } else {
+            skipped++;
+          }
         } else {
           skipped++;
         }
-      } else {
+      } catch (e) {
+        // If insert/update fails (e.g., due to constraint), skip this item
+        debugPrint('[DatabaseBackup] Error importing chat $id: $e');
         skipped++;
       }
     }
     
+    debugPrint('[DatabaseBackup] _importChats completed: added=$added, updated=$updated, skipped=$skipped (FK skipped=$fkSkipped)');
     return _ImportEntityResult(added: added, updated: updated, skipped: skipped);
   }
   
   Future<_ImportEntityResult> _importMessages(Map<String, dynamic> data, ImportMode mode) async {
     int added = 0, updated = 0, skipped = 0;
+    int fkSkipped = 0;
+    
+    debugPrint('[DatabaseBackup] _importMessages: Processing ${data.length} message entries');
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
+      // Support both camelCase (JSON export) and snake_case formats
+      final chatId = (json['chatId'] ?? json['chat_id'])?.toString();
+      
+      // Check if the referenced chat exists (foreign key constraint)
+      if (chatId != null) {
+        final chatExists = await (_db.select(_db.chats)..where((t) => t.id.equals(chatId))).getSingleOrNull();
+        if (chatExists == null) {
+          // Skip this message if the chat doesn't exist
+          if (fkSkipped < 5) {
+            debugPrint('[DatabaseBackup] Skipping message $id: chat_id $chatId not found');
+          } else if (fkSkipped == 5) {
+            debugPrint('[DatabaseBackup] ... suppressing further FK skip logs');
+          }
+          skipped++;
+          fkSkipped++;
+          continue;
+        }
+      }
       
       final existing = await (_db.select(_db.messages)..where((t) => t.id.equals(id))).getSingleOrNull();
       
-      if (existing == null) {
-        await _db.into(_db.messages).insert(Message.fromJson(json));
-        added++;
-      } else if (mode == ImportMode.replace) {
-        await (_db.update(_db.messages)..where((t) => t.id.equals(id)))
-            .write(Message.fromJson(json).toCompanion(true));
-        updated++;
-      } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['timestamp'] as String? ?? '');
-        if (backupTime != null && backupTime.isAfter(existing.timestamp)) {
+      try {
+        if (existing == null) {
+          await _db.into(_db.messages).insert(Message.fromJson(json));
+          added++;
+        } else if (mode == ImportMode.replace) {
           await (_db.update(_db.messages)..where((t) => t.id.equals(id)))
               .write(Message.fromJson(json).toCompanion(true));
           updated++;
+        } else if (mode == ImportMode.merge) {
+          final backupTime = _parseDateTime(json['timestamp']);
+          if (backupTime != null && backupTime.isAfter(existing.timestamp)) {
+            await (_db.update(_db.messages)..where((t) => t.id.equals(id)))
+                .write(Message.fromJson(json).toCompanion(true));
+            updated++;
+          } else {
+            skipped++;
+          }
         } else {
           skipped++;
         }
-      } else {
+      } catch (e) {
+        // If insert/update fails (e.g., due to constraint), skip this item
+        debugPrint('[DatabaseBackup] Error importing message $id: $e');
         skipped++;
       }
     }
     
+    debugPrint('[DatabaseBackup] _importMessages completed: added=$added, updated=$updated, skipped=$skipped (FK skipped=$fkSkipped)');
     return _ImportEntityResult(added: added, updated: updated, skipped: skipped);
   }
   
@@ -281,7 +379,7 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
       
       final existing = await (_db.select(_db.worldInfos)..where((t) => t.id.equals(id))).getSingleOrNull();
       
@@ -293,7 +391,7 @@ class DatabaseBackupService {
             .write(WorldInfo.fromJson(json).toCompanion(true));
         updated++;
       } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['modifiedAt'] as String? ?? '');
+        final backupTime = _parseDateTime(json['modifiedAt']);
         if (backupTime != null && backupTime.isAfter(existing.modifiedAt)) {
           await (_db.update(_db.worldInfos)..where((t) => t.id.equals(id)))
               .write(WorldInfo.fromJson(json).toCompanion(true));
@@ -312,15 +410,30 @@ class DatabaseBackupService {
   Future<void> _importWorldInfoEntries(Map<String, dynamic> data, ImportMode mode) async {
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
+      // Support both camelCase (JSON export) and snake_case formats
+      final worldInfoId = (json['worldInfoId'] ?? json['world_info_id'])?.toString();
       
-      final existing = await (_db.select(_db.worldInfoEntries)..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Check if the referenced world info exists (foreign key constraint)
+      if (worldInfoId != null) {
+        final worldInfoExists = await (_db.select(_db.worldInfos)..where((t) => t.id.equals(worldInfoId))).getSingleOrNull();
+        if (worldInfoExists == null) {
+          // Skip this entry if the world info doesn't exist
+          continue;
+        }
+      }
       
-      if (existing == null) {
-        await _db.into(_db.worldInfoEntries).insert(WorldInfoEntry.fromJson(json));
-      } else if (mode == ImportMode.replace) {
-        await (_db.update(_db.worldInfoEntries)..where((t) => t.id.equals(id)))
-            .write(WorldInfoEntry.fromJson(json).toCompanion(true));
+      try {
+        final existing = await (_db.select(_db.worldInfoEntries)..where((t) => t.id.equals(id))).getSingleOrNull();
+        
+        if (existing == null) {
+          await _db.into(_db.worldInfoEntries).insert(WorldInfoEntry.fromJson(json));
+        } else if (mode == ImportMode.replace) {
+          await (_db.update(_db.worldInfoEntries)..where((t) => t.id.equals(id)))
+              .write(WorldInfoEntry.fromJson(json).toCompanion(true));
+        }
+      } catch (e) {
+        // Skip if constraint fails
       }
     }
   }
@@ -330,7 +443,7 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
       
       final existing = await (_db.select(_db.tags)..where((t) => t.id.equals(id))).getSingleOrNull();
       
@@ -352,8 +465,9 @@ class DatabaseBackupService {
   Future<void> _importCharacterTags(List<dynamic> data, ImportMode mode) async {
     for (final item in data) {
       final json = item as Map<String, dynamic>;
-      final characterId = json['characterId'] as String;
-      final tagId = json['tagId'] as String;
+      final characterId = json['characterId']?.toString();
+      final tagId = json['tagId']?.toString();
+      if (characterId == null || tagId == null) continue;
       
       final existing = await (_db.select(_db.characterTags)
         ..where((t) => t.characterId.equals(characterId) & t.tagId.equals(tagId)))
@@ -372,7 +486,7 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
       
       final existing = await (_db.select(_db.groups)..where((t) => t.id.equals(id))).getSingleOrNull();
       
@@ -384,7 +498,7 @@ class DatabaseBackupService {
             .write(Group.fromJson(json).toCompanion(true));
         updated++;
       } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['modifiedAt'] as String? ?? '');
+        final backupTime = _parseDateTime(json['modifiedAt']);
         if (backupTime != null && backupTime.isAfter(existing.modifiedAt)) {
           await (_db.update(_db.groups)..where((t) => t.id.equals(id)))
               .write(Group.fromJson(json).toCompanion(true));
@@ -405,7 +519,7 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
       
       final existing = await (_db.select(_db.personas)..where((t) => t.id.equals(id))).getSingleOrNull();
       
@@ -417,7 +531,7 @@ class DatabaseBackupService {
             .write(Persona.fromJson(json).toCompanion(true));
         updated++;
       } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['updatedAt'] as String? ?? '');
+        final backupTime = _parseDateTime(json['updatedAt']);
         if (backupTime != null && backupTime.isAfter(existing.updatedAt)) {
           await (_db.update(_db.personas)..where((t) => t.id.equals(id)))
               .write(Persona.fromJson(json).toCompanion(true));
@@ -438,7 +552,7 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
       
       final existing = await (_db.select(_db.llmConfigs)..where((t) => t.id.equals(id))).getSingleOrNull();
       
@@ -450,7 +564,7 @@ class DatabaseBackupService {
             .write(LlmConfig.fromJson(json).toCompanion(true));
         updated++;
       } else if (mode == ImportMode.merge) {
-        final backupTime = DateTime.tryParse(json['modifiedAt'] as String? ?? '');
+        final backupTime = _parseDateTime(json['modifiedAt']);
         if (backupTime != null && backupTime.isAfter(existing.modifiedAt)) {
           await (_db.update(_db.llmConfigs)..where((t) => t.id.equals(id)))
               .write(LlmConfig.fromJson(json).toCompanion(true));
@@ -471,18 +585,35 @@ class DatabaseBackupService {
     
     for (final entry in data.entries) {
       final json = entry.value as Map<String, dynamic>;
-      final id = json['id'] as String;
+      final id = json['id']?.toString() ?? entry.key;
+      // Support both camelCase (JSON export) and snake_case formats
+      final chatId = (json['chatId'] ?? json['chat_id'])?.toString();
       
-      final existing = await (_db.select(_db.bookmarks)..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Check if the referenced chat exists (foreign key constraint)
+      if (chatId != null) {
+        final chatExists = await (_db.select(_db.chats)..where((t) => t.id.equals(chatId))).getSingleOrNull();
+        if (chatExists == null) {
+          // Skip this bookmark if the chat doesn't exist
+          skipped++;
+          continue;
+        }
+      }
       
-      if (existing == null) {
-        await _db.into(_db.bookmarks).insert(Bookmark.fromJson(json));
-        added++;
-      } else if (mode == ImportMode.replace) {
-        await (_db.update(_db.bookmarks)..where((t) => t.id.equals(id)))
-            .write(Bookmark.fromJson(json).toCompanion(true));
-        updated++;
-      } else {
+      try {
+        final existing = await (_db.select(_db.bookmarks)..where((t) => t.id.equals(id))).getSingleOrNull();
+        
+        if (existing == null) {
+          await _db.into(_db.bookmarks).insert(Bookmark.fromJson(json));
+          added++;
+        } else if (mode == ImportMode.replace) {
+          await (_db.update(_db.bookmarks)..where((t) => t.id.equals(id)))
+              .write(Bookmark.fromJson(json).toCompanion(true));
+          updated++;
+        } else {
+          skipped++;
+        }
+      } catch (e) {
+        // If insert/update fails (e.g., due to constraint), skip this item
         skipped++;
       }
     }

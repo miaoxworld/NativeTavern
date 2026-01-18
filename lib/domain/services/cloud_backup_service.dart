@@ -145,33 +145,52 @@ class CloudBackupService {
       
       if (Platform.isMacOS) {
         final homeDir = Platform.environment['HOME'] ?? '';
-        // iCloud container path format: ~/Library/Mobile Documents/iCloud~<container_id>/Documents
-        // Our container ID: iCloud.com.miaomiaoxworld.nativetavern
-        // The path uses ~ instead of . for the container prefix
-        final iCloudPath = path.join(
+        
+        // First try the app container path (sandboxed app)
+        // This is where the app can write to, and it syncs with iCloud
+        final containerPath = '/Users/${homeDir.split('/').last}/Library/Containers/com.miaomiaoxworld.nativetavern/Data/Library/Mobile Documents/iCloud~com~miaomiaoxworld~nativetavern/Documents';
+        final containerDir = Directory(containerPath);
+        
+        print('CloudBackupService: Checking container iCloud path: $containerPath');
+        
+        if (await containerDir.exists()) {
+          print('CloudBackupService: Container iCloud directory exists');
+          return containerDir;
+        }
+        
+        // Try creating the container path
+        try {
+          await containerDir.create(recursive: true);
+          print('CloudBackupService: Created container iCloud directory');
+          return containerDir;
+        } catch (e) {
+          print('CloudBackupService: Failed to create container iCloud directory: $e');
+        }
+        
+        // Fallback: Try the system-level iCloud path (non-sandboxed or for reading)
+        final systemICloudPath = path.join(
           homeDir,
           'Library',
           'Mobile Documents',
           'iCloud~com~miaomiaoxworld~nativetavern',
           'Documents',
         );
-        final iCloudDir = Directory(iCloudPath);
+        final systemICloudDir = Directory(systemICloudPath);
         
-        print('CloudBackupService: Checking iCloud path: $iCloudPath');
+        print('CloudBackupService: Checking system iCloud path: $systemICloudPath');
         
-        if (await iCloudDir.exists()) {
-          print('CloudBackupService: iCloud directory exists');
-          return iCloudDir;
+        if (await systemICloudDir.exists()) {
+          print('CloudBackupService: System iCloud directory exists');
+          return systemICloudDir;
         }
         
-        // Try creating it (will only work if iCloud container is properly configured)
+        // Try creating system-level path (will fail if iCloud container not configured)
         try {
-          await iCloudDir.create(recursive: true);
-          print('CloudBackupService: Created iCloud directory');
-          return iCloudDir;
+          await systemICloudDir.create(recursive: true);
+          print('CloudBackupService: Created system iCloud directory');
+          return systemICloudDir;
         } catch (e) {
-          print('CloudBackupService: Failed to create iCloud directory: $e');
-          // iCloud container may not be available, this is expected for development
+          print('CloudBackupService: Failed to create system iCloud directory: $e');
         }
       }
       
@@ -234,6 +253,46 @@ class CloudBackupService {
     return dir != null;
   }
   
+  /// Get detailed iCloud status for debugging
+  Future<Map<String, dynamic>> getICloudStatus() async {
+    final result = <String, dynamic>{
+      'available': false,
+      'path': null,
+      'isSystemICloud': false,
+      'message': 'iCloud not available',
+    };
+    
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      result['message'] = 'iCloud is only available on iOS and macOS';
+      return result;
+    }
+    
+    final dir = await getICloudDirectory();
+    if (dir != null) {
+      result['available'] = true;
+      result['path'] = dir.path;
+      
+      // Check if it's the system-level iCloud path (truly syncs) or just container path
+      final homeDir = Platform.environment['HOME'] ?? '';
+      final systemPath = '$homeDir/Library/Mobile Documents';
+      final systemICloudExists = await Directory(systemPath).exists();
+      
+      if (dir.path.contains('/Containers/')) {
+        result['isSystemICloud'] = false;
+        if (systemICloudExists) {
+          result['message'] = 'Using app container iCloud path (will sync to iCloud)';
+        } else {
+          result['message'] = 'Warning: iCloud Drive may not be enabled in System Settings. Backup is saved locally but may not sync to cloud.';
+        }
+      } else {
+        result['isSystemICloud'] = true;
+        result['message'] = 'Using system iCloud Drive (syncs to cloud)';
+      }
+    }
+    
+    return result;
+  }
+  
   /// Create a backup file for cloud upload
   Future<File> createCloudBackupFile({
     required Map<String, dynamic> data,
@@ -269,6 +328,11 @@ class CloudBackupService {
       throw Exception('iCloud is not available');
     }
     
+    // Log iCloud status
+    final status = await getICloudStatus();
+    print('CloudBackupService: iCloud status: ${status['message']}');
+    print('CloudBackupService: Backup path: ${iCloudDir.path}');
+    
     try {
       onProgress?.call(0.0);
       
@@ -279,6 +343,9 @@ class CloudBackupService {
       final targetFile = await backupFile.copy(targetPath);
       
       onProgress?.call(1.0);
+      
+      print('CloudBackupService: Backup saved to: $targetPath');
+      print('CloudBackupService: File size: ${await targetFile.length()} bytes');
       
       final stat = await targetFile.stat();
       return CloudBackupInfo(

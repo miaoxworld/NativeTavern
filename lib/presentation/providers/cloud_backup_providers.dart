@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -274,7 +275,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       _ref.invalidate(iCloudBackupsProvider);
       
       return backup;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] uploadToICloud error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -332,7 +335,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return mergeResult;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] downloadFromICloud error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -365,7 +370,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       _ref.invalidate(iCloudBackupsProvider);
       
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] deleteICloudBackup error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -416,7 +423,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] exportToFile error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -492,7 +501,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return mergeResult;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] importFromFile error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -536,7 +547,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return success;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] signInToGoogleDrive error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -586,7 +599,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return backup;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] uploadToGoogleDrive error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -648,7 +663,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return mergeResult;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] downloadFromGoogleDrive error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
@@ -683,7 +700,9 @@ class CloudBackupOperationNotifier extends StateNotifier<CloudBackupOperationSta
       );
       
       return success;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] deleteGoogleDriveBackup error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,

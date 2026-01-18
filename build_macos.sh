@@ -4,7 +4,7 @@
 set -e
 
 # Configuration
-TEAM_ID="${TEAM_ID:-Q2AMTVPJ86}"  # Set your Apple Team ID here or via environment variable
+TEAM_ID="${TEAM_ID:-}"  # Set your Apple Team ID here or via environment variable
 BUNDLE_ID="com.miaomiaoxworld.nativetavern"
 ICLOUD_CONTAINER_ID="iCloud.com.miaomiaoxworld.nativetavern"
 
