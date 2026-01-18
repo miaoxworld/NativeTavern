@@ -2278,7 +2278,7 @@ abstract class AppLocalizations {
   /// No characters available message
   ///
   /// In en, this message translates to:
-  /// **'No characters available. Import some first.'**
+  /// **'No characters available'**
   String get noCharactersAvailable;
 
   /// Characters selected count
@@ -6390,6 +6390,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No logs yet'**
   String get noLogsYet;
+
+  /// World info scope: available to all characters
+  ///
+  /// In en, this message translates to:
+  /// **'All Characters'**
+  String get allCharactersAvailable;
+
+  /// Description for all characters scope
+  ///
+  /// In en, this message translates to:
+  /// **'Available to all characters (contextual matching)'**
+  String get availableToAllCharactersNotGlobal;
+
+  /// World info scope: bound to specific character
+  ///
+  /// In en, this message translates to:
+  /// **'Specific Character'**
+  String get specificCharacter;
+
+  /// Description for specific character scope
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a specific character only'**
+  String get linkToSpecificCharacter;
+
+  /// Character selection dropdown label
+  ///
+  /// In en, this message translates to:
+  /// **'Select character'**
+  String get selectCharacter;
+
+  /// Character selection validation message
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a character'**
+  String get pleaseSelectCharacter;
 }
 
 class _AppLocalizationsDelegate

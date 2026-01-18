@@ -1163,8 +1163,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get selectCharacters => 'Select Characters';
 
   @override
-  String get noCharactersAvailable =>
-      'No characters available. Import some first.';
+  String get noCharactersAvailable => 'No characters available';
 
   @override
   String charactersSelected(int count) {
@@ -3485,4 +3484,23 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noLogsYet => 'No logs yet';
+
+  @override
+  String get allCharactersAvailable => 'All Characters';
+
+  @override
+  String get availableToAllCharactersNotGlobal =>
+      'Available to all characters (contextual matching)';
+
+  @override
+  String get specificCharacter => 'Specific Character';
+
+  @override
+  String get linkToSpecificCharacter => 'Link to a specific character only';
+
+  @override
+  String get selectCharacter => 'Select character';
+
+  @override
+  String get pleaseSelectCharacter => 'Please select a character';
 }

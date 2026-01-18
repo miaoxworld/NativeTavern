@@ -1151,8 +1151,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectCharacters => 'Select Characters';
 
   @override
-  String get noCharactersAvailable =>
-      'No characters available. Import some first.';
+  String get noCharactersAvailable => '暂无可用角色';
 
   @override
   String charactersSelected(int count) {
@@ -3471,6 +3470,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noLogsYet => '暂无日志';
+
+  @override
+  String get allCharactersAvailable => '所有角色';
+
+  @override
+  String get availableToAllCharactersNotGlobal => '所有角色可用（上下文匹配）';
+
+  @override
+  String get specificCharacter => '特定角色';
+
+  @override
+  String get linkToSpecificCharacter => '仅关联到特定角色';
+
+  @override
+  String get selectCharacter => '选择角色';
+
+  @override
+  String get pleaseSelectCharacter => '请选择一个角色';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).

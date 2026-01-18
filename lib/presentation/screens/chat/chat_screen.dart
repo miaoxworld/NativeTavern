@@ -829,6 +829,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         final isLast = actualIndex == chatState.messages.length - 1;
         
         return _MessageBubble(
+          key: ValueKey(message.id),
           message: message,
           messageIndex: actualIndex, // Use actual index for bookmarks and other features
           chatId: widget.chatId,
@@ -1646,6 +1647,7 @@ class _MessageBubble extends StatefulWidget {
   final VoidCallback onCreateBookmark;
 
   const _MessageBubble({
+    super.key,
     required this.message,
     required this.messageIndex,
     required this.chatId,

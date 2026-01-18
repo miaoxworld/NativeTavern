@@ -1495,19 +1495,51 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     // Combine with manually activated IDs
     final allWorldInfoIds = <String>{...enabledWorldInfoIds, ...activeIds}.toList();
     
-    // Debug logging
-    print('=== World Info Debug ===');
-    print('Active IDs from provider: $activeIds');
-    print('All world infos: ${allWorldInfos.length}');
+    // Debug logging - Enhanced for troubleshooting
+    debugPrint('\n╔══════════════════════════════════════════════════════════════');
+    debugPrint('║ 🌍 WORLD INFO DEBUG - Finding matching entries');
+    debugPrint('╠══════════════════════════════════════════════════════════════');
+    debugPrint('║ Current character: ${character.name} (ID: ${character.id})');
+    debugPrint('║ Active IDs from provider: $activeIds');
+    debugPrint('║ Total world infos in database: ${allWorldInfos.length}');
+    debugPrint('╠──────────────────────────────────────────────────────────────');
+    
     for (final wi in allWorldInfos) {
       final included = allWorldInfoIds.contains(wi.id);
-      print('  - ${wi.name}: ${wi.entries.length} entries, enabled=${wi.enabled}, isGlobal=${wi.isGlobal}, characterId=${wi.characterId}, INCLUDED=$included');
+      final isGlobalMatch = wi.isGlobal;
+      final isCharacterMatch = wi.characterId == character.id;
+      final isAvailableToAll = wi.characterId == null;
+      final isManuallyActive = activeIds.contains(wi.id);
+      
+      final status = included ? '✅ INCLUDED' : '❌ EXCLUDED';
+      final reasons = <String>[];
+      if (!wi.enabled) reasons.add('disabled');
+      if (isGlobalMatch) reasons.add('global');
+      if (isCharacterMatch) reasons.add('linked to this character');
+      if (isAvailableToAll) reasons.add('available to all (no characterId)');
+      if (isManuallyActive) reasons.add('manually activated');
+      
+      debugPrint('║');
+      debugPrint('║ $status ${wi.name}');
+      debugPrint('║   • ID: ${wi.id}');
+      debugPrint('║   • Entries: ${wi.entries.length}');
+      debugPrint('║   • enabled: ${wi.enabled}');
+      debugPrint('║   • isGlobal: ${wi.isGlobal}');
+      debugPrint('║   • characterId: ${wi.characterId ?? "null (available to all)"}');
+      if (reasons.isNotEmpty) {
+        debugPrint('║   • Reasons: ${reasons.join(", ")}');
+      }
+      if (!wi.enabled) {
+        debugPrint('║   ⚠️ World Info is DISABLED - will not be used!');
+      }
     }
-    print('Final world info IDs to search: $allWorldInfoIds');
+    
+    debugPrint('╠──────────────────────────────────────────────────────────────');
+    debugPrint('║ Final world info IDs to search: $allWorldInfoIds');
+    debugPrint('╚══════════════════════════════════════════════════════════════\n');
     
     if (allWorldInfoIds.isEmpty) {
-      print('No world info IDs to search - returning empty');
-      print('=== End World Info Debug ===');
+      debugPrint('⚠️ No world info IDs to search - returning empty list');
       return [];
     }
     
@@ -1523,8 +1555,12 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     }
     
     final contextText = contextBuffer.toString();
-    print('Context text length: ${contextText.length} chars');
-    print('Context preview: ${contextText.substring(0, min(500, contextText.length))}...');
+    debugPrint('\n╔══════════════════════════════════════════════════════════════');
+    debugPrint('║ 🔍 WORLD INFO MATCHING');
+    debugPrint('╠══════════════════════════════════════════════════════════════');
+    debugPrint('║ Context text length: ${contextText.length} chars');
+    debugPrint('║ Context preview: ${contextText.substring(0, min(200, contextText.length))}...');
+    debugPrint('╠──────────────────────────────────────────────────────────────');
     
     // Find matching entries
     final matchedEntries = await _worldInfoMatcher.findMatchingEntries(
@@ -1532,11 +1568,28 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
       worldInfoIds: allWorldInfoIds,
     );
     
-    print('Matched entries: ${matchedEntries.length}');
-    for (final entry in matchedEntries) {
-      print('  - [${entry.position.name}] ${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}: ${entry.content.substring(0, min(50, entry.content.length))}...');
+    debugPrint('║');
+    if (matchedEntries.isEmpty) {
+      debugPrint('║ ⚠️ NO MATCHED ENTRIES!');
+      debugPrint('║ Possible reasons:');
+      debugPrint('║   • World Info is not enabled');
+      debugPrint('║   • Entry is not enabled');  
+      debugPrint('║   • Entry is not constant and keys don\'t match context');
+      debugPrint('║   • World Info is not linked to this character and not global');
+    } else {
+      debugPrint('║ ✅ MATCHED ${matchedEntries.length} ENTRIES:');
+      for (final entry in matchedEntries) {
+        final name = entry.comment.isNotEmpty ? entry.comment : (entry.keys.isEmpty ? "(constant, no keys)" : entry.keys.join(", "));
+        final isConstant = entry.constant || entry.keys.isEmpty;
+        debugPrint('║   • [${ entry.position.name}] $name');
+        debugPrint('║     enabled=${entry.enabled}, constant=${entry.constant}, keys=${entry.keys}');
+        if (isConstant) {
+          debugPrint('║     → Included as CONSTANT entry');
+        }
+        debugPrint('║     Content: ${entry.content.substring(0, min(50, entry.content.length))}...');
+      }
     }
-    print('=== End World Info Debug ===');
+    debugPrint('╚══════════════════════════════════════════════════════════════\n');
     
     return matchedEntries;
   }
@@ -1643,7 +1696,7 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         existingSummaries: chat.summaries,
         config: config,
         characterName: character?.name,
-        userName: (persona.name != null && persona.name!.isNotEmpty) ? persona.name! : 'User',
+        userName: persona?.name?.isNotEmpty == true ? persona!.name : 'User',
       );
 
       // Add summary to chat

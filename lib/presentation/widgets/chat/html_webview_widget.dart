@@ -53,29 +53,70 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
   }
 
   @override
+  void dispose() {
+    debugPrint('🌐 WebView disposing');
+    // Clear the controller reference to prevent issues with disposed WebView
+    _webViewController = null;
+    super.dispose();
+  }
+
+  @override
   void didUpdateWidget(HtmlWebViewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If content key changed (e.g., streaming ended), reload content
-    if (widget.contentKey != oldWidget.contentKey && widget.contentKey != null) {
+    // Check if content has changed (important for swipe switching)
+    final contentChanged = widget.htmlContent != oldWidget.htmlContent;
+    // Check if contentKey has changed (e.g., streaming ended)
+    final keyChanged = widget.contentKey != oldWidget.contentKey && widget.contentKey != null;
+    
+    if (contentChanged || keyChanged) {
+      debugPrint('🌐 didUpdateWidget: contentChanged=$contentChanged, keyChanged=$keyChanged');
+      debugPrint('🌐 Old key: ${oldWidget.contentKey}, New key: ${widget.contentKey}');
       _reloadContent();
     }
   }
 
+  /// Track if a reload is in progress to prevent multiple simultaneous reloads
+  bool _isReloading = false;
+  
   void _reloadContent() async {
-    if (_webViewController != null) {
+    // Prevent multiple simultaneous reloads
+    if (_isReloading) {
+      debugPrint('🌐 Reload already in progress, skipping');
+      return;
+    }
+    
+    if (_webViewController != null && mounted) {
+      _isReloading = true;
+      debugPrint('🌐 Starting content reload');
+      
       setState(() {
         _isLoading = true;
         _heightUpdateCount = 0;
         _imagesLoaded = false;
+        // Reset content height to prevent showing stale height
+        _contentHeight = 100;
       });
       
-      // Reload the WebView with updated content
-      await _webViewController!.loadData(
-        data: _buildHtml(),
-        mimeType: 'text/html',
-        encoding: 'utf-8',
-        baseUrl: WebUri('about:blank'),
-      );
+      try {
+        // Reload the WebView with updated content
+        await _webViewController!.loadData(
+          data: _buildHtml(),
+          mimeType: 'text/html',
+          encoding: 'utf-8',
+          baseUrl: WebUri('about:blank'),
+        );
+        debugPrint('🌐 Content reload completed');
+      } catch (e) {
+        debugPrint('🌐 Error reloading content: $e');
+        // If loading fails, we should still hide the loading indicator
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      } finally {
+        _isReloading = false;
+      }
+    } else {
+      debugPrint('🌐 Cannot reload: controller=${_webViewController != null}, mounted=$mounted');
     }
   }
 
@@ -301,7 +342,7 @@ ${widget.htmlContent}
             }
           }, 500 * retryAttempts[index]);
         } else {
-          console.log('Image ' + index + ' failed after retries');
+          console.log('Image ' + index + ' failed after retries - URL: ' + (img.src || 'unknown').substring(0, 100));
           img.style.minHeight = '100px';
           img.style.backgroundColor = 'rgba(100,100,100,0.3)';
           img.style.animation = 'none';
@@ -326,10 +367,36 @@ ${widget.htmlContent}
             }
           }, 100);
         };
-        img.onerror = function() {
-          console.log('Image ' + index + ' error');
-          this.style.display = 'none';
-          imageLoaded(img, index);
+        img.onerror = function(e) {
+          var errorInfo = {
+            url: this.src,
+            complete: this.complete,
+            naturalWidth: this.naturalWidth,
+            naturalHeight: this.naturalHeight,
+            event: e ? JSON.stringify(e, Object.getOwnPropertyNames(e)) : 'no event'
+          };
+          console.log('Image ' + index + ' error (attempt ' + ((retryAttempts[index] || 0) + 1) + '): ' + JSON.stringify(errorInfo));
+          
+          // Retry mechanism - don't immediately mark as loaded
+          retryAttempts[index] = (retryAttempts[index] || 0) + 1;
+          if (retryAttempts[index] <= maxRetries) {
+            console.log('Retrying image ' + index + ' in ' + (500 * retryAttempts[index]) + 'ms');
+            setTimeout(function() {
+              // Force reload the image
+              var src = img.src;
+              if (src && src.length > 0 && !src.startsWith('data:')) {
+                var separator = src.indexOf('?') > -1 ? '&' : '?';
+                var newSrc = src.split('?')[0] + separator + '_retry=' + retryAttempts[index] + '&_t=' + Date.now();
+                console.log('Reloading image ' + index + ': ' + newSrc.substring(0, 80));
+                img.src = newSrc;
+              }
+            }, 500 * retryAttempts[index]);
+          } else {
+            // Max retries reached, give up
+            console.log('Image ' + index + ' failed after ' + maxRetries + ' retries, giving up');
+            this.style.display = 'none';
+            imageLoaded(img, index);
+          }
         };
       }
     }
@@ -364,14 +431,50 @@ ${widget.htmlContent}
     return unloaded;
   }
   
+  // Delay image loading to ensure WebView network is ready
+  function deferImageLoading() {
+    var images = document.querySelectorAll('img');
+    images.forEach(function(img) {
+      // Only defer external images (not data URIs)
+      if (img.src && !img.src.startsWith('data:') && !img.getAttribute('data-deferred')) {
+        img.setAttribute('data-original-src', img.src);
+        img.setAttribute('data-deferred', 'true');
+        img.removeAttribute('src');
+      }
+    });
+  }
+  
+  // Load deferred images after delay
+  function loadDeferredImages() {
+    var images = document.querySelectorAll('img[data-original-src]');
+    console.log('Loading ' + images.length + ' deferred images');
+    images.forEach(function(img, index) {
+      var originalSrc = img.getAttribute('data-original-src');
+      if (originalSrc) {
+        console.log('Setting src for image ' + index + ': ' + originalSrc.substring(0, 50));
+        img.src = originalSrc;
+        img.removeAttribute('data-original-src');
+      }
+    });
+  }
+  
   // Initial height calculation
   function init() {
+    // First, defer image loading
+    deferImageLoading();
+    
     sendHeight();
-    waitForImages();
     
     // Progressive height updates
     setTimeout(sendHeight, 100);
     setTimeout(sendHeight, 300);
+    
+    // Load images after a short delay to ensure WebView is fully ready
+    setTimeout(function() {
+      loadDeferredImages();
+      waitForImages();
+    }, 200);
+    
     setTimeout(sendHeight, 500);
     setTimeout(sendHeight, 1000);
     setTimeout(function() {

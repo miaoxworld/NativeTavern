@@ -292,5 +292,13 @@
   "autoSummarize": "自动总结",
   "autoSummarizeDescription": "当上下文使用率较高时自动总结并压缩聊天历史",
   "autoSummarizeThreshold": "自动总结阈值",
-  "autoSummarizeThresholdDescription": "当上下文达到最大值的此百分比时触发总结"
+  "autoSummarizeThresholdDescription": "当上下文达到最大值的此百分比时触发总结",
+  
+  "allCharactersAvailable": "所有角色",
+  "availableToAllCharactersNotGlobal": "所有角色可用（上下文匹配）",
+  "specificCharacter": "特定角色",
+  "linkToSpecificCharacter": "仅关联到特定角色",
+  "selectCharacter": "选择角色",
+  "noCharactersAvailable": "暂无可用角色",
+  "pleaseSelectCharacter": "请选择一个角色"
 }

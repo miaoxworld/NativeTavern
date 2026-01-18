@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/data/repositories/world_info_repository.dart';
@@ -181,26 +182,47 @@ class WorldInfoMatcher {
     // An entry is constant if:
     // 1. entry.constant == true (explicitly marked as constant)
     // 2. entry.keys is empty (no keys means always included)
-    print('Checking constant entries...');
+    debugPrint('\n╔══════════════════════════════════════════════════════════════');
+    debugPrint('║ 📋 CHECKING CONSTANT ENTRIES');
+    debugPrint('╠══════════════════════════════════════════════════════════════');
+    
     for (final worldInfoId in worldInfoIds) {
       final entries = await _repository.getEntriesForWorldInfo(worldInfoId);
-      print('World info $worldInfoId has ${entries.length} total entries');
+      debugPrint('║ World Info ID: $worldInfoId');
+      debugPrint('║ Total entries: ${entries.length}');
+      debugPrint('╠──────────────────────────────────────────────────────────────');
+      
       for (final entry in entries) {
         final isConstant = entry.constant || entry.keys.isEmpty;
-        print('  Entry: ${entry.comment.isNotEmpty ? entry.comment : (entry.keys.isEmpty ? "(no keys)" : entry.keys.join(", "))} - constant=${entry.constant}, keys.isEmpty=${entry.keys.isEmpty}, isConstant=$isConstant, enabled=${entry.enabled}');
+        final entryName = entry.comment.isNotEmpty ? entry.comment : (entry.keys.isEmpty ? "(no keys)" : entry.keys.join(", "));
+        
+        debugPrint('║   Entry: $entryName');
+        debugPrint('║     • enabled: ${entry.enabled}');
+        debugPrint('║     • constant: ${entry.constant}');
+        debugPrint('║     • keys: ${entry.keys.isEmpty ? "(empty)" : entry.keys.join(", ")}');
+        debugPrint('║     • isConstant (constant OR keys.isEmpty): $isConstant');
+        
         if (isConstant && entry.enabled && !processedIds.contains(entry.id)) {
           allMatched.add(entry);
           processedIds.add(entry.id);
-          print('    -> Added as constant entry');
+          debugPrint('║     ✅ ADDED as constant entry');
+        } else if (!entry.enabled) {
+          debugPrint('║     ❌ SKIPPED: entry is disabled');
+        } else if (processedIds.contains(entry.id)) {
+          debugPrint('║     ⏭️ SKIPPED: already processed');
+        } else if (!isConstant) {
+          debugPrint('║     ℹ️ Not a constant entry, will be matched by keywords');
         }
       }
+      debugPrint('║');
     }
 
     // Sort by insertion order
     allMatched.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
 
-    print('Total matched entries: ${allMatched.length}');
-    print('=== End WorldInfoMatcher.findMatchingEntries ===');
+    debugPrint('╠══════════════════════════════════════════════════════════════');
+    debugPrint('║ 📊 FINAL RESULT: ${allMatched.length} matched entries');
+    debugPrint('╚══════════════════════════════════════════════════════════════\n');
     
     return allMatched;
   }

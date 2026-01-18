@@ -609,15 +609,9 @@ class LLMService {
       _log('DioException details: ${e.error}');
       _log('DioException response: ${e.response?.data}');
       
-      if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout - check if the server is running');
-      } else if (e.type == DioExceptionType.connectionError) {
-        throw Exception('Connection error - check URL: ${config.apiUrl}');
-      } else if (e.type == DioExceptionType.unknown) {
-        final message = e.message ?? e.error?.toString() ?? 'Unknown error';
-        throw Exception('Network error: $message');
-      }
-      throw Exception('Request failed: ${e.message}');
+      // Use the new formatter for better error messages
+      final errorMessage = _formatDioException(e);
+      throw Exception(errorMessage);
     } catch (e, stackTrace) {
       if (e is Exception) {
         _log('Exception: $e', stackTrace: stackTrace);
@@ -633,20 +627,75 @@ class LLMService {
     if (data == null) return 'No response';
     if (data is String) return data;
     if (data is Map<String, dynamic>) {
-      // OpenAI format
+      // OpenAI format: { "error": { "message": "...", "type": "...", "code": "..." } }
       if (data['error'] is Map) {
-        return (data['error'] as Map)['message']?.toString() ?? 'Unknown error';
+        final errorMap = data['error'] as Map;
+        final message = errorMap['message']?.toString() ?? 'Unknown error';
+        final type = errorMap['type']?.toString();
+        final code = errorMap['code']?.toString();
+        
+        final parts = [message];
+        if (type != null) parts.add('[Type: $type]');
+        if (code != null) parts.add('[Code: $code]');
+        
+        return parts.join(' ');
       }
-      // Claude format
-      if (data['error'] is Map) {
-        return (data['error'] as Map)['message']?.toString() ?? 'Unknown error';
-      }
-      // Generic
+      // Generic format
       return data['message']?.toString() ??
              data['error']?.toString() ??
-             data.toString();
+             jsonEncode(data); // Show full JSON if no specific message
     }
     return data.toString();
+  }
+  
+  /// Format DioException into user-friendly error message
+  String _formatDioException(DioException e) {
+    final buffer = StringBuffer();
+    
+    // Add exception type
+    buffer.write('Network Error');
+    
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+        buffer.write(' (Connection Timeout)');
+        break;
+      case DioExceptionType.sendTimeout:
+        buffer.write(' (Send Timeout)');
+        break;
+      case DioExceptionType.receiveTimeout:
+        buffer.write(' (Receive Timeout)');
+        break;
+      case DioExceptionType.badResponse:
+        buffer.write(' (HTTP ${e.response?.statusCode})');
+        break;
+      case DioExceptionType.cancel:
+        buffer.write(' (Request Cancelled)');
+        break;
+      case DioExceptionType.connectionError:
+        buffer.write(' (Connection Error)');
+        break;
+      case DioExceptionType.unknown:
+        buffer.write(' (Unknown)');
+        break;
+      default:
+        buffer.write(' (${e.type})');
+    }
+    
+    // Add server response if available
+    if (e.response?.data != null) {
+      buffer.write('\\n\\nServer Response:\\n');
+      buffer.write(_extractErrorMessage(e.response!.data));
+    } else if (e.message != null) {
+      buffer.write('\\n\\n');
+      buffer.write(e.message!);
+    }
+    
+    // Add underlying error if available
+    if (e.error != null && e.error.toString() != e.message) {
+      buffer.write('\\n\\nDetails: ${e.error}');
+    }
+    
+    return buffer.toString();
   }
 
   /// Get available models

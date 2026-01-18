@@ -5927,5 +5927,40 @@
   "noLogsYet": "No logs yet",
   "@noLogsYet": {
     "description": "Empty state when no logs"
+  },
+  
+  "allCharactersAvailable": "All Characters",
+  "@allCharactersAvailable": {
+    "description": "World info scope: available to all characters"
+  },
+  
+  "availableToAllCharactersNotGlobal": "Available to all characters (contextual matching)",
+  "@availableToAllCharactersNotGlobal": {
+    "description": "Description for all characters scope"
+  },
+  
+  "specificCharacter": "Specific Character",
+  "@specificCharacter": {
+    "description": "World info scope: bound to specific character"
+  },
+  
+  "linkToSpecificCharacter": "Link to a specific character only",
+  "@linkToSpecificCharacter": {
+    "description": "Description for specific character scope"
+  },
+  
+  "selectCharacter": "Select character",
+  "@selectCharacter": {
+    "description": "Character selection dropdown label"
+  },
+  
+  "noCharactersAvailable": "No characters available",
+  "@noCharactersAvailable": {
+    "description": "No characters available message"
+  },
+  
+  "pleaseSelectCharacter": "Please select a character",
+  "@pleaseSelectCharacter": {
+    "description": "Character selection validation message"
   }
 }

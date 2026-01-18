@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
+import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
 import 'package:native_tavern/presentation/screens/world_info/world_info_entry_editor_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
@@ -145,12 +146,15 @@ class WorldInfoScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _WorldInfoDialog(
+        ref: ref,
         title: AppLocalizations.of(context)!.createLorebook,
-        onSave: (name, description, isGlobal) async {
+        onSave: (name, description, isGlobal, characterId) async {
+          _log('Creating world info: name=$name, isGlobal=$isGlobal, characterId=$characterId');
           await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
             name: name,
             description: description,
             isGlobal: isGlobal,
+            characterId: characterId,
           );
         },
       ),
@@ -161,16 +165,20 @@ class WorldInfoScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => _WorldInfoDialog(
+        ref: ref,
         title: AppLocalizations.of(context)!.editGroup,
         initialName: worldInfo.name,
         initialDescription: worldInfo.description,
         initialIsGlobal: worldInfo.isGlobal,
-        onSave: (name, description, isGlobal) async {
+        initialCharacterId: worldInfo.characterId,
+        onSave: (name, description, isGlobal, characterId) async {
+          _log('Updating world info: name=$name, isGlobal=$isGlobal, characterId=$characterId');
           await ref.read(worldInfoNotifierProvider.notifier).updateWorldInfo(
             worldInfo.copyWith(
               name: name,
               description: description,
               isGlobal: isGlobal,
+              characterId: characterId,
             ),
           );
         },
@@ -578,13 +586,17 @@ class _WorldInfoDialog extends StatefulWidget {
   final String? initialName;
   final String? initialDescription;
   final bool initialIsGlobal;
-  final Future<void> Function(String name, String? description, bool isGlobal) onSave;
+  final String? initialCharacterId;
+  final WidgetRef ref;
+  final Future<void> Function(String name, String? description, bool isGlobal, String? characterId) onSave;
 
   const _WorldInfoDialog({
+    required this.ref,
     required this.title,
     this.initialName,
     this.initialDescription,
     this.initialIsGlobal = true,
+    this.initialCharacterId,
     required this.onSave,
   });
 
@@ -592,10 +604,18 @@ class _WorldInfoDialog extends StatefulWidget {
   State<_WorldInfoDialog> createState() => _WorldInfoDialogState();
 }
 
+/// Scope type for World Info
+enum _WorldInfoScope {
+  global,         // Apply to all characters universally
+  allCharacters,  // Available to all characters (characterId = null)
+  specificCharacter, // Bound to a specific character
+}
+
 class _WorldInfoDialogState extends State<_WorldInfoDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-  late bool _isGlobal;
+  late _WorldInfoScope _scope;
+  String? _selectedCharacterId;
   bool _isSaving = false;
 
   @override
@@ -603,7 +623,16 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName ?? '');
     _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
-    _isGlobal = widget.initialIsGlobal;
+    
+    // Determine initial scope
+    if (widget.initialIsGlobal) {
+      _scope = _WorldInfoScope.global;
+    } else if (widget.initialCharacterId != null) {
+      _scope = _WorldInfoScope.specificCharacter;
+      _selectedCharacterId = widget.initialCharacterId;
+    } else {
+      _scope = _WorldInfoScope.allCharacters;
+    }
   }
 
   @override
@@ -615,17 +644,23 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Get character list from provider
+    final charactersAsync = widget.ref.watch(characterListProvider);
+    
     return AlertDialog(
       title: Text(widget.title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.name,
-                hintText: AppLocalizations.of(context)!.enterLorebookName,
+                labelText: l10n.name,
+                hintText: l10n.enterLorebookName,
                 border: const OutlineInputBorder(),
               ),
               autofocus: true,
@@ -634,26 +669,107 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
             TextField(
               controller: _descriptionController,
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.description,
-                hintText: AppLocalizations.of(context)!.optionalDescriptionHint,
+                labelText: l10n.description,
+                hintText: l10n.optionalDescriptionHint,
                 border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(AppLocalizations.of(context)!.globalScope),
-              subtitle: Text(AppLocalizations.of(context)!.applyToAllChats),
-              value: _isGlobal,
-              onChanged: (value) => setState(() => _isGlobal = value),
+            const SizedBox(height: 24),
+            
+            // Scope selection
+            Text(
+              l10n.scope,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
+            const SizedBox(height: 8),
+            
+            // Global scope option
+            RadioListTile<_WorldInfoScope>(
+              title: Text(l10n.globalScope),
+              subtitle: Text(l10n.applyToAllChats),
+              value: _WorldInfoScope.global,
+              groupValue: _scope,
+              onChanged: (value) => setState(() {
+                _scope = value!;
+                _selectedCharacterId = null;
+              }),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+            
+            // All characters option
+            RadioListTile<_WorldInfoScope>(
+              title: Text(l10n.allCharactersAvailable),
+              subtitle: Text(l10n.availableToAllCharactersNotGlobal),
+              value: _WorldInfoScope.allCharacters,
+              groupValue: _scope,
+              onChanged: (value) => setState(() {
+                _scope = value!;
+                _selectedCharacterId = null;
+              }),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+            
+            // Specific character option
+            RadioListTile<_WorldInfoScope>(
+              title: Text(l10n.specificCharacter),
+              subtitle: Text(l10n.linkToSpecificCharacter),
+              value: _WorldInfoScope.specificCharacter,
+              groupValue: _scope,
+              onChanged: (value) => setState(() {
+                _scope = value!;
+              }),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+            
+            // Character dropdown (when specific character is selected)
+            if (_scope == _WorldInfoScope.specificCharacter)
+              Padding(
+                padding: const EdgeInsets.only(left: 16, top: 8),
+                child: charactersAsync.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => Text('Error: $error'),
+                  data: (characters) {
+                    if (characters.isEmpty) {
+                      return Text(
+                        l10n.noCharactersAvailable,
+                        style: const TextStyle(color: Colors.grey),
+                      );
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: _selectedCharacterId,
+                      decoration: InputDecoration(
+                        labelText: l10n.selectCharacter,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: characters.map((char) {
+                        return DropdownMenuItem(
+                          value: char.id,
+                          child: Text(char.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() => _selectedCharacterId = value);
+                        _log('Selected character: $value');
+                      },
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context)!.cancel),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,
@@ -663,17 +779,26 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(AppLocalizations.of(context)!.save),
+              : Text(l10n.save),
         ),
       ],
     );
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterName2)),
+        SnackBar(content: Text(l10n.pleaseEnterName2)),
+      );
+      return;
+    }
+    
+    // Validate character selection if specific character is chosen
+    if (_scope == _WorldInfoScope.specificCharacter && _selectedCharacterId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.pleaseSelectCharacter)),
       );
       return;
     }
@@ -681,10 +806,17 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     setState(() => _isSaving = true);
 
     try {
+      // Determine values based on scope
+      final isGlobal = _scope == _WorldInfoScope.global;
+      final characterId = _scope == _WorldInfoScope.specificCharacter ? _selectedCharacterId : null;
+      
+      _log('Saving world info: name=$name, scope=$_scope, isGlobal=$isGlobal, characterId=$characterId');
+      
       await widget.onSave(
         name,
         _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
-        _isGlobal,
+        isGlobal,
+        characterId,
       );
       if (mounted) {
         Navigator.pop(context);
@@ -692,7 +824,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
         setState(() => _isSaving = false);
       }
