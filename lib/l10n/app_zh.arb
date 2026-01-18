@@ -287,5 +287,10 @@
   "autoScroll": "自动滚动",
   "clearLogs": "清除日志",
   "searchLogs": "搜索日志...",
-  "noLogsYet": "暂无日志"
+  "noLogsYet": "暂无日志",
+  "contextManagement": "上下文管理",
+  "autoSummarize": "自动总结",
+  "autoSummarizeDescription": "当上下文使用率较高时自动总结并压缩聊天历史",
+  "autoSummarizeThreshold": "自动总结阈值",
+  "autoSummarizeThresholdDescription": "当上下文达到最大值的此百分比时触发总结"
 }

@@ -171,6 +171,21 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ],
 
           const Divider(height: 32),
+          _buildSectionHeader(context, l10n.contextManagement),
+          _buildAutoSummarizeTile(context, ref, config.autoSummarizeEnabled),
+          if (config.autoSummarizeEnabled)
+            _buildSliderTile(
+              context: context,
+              title: l10n.autoSummarizeThreshold,
+              subtitle: l10n.autoSummarizeThresholdDescription,
+              value: config.autoSummarizeThreshold,
+              min: 0.5,
+              max: 0.95,
+              divisions: 9,
+              onChanged: (v) => ref.read(llmConfigProvider.notifier).updateAutoSummarizeThreshold(v),
+            ),
+
+          const Divider(height: 32),
           _buildSectionHeader(context, l10n.generationControl),
           _buildIntInputTile(
             context: context,
@@ -302,6 +317,19 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ref.read(llmConfigProvider.notifier).updateMirostatMode(selected.first);
         },
       ),
+    );
+  }
+
+  Widget _buildAutoSummarizeTile(BuildContext context, WidgetRef ref, bool enabled) {
+    final l10n = AppLocalizations.of(context);
+    return SwitchListTile(
+      secondary: const Icon(Icons.compress),
+      title: Text(l10n.autoSummarize),
+      subtitle: Text(l10n.autoSummarizeDescription),
+      value: enabled,
+      onChanged: (value) {
+        ref.read(llmConfigProvider.notifier).updateAutoSummarizeEnabled(value);
+      },
     );
   }
 

@@ -424,7 +424,11 @@ mixin _$GenerationSettings {
   List<String> get stopSequences => throw _privateConstructorUsedError;
   bool get stream => throw _privateConstructorUsedError;
   int? get seed =>
-      throw _privateConstructorUsedError; // Additional parameters for specific providers
+      throw _privateConstructorUsedError; // Auto-summarization settings
+  bool get autoSummarizeEnabled => throw _privateConstructorUsedError;
+  double get autoSummarizeThreshold =>
+      throw _privateConstructorUsedError; // Trigger at 80% of context
+// Additional parameters for specific providers
   Map<String, dynamic> get extra => throw _privateConstructorUsedError;
 
   /// Serializes this GenerationSettings to a JSON map.
@@ -457,6 +461,8 @@ abstract class $GenerationSettingsCopyWith<$Res> {
       List<String> stopSequences,
       bool stream,
       int? seed,
+      bool autoSummarizeEnabled,
+      double autoSummarizeThreshold,
       Map<String, dynamic> extra});
 }
 
@@ -488,6 +494,8 @@ class _$GenerationSettingsCopyWithImpl<$Res, $Val extends GenerationSettings>
     Object? stopSequences = null,
     Object? stream = null,
     Object? seed = freezed,
+    Object? autoSummarizeEnabled = null,
+    Object? autoSummarizeThreshold = null,
     Object? extra = null,
   }) {
     return _then(_value.copyWith(
@@ -543,6 +551,14 @@ class _$GenerationSettingsCopyWithImpl<$Res, $Val extends GenerationSettings>
           ? _value.seed
           : seed // ignore: cast_nullable_to_non_nullable
               as int?,
+      autoSummarizeEnabled: null == autoSummarizeEnabled
+          ? _value.autoSummarizeEnabled
+          : autoSummarizeEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      autoSummarizeThreshold: null == autoSummarizeThreshold
+          ? _value.autoSummarizeThreshold
+          : autoSummarizeThreshold // ignore: cast_nullable_to_non_nullable
+              as double,
       extra: null == extra
           ? _value.extra
           : extra // ignore: cast_nullable_to_non_nullable
@@ -573,6 +589,8 @@ abstract class _$$GenerationSettingsImplCopyWith<$Res>
       List<String> stopSequences,
       bool stream,
       int? seed,
+      bool autoSummarizeEnabled,
+      double autoSummarizeThreshold,
       Map<String, dynamic> extra});
 }
 
@@ -602,6 +620,8 @@ class __$$GenerationSettingsImplCopyWithImpl<$Res>
     Object? stopSequences = null,
     Object? stream = null,
     Object? seed = freezed,
+    Object? autoSummarizeEnabled = null,
+    Object? autoSummarizeThreshold = null,
     Object? extra = null,
   }) {
     return _then(_$GenerationSettingsImpl(
@@ -657,6 +677,14 @@ class __$$GenerationSettingsImplCopyWithImpl<$Res>
           ? _value.seed
           : seed // ignore: cast_nullable_to_non_nullable
               as int?,
+      autoSummarizeEnabled: null == autoSummarizeEnabled
+          ? _value.autoSummarizeEnabled
+          : autoSummarizeEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      autoSummarizeThreshold: null == autoSummarizeThreshold
+          ? _value.autoSummarizeThreshold
+          : autoSummarizeThreshold // ignore: cast_nullable_to_non_nullable
+              as double,
       extra: null == extra
           ? _value._extra
           : extra // ignore: cast_nullable_to_non_nullable
@@ -682,6 +710,8 @@ class _$GenerationSettingsImpl implements _GenerationSettings {
       final List<String> stopSequences = const [],
       this.stream = false,
       this.seed,
+      this.autoSummarizeEnabled = true,
+      this.autoSummarizeThreshold = 0.8,
       final Map<String, dynamic> extra = const {}})
       : _stopSequences = stopSequences,
         _extra = extra;
@@ -733,8 +763,17 @@ class _$GenerationSettingsImpl implements _GenerationSettings {
   final bool stream;
   @override
   final int? seed;
+// Auto-summarization settings
+  @override
+  @JsonKey()
+  final bool autoSummarizeEnabled;
+  @override
+  @JsonKey()
+  final double autoSummarizeThreshold;
+// Trigger at 80% of context
 // Additional parameters for specific providers
   final Map<String, dynamic> _extra;
+// Trigger at 80% of context
 // Additional parameters for specific providers
   @override
   @JsonKey()
@@ -746,7 +785,7 @@ class _$GenerationSettingsImpl implements _GenerationSettings {
 
   @override
   String toString() {
-    return 'GenerationSettings(temperature: $temperature, topP: $topP, topK: $topK, minP: $minP, typicalP: $typicalP, repetitionPenalty: $repetitionPenalty, frequencyPenalty: $frequencyPenalty, presencePenalty: $presencePenalty, maxTokens: $maxTokens, contextLength: $contextLength, stopSequences: $stopSequences, stream: $stream, seed: $seed, extra: $extra)';
+    return 'GenerationSettings(temperature: $temperature, topP: $topP, topK: $topK, minP: $minP, typicalP: $typicalP, repetitionPenalty: $repetitionPenalty, frequencyPenalty: $frequencyPenalty, presencePenalty: $presencePenalty, maxTokens: $maxTokens, contextLength: $contextLength, stopSequences: $stopSequences, stream: $stream, seed: $seed, autoSummarizeEnabled: $autoSummarizeEnabled, autoSummarizeThreshold: $autoSummarizeThreshold, extra: $extra)';
   }
 
   @override
@@ -775,6 +814,10 @@ class _$GenerationSettingsImpl implements _GenerationSettings {
                 .equals(other._stopSequences, _stopSequences) &&
             (identical(other.stream, stream) || other.stream == stream) &&
             (identical(other.seed, seed) || other.seed == seed) &&
+            (identical(other.autoSummarizeEnabled, autoSummarizeEnabled) ||
+                other.autoSummarizeEnabled == autoSummarizeEnabled) &&
+            (identical(other.autoSummarizeThreshold, autoSummarizeThreshold) ||
+                other.autoSummarizeThreshold == autoSummarizeThreshold) &&
             const DeepCollectionEquality().equals(other._extra, _extra));
   }
 
@@ -795,6 +838,8 @@ class _$GenerationSettingsImpl implements _GenerationSettings {
       const DeepCollectionEquality().hash(_stopSequences),
       stream,
       seed,
+      autoSummarizeEnabled,
+      autoSummarizeThreshold,
       const DeepCollectionEquality().hash(_extra));
 
   /// Create a copy of GenerationSettings
@@ -829,6 +874,8 @@ abstract class _GenerationSettings implements GenerationSettings {
       final List<String> stopSequences,
       final bool stream,
       final int? seed,
+      final bool autoSummarizeEnabled,
+      final double autoSummarizeThreshold,
       final Map<String, dynamic> extra}) = _$GenerationSettingsImpl;
 
   factory _GenerationSettings.fromJson(Map<String, dynamic> json) =
@@ -859,7 +906,12 @@ abstract class _GenerationSettings implements GenerationSettings {
   @override
   bool get stream;
   @override
-  int? get seed; // Additional parameters for specific providers
+  int? get seed; // Auto-summarization settings
+  @override
+  bool get autoSummarizeEnabled;
+  @override
+  double get autoSummarizeThreshold; // Trigger at 80% of context
+// Additional parameters for specific providers
   @override
   Map<String, dynamic> get extra;
 

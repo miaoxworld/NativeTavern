@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
+import 'package:native_tavern/presentation/screens/world_info/world_info_entry_editor_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
@@ -806,39 +807,13 @@ class _WorldInfoEntriesScreenState extends ConsumerState<WorldInfoEntriesScreen>
   }
 
   void _showEntryDialog(BuildContext context, WidgetRef ref, WorldInfoEntry? entry) {
-    showDialog(
-      context: context,
-      builder: (context) => _WorldInfoEntryDialog(
-        title: entry == null ? AppLocalizations.of(context)!.addEntry : AppLocalizations.of(context)!.editEntry,
-        entry: entry,
-        onSave: (keys, content, comment, secondaryKeys, position, constant, selective, insertionOrder) async {
-          if (entry == null) {
-            await ref.read(worldInfoNotifierProvider.notifier).addEntry(
-              worldInfoId: _worldInfo.id,
-              keys: keys,
-              content: content,
-              comment: comment,
-              secondaryKeys: secondaryKeys,
-              position: position,
-              constant: constant,
-              selective: selective,
-              insertionOrder: insertionOrder,
-            );
-          } else {
-            await ref.read(worldInfoNotifierProvider.notifier).updateEntry(
-              entry.copyWith(
-                keys: keys,
-                content: content,
-                comment: comment,
-                secondaryKeys: secondaryKeys,
-                position: position,
-                constant: constant,
-                selective: selective,
-                insertionOrder: insertionOrder,
-              ),
-            );
-          }
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorldInfoEntryEditorScreen(
+          worldInfoId: _worldInfo.id,
+          entry: entry,
+        ),
       ),
     );
   }

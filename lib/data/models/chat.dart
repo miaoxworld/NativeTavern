@@ -1,3 +1,32 @@
+/// Summary record for compressed chat history
+class ChatSummary {
+  final String id;
+  final String content; // Summarized content
+  final int endMessageIndex; // Index of the last message included in this summary
+  final DateTime createdAt;
+
+  const ChatSummary({
+    required this.id,
+    required this.content,
+    required this.endMessageIndex,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'content': content,
+    'endMessageIndex': endMessageIndex,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory ChatSummary.fromJson(Map<String, dynamic> json) => ChatSummary(
+    id: json['id'] as String,
+    content: json['content'] as String,
+    endMessageIndex: json['endMessageIndex'] as int,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+}
+
 /// Chat session model
 class Chat {
   final String id;
@@ -7,6 +36,7 @@ class Chat {
   final String authorNote; // Author's Note content
   final int authorNoteDepth; // Depth for injection (messages from end)
   final bool authorNoteEnabled; // Whether Author's Note is active
+  final List<ChatSummary> summaries; // History summaries for context compression
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -18,6 +48,7 @@ class Chat {
     this.authorNote = '',
     this.authorNoteDepth = 4,
     this.authorNoteEnabled = false,
+    this.summaries = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -34,6 +65,7 @@ class Chat {
     String? authorNote,
     int? authorNoteDepth,
     bool? authorNoteEnabled,
+    List<ChatSummary>? summaries,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -45,6 +77,7 @@ class Chat {
       authorNote: authorNote ?? this.authorNote,
       authorNoteDepth: authorNoteDepth ?? this.authorNoteDepth,
       authorNoteEnabled: authorNoteEnabled ?? this.authorNoteEnabled,
+      summaries: summaries ?? this.summaries,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -58,6 +91,7 @@ class Chat {
         'authorNote': authorNote,
         'authorNoteDepth': authorNoteDepth,
         'authorNoteEnabled': authorNoteEnabled,
+        'summaries': summaries.map((s) => s.toJson()).toList(),
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
       };
@@ -70,6 +104,9 @@ class Chat {
         authorNote: json['authorNote'] as String? ?? '',
         authorNoteDepth: json['authorNoteDepth'] as int? ?? 4,
         authorNoteEnabled: json['authorNoteEnabled'] as bool? ?? false,
+        summaries: (json['summaries'] as List<dynamic>?)
+            ?.map((s) => ChatSummary.fromJson(s as Map<String, dynamic>))
+            .toList() ?? [],
         createdAt: DateTime.parse(json['createdAt'] as String),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
       );

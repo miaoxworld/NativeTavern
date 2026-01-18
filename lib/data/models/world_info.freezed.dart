@@ -14,6 +14,599 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
+WorldInfoCharacterFilter _$WorldInfoCharacterFilterFromJson(
+    Map<String, dynamic> json) {
+  return _WorldInfoCharacterFilter.fromJson(json);
+}
+
+/// @nodoc
+mixin _$WorldInfoCharacterFilter {
+  WorldInfoCharacterFilterType get type => throw _privateConstructorUsedError;
+
+  /// List of character IDs to include/exclude
+  List<String> get characterIds => throw _privateConstructorUsedError;
+
+  /// List of tag names to include/exclude
+  List<String> get tags => throw _privateConstructorUsedError;
+
+  /// Serializes this WorldInfoCharacterFilter to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of WorldInfoCharacterFilter
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $WorldInfoCharacterFilterCopyWith<WorldInfoCharacterFilter> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $WorldInfoCharacterFilterCopyWith<$Res> {
+  factory $WorldInfoCharacterFilterCopyWith(WorldInfoCharacterFilter value,
+          $Res Function(WorldInfoCharacterFilter) then) =
+      _$WorldInfoCharacterFilterCopyWithImpl<$Res, WorldInfoCharacterFilter>;
+  @useResult
+  $Res call(
+      {WorldInfoCharacterFilterType type,
+      List<String> characterIds,
+      List<String> tags});
+}
+
+/// @nodoc
+class _$WorldInfoCharacterFilterCopyWithImpl<$Res,
+        $Val extends WorldInfoCharacterFilter>
+    implements $WorldInfoCharacterFilterCopyWith<$Res> {
+  _$WorldInfoCharacterFilterCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of WorldInfoCharacterFilter
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = null,
+    Object? characterIds = null,
+    Object? tags = null,
+  }) {
+    return _then(_value.copyWith(
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as WorldInfoCharacterFilterType,
+      characterIds: null == characterIds
+          ? _value.characterIds
+          : characterIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      tags: null == tags
+          ? _value.tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$WorldInfoCharacterFilterImplCopyWith<$Res>
+    implements $WorldInfoCharacterFilterCopyWith<$Res> {
+  factory _$$WorldInfoCharacterFilterImplCopyWith(
+          _$WorldInfoCharacterFilterImpl value,
+          $Res Function(_$WorldInfoCharacterFilterImpl) then) =
+      __$$WorldInfoCharacterFilterImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {WorldInfoCharacterFilterType type,
+      List<String> characterIds,
+      List<String> tags});
+}
+
+/// @nodoc
+class __$$WorldInfoCharacterFilterImplCopyWithImpl<$Res>
+    extends _$WorldInfoCharacterFilterCopyWithImpl<$Res,
+        _$WorldInfoCharacterFilterImpl>
+    implements _$$WorldInfoCharacterFilterImplCopyWith<$Res> {
+  __$$WorldInfoCharacterFilterImplCopyWithImpl(
+      _$WorldInfoCharacterFilterImpl _value,
+      $Res Function(_$WorldInfoCharacterFilterImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of WorldInfoCharacterFilter
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? type = null,
+    Object? characterIds = null,
+    Object? tags = null,
+  }) {
+    return _then(_$WorldInfoCharacterFilterImpl(
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as WorldInfoCharacterFilterType,
+      characterIds: null == characterIds
+          ? _value._characterIds
+          : characterIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      tags: null == tags
+          ? _value._tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$WorldInfoCharacterFilterImpl implements _WorldInfoCharacterFilter {
+  const _$WorldInfoCharacterFilterImpl(
+      {this.type = WorldInfoCharacterFilterType.none,
+      final List<String> characterIds = const [],
+      final List<String> tags = const []})
+      : _characterIds = characterIds,
+        _tags = tags;
+
+  factory _$WorldInfoCharacterFilterImpl.fromJson(Map<String, dynamic> json) =>
+      _$$WorldInfoCharacterFilterImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final WorldInfoCharacterFilterType type;
+
+  /// List of character IDs to include/exclude
+  final List<String> _characterIds;
+
+  /// List of character IDs to include/exclude
+  @override
+  @JsonKey()
+  List<String> get characterIds {
+    if (_characterIds is EqualUnmodifiableListView) return _characterIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_characterIds);
+  }
+
+  /// List of tag names to include/exclude
+  final List<String> _tags;
+
+  /// List of tag names to include/exclude
+  @override
+  @JsonKey()
+  List<String> get tags {
+    if (_tags is EqualUnmodifiableListView) return _tags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_tags);
+  }
+
+  @override
+  String toString() {
+    return 'WorldInfoCharacterFilter(type: $type, characterIds: $characterIds, tags: $tags)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$WorldInfoCharacterFilterImpl &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality()
+                .equals(other._characterIds, _characterIds) &&
+            const DeepCollectionEquality().equals(other._tags, _tags));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      type,
+      const DeepCollectionEquality().hash(_characterIds),
+      const DeepCollectionEquality().hash(_tags));
+
+  /// Create a copy of WorldInfoCharacterFilter
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$WorldInfoCharacterFilterImplCopyWith<_$WorldInfoCharacterFilterImpl>
+      get copyWith => __$$WorldInfoCharacterFilterImplCopyWithImpl<
+          _$WorldInfoCharacterFilterImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$WorldInfoCharacterFilterImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _WorldInfoCharacterFilter implements WorldInfoCharacterFilter {
+  const factory _WorldInfoCharacterFilter(
+      {final WorldInfoCharacterFilterType type,
+      final List<String> characterIds,
+      final List<String> tags}) = _$WorldInfoCharacterFilterImpl;
+
+  factory _WorldInfoCharacterFilter.fromJson(Map<String, dynamic> json) =
+      _$WorldInfoCharacterFilterImpl.fromJson;
+
+  @override
+  WorldInfoCharacterFilterType get type;
+
+  /// List of character IDs to include/exclude
+  @override
+  List<String> get characterIds;
+
+  /// List of tag names to include/exclude
+  @override
+  List<String> get tags;
+
+  /// Create a copy of WorldInfoCharacterFilter
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$WorldInfoCharacterFilterImplCopyWith<_$WorldInfoCharacterFilterImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+WorldInfoTimedEffects _$WorldInfoTimedEffectsFromJson(
+    Map<String, dynamic> json) {
+  return _WorldInfoTimedEffects.fromJson(json);
+}
+
+/// @nodoc
+mixin _$WorldInfoTimedEffects {
+  /// Sticky duration - entry stays active for N messages after trigger
+  /// 0 = not sticky (default)
+  int get sticky => throw _privateConstructorUsedError;
+
+  /// Cooldown duration - entry cannot trigger again for N messages
+  /// 0 = no cooldown (default)
+  int get cooldown => throw _privateConstructorUsedError;
+
+  /// Delay - entry only triggers after N messages since chat start
+  /// 0 = no delay (default)
+  int get delay =>
+      throw _privateConstructorUsedError; // === Runtime state (not persisted) ===
+  /// Current sticky counter (decrements each message)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  int get stickyCounter => throw _privateConstructorUsedError;
+
+  /// Current cooldown counter (decrements each message)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  int get cooldownCounter => throw _privateConstructorUsedError;
+
+  /// Whether entry is currently active due to sticky
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get isSticky => throw _privateConstructorUsedError;
+
+  /// Whether entry is currently on cooldown
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get isOnCooldown => throw _privateConstructorUsedError;
+
+  /// Serializes this WorldInfoTimedEffects to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of WorldInfoTimedEffects
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $WorldInfoTimedEffectsCopyWith<WorldInfoTimedEffects> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $WorldInfoTimedEffectsCopyWith<$Res> {
+  factory $WorldInfoTimedEffectsCopyWith(WorldInfoTimedEffects value,
+          $Res Function(WorldInfoTimedEffects) then) =
+      _$WorldInfoTimedEffectsCopyWithImpl<$Res, WorldInfoTimedEffects>;
+  @useResult
+  $Res call(
+      {int sticky,
+      int cooldown,
+      int delay,
+      @JsonKey(includeFromJson: false, includeToJson: false) int stickyCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      int cooldownCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false) bool isSticky,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      bool isOnCooldown});
+}
+
+/// @nodoc
+class _$WorldInfoTimedEffectsCopyWithImpl<$Res,
+        $Val extends WorldInfoTimedEffects>
+    implements $WorldInfoTimedEffectsCopyWith<$Res> {
+  _$WorldInfoTimedEffectsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of WorldInfoTimedEffects
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sticky = null,
+    Object? cooldown = null,
+    Object? delay = null,
+    Object? stickyCounter = null,
+    Object? cooldownCounter = null,
+    Object? isSticky = null,
+    Object? isOnCooldown = null,
+  }) {
+    return _then(_value.copyWith(
+      sticky: null == sticky
+          ? _value.sticky
+          : sticky // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldown: null == cooldown
+          ? _value.cooldown
+          : cooldown // ignore: cast_nullable_to_non_nullable
+              as int,
+      delay: null == delay
+          ? _value.delay
+          : delay // ignore: cast_nullable_to_non_nullable
+              as int,
+      stickyCounter: null == stickyCounter
+          ? _value.stickyCounter
+          : stickyCounter // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldownCounter: null == cooldownCounter
+          ? _value.cooldownCounter
+          : cooldownCounter // ignore: cast_nullable_to_non_nullable
+              as int,
+      isSticky: null == isSticky
+          ? _value.isSticky
+          : isSticky // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isOnCooldown: null == isOnCooldown
+          ? _value.isOnCooldown
+          : isOnCooldown // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$WorldInfoTimedEffectsImplCopyWith<$Res>
+    implements $WorldInfoTimedEffectsCopyWith<$Res> {
+  factory _$$WorldInfoTimedEffectsImplCopyWith(
+          _$WorldInfoTimedEffectsImpl value,
+          $Res Function(_$WorldInfoTimedEffectsImpl) then) =
+      __$$WorldInfoTimedEffectsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {int sticky,
+      int cooldown,
+      int delay,
+      @JsonKey(includeFromJson: false, includeToJson: false) int stickyCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      int cooldownCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false) bool isSticky,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      bool isOnCooldown});
+}
+
+/// @nodoc
+class __$$WorldInfoTimedEffectsImplCopyWithImpl<$Res>
+    extends _$WorldInfoTimedEffectsCopyWithImpl<$Res,
+        _$WorldInfoTimedEffectsImpl>
+    implements _$$WorldInfoTimedEffectsImplCopyWith<$Res> {
+  __$$WorldInfoTimedEffectsImplCopyWithImpl(_$WorldInfoTimedEffectsImpl _value,
+      $Res Function(_$WorldInfoTimedEffectsImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of WorldInfoTimedEffects
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sticky = null,
+    Object? cooldown = null,
+    Object? delay = null,
+    Object? stickyCounter = null,
+    Object? cooldownCounter = null,
+    Object? isSticky = null,
+    Object? isOnCooldown = null,
+  }) {
+    return _then(_$WorldInfoTimedEffectsImpl(
+      sticky: null == sticky
+          ? _value.sticky
+          : sticky // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldown: null == cooldown
+          ? _value.cooldown
+          : cooldown // ignore: cast_nullable_to_non_nullable
+              as int,
+      delay: null == delay
+          ? _value.delay
+          : delay // ignore: cast_nullable_to_non_nullable
+              as int,
+      stickyCounter: null == stickyCounter
+          ? _value.stickyCounter
+          : stickyCounter // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldownCounter: null == cooldownCounter
+          ? _value.cooldownCounter
+          : cooldownCounter // ignore: cast_nullable_to_non_nullable
+              as int,
+      isSticky: null == isSticky
+          ? _value.isSticky
+          : isSticky // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isOnCooldown: null == isOnCooldown
+          ? _value.isOnCooldown
+          : isOnCooldown // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$WorldInfoTimedEffectsImpl implements _WorldInfoTimedEffects {
+  const _$WorldInfoTimedEffectsImpl(
+      {this.sticky = 0,
+      this.cooldown = 0,
+      this.delay = 0,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      this.stickyCounter = 0,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      this.cooldownCounter = 0,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      this.isSticky = false,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      this.isOnCooldown = false});
+
+  factory _$WorldInfoTimedEffectsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$WorldInfoTimedEffectsImplFromJson(json);
+
+  /// Sticky duration - entry stays active for N messages after trigger
+  /// 0 = not sticky (default)
+  @override
+  @JsonKey()
+  final int sticky;
+
+  /// Cooldown duration - entry cannot trigger again for N messages
+  /// 0 = no cooldown (default)
+  @override
+  @JsonKey()
+  final int cooldown;
+
+  /// Delay - entry only triggers after N messages since chat start
+  /// 0 = no delay (default)
+  @override
+  @JsonKey()
+  final int delay;
+// === Runtime state (not persisted) ===
+  /// Current sticky counter (decrements each message)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final int stickyCounter;
+
+  /// Current cooldown counter (decrements each message)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final int cooldownCounter;
+
+  /// Whether entry is currently active due to sticky
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final bool isSticky;
+
+  /// Whether entry is currently on cooldown
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final bool isOnCooldown;
+
+  @override
+  String toString() {
+    return 'WorldInfoTimedEffects(sticky: $sticky, cooldown: $cooldown, delay: $delay, stickyCounter: $stickyCounter, cooldownCounter: $cooldownCounter, isSticky: $isSticky, isOnCooldown: $isOnCooldown)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$WorldInfoTimedEffectsImpl &&
+            (identical(other.sticky, sticky) || other.sticky == sticky) &&
+            (identical(other.cooldown, cooldown) ||
+                other.cooldown == cooldown) &&
+            (identical(other.delay, delay) || other.delay == delay) &&
+            (identical(other.stickyCounter, stickyCounter) ||
+                other.stickyCounter == stickyCounter) &&
+            (identical(other.cooldownCounter, cooldownCounter) ||
+                other.cooldownCounter == cooldownCounter) &&
+            (identical(other.isSticky, isSticky) ||
+                other.isSticky == isSticky) &&
+            (identical(other.isOnCooldown, isOnCooldown) ||
+                other.isOnCooldown == isOnCooldown));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, sticky, cooldown, delay,
+      stickyCounter, cooldownCounter, isSticky, isOnCooldown);
+
+  /// Create a copy of WorldInfoTimedEffects
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$WorldInfoTimedEffectsImplCopyWith<_$WorldInfoTimedEffectsImpl>
+      get copyWith => __$$WorldInfoTimedEffectsImplCopyWithImpl<
+          _$WorldInfoTimedEffectsImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$WorldInfoTimedEffectsImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _WorldInfoTimedEffects implements WorldInfoTimedEffects {
+  const factory _WorldInfoTimedEffects(
+      {final int sticky,
+      final int cooldown,
+      final int delay,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final int stickyCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final int cooldownCounter,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final bool isSticky,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final bool isOnCooldown}) = _$WorldInfoTimedEffectsImpl;
+
+  factory _WorldInfoTimedEffects.fromJson(Map<String, dynamic> json) =
+      _$WorldInfoTimedEffectsImpl.fromJson;
+
+  /// Sticky duration - entry stays active for N messages after trigger
+  /// 0 = not sticky (default)
+  @override
+  int get sticky;
+
+  /// Cooldown duration - entry cannot trigger again for N messages
+  /// 0 = no cooldown (default)
+  @override
+  int get cooldown;
+
+  /// Delay - entry only triggers after N messages since chat start
+  /// 0 = no delay (default)
+  @override
+  int get delay; // === Runtime state (not persisted) ===
+  /// Current sticky counter (decrements each message)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  int get stickyCounter;
+
+  /// Current cooldown counter (decrements each message)
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  int get cooldownCounter;
+
+  /// Whether entry is currently active due to sticky
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get isSticky;
+
+  /// Whether entry is currently on cooldown
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get isOnCooldown;
+
+  /// Create a copy of WorldInfoTimedEffects
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$WorldInfoTimedEffectsImplCopyWith<_$WorldInfoTimedEffectsImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
 WorldInfo _$WorldInfoFromJson(Map<String, dynamic> json) {
   return _WorldInfo.fromJson(json);
 }
@@ -29,7 +622,25 @@ mixin _$WorldInfo {
   String? get characterId =>
       throw _privateConstructorUsedError; // If bound to a specific character
   DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get modifiedAt => throw _privateConstructorUsedError;
+  DateTime get modifiedAt =>
+      throw _privateConstructorUsedError; // === New fields for SillyTavern compatibility ===
+  /// Default scan depth for entries (can be overridden per entry)
+  int get defaultScanDepth => throw _privateConstructorUsedError;
+
+  /// Whether to use recursive scanning
+  bool get recursiveScanning => throw _privateConstructorUsedError;
+
+  /// Maximum recursion depth
+  int get maxRecursionDepth => throw _privateConstructorUsedError;
+
+  /// Whether entries can trigger other entries
+  bool get allowEntryCascade => throw _privateConstructorUsedError;
+
+  /// Tags for organization
+  List<String> get tags => throw _privateConstructorUsedError;
+
+  /// Creator notes (not sent to AI)
+  String get creatorNotes => throw _privateConstructorUsedError;
 
   /// Serializes this WorldInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,7 +666,13 @@ abstract class $WorldInfoCopyWith<$Res> {
       bool isGlobal,
       String? characterId,
       DateTime createdAt,
-      DateTime modifiedAt});
+      DateTime modifiedAt,
+      int defaultScanDepth,
+      bool recursiveScanning,
+      int maxRecursionDepth,
+      bool allowEntryCascade,
+      List<String> tags,
+      String creatorNotes});
 }
 
 /// @nodoc
@@ -82,6 +699,12 @@ class _$WorldInfoCopyWithImpl<$Res, $Val extends WorldInfo>
     Object? characterId = freezed,
     Object? createdAt = null,
     Object? modifiedAt = null,
+    Object? defaultScanDepth = null,
+    Object? recursiveScanning = null,
+    Object? maxRecursionDepth = null,
+    Object? allowEntryCascade = null,
+    Object? tags = null,
+    Object? creatorNotes = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -120,6 +743,30 @@ class _$WorldInfoCopyWithImpl<$Res, $Val extends WorldInfo>
           ? _value.modifiedAt
           : modifiedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      defaultScanDepth: null == defaultScanDepth
+          ? _value.defaultScanDepth
+          : defaultScanDepth // ignore: cast_nullable_to_non_nullable
+              as int,
+      recursiveScanning: null == recursiveScanning
+          ? _value.recursiveScanning
+          : recursiveScanning // ignore: cast_nullable_to_non_nullable
+              as bool,
+      maxRecursionDepth: null == maxRecursionDepth
+          ? _value.maxRecursionDepth
+          : maxRecursionDepth // ignore: cast_nullable_to_non_nullable
+              as int,
+      allowEntryCascade: null == allowEntryCascade
+          ? _value.allowEntryCascade
+          : allowEntryCascade // ignore: cast_nullable_to_non_nullable
+              as bool,
+      tags: null == tags
+          ? _value.tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      creatorNotes: null == creatorNotes
+          ? _value.creatorNotes
+          : creatorNotes // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -141,7 +788,13 @@ abstract class _$$WorldInfoImplCopyWith<$Res>
       bool isGlobal,
       String? characterId,
       DateTime createdAt,
-      DateTime modifiedAt});
+      DateTime modifiedAt,
+      int defaultScanDepth,
+      bool recursiveScanning,
+      int maxRecursionDepth,
+      bool allowEntryCascade,
+      List<String> tags,
+      String creatorNotes});
 }
 
 /// @nodoc
@@ -166,6 +819,12 @@ class __$$WorldInfoImplCopyWithImpl<$Res>
     Object? characterId = freezed,
     Object? createdAt = null,
     Object? modifiedAt = null,
+    Object? defaultScanDepth = null,
+    Object? recursiveScanning = null,
+    Object? maxRecursionDepth = null,
+    Object? allowEntryCascade = null,
+    Object? tags = null,
+    Object? creatorNotes = null,
   }) {
     return _then(_$WorldInfoImpl(
       id: null == id
@@ -204,6 +863,30 @@ class __$$WorldInfoImplCopyWithImpl<$Res>
           ? _value.modifiedAt
           : modifiedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      defaultScanDepth: null == defaultScanDepth
+          ? _value.defaultScanDepth
+          : defaultScanDepth // ignore: cast_nullable_to_non_nullable
+              as int,
+      recursiveScanning: null == recursiveScanning
+          ? _value.recursiveScanning
+          : recursiveScanning // ignore: cast_nullable_to_non_nullable
+              as bool,
+      maxRecursionDepth: null == maxRecursionDepth
+          ? _value.maxRecursionDepth
+          : maxRecursionDepth // ignore: cast_nullable_to_non_nullable
+              as int,
+      allowEntryCascade: null == allowEntryCascade
+          ? _value.allowEntryCascade
+          : allowEntryCascade // ignore: cast_nullable_to_non_nullable
+              as bool,
+      tags: null == tags
+          ? _value._tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      creatorNotes: null == creatorNotes
+          ? _value.creatorNotes
+          : creatorNotes // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -220,8 +903,15 @@ class _$WorldInfoImpl implements _WorldInfo {
       this.isGlobal = false,
       this.characterId,
       required this.createdAt,
-      required this.modifiedAt})
-      : _entries = entries;
+      required this.modifiedAt,
+      this.defaultScanDepth = 4,
+      this.recursiveScanning = true,
+      this.maxRecursionDepth = 3,
+      this.allowEntryCascade = true,
+      final List<String> tags = const [],
+      this.creatorNotes = ''})
+      : _entries = entries,
+        _tags = tags;
 
   factory _$WorldInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorldInfoImplFromJson(json);
@@ -254,10 +944,47 @@ class _$WorldInfoImpl implements _WorldInfo {
   final DateTime createdAt;
   @override
   final DateTime modifiedAt;
+// === New fields for SillyTavern compatibility ===
+  /// Default scan depth for entries (can be overridden per entry)
+  @override
+  @JsonKey()
+  final int defaultScanDepth;
+
+  /// Whether to use recursive scanning
+  @override
+  @JsonKey()
+  final bool recursiveScanning;
+
+  /// Maximum recursion depth
+  @override
+  @JsonKey()
+  final int maxRecursionDepth;
+
+  /// Whether entries can trigger other entries
+  @override
+  @JsonKey()
+  final bool allowEntryCascade;
+
+  /// Tags for organization
+  final List<String> _tags;
+
+  /// Tags for organization
+  @override
+  @JsonKey()
+  List<String> get tags {
+    if (_tags is EqualUnmodifiableListView) return _tags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_tags);
+  }
+
+  /// Creator notes (not sent to AI)
+  @override
+  @JsonKey()
+  final String creatorNotes;
 
   @override
   String toString() {
-    return 'WorldInfo(id: $id, name: $name, description: $description, entries: $entries, enabled: $enabled, isGlobal: $isGlobal, characterId: $characterId, createdAt: $createdAt, modifiedAt: $modifiedAt)';
+    return 'WorldInfo(id: $id, name: $name, description: $description, entries: $entries, enabled: $enabled, isGlobal: $isGlobal, characterId: $characterId, createdAt: $createdAt, modifiedAt: $modifiedAt, defaultScanDepth: $defaultScanDepth, recursiveScanning: $recursiveScanning, maxRecursionDepth: $maxRecursionDepth, allowEntryCascade: $allowEntryCascade, tags: $tags, creatorNotes: $creatorNotes)';
   }
 
   @override
@@ -278,7 +1005,18 @@ class _$WorldInfoImpl implements _WorldInfo {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.modifiedAt, modifiedAt) ||
-                other.modifiedAt == modifiedAt));
+                other.modifiedAt == modifiedAt) &&
+            (identical(other.defaultScanDepth, defaultScanDepth) ||
+                other.defaultScanDepth == defaultScanDepth) &&
+            (identical(other.recursiveScanning, recursiveScanning) ||
+                other.recursiveScanning == recursiveScanning) &&
+            (identical(other.maxRecursionDepth, maxRecursionDepth) ||
+                other.maxRecursionDepth == maxRecursionDepth) &&
+            (identical(other.allowEntryCascade, allowEntryCascade) ||
+                other.allowEntryCascade == allowEntryCascade) &&
+            const DeepCollectionEquality().equals(other._tags, _tags) &&
+            (identical(other.creatorNotes, creatorNotes) ||
+                other.creatorNotes == creatorNotes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -293,7 +1031,13 @@ class _$WorldInfoImpl implements _WorldInfo {
       isGlobal,
       characterId,
       createdAt,
-      modifiedAt);
+      modifiedAt,
+      defaultScanDepth,
+      recursiveScanning,
+      maxRecursionDepth,
+      allowEntryCascade,
+      const DeepCollectionEquality().hash(_tags),
+      creatorNotes);
 
   /// Create a copy of WorldInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -321,7 +1065,13 @@ abstract class _WorldInfo implements WorldInfo {
       final bool isGlobal,
       final String? characterId,
       required final DateTime createdAt,
-      required final DateTime modifiedAt}) = _$WorldInfoImpl;
+      required final DateTime modifiedAt,
+      final int defaultScanDepth,
+      final bool recursiveScanning,
+      final int maxRecursionDepth,
+      final bool allowEntryCascade,
+      final List<String> tags,
+      final String creatorNotes}) = _$WorldInfoImpl;
 
   factory _WorldInfo.fromJson(Map<String, dynamic> json) =
       _$WorldInfoImpl.fromJson;
@@ -343,7 +1093,30 @@ abstract class _WorldInfo implements WorldInfo {
   @override
   DateTime get createdAt;
   @override
-  DateTime get modifiedAt;
+  DateTime get modifiedAt; // === New fields for SillyTavern compatibility ===
+  /// Default scan depth for entries (can be overridden per entry)
+  @override
+  int get defaultScanDepth;
+
+  /// Whether to use recursive scanning
+  @override
+  bool get recursiveScanning;
+
+  /// Maximum recursion depth
+  @override
+  int get maxRecursionDepth;
+
+  /// Whether entries can trigger other entries
+  @override
+  bool get allowEntryCascade;
+
+  /// Tags for organization
+  @override
+  List<String> get tags;
+
+  /// Creator notes (not sent to AI)
+  @override
+  String get creatorNotes;
 
   /// Create a copy of WorldInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -385,7 +1158,35 @@ mixin _$WorldInfoEntry {
   bool get preventRecursion => throw _privateConstructorUsedError;
   bool get delayUntilRecursion => throw _privateConstructorUsedError;
   int get scanDepth => throw _privateConstructorUsedError;
-  Map<String, dynamic> get extensions => throw _privateConstructorUsedError;
+  Map<String, dynamic> get extensions =>
+      throw _privateConstructorUsedError; // === New fields for SillyTavern compatibility ===
+  /// Role for this entry's content (system, user, assistant)
+  WorldInfoRole get role => throw _privateConstructorUsedError;
+
+  /// Timed effects (sticky, cooldown, delay)
+  WorldInfoTimedEffects get timedEffects => throw _privateConstructorUsedError;
+
+  /// Character filter - which characters this entry applies to
+  WorldInfoCharacterFilter get characterFilter =>
+      throw _privateConstructorUsedError;
+
+  /// Group override - priority within group (higher = more priority)
+  int get groupOverride => throw _privateConstructorUsedError;
+
+  /// Whether to exclude from recursion scanning
+  bool get excludeRecursion => throw _privateConstructorUsedError;
+
+  /// Whether probability is used (if false, always triggers when matched)
+  bool get useProbability => throw _privateConstructorUsedError;
+
+  /// Vectorized content for semantic search
+  String? get vectorized => throw _privateConstructorUsedError;
+
+  /// Display index for UI ordering
+  int get displayIndex => throw _privateConstructorUsedError;
+
+  /// Whether entry is favorited
+  bool get isFavorite => throw _privateConstructorUsedError;
 
   /// Serializes this WorldInfoEntry to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -426,7 +1227,19 @@ abstract class $WorldInfoEntryCopyWith<$Res> {
       bool preventRecursion,
       bool delayUntilRecursion,
       int scanDepth,
-      Map<String, dynamic> extensions});
+      Map<String, dynamic> extensions,
+      WorldInfoRole role,
+      WorldInfoTimedEffects timedEffects,
+      WorldInfoCharacterFilter characterFilter,
+      int groupOverride,
+      bool excludeRecursion,
+      bool useProbability,
+      String? vectorized,
+      int displayIndex,
+      bool isFavorite});
+
+  $WorldInfoTimedEffectsCopyWith<$Res> get timedEffects;
+  $WorldInfoCharacterFilterCopyWith<$Res> get characterFilter;
 }
 
 /// @nodoc
@@ -467,6 +1280,15 @@ class _$WorldInfoEntryCopyWithImpl<$Res, $Val extends WorldInfoEntry>
     Object? delayUntilRecursion = null,
     Object? scanDepth = null,
     Object? extensions = null,
+    Object? role = null,
+    Object? timedEffects = null,
+    Object? characterFilter = null,
+    Object? groupOverride = null,
+    Object? excludeRecursion = null,
+    Object? useProbability = null,
+    Object? vectorized = freezed,
+    Object? displayIndex = null,
+    Object? isFavorite = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -561,7 +1383,64 @@ class _$WorldInfoEntryCopyWithImpl<$Res, $Val extends WorldInfoEntry>
           ? _value.extensions
           : extensions // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      role: null == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as WorldInfoRole,
+      timedEffects: null == timedEffects
+          ? _value.timedEffects
+          : timedEffects // ignore: cast_nullable_to_non_nullable
+              as WorldInfoTimedEffects,
+      characterFilter: null == characterFilter
+          ? _value.characterFilter
+          : characterFilter // ignore: cast_nullable_to_non_nullable
+              as WorldInfoCharacterFilter,
+      groupOverride: null == groupOverride
+          ? _value.groupOverride
+          : groupOverride // ignore: cast_nullable_to_non_nullable
+              as int,
+      excludeRecursion: null == excludeRecursion
+          ? _value.excludeRecursion
+          : excludeRecursion // ignore: cast_nullable_to_non_nullable
+              as bool,
+      useProbability: null == useProbability
+          ? _value.useProbability
+          : useProbability // ignore: cast_nullable_to_non_nullable
+              as bool,
+      vectorized: freezed == vectorized
+          ? _value.vectorized
+          : vectorized // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayIndex: null == displayIndex
+          ? _value.displayIndex
+          : displayIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      isFavorite: null == isFavorite
+          ? _value.isFavorite
+          : isFavorite // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
+  }
+
+  /// Create a copy of WorldInfoEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $WorldInfoTimedEffectsCopyWith<$Res> get timedEffects {
+    return $WorldInfoTimedEffectsCopyWith<$Res>(_value.timedEffects, (value) {
+      return _then(_value.copyWith(timedEffects: value) as $Val);
+    });
+  }
+
+  /// Create a copy of WorldInfoEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $WorldInfoCharacterFilterCopyWith<$Res> get characterFilter {
+    return $WorldInfoCharacterFilterCopyWith<$Res>(_value.characterFilter,
+        (value) {
+      return _then(_value.copyWith(characterFilter: value) as $Val);
+    });
   }
 }
 
@@ -596,7 +1475,21 @@ abstract class _$$WorldInfoEntryImplCopyWith<$Res>
       bool preventRecursion,
       bool delayUntilRecursion,
       int scanDepth,
-      Map<String, dynamic> extensions});
+      Map<String, dynamic> extensions,
+      WorldInfoRole role,
+      WorldInfoTimedEffects timedEffects,
+      WorldInfoCharacterFilter characterFilter,
+      int groupOverride,
+      bool excludeRecursion,
+      bool useProbability,
+      String? vectorized,
+      int displayIndex,
+      bool isFavorite});
+
+  @override
+  $WorldInfoTimedEffectsCopyWith<$Res> get timedEffects;
+  @override
+  $WorldInfoCharacterFilterCopyWith<$Res> get characterFilter;
 }
 
 /// @nodoc
@@ -635,6 +1528,15 @@ class __$$WorldInfoEntryImplCopyWithImpl<$Res>
     Object? delayUntilRecursion = null,
     Object? scanDepth = null,
     Object? extensions = null,
+    Object? role = null,
+    Object? timedEffects = null,
+    Object? characterFilter = null,
+    Object? groupOverride = null,
+    Object? excludeRecursion = null,
+    Object? useProbability = null,
+    Object? vectorized = freezed,
+    Object? displayIndex = null,
+    Object? isFavorite = null,
   }) {
     return _then(_$WorldInfoEntryImpl(
       id: null == id
@@ -729,6 +1631,42 @@ class __$$WorldInfoEntryImplCopyWithImpl<$Res>
           ? _value._extensions
           : extensions // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      role: null == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as WorldInfoRole,
+      timedEffects: null == timedEffects
+          ? _value.timedEffects
+          : timedEffects // ignore: cast_nullable_to_non_nullable
+              as WorldInfoTimedEffects,
+      characterFilter: null == characterFilter
+          ? _value.characterFilter
+          : characterFilter // ignore: cast_nullable_to_non_nullable
+              as WorldInfoCharacterFilter,
+      groupOverride: null == groupOverride
+          ? _value.groupOverride
+          : groupOverride // ignore: cast_nullable_to_non_nullable
+              as int,
+      excludeRecursion: null == excludeRecursion
+          ? _value.excludeRecursion
+          : excludeRecursion // ignore: cast_nullable_to_non_nullable
+              as bool,
+      useProbability: null == useProbability
+          ? _value.useProbability
+          : useProbability // ignore: cast_nullable_to_non_nullable
+              as bool,
+      vectorized: freezed == vectorized
+          ? _value.vectorized
+          : vectorized // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayIndex: null == displayIndex
+          ? _value.displayIndex
+          : displayIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      isFavorite: null == isFavorite
+          ? _value.isFavorite
+          : isFavorite // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -759,7 +1697,16 @@ class _$WorldInfoEntryImpl implements _WorldInfoEntry {
       this.preventRecursion = false,
       this.delayUntilRecursion = false,
       this.scanDepth = 0,
-      final Map<String, dynamic> extensions = const {}})
+      final Map<String, dynamic> extensions = const {},
+      this.role = WorldInfoRole.system,
+      this.timedEffects = const WorldInfoTimedEffects(),
+      this.characterFilter = const WorldInfoCharacterFilter(),
+      this.groupOverride = 0,
+      this.excludeRecursion = false,
+      this.useProbability = false,
+      this.vectorized,
+      this.displayIndex = 0,
+      this.isFavorite = false})
       : _keys = keys,
         _secondaryKeys = secondaryKeys,
         _extensions = extensions;
@@ -856,9 +1803,54 @@ class _$WorldInfoEntryImpl implements _WorldInfoEntry {
     return EqualUnmodifiableMapView(_extensions);
   }
 
+// === New fields for SillyTavern compatibility ===
+  /// Role for this entry's content (system, user, assistant)
+  @override
+  @JsonKey()
+  final WorldInfoRole role;
+
+  /// Timed effects (sticky, cooldown, delay)
+  @override
+  @JsonKey()
+  final WorldInfoTimedEffects timedEffects;
+
+  /// Character filter - which characters this entry applies to
+  @override
+  @JsonKey()
+  final WorldInfoCharacterFilter characterFilter;
+
+  /// Group override - priority within group (higher = more priority)
+  @override
+  @JsonKey()
+  final int groupOverride;
+
+  /// Whether to exclude from recursion scanning
+  @override
+  @JsonKey()
+  final bool excludeRecursion;
+
+  /// Whether probability is used (if false, always triggers when matched)
+  @override
+  @JsonKey()
+  final bool useProbability;
+
+  /// Vectorized content for semantic search
+  @override
+  final String? vectorized;
+
+  /// Display index for UI ordering
+  @override
+  @JsonKey()
+  final int displayIndex;
+
+  /// Whether entry is favorited
+  @override
+  @JsonKey()
+  final bool isFavorite;
+
   @override
   String toString() {
-    return 'WorldInfoEntry(id: $id, worldInfoId: $worldInfoId, keys: $keys, secondaryKeys: $secondaryKeys, content: $content, comment: $comment, enabled: $enabled, constant: $constant, selective: $selective, insertionOrder: $insertionOrder, caseSensitive: $caseSensitive, matchWholeWords: $matchWholeWords, useGroupScoring: $useGroupScoring, automationId: $automationId, probability: $probability, position: $position, depth: $depth, group: $group, groupWeight: $groupWeight, preventRecursion: $preventRecursion, delayUntilRecursion: $delayUntilRecursion, scanDepth: $scanDepth, extensions: $extensions)';
+    return 'WorldInfoEntry(id: $id, worldInfoId: $worldInfoId, keys: $keys, secondaryKeys: $secondaryKeys, content: $content, comment: $comment, enabled: $enabled, constant: $constant, selective: $selective, insertionOrder: $insertionOrder, caseSensitive: $caseSensitive, matchWholeWords: $matchWholeWords, useGroupScoring: $useGroupScoring, automationId: $automationId, probability: $probability, position: $position, depth: $depth, group: $group, groupWeight: $groupWeight, preventRecursion: $preventRecursion, delayUntilRecursion: $delayUntilRecursion, scanDepth: $scanDepth, extensions: $extensions, role: $role, timedEffects: $timedEffects, characterFilter: $characterFilter, groupOverride: $groupOverride, excludeRecursion: $excludeRecursion, useProbability: $useProbability, vectorized: $vectorized, displayIndex: $displayIndex, isFavorite: $isFavorite)';
   }
 
   @override
@@ -904,7 +1896,24 @@ class _$WorldInfoEntryImpl implements _WorldInfoEntry {
             (identical(other.scanDepth, scanDepth) ||
                 other.scanDepth == scanDepth) &&
             const DeepCollectionEquality()
-                .equals(other._extensions, _extensions));
+                .equals(other._extensions, _extensions) &&
+            (identical(other.role, role) || other.role == role) &&
+            (identical(other.timedEffects, timedEffects) ||
+                other.timedEffects == timedEffects) &&
+            (identical(other.characterFilter, characterFilter) ||
+                other.characterFilter == characterFilter) &&
+            (identical(other.groupOverride, groupOverride) ||
+                other.groupOverride == groupOverride) &&
+            (identical(other.excludeRecursion, excludeRecursion) ||
+                other.excludeRecursion == excludeRecursion) &&
+            (identical(other.useProbability, useProbability) ||
+                other.useProbability == useProbability) &&
+            (identical(other.vectorized, vectorized) ||
+                other.vectorized == vectorized) &&
+            (identical(other.displayIndex, displayIndex) ||
+                other.displayIndex == displayIndex) &&
+            (identical(other.isFavorite, isFavorite) ||
+                other.isFavorite == isFavorite));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -933,7 +1942,16 @@ class _$WorldInfoEntryImpl implements _WorldInfoEntry {
         preventRecursion,
         delayUntilRecursion,
         scanDepth,
-        const DeepCollectionEquality().hash(_extensions)
+        const DeepCollectionEquality().hash(_extensions),
+        role,
+        timedEffects,
+        characterFilter,
+        groupOverride,
+        excludeRecursion,
+        useProbability,
+        vectorized,
+        displayIndex,
+        isFavorite
       ]);
 
   /// Create a copy of WorldInfoEntry
@@ -977,7 +1995,16 @@ abstract class _WorldInfoEntry implements WorldInfoEntry {
       final bool preventRecursion,
       final bool delayUntilRecursion,
       final int scanDepth,
-      final Map<String, dynamic> extensions}) = _$WorldInfoEntryImpl;
+      final Map<String, dynamic> extensions,
+      final WorldInfoRole role,
+      final WorldInfoTimedEffects timedEffects,
+      final WorldInfoCharacterFilter characterFilter,
+      final int groupOverride,
+      final bool excludeRecursion,
+      final bool useProbability,
+      final String? vectorized,
+      final int displayIndex,
+      final bool isFavorite}) = _$WorldInfoEntryImpl;
 
   factory _WorldInfoEntry.fromJson(Map<String, dynamic> json) =
       _$WorldInfoEntryImpl.fromJson;
@@ -1027,7 +2054,43 @@ abstract class _WorldInfoEntry implements WorldInfoEntry {
   @override
   int get scanDepth;
   @override
-  Map<String, dynamic> get extensions;
+  Map<String, dynamic>
+      get extensions; // === New fields for SillyTavern compatibility ===
+  /// Role for this entry's content (system, user, assistant)
+  @override
+  WorldInfoRole get role;
+
+  /// Timed effects (sticky, cooldown, delay)
+  @override
+  WorldInfoTimedEffects get timedEffects;
+
+  /// Character filter - which characters this entry applies to
+  @override
+  WorldInfoCharacterFilter get characterFilter;
+
+  /// Group override - priority within group (higher = more priority)
+  @override
+  int get groupOverride;
+
+  /// Whether to exclude from recursion scanning
+  @override
+  bool get excludeRecursion;
+
+  /// Whether probability is used (if false, always triggers when matched)
+  @override
+  bool get useProbability;
+
+  /// Vectorized content for semantic search
+  @override
+  String? get vectorized;
+
+  /// Display index for UI ordering
+  @override
+  int get displayIndex;
+
+  /// Whether entry is favorited
+  @override
+  bool get isFavorite;
 
   /// Create a copy of WorldInfoEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -1231,7 +2294,14 @@ mixin _$WorldInfoEntryExport {
   String get automationId => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
   String get vectorized => throw _privateConstructorUsedError;
-  Map<String, dynamic> get extensions => throw _privateConstructorUsedError;
+  Map<String, dynamic> get extensions =>
+      throw _privateConstructorUsedError; // Timed effects
+  int get sticky => throw _privateConstructorUsedError;
+  int get cooldown => throw _privateConstructorUsedError;
+  int get delay => throw _privateConstructorUsedError; // Character filter
+  @JsonKey(name: 'character_filter')
+  Map<String, dynamic>? get characterFilter =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this WorldInfoEntryExport to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1276,7 +2346,12 @@ abstract class $WorldInfoEntryExportCopyWith<$Res> {
       String automationId,
       String role,
       String vectorized,
-      Map<String, dynamic> extensions});
+      Map<String, dynamic> extensions,
+      int sticky,
+      int cooldown,
+      int delay,
+      @JsonKey(name: 'character_filter')
+      Map<String, dynamic>? characterFilter});
 }
 
 /// @nodoc
@@ -1322,6 +2397,10 @@ class _$WorldInfoEntryExportCopyWithImpl<$Res,
     Object? role = null,
     Object? vectorized = null,
     Object? extensions = null,
+    Object? sticky = null,
+    Object? cooldown = null,
+    Object? delay = null,
+    Object? characterFilter = freezed,
   }) {
     return _then(_value.copyWith(
       uid: null == uid
@@ -1432,6 +2511,22 @@ class _$WorldInfoEntryExportCopyWithImpl<$Res,
           ? _value.extensions
           : extensions // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      sticky: null == sticky
+          ? _value.sticky
+          : sticky // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldown: null == cooldown
+          ? _value.cooldown
+          : cooldown // ignore: cast_nullable_to_non_nullable
+              as int,
+      delay: null == delay
+          ? _value.delay
+          : delay // ignore: cast_nullable_to_non_nullable
+              as int,
+      characterFilter: freezed == characterFilter
+          ? _value.characterFilter
+          : characterFilter // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -1471,7 +2566,12 @@ abstract class _$$WorldInfoEntryExportImplCopyWith<$Res>
       String automationId,
       String role,
       String vectorized,
-      Map<String, dynamic> extensions});
+      Map<String, dynamic> extensions,
+      int sticky,
+      int cooldown,
+      int delay,
+      @JsonKey(name: 'character_filter')
+      Map<String, dynamic>? characterFilter});
 }
 
 /// @nodoc
@@ -1514,6 +2614,10 @@ class __$$WorldInfoEntryExportImplCopyWithImpl<$Res>
     Object? role = null,
     Object? vectorized = null,
     Object? extensions = null,
+    Object? sticky = null,
+    Object? cooldown = null,
+    Object? delay = null,
+    Object? characterFilter = freezed,
   }) {
     return _then(_$WorldInfoEntryExportImpl(
       uid: null == uid
@@ -1624,6 +2728,22 @@ class __$$WorldInfoEntryExportImplCopyWithImpl<$Res>
           ? _value._extensions
           : extensions // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      sticky: null == sticky
+          ? _value.sticky
+          : sticky // ignore: cast_nullable_to_non_nullable
+              as int,
+      cooldown: null == cooldown
+          ? _value.cooldown
+          : cooldown // ignore: cast_nullable_to_non_nullable
+              as int,
+      delay: null == delay
+          ? _value.delay
+          : delay // ignore: cast_nullable_to_non_nullable
+              as int,
+      characterFilter: freezed == characterFilter
+          ? _value._characterFilter
+          : characterFilter // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -1658,10 +2778,16 @@ class _$WorldInfoEntryExportImpl implements _WorldInfoEntryExport {
       this.automationId = '',
       this.role = '',
       this.vectorized = '',
-      final Map<String, dynamic> extensions = const {}})
+      final Map<String, dynamic> extensions = const {},
+      this.sticky = 0,
+      this.cooldown = 0,
+      this.delay = 0,
+      @JsonKey(name: 'character_filter')
+      final Map<String, dynamic>? characterFilter})
       : _key = key,
         _keySecondary = keySecondary,
-        _extensions = extensions;
+        _extensions = extensions,
+        _characterFilter = characterFilter;
 
   factory _$WorldInfoEntryExportImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorldInfoEntryExportImplFromJson(json);
@@ -1762,9 +2888,32 @@ class _$WorldInfoEntryExportImpl implements _WorldInfoEntryExport {
     return EqualUnmodifiableMapView(_extensions);
   }
 
+// Timed effects
+  @override
+  @JsonKey()
+  final int sticky;
+  @override
+  @JsonKey()
+  final int cooldown;
+  @override
+  @JsonKey()
+  final int delay;
+// Character filter
+  final Map<String, dynamic>? _characterFilter;
+// Character filter
+  @override
+  @JsonKey(name: 'character_filter')
+  Map<String, dynamic>? get characterFilter {
+    final value = _characterFilter;
+    if (value == null) return null;
+    if (_characterFilter is EqualUnmodifiableMapView) return _characterFilter;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'WorldInfoEntryExport(uid: $uid, key: $key, keySecondary: $keySecondary, content: $content, comment: $comment, selective: $selective, constant: $constant, order: $order, position: $position, disable: $disable, excludeRecursion: $excludeRecursion, preventRecursion: $preventRecursion, delayUntilRecursion: $delayUntilRecursion, probability: $probability, useProbability: $useProbability, depth: $depth, group: $group, groupOverride: $groupOverride, groupWeight: $groupWeight, scanDepth: $scanDepth, caseSensitive: $caseSensitive, matchWholeWords: $matchWholeWords, useGroupScoring: $useGroupScoring, automationId: $automationId, role: $role, vectorized: $vectorized, extensions: $extensions)';
+    return 'WorldInfoEntryExport(uid: $uid, key: $key, keySecondary: $keySecondary, content: $content, comment: $comment, selective: $selective, constant: $constant, order: $order, position: $position, disable: $disable, excludeRecursion: $excludeRecursion, preventRecursion: $preventRecursion, delayUntilRecursion: $delayUntilRecursion, probability: $probability, useProbability: $useProbability, depth: $depth, group: $group, groupOverride: $groupOverride, groupWeight: $groupWeight, scanDepth: $scanDepth, caseSensitive: $caseSensitive, matchWholeWords: $matchWholeWords, useGroupScoring: $useGroupScoring, automationId: $automationId, role: $role, vectorized: $vectorized, extensions: $extensions, sticky: $sticky, cooldown: $cooldown, delay: $delay, characterFilter: $characterFilter)';
   }
 
   @override
@@ -1816,7 +2965,13 @@ class _$WorldInfoEntryExportImpl implements _WorldInfoEntryExport {
             (identical(other.vectorized, vectorized) ||
                 other.vectorized == vectorized) &&
             const DeepCollectionEquality()
-                .equals(other._extensions, _extensions));
+                .equals(other._extensions, _extensions) &&
+            (identical(other.sticky, sticky) || other.sticky == sticky) &&
+            (identical(other.cooldown, cooldown) ||
+                other.cooldown == cooldown) &&
+            (identical(other.delay, delay) || other.delay == delay) &&
+            const DeepCollectionEquality()
+                .equals(other._characterFilter, _characterFilter));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1849,7 +3004,11 @@ class _$WorldInfoEntryExportImpl implements _WorldInfoEntryExport {
         automationId,
         role,
         vectorized,
-        const DeepCollectionEquality().hash(_extensions)
+        const DeepCollectionEquality().hash(_extensions),
+        sticky,
+        cooldown,
+        delay,
+        const DeepCollectionEquality().hash(_characterFilter)
       ]);
 
   /// Create a copy of WorldInfoEntryExport
@@ -1872,33 +3031,39 @@ class _$WorldInfoEntryExportImpl implements _WorldInfoEntryExport {
 
 abstract class _WorldInfoEntryExport implements WorldInfoEntryExport {
   const factory _WorldInfoEntryExport(
-      {required final int uid,
-      required final List<String> key,
-      @JsonKey(name: 'keysecondary') final List<String> keySecondary,
-      required final String content,
-      final String comment,
-      final bool selective,
-      final bool constant,
-      final int order,
-      final int position,
-      final bool disable,
-      final bool excludeRecursion,
-      final bool preventRecursion,
-      final bool delayUntilRecursion,
-      final int probability,
-      final bool useProbability,
-      final int depth,
-      final String group,
-      final int groupOverride,
-      final bool groupWeight,
-      final int scanDepth,
-      final bool caseSensitive,
-      final bool matchWholeWords,
-      final bool useGroupScoring,
-      final String automationId,
-      final String role,
-      final String vectorized,
-      final Map<String, dynamic> extensions}) = _$WorldInfoEntryExportImpl;
+          {required final int uid,
+          required final List<String> key,
+          @JsonKey(name: 'keysecondary') final List<String> keySecondary,
+          required final String content,
+          final String comment,
+          final bool selective,
+          final bool constant,
+          final int order,
+          final int position,
+          final bool disable,
+          final bool excludeRecursion,
+          final bool preventRecursion,
+          final bool delayUntilRecursion,
+          final int probability,
+          final bool useProbability,
+          final int depth,
+          final String group,
+          final int groupOverride,
+          final bool groupWeight,
+          final int scanDepth,
+          final bool caseSensitive,
+          final bool matchWholeWords,
+          final bool useGroupScoring,
+          final String automationId,
+          final String role,
+          final String vectorized,
+          final Map<String, dynamic> extensions,
+          final int sticky,
+          final int cooldown,
+          final int delay,
+          @JsonKey(name: 'character_filter')
+          final Map<String, dynamic>? characterFilter}) =
+      _$WorldInfoEntryExportImpl;
 
   factory _WorldInfoEntryExport.fromJson(Map<String, dynamic> json) =
       _$WorldInfoEntryExportImpl.fromJson;
@@ -1957,7 +3122,16 @@ abstract class _WorldInfoEntryExport implements WorldInfoEntryExport {
   @override
   String get vectorized;
   @override
-  Map<String, dynamic> get extensions;
+  Map<String, dynamic> get extensions; // Timed effects
+  @override
+  int get sticky;
+  @override
+  int get cooldown;
+  @override
+  int get delay; // Character filter
+  @override
+  @JsonKey(name: 'character_filter')
+  Map<String, dynamic>? get characterFilter;
 
   /// Create a copy of WorldInfoEntryExport
   /// with the given fields replaced by the non-null parameter values.

@@ -71,6 +71,9 @@ _$GenerationSettingsImpl _$$GenerationSettingsImplFromJson(
           const [],
       stream: json['stream'] as bool? ?? false,
       seed: (json['seed'] as num?)?.toInt(),
+      autoSummarizeEnabled: json['autoSummarizeEnabled'] as bool? ?? true,
+      autoSummarizeThreshold:
+          (json['autoSummarizeThreshold'] as num?)?.toDouble() ?? 0.8,
       extra: json['extra'] as Map<String, dynamic>? ?? const {},
     );
 
@@ -90,6 +93,8 @@ Map<String, dynamic> _$$GenerationSettingsImplToJson(
       'stopSequences': instance.stopSequences,
       'stream': instance.stream,
       'seed': instance.seed,
+      'autoSummarizeEnabled': instance.autoSummarizeEnabled,
+      'autoSummarizeThreshold': instance.autoSummarizeThreshold,
       'extra': instance.extra,
     };
 

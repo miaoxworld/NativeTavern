@@ -147,7 +147,7 @@ class _GroupCard extends ConsumerWidget {
                           ),
                         const SizedBox(height: 4),
                         Text(
-                          AppLocalizations.of(context)!.membersAndMode(group.members.length, group.settings.responseMode.name),
+                          AppLocalizations.of(context)!.membersAndMode(group.members.length, (group.settings.responseMode ?? GroupResponseMode.natural).name),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppTheme.textMuted,
                               ),

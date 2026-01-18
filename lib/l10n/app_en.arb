@@ -5676,6 +5676,31 @@
     "description": "Long press to bookmark hint"
   },
   
+  "contextManagement": "Context Management",
+  "@contextManagement": {
+    "description": "Context management section header"
+  },
+  
+  "autoSummarize": "Auto-Summarize",
+  "@autoSummarize": {
+    "description": "Auto-summarize toggle label"
+  },
+  
+  "autoSummarizeDescription": "Automatically summarize and compress chat history when context usage is high",
+  "@autoSummarizeDescription": {
+    "description": "Auto-summarize toggle description"
+  },
+  
+  "autoSummarizeThreshold": "Auto-Summarize Threshold",
+  "@autoSummarizeThreshold": {
+    "description": "Auto-summarize threshold label"
+  },
+  
+  "autoSummarizeThresholdDescription": "Trigger summarization when context reaches this percentage of maximum",
+  "@autoSummarizeThresholdDescription": {
+    "description": "Auto-summarize threshold description"
+  },
+  
   "branchFromBookmark": "Branch from Bookmark",
   "@branchFromBookmark": {
     "description": "Branch from bookmark title"

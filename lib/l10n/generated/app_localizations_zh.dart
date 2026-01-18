@@ -3328,6 +3328,21 @@ class AppLocalizationsZh extends AppLocalizations {
       'Long-press a message to create a bookmark';
 
   @override
+  String get contextManagement => '上下文管理';
+
+  @override
+  String get autoSummarize => '自动总结';
+
+  @override
+  String get autoSummarizeDescription => '当上下文使用率较高时自动总结并压缩聊天历史';
+
+  @override
+  String get autoSummarizeThreshold => '自动总结阈值';
+
+  @override
+  String get autoSummarizeThresholdDescription => '当上下文达到最大值的此百分比时触发总结';
+
+  @override
   String get branchFromBookmark => 'Branch from Bookmark';
 
   @override

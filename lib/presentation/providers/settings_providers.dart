@@ -307,6 +307,16 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
     _saveConfig();
   }
 
+  void updateAutoSummarizeEnabled(bool enabled) {
+    state = state.copyWith(autoSummarizeEnabled: enabled);
+    _saveConfig();
+  }
+
+  void updateAutoSummarizeThreshold(double threshold) {
+    state = state.copyWith(autoSummarizeThreshold: threshold);
+    _saveConfig();
+  }
+
   void resetToDefaults() {
     state = _defaultConfig();
     _saveConfig();

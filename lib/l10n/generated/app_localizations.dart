@@ -6133,6 +6133,36 @@ abstract class AppLocalizations {
   /// **'Long-press a message to create a bookmark'**
   String get longPressMessageToBookmark;
 
+  /// Context management section header
+  ///
+  /// In en, this message translates to:
+  /// **'Context Management'**
+  String get contextManagement;
+
+  /// Auto-summarize toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Summarize'**
+  String get autoSummarize;
+
+  /// Auto-summarize toggle description
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically summarize and compress chat history when context usage is high'**
+  String get autoSummarizeDescription;
+
+  /// Auto-summarize threshold label
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Summarize Threshold'**
+  String get autoSummarizeThreshold;
+
+  /// Auto-summarize threshold description
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger summarization when context reaches this percentage of maximum'**
+  String get autoSummarizeThresholdDescription;
+
   /// Branch from bookmark title
   ///
   /// In en, this message translates to:

@@ -1,186 +1,233 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'group.freezed.dart';
+part 'group.g.dart';
+
+/// How characters take turns in group chats
+/// Aligned with SillyTavern's group_activation_strategy
+enum GroupActivationStrategy {
+  /// Natural language processing determines who should respond
+  natural,
+  /// Characters respond in list order
+  list,
+  /// User manually selects who responds
+  manual,
+  /// Pool of characters, weighted random selection
+  pooled,
+}
+
+/// How group generation works
+/// Aligned with SillyTavern's group_generation_mode
+enum GroupGenerationMode {
+  /// Swap: Replace previous character's message
+  swap,
+  /// Append: Add to the conversation
+  append,
+  /// Append Disabled: Append but don't auto-continue
+  appendDisabled,
+}
+
 /// Group chat model for multi-character conversations
-class Group {
-  final String id;
-  final String name;
-  final String? description;
-  final List<GroupMember> members;
-  final GroupSettings settings;
-  final String? avatarPath;
-  final DateTime createdAt;
-  final DateTime modifiedAt;
-
-  const Group({
-    required this.id,
-    required this.name,
-    this.description,
-    this.members = const [],
-    this.settings = const GroupSettings(),
-    this.avatarPath,
-    required this.createdAt,
-    required this.modifiedAt,
-  });
-
-  Group copyWith({
-    String? id,
-    String? name,
+@freezed
+class Group with _$Group {
+  const factory Group({
+    required String id,
+    required String name,
     String? description,
-    List<GroupMember>? members,
-    GroupSettings? settings,
+    @Default([]) List<GroupMember> members,
+    @Default(GroupSettings()) GroupSettings settings,
     String? avatarPath,
-    DateTime? createdAt,
-    DateTime? modifiedAt,
-  }) {
-    return Group(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      members: members ?? this.members,
-      settings: settings ?? this.settings,
-      avatarPath: avatarPath ?? this.avatarPath,
-      createdAt: createdAt ?? this.createdAt,
-      modifiedAt: modifiedAt ?? this.modifiedAt,
-    );
-  }
+    required DateTime createdAt,
+    required DateTime modifiedAt,
+    
+    // === New fields for SillyTavern compatibility ===
+    
+    /// Tags for organization
+    @Default([]) List<String> tags,
+    
+    /// Whether this is a favorite group
+    @Default(false) bool isFavorite,
+    
+    /// Creator notes (not sent to AI)
+    @Default('') String creatorNotes,
+    
+    /// Group-specific world info/lorebook ID
+    String? lorebookId,
+    
+    /// Group-specific scenario (overrides character scenarios)
+    String? scenario,
+    
+    /// Group-specific first message
+    String? firstMessage,
+    
+    /// Chat metadata for the current chat
+    @Default({}) Map<String, dynamic> chatMetadata,
+    
+    /// Past chats metadata
+    @Default([]) List<GroupChatInfo> pastChats,
+  }) = _Group;
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'members': members.map((m) => m.toJson()).toList(),
-        'settings': settings.toJson(),
-        'avatarPath': avatarPath,
-        'createdAt': createdAt.toIso8601String(),
-        'modifiedAt': modifiedAt.toIso8601String(),
-      };
+  factory Group.fromJson(Map<String, dynamic> json) => _$GroupFromJson(json);
+}
 
-  factory Group.fromJson(Map<String, dynamic> json) => Group(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        description: json['description'] as String?,
-        members: (json['members'] as List<dynamic>?)
-                ?.map((m) => GroupMember.fromJson(m as Map<String, dynamic>))
-                .toList() ??
-            [],
-        settings: json['settings'] != null
-            ? GroupSettings.fromJson(json['settings'] as Map<String, dynamic>)
-            : const GroupSettings(),
-        avatarPath: json['avatarPath'] as String?,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        modifiedAt: DateTime.parse(json['modifiedAt'] as String),
-      );
-
+/// Extension methods for Group
+extension GroupExtension on Group {
   /// Get active (non-muted) members
-  List<GroupMember> get activeMembers => members.where((m) => !m.isMuted).toList();
+  List<GroupMember> get activeMembers => 
+      members.where((m) => !m.isMuted).toList();
+  
+  /// Get members sorted by insertion order
+  List<GroupMember> get sortedMembers {
+    final sorted = List<GroupMember>.from(members);
+    sorted.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
+    return sorted;
+  }
+  
+  /// Get active members sorted by insertion order
+  List<GroupMember> get sortedActiveMembers {
+    final sorted = activeMembers;
+    sorted.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
+    return sorted;
+  }
 }
 
 /// Member in a group chat
-class GroupMember {
-  final String characterId;
-  final bool isMuted;
-  final int talkativeness; // 0-100, affects selection probability
-  final int triggerProbability; // 0-100
-  final List<String> triggerWords; // Words that trigger this character
-  final int insertionOrder; // Order in the list
+@freezed
+class GroupMember with _$GroupMember {
+  const factory GroupMember({
+    required String characterId,
+    @Default(false) bool isMuted,
+    @Default(50) int talkativeness, // 0-100, affects selection probability
+    @Default(100) int triggerProbability, // 0-100
+    @Default([]) List<String> triggerWords, // Words that trigger this character
+    @Default(0) int insertionOrder, // Order in the list
+    
+    // === New fields for SillyTavern compatibility ===
+    
+    /// Depth prompt for this member (inserted at specific depth)
+    String? depthPrompt,
+    
+    /// Depth at which to insert the depth prompt
+    @Default(4) int depthPromptDepth,
+    
+    /// Role for depth prompt (system, user, assistant)
+    @Default(GroupMemberDepthRole.system) GroupMemberDepthRole depthPromptRole,
+    
+    /// Whether this member is currently active in the conversation
+    @Default(true) bool isActive,
+    
+    /// Custom display name override
+    String? displayNameOverride,
+    
+    /// Custom avatar override
+    String? avatarOverride,
+    
+    /// Member-specific extensions data
+    @Default({}) Map<String, dynamic> extensions,
+  }) = _GroupMember;
 
-  const GroupMember({
-    required this.characterId,
-    this.isMuted = false,
-    this.talkativeness = 50,
-    this.triggerProbability = 100,
-    this.triggerWords = const [],
-    this.insertionOrder = 0,
-  });
+  factory GroupMember.fromJson(Map<String, dynamic> json) => _$GroupMemberFromJson(json);
+}
 
-  GroupMember copyWith({
-    String? characterId,
-    bool? isMuted,
-    int? talkativeness,
-    int? triggerProbability,
-    List<String>? triggerWords,
-    int? insertionOrder,
-  }) {
-    return GroupMember(
-      characterId: characterId ?? this.characterId,
-      isMuted: isMuted ?? this.isMuted,
-      talkativeness: talkativeness ?? this.talkativeness,
-      triggerProbability: triggerProbability ?? this.triggerProbability,
-      triggerWords: triggerWords ?? this.triggerWords,
-      insertionOrder: insertionOrder ?? this.insertionOrder,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'characterId': characterId,
-        'isMuted': isMuted,
-        'talkativeness': talkativeness,
-        'triggerProbability': triggerProbability,
-        'triggerWords': triggerWords,
-        'insertionOrder': insertionOrder,
-      };
-
-  factory GroupMember.fromJson(Map<String, dynamic> json) => GroupMember(
-        characterId: json['characterId'] as String,
-        isMuted: json['isMuted'] as bool? ?? false,
-        talkativeness: json['talkativeness'] as int? ?? 50,
-        triggerProbability: json['triggerProbability'] as int? ?? 100,
-        triggerWords: (json['triggerWords'] as List<dynamic>?)?.cast<String>() ?? [],
-        insertionOrder: json['insertionOrder'] as int? ?? 0,
-      );
+/// Role for group member depth prompt
+enum GroupMemberDepthRole {
+  system,
+  user,
+  assistant,
 }
 
 /// Group chat settings
-class GroupSettings {
-  final GroupResponseMode responseMode;
-  final int autoModeDelay; // Milliseconds between auto-responses
-  final bool allowSelfResponse; // Can a character respond to themselves
-  final bool hideDisabledMembers;
-  final int maxResponses; // Max responses per turn (0 = unlimited)
-
-  const GroupSettings({
-    this.responseMode = GroupResponseMode.sequential,
-    this.autoModeDelay = 5000,
-    this.allowSelfResponse = false,
-    this.hideDisabledMembers = true,
-    this.maxResponses = 1,
-  });
-
-  GroupSettings copyWith({
+@freezed
+class GroupSettings with _$GroupSettings {
+  const factory GroupSettings({
+    /// Activation strategy (how to select next speaker)
+    @Default(GroupActivationStrategy.natural) GroupActivationStrategy activationStrategy,
+    
+    /// Generation mode (how to handle responses)
+    @Default(GroupGenerationMode.swap) GroupGenerationMode generationMode,
+    
+    /// Delay between auto-responses in milliseconds
+    @Default(5000) int autoModeDelay,
+    
+    /// Can a character respond to themselves
+    @Default(false) bool allowSelfResponse,
+    
+    /// Hide disabled/muted members from UI
+    @Default(true) bool hideDisabledMembers,
+    
+    /// Max responses per turn (0 = unlimited)
+    @Default(1) int maxResponses,
+    
+    // === Legacy field mapping ===
+    /// Response mode (legacy, maps to activationStrategy)
+    @JsonKey(includeFromJson: false, includeToJson: false)
     GroupResponseMode? responseMode,
-    int? autoModeDelay,
-    bool? allowSelfResponse,
-    bool? hideDisabledMembers,
-    int? maxResponses,
-  }) {
-    return GroupSettings(
-      responseMode: responseMode ?? this.responseMode,
-      autoModeDelay: autoModeDelay ?? this.autoModeDelay,
-      allowSelfResponse: allowSelfResponse ?? this.allowSelfResponse,
-      hideDisabledMembers: hideDisabledMembers ?? this.hideDisabledMembers,
-      maxResponses: maxResponses ?? this.maxResponses,
-    );
-  }
+    
+    // === New fields for SillyTavern compatibility ===
+    
+    /// Whether to auto-select next speaker
+    @Default(true) bool autoSelectSpeaker,
+    
+    /// Whether to show character names in messages
+    @Default(true) bool showCharacterNames,
+    
+    /// Whether to allow user to speak as characters
+    @Default(true) bool allowUserAsCharacter,
+    
+    /// Minimum messages before same character can speak again
+    @Default(0) int minMessagesBetweenSameSpeaker,
+    
+    /// Whether to use character-specific prompts
+    @Default(true) bool useCharacterPrompts,
+    
+    /// Whether to merge consecutive messages from same character
+    @Default(false) bool mergeConsecutiveMessages,
+    
+    /// Group-specific system prompt (prepended to character prompts)
+    @Default('') String groupSystemPrompt,
+    
+    /// Whether to include group scenario in prompts
+    @Default(true) bool includeGroupScenario,
+    
+    /// Whether to include member list in prompts
+    @Default(true) bool includeMemberList,
+    
+    /// Format for member list
+    @Default('{{char}} is present in this conversation.') String memberListFormat,
+    
+    /// Whether to favor triggered characters
+    @Default(true) bool favorTriggeredCharacters,
+    
+    /// Weight multiplier for triggered characters
+    @Default(2.0) double triggeredCharacterWeight,
+  }) = _GroupSettings;
 
-  Map<String, dynamic> toJson() => {
-        'responseMode': responseMode.name,
-        'autoModeDelay': autoModeDelay,
-        'allowSelfResponse': allowSelfResponse,
-        'hideDisabledMembers': hideDisabledMembers,
-        'maxResponses': maxResponses,
-      };
-
-  factory GroupSettings.fromJson(Map<String, dynamic> json) => GroupSettings(
-        responseMode: GroupResponseMode.values.firstWhere(
-          (m) => m.name == json['responseMode'],
-          orElse: () => GroupResponseMode.sequential,
-        ),
-        autoModeDelay: json['autoModeDelay'] as int? ?? 5000,
-        allowSelfResponse: json['allowSelfResponse'] as bool? ?? false,
-        hideDisabledMembers: json['hideDisabledMembers'] as bool? ?? true,
-        maxResponses: json['maxResponses'] as int? ?? 1,
-      );
+  factory GroupSettings.fromJson(Map<String, dynamic> json) => _$GroupSettingsFromJson(json);
 }
 
-/// How characters take turns in group chats
+/// Extension methods for GroupSettings
+extension GroupSettingsExtension on GroupSettings {
+  /// Convert legacy responseMode to activationStrategy
+  GroupActivationStrategy get effectiveActivationStrategy {
+    if (responseMode != null) {
+      switch (responseMode!) {
+        case GroupResponseMode.sequential:
+          return GroupActivationStrategy.list;
+        case GroupResponseMode.random:
+          return GroupActivationStrategy.pooled;
+        case GroupResponseMode.all:
+          return GroupActivationStrategy.list;
+        case GroupResponseMode.manual:
+          return GroupActivationStrategy.manual;
+        case GroupResponseMode.natural:
+          return GroupActivationStrategy.natural;
+      }
+    }
+    return activationStrategy;
+  }
+}
+
+/// Legacy response mode enum (for backwards compatibility)
 enum GroupResponseMode {
   /// Characters respond in order
   sequential,
@@ -192,4 +239,111 @@ enum GroupResponseMode {
   manual,
   /// Natural language processing determines who should respond
   natural,
+}
+
+/// Information about a past group chat
+@freezed
+class GroupChatInfo with _$GroupChatInfo {
+  const factory GroupChatInfo({
+    required String chatId,
+    required String name,
+    required DateTime createdAt,
+    required DateTime lastMessageAt,
+    @Default(0) int messageCount,
+    String? previewText,
+  }) = _GroupChatInfo;
+
+  factory GroupChatInfo.fromJson(Map<String, dynamic> json) => _$GroupChatInfoFromJson(json);
+}
+
+/// SillyTavern group export format
+@freezed
+class GroupExport with _$GroupExport {
+  const factory GroupExport({
+    required String id,
+    required String name,
+    String? description,
+    @Default([]) List<String> members, // Character IDs/names
+    @JsonKey(name: 'activation_strategy') @Default(0) int activationStrategy,
+    @JsonKey(name: 'generation_mode') @Default(0) int generationMode,
+    @JsonKey(name: 'disabled_members') @Default([]) List<String> disabledMembers,
+    @JsonKey(name: 'chat_metadata') @Default({}) Map<String, dynamic> chatMetadata,
+    @JsonKey(name: 'past_metadata') @Default({}) Map<String, dynamic> pastMetadata,
+    @JsonKey(name: 'fav') @Default(false) bool fav,
+    @JsonKey(name: 'chat_id') String? chatId,
+    @JsonKey(name: 'chats') @Default([]) List<String> chats,
+  }) = _GroupExport;
+
+  factory GroupExport.fromJson(Map<String, dynamic> json) => _$GroupExportFromJson(json);
+}
+
+/// Convert Group to export format
+GroupExport groupToExport(Group group) {
+  return GroupExport(
+    id: group.id,
+    name: group.name,
+    description: group.description,
+    members: group.members.map((m) => m.characterId).toList(),
+    activationStrategy: group.settings.activationStrategy.index,
+    generationMode: group.settings.generationMode.index,
+    disabledMembers: group.members
+        .where((m) => m.isMuted)
+        .map((m) => m.characterId)
+        .toList(),
+    chatMetadata: group.chatMetadata,
+    fav: group.isFavorite,
+    chats: group.pastChats.map((c) => c.chatId).toList(),
+  );
+}
+
+/// Convert export format to Group
+Group groupFromExport(GroupExport export) {
+  final now = DateTime.now();
+  
+  // Parse activation strategy
+  GroupActivationStrategy activationStrategy;
+  if (export.activationStrategy >= 0 && 
+      export.activationStrategy < GroupActivationStrategy.values.length) {
+    activationStrategy = GroupActivationStrategy.values[export.activationStrategy];
+  } else {
+    activationStrategy = GroupActivationStrategy.natural;
+  }
+  
+  // Parse generation mode
+  GroupGenerationMode generationMode;
+  if (export.generationMode >= 0 && 
+      export.generationMode < GroupGenerationMode.values.length) {
+    generationMode = GroupGenerationMode.values[export.generationMode];
+  } else {
+    generationMode = GroupGenerationMode.swap;
+  }
+  
+  return Group(
+    id: export.id,
+    name: export.name,
+    description: export.description,
+    members: export.members.asMap().entries.map((entry) {
+      final index = entry.key;
+      final characterId = entry.value;
+      return GroupMember(
+        characterId: characterId,
+        isMuted: export.disabledMembers.contains(characterId),
+        insertionOrder: index,
+      );
+    }).toList(),
+    settings: GroupSettings(
+      activationStrategy: activationStrategy,
+      generationMode: generationMode,
+    ),
+    isFavorite: export.fav,
+    chatMetadata: export.chatMetadata,
+    pastChats: export.chats.map((chatId) => GroupChatInfo(
+      chatId: chatId,
+      name: chatId,
+      createdAt: now,
+      lastMessageAt: now,
+    )).toList(),
+    createdAt: now,
+    modifiedAt: now,
+  );
 }

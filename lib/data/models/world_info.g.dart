@@ -6,6 +6,51 @@ part of 'world_info.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$WorldInfoCharacterFilterImpl _$$WorldInfoCharacterFilterImplFromJson(
+        Map<String, dynamic> json) =>
+    _$WorldInfoCharacterFilterImpl(
+      type: $enumDecodeNullable(
+              _$WorldInfoCharacterFilterTypeEnumMap, json['type']) ??
+          WorldInfoCharacterFilterType.none,
+      characterIds: (json['characterIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
+    );
+
+Map<String, dynamic> _$$WorldInfoCharacterFilterImplToJson(
+        _$WorldInfoCharacterFilterImpl instance) =>
+    <String, dynamic>{
+      'type': _$WorldInfoCharacterFilterTypeEnumMap[instance.type]!,
+      'characterIds': instance.characterIds,
+      'tags': instance.tags,
+    };
+
+const _$WorldInfoCharacterFilterTypeEnumMap = {
+  WorldInfoCharacterFilterType.none: 'none',
+  WorldInfoCharacterFilterType.include: 'include',
+  WorldInfoCharacterFilterType.exclude: 'exclude',
+};
+
+_$WorldInfoTimedEffectsImpl _$$WorldInfoTimedEffectsImplFromJson(
+        Map<String, dynamic> json) =>
+    _$WorldInfoTimedEffectsImpl(
+      sticky: (json['sticky'] as num?)?.toInt() ?? 0,
+      cooldown: (json['cooldown'] as num?)?.toInt() ?? 0,
+      delay: (json['delay'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$$WorldInfoTimedEffectsImplToJson(
+        _$WorldInfoTimedEffectsImpl instance) =>
+    <String, dynamic>{
+      'sticky': instance.sticky,
+      'cooldown': instance.cooldown,
+      'delay': instance.delay,
+    };
+
 _$WorldInfoImpl _$$WorldInfoImplFromJson(Map<String, dynamic> json) =>
     _$WorldInfoImpl(
       id: json['id'] as String,
@@ -20,6 +65,14 @@ _$WorldInfoImpl _$$WorldInfoImplFromJson(Map<String, dynamic> json) =>
       characterId: json['characterId'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       modifiedAt: DateTime.parse(json['modifiedAt'] as String),
+      defaultScanDepth: (json['defaultScanDepth'] as num?)?.toInt() ?? 4,
+      recursiveScanning: json['recursiveScanning'] as bool? ?? true,
+      maxRecursionDepth: (json['maxRecursionDepth'] as num?)?.toInt() ?? 3,
+      allowEntryCascade: json['allowEntryCascade'] as bool? ?? true,
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const [],
+      creatorNotes: json['creatorNotes'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$WorldInfoImplToJson(_$WorldInfoImpl instance) =>
@@ -33,6 +86,12 @@ Map<String, dynamic> _$$WorldInfoImplToJson(_$WorldInfoImpl instance) =>
       'characterId': instance.characterId,
       'createdAt': instance.createdAt.toIso8601String(),
       'modifiedAt': instance.modifiedAt.toIso8601String(),
+      'defaultScanDepth': instance.defaultScanDepth,
+      'recursiveScanning': instance.recursiveScanning,
+      'maxRecursionDepth': instance.maxRecursionDepth,
+      'allowEntryCascade': instance.allowEntryCascade,
+      'tags': instance.tags,
+      'creatorNotes': instance.creatorNotes,
     };
 
 _$WorldInfoEntryImpl _$$WorldInfoEntryImplFromJson(Map<String, dynamic> json) =>
@@ -67,6 +126,22 @@ _$WorldInfoEntryImpl _$$WorldInfoEntryImplFromJson(Map<String, dynamic> json) =>
       delayUntilRecursion: json['delayUntilRecursion'] as bool? ?? false,
       scanDepth: (json['scanDepth'] as num?)?.toInt() ?? 0,
       extensions: json['extensions'] as Map<String, dynamic>? ?? const {},
+      role: $enumDecodeNullable(_$WorldInfoRoleEnumMap, json['role']) ??
+          WorldInfoRole.system,
+      timedEffects: json['timedEffects'] == null
+          ? const WorldInfoTimedEffects()
+          : WorldInfoTimedEffects.fromJson(
+              json['timedEffects'] as Map<String, dynamic>),
+      characterFilter: json['characterFilter'] == null
+          ? const WorldInfoCharacterFilter()
+          : WorldInfoCharacterFilter.fromJson(
+              json['characterFilter'] as Map<String, dynamic>),
+      groupOverride: (json['groupOverride'] as num?)?.toInt() ?? 0,
+      excludeRecursion: json['excludeRecursion'] as bool? ?? false,
+      useProbability: json['useProbability'] as bool? ?? false,
+      vectorized: json['vectorized'] as String?,
+      displayIndex: (json['displayIndex'] as num?)?.toInt() ?? 0,
+      isFavorite: json['isFavorite'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$WorldInfoEntryImplToJson(
@@ -95,6 +170,15 @@ Map<String, dynamic> _$$WorldInfoEntryImplToJson(
       'delayUntilRecursion': instance.delayUntilRecursion,
       'scanDepth': instance.scanDepth,
       'extensions': instance.extensions,
+      'role': _$WorldInfoRoleEnumMap[instance.role]!,
+      'timedEffects': instance.timedEffects,
+      'characterFilter': instance.characterFilter,
+      'groupOverride': instance.groupOverride,
+      'excludeRecursion': instance.excludeRecursion,
+      'useProbability': instance.useProbability,
+      'vectorized': instance.vectorized,
+      'displayIndex': instance.displayIndex,
+      'isFavorite': instance.isFavorite,
     };
 
 const _$WorldInfoPositionEnumMap = {
@@ -106,6 +190,12 @@ const _$WorldInfoPositionEnumMap = {
   WorldInfoPosition.EMTop: 5,
   WorldInfoPosition.EMBottom: 6,
   WorldInfoPosition.outlet: 7,
+};
+
+const _$WorldInfoRoleEnumMap = {
+  WorldInfoRole.system: 0,
+  WorldInfoRole.user: 1,
+  WorldInfoRole.assistant: 2,
 };
 
 _$WorldInfoExportImpl _$$WorldInfoExportImplFromJson(
@@ -156,6 +246,10 @@ _$WorldInfoEntryExportImpl _$$WorldInfoEntryExportImplFromJson(
       role: json['role'] as String? ?? '',
       vectorized: json['vectorized'] as String? ?? '',
       extensions: json['extensions'] as Map<String, dynamic>? ?? const {},
+      sticky: (json['sticky'] as num?)?.toInt() ?? 0,
+      cooldown: (json['cooldown'] as num?)?.toInt() ?? 0,
+      delay: (json['delay'] as num?)?.toInt() ?? 0,
+      characterFilter: json['character_filter'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$WorldInfoEntryExportImplToJson(
@@ -188,4 +282,8 @@ Map<String, dynamic> _$$WorldInfoEntryExportImplToJson(
       'role': instance.role,
       'vectorized': instance.vectorized,
       'extensions': instance.extensions,
+      'sticky': instance.sticky,
+      'cooldown': instance.cooldown,
+      'delay': instance.delay,
+      'character_filter': instance.characterFilter,
     };

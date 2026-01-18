@@ -70,6 +70,10 @@ class LLMConfig {
   final double mirostatEta;
   final List<String> stopSequences;
   final int seed;
+  
+  // Auto-summarization settings
+  final bool autoSummarizeEnabled;
+  final double autoSummarizeThreshold;
 
   const LLMConfig({
     required this.provider,
@@ -96,6 +100,9 @@ class LLMConfig {
     this.mirostatEta = 0.1,
     this.stopSequences = const [],
     this.seed = -1,
+    // Auto-summarization defaults
+    this.autoSummarizeEnabled = true,
+    this.autoSummarizeThreshold = 0.8,
   });
 
   LLMConfig copyWith({
@@ -122,6 +129,8 @@ class LLMConfig {
     double? mirostatEta,
     List<String>? stopSequences,
     int? seed,
+    bool? autoSummarizeEnabled,
+    double? autoSummarizeThreshold,
   }) {
     return LLMConfig(
       provider: provider ?? this.provider,
@@ -147,6 +156,8 @@ class LLMConfig {
       mirostatEta: mirostatEta ?? this.mirostatEta,
       stopSequences: stopSequences ?? this.stopSequences,
       seed: seed ?? this.seed,
+      autoSummarizeEnabled: autoSummarizeEnabled ?? this.autoSummarizeEnabled,
+      autoSummarizeThreshold: autoSummarizeThreshold ?? this.autoSummarizeThreshold,
     );
   }
 
@@ -174,6 +185,8 @@ class LLMConfig {
         'mirostatEta': mirostatEta,
         'stopSequences': stopSequences,
         'seed': seed,
+        'autoSummarizeEnabled': autoSummarizeEnabled,
+        'autoSummarizeThreshold': autoSummarizeThreshold,
       };
 
   factory LLMConfig.fromJson(Map<String, dynamic> json) => LLMConfig(
@@ -203,6 +216,8 @@ class LLMConfig {
         mirostatEta: (json['mirostatEta'] as num?)?.toDouble() ?? 0.1,
         stopSequences: (json['stopSequences'] as List<dynamic>?)?.cast<String>() ?? const [],
         seed: json['seed'] as int? ?? -1,
+        autoSummarizeEnabled: json['autoSummarizeEnabled'] as bool? ?? true,
+        autoSummarizeThreshold: (json['autoSummarizeThreshold'] as num?)?.toDouble() ?? 0.8,
       );
 }
 

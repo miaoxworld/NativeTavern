@@ -65,6 +65,10 @@ class GenerationSettings with _$GenerationSettings {
     @Default(false) bool stream,
     int? seed,
     
+    // Auto-summarization settings
+    @Default(true) bool autoSummarizeEnabled,
+    @Default(0.8) double autoSummarizeThreshold, // Trigger at 80% of context
+    
     // Additional parameters for specific providers
     @Default({}) Map<String, dynamic> extra,
   }) = _GenerationSettings;

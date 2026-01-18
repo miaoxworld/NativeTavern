@@ -52,7 +52,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         _group = group;
         _nameController.text = group.name;
         _descriptionController.text = group.description ?? '';
-        _responseMode = group.settings.responseMode;
+        _responseMode = group.settings.responseMode ?? GroupResponseMode.natural;
         _isLoading = false;
       });
     } catch (e) {

@@ -1694,7 +1694,9 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     
     if (activeMemberIds.isEmpty) return [];
     
-    switch (group.settings.responseMode) {
+    final responseMode = group.settings.responseMode ?? GroupResponseMode.natural;
+    
+    switch (responseMode) {
       case GroupResponseMode.sequential:
         // Return the next character in sequence
         final lastAssistantMsg = state.messages.reversed

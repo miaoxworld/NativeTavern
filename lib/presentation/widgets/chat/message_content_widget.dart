@@ -26,6 +26,8 @@ class MessageContentWidget extends StatefulWidget {
   /// Whether the message is currently being streamed (AI is still generating)
   /// When true, WebView will not be used even for complex HTML to avoid rendering issues
   final bool isStreaming;
+  /// Optional message ID for tracking content changes and forcing re-renders
+  final String? messageId;
 
   const MessageContentWidget({
     super.key,
@@ -37,6 +39,7 @@ class MessageContentWidget extends StatefulWidget {
     this.onCopySelection,
     this.onLongPress,
     this.isStreaming = false,
+    this.messageId,
   });
 
   @override
@@ -45,6 +48,21 @@ class MessageContentWidget extends StatefulWidget {
 
 class _MessageContentWidgetState extends State<MessageContentWidget> {
   String? _selectedText;
+  /// Content key for forcing WebView re-render after streaming ends
+  int _contentVersion = 0;
+
+  @override
+  void didUpdateWidget(MessageContentWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Detect when streaming ends - this is the key moment to re-render
+    if (oldWidget.isStreaming && !widget.isStreaming) {
+      // Streaming just ended, increment content version to force WebView reload
+      setState(() {
+        _contentVersion++;
+      });
+    }
+  }
 
   /// Check if content contains HTML tags
   bool _containsHtml(String text) {
@@ -172,11 +190,14 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     // use WebView for full CSS support. During streaming, always use Markdown to avoid
     // rendering issues with constantly updating content.
     if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
+      // Generate a content key that changes when streaming ends, forcing a re-render
+      final contentKey = '${widget.messageId ?? widget.content.hashCode}_v$_contentVersion';
       contentWidget = HtmlWebViewWidget(
         htmlContent: widget.content,
         textColor: widget.textColor,
         fontSize: widget.fontSize,
         onLongPress: widget.onLongPress,
+        contentKey: contentKey,
       );
     }
     // For all other content (including simple HTML), convert to Markdown and render

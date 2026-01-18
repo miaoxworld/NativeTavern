@@ -3342,6 +3342,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Long-press a message to create a bookmark';
 
   @override
+  String get contextManagement => 'Context Management';
+
+  @override
+  String get autoSummarize => 'Auto-Summarize';
+
+  @override
+  String get autoSummarizeDescription =>
+      'Automatically summarize and compress chat history when context usage is high';
+
+  @override
+  String get autoSummarizeThreshold => 'Auto-Summarize Threshold';
+
+  @override
+  String get autoSummarizeThresholdDescription =>
+      'Trigger summarization when context reaches this percentage of maximum';
+
+  @override
   String get branchFromBookmark => 'Branch from Bookmark';
 
   @override

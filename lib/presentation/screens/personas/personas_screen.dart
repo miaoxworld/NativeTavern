@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:native_tavern/data/models/persona.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
+import 'package:native_tavern/presentation/screens/personas/persona_editor_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -116,38 +117,19 @@ class PersonasScreen extends ConsumerWidget {
   }
 
   void _showCreatePersonaDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => _PersonaDialog(
-        title: AppLocalizations.of(context)!.createPersona,
-        onSave: (name, description, avatarPath) async {
-          await ref.read(personaNotifierProvider.notifier).createPersona(
-                name: name,
-                description: description,
-                avatarPath: avatarPath,
-              );
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PersonaEditorScreen(),
       ),
     );
   }
 
   void _showEditPersonaDialog(BuildContext context, WidgetRef ref, Persona persona) {
-    showDialog(
-      context: context,
-      builder: (context) => _PersonaDialog(
-        title: AppLocalizations.of(context)!.editPersona,
-        initialName: persona.name,
-        initialDescription: persona.description,
-        initialAvatarPath: persona.avatarPath,
-        onSave: (name, description, avatarPath) async {
-          await ref.read(personaNotifierProvider.notifier).updatePersona(
-                persona.copyWith(
-                  name: name,
-                  description: description,
-                  avatarPath: avatarPath,
-                ),
-              );
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PersonaEditorScreen(persona: persona),
       ),
     );
   }
