@@ -514,7 +514,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ollama => 'Ollama';
 
   @override
+  String get lmStudio => 'LM Studio';
+
+  @override
   String get koboldCpp => 'KoboldCpp';
+
+  @override
+  String get xai => 'xAI (Grok)';
 
   @override
   String get local => 'ローカル';
@@ -3220,6 +3226,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get apiKeyHint => 'sk-...';
 
   @override
+  String get xaiApiKeyHint => 'xai-...';
+
+  @override
   String temperatureValue(String value) {
     return '$value';
   }
@@ -3652,7 +3661,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enableICloudBackupDescription =>
-      'Automatically sync backups to iCloud';
+      'Save backups to iCloud Drive so they appear on your other Apple devices';
+
+  @override
+  String get enableCrossDeviceSync => 'Automatic cross-device sync';
+
+  @override
+  String get enableCrossDeviceSyncDescription =>
+      'Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.';
+
+  @override
+  String get enableGoogleDriveBackup => 'Enable Google Drive Backup';
+
+  @override
+  String get enableGoogleDriveBackupDescription =>
+      'Save backups to Google Drive so they appear on your other Android and signed-in devices';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get crossDeviceSyncComplete => 'Devices are in sync';
+
+  @override
+  String get openingBackupFile => 'Opening backup…';
 
   @override
   String get iCloudNotAvailable => 'iCloud Not Available';
@@ -3730,7 +3762,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aboutRestoreModesDescription =>
-      'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.';
+      'Replace: Overwrites all local data with backup data.\nMerge: Keeps both, newer data wins for conflicts.\nAdd New Only: Only adds new items, keeps all existing data.';
 
   @override
   String get signInToGoogleDrive => 'Sign in to Google Drive';
@@ -6536,4 +6568,80 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiDataSharingLocalOnlyDescription => 'ブロック中。ローカル AI は利用できます';
+
+  @override
+  String get localBackup => 'ローカル・ファイルバックアップ';
+
+  @override
+  String get localBackupDescription =>
+      'NativeTavern の .ntx 結合バックアップまたは .ntb データバックアップをデバイスやファイルアプリにエクスポート/インポートします';
+
+  @override
+  String get exportNtbBackup => 'データバックアップをエクスポート (.ntb)';
+
+  @override
+  String get exportNtbBackupSubtitle =>
+      'JSON データのみ保存します。メディアは .ntm として別に保存されます';
+
+  @override
+  String get exportNtxBackup => '結合バックアップをエクスポート (.ntx)';
+
+  @override
+  String get exportNtxBackupSubtitle => 'アプリデータとメディアを 1 つの .ntx ファイルに保存します';
+
+  @override
+  String get importNtbBackup => 'バックアップファイルをインポート (.ntb)';
+
+  @override
+  String get importNtbBackupSubtitle => 'ローカルの .ntb ファイルからデータを復元または統合';
+
+  @override
+  String get importNtxBackup => 'バックアップをインポート (.ntx / .ntb)';
+
+  @override
+  String get importNtxBackupSubtitle =>
+      '結合 .ntx ファイルまたは .ntb データバックアップから復元または統合します';
+
+  @override
+  String get exportToFiles => 'ファイルに保存';
+
+  @override
+  String get shareBackup => 'バックアップを共有';
+
+  @override
+  String get exportOptions => 'エクスポート設定';
+
+  @override
+  String get selectNtbFile => 'NativeTavern バックアップ (.ntb) を選択';
+
+  @override
+  String get selectNtbFileDescription =>
+      '.ntb バックアップファイルと対応する .ntm メディアファイルを選択';
+
+  @override
+  String get selectNtxFile => 'NativeTavern バックアップを選択';
+
+  @override
+  String get selectNtxFileDescription =>
+      '.ntx 結合バックアップ、または任意の .ntm メディア付き .ntb ファイルを選択';
+
+  @override
+  String get backupSavedToFilesApp => 'バックアップをファイルに保存しました';
+
+  @override
+  String get backupSavedToAppFolder =>
+      'ファイルアプリに保存できませんでした。NativeTavern/Backups に保存しました。';
+
+  @override
+  String get savedToFilesApp => 'ファイルに保存しました';
+
+  @override
+  String get importBackupExplanation =>
+      'このバックアップファイルからキャラクター、チャット、設定、メディアを復元または統合します。';
+
+  @override
+  String get restoringBackup => 'バックアップを復元中...';
+
+  @override
+  String get exportingBackup => 'バックアップをエクスポート中...';
 }

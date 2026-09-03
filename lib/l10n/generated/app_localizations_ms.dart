@@ -523,7 +523,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get ollama => 'Ollama';
 
   @override
+  String get lmStudio => 'LM Studio';
+
+  @override
   String get koboldCpp => 'KoboldCpp';
+
+  @override
+  String get xai => 'xAI (Grok)';
 
   @override
   String get local => 'Tempatan';
@@ -3230,6 +3236,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get apiKeyHint => 'sk-...';
 
   @override
+  String get xaiApiKeyHint => 'xai-...';
+
+  @override
   String temperatureValue(String value) {
     return '$value';
   }
@@ -3662,7 +3671,30 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get enableICloudBackupDescription =>
-      'Automatically sync backups to iCloud';
+      'Save backups to iCloud Drive so they appear on your other Apple devices';
+
+  @override
+  String get enableCrossDeviceSync => 'Automatic cross-device sync';
+
+  @override
+  String get enableCrossDeviceSyncDescription =>
+      'Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.';
+
+  @override
+  String get enableGoogleDriveBackup => 'Enable Google Drive Backup';
+
+  @override
+  String get enableGoogleDriveBackupDescription =>
+      'Save backups to Google Drive so they appear on your other Android and signed-in devices';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get crossDeviceSyncComplete => 'Devices are in sync';
+
+  @override
+  String get openingBackupFile => 'Opening backup…';
 
   @override
   String get iCloudNotAvailable => 'iCloud Not Available';
@@ -3740,7 +3772,7 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get aboutRestoreModesDescription =>
-      'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.';
+      'Replace: Overwrites all local data with backup data.\nMerge: Keeps both, newer data wins for conflicts.\nAdd New Only: Only adds new items, keeps all existing data.';
 
   @override
   String get signInToGoogleDrive => 'Sign in to Google Drive';
@@ -6551,4 +6583,82 @@ class AppLocalizationsMs extends AppLocalizations {
   @override
   String get aiDataSharingLocalOnlyDescription =>
       'Disekat; AI setempat kekal tersedia';
+
+  @override
+  String get localBackup => 'Local & File Backup';
+
+  @override
+  String get localBackupDescription =>
+      'Export and import NativeTavern .ntx combined backups or .ntb data backups to your device storage or files app';
+
+  @override
+  String get exportNtbBackup => 'Export Data Backup (.ntb)';
+
+  @override
+  String get exportNtbBackupSubtitle =>
+      'Save JSON data only; media is stored separately as .ntm';
+
+  @override
+  String get exportNtxBackup => 'Export Combined Backup (.ntx)';
+
+  @override
+  String get exportNtxBackupSubtitle =>
+      'Save app data and media together in one .ntx file';
+
+  @override
+  String get importNtbBackup => 'Import Backup File (.ntb)';
+
+  @override
+  String get importNtbBackupSubtitle =>
+      'Restore or merge data from a local .ntb file';
+
+  @override
+  String get importNtxBackup => 'Import Backup (.ntx / .ntb)';
+
+  @override
+  String get importNtxBackupSubtitle =>
+      'Restore or merge data from a combined .ntx file or a .ntb data backup';
+
+  @override
+  String get exportToFiles => 'Save to Files';
+
+  @override
+  String get shareBackup => 'Share Backup';
+
+  @override
+  String get exportOptions => 'Export Options';
+
+  @override
+  String get selectNtbFile => 'Select NativeTavern Backup (.ntb)';
+
+  @override
+  String get selectNtbFileDescription =>
+      'Pick the .ntb backup file and optional .ntm media file';
+
+  @override
+  String get selectNtxFile => 'Select NativeTavern Backup';
+
+  @override
+  String get selectNtxFileDescription =>
+      'Pick a .ntx combined backup, or a .ntb file with optional .ntm media';
+
+  @override
+  String get backupSavedToFilesApp => 'Backup saved to Files';
+
+  @override
+  String get backupSavedToAppFolder =>
+      'Could not save to Files. Backup saved to NativeTavern/Backups.';
+
+  @override
+  String get savedToFilesApp => 'Saved to Files';
+
+  @override
+  String get importBackupExplanation =>
+      'Restore or merge characters, chats, settings, and media from this backup file.';
+
+  @override
+  String get restoringBackup => 'Restoring backup...';
+
+  @override
+  String get exportingBackup => 'Exporting backup...';
 }

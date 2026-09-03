@@ -44,20 +44,21 @@ void refreshContextUsageProviders(WidgetRef ref) {
 /// Provider for matched world info entries in current chat
 /// This calculates which world info entries would be included in the context
 /// During generation (isGenerating = true), returns cached value to avoid expensive recalculation
-final matchedWorldInfoEntriesProvider = FutureProvider<List<WorldInfoEntry>>((ref) async {
+final matchedWorldInfoEntriesProvider =
+    FutureProvider<List<WorldInfoEntry>>((ref) async {
   final chatState = ref.watch(activeChatProvider);
-  
+
   // Skip recalculation during generation, return cached value
   if (chatState.isGenerating) {
     return _cachedWorldInfoEntries ?? [];
   }
-  
+
   final worldInfoMatcher = ref.watch(worldInfoMatcherProvider);
   final activeWorldInfoIds = ref.watch(activeWorldInfoIdsProvider);
   // Use worldInfoNotifierProvider instead of allWorldInfosProvider
   // This ensures updates (including enabled/disabled toggle) trigger recalculation
   final worldInfosAsync = ref.watch(worldInfoNotifierProvider);
-  
+
   // Handle loading/error states
   final allWorldInfos = worldInfosAsync.valueOrNull ?? [];
 
@@ -76,15 +77,16 @@ final matchedWorldInfoEntriesProvider = FutureProvider<List<WorldInfoEntry>>((re
   // NOTE: Only world infos with isGlobal == true are treated as global
   // World infos with characterId == null but isGlobal == false are NOT auto-included
   final enabledWorldInfoIds = allWorldInfos
-      .where((w) => w.enabled && (
-          w.isGlobal ||
-          w.characterId == character.id ||
-          activeWorldInfoIds.contains(w.id)
-      ))
+      .where((w) =>
+          w.enabled &&
+          (w.isGlobal ||
+              w.characterId == character.id ||
+              activeWorldInfoIds.contains(w.id)))
       .map((w) => w.id)
       .toList();
 
-  final allWorldInfoIds = <String>{...enabledWorldInfoIds, ...activeWorldInfoIds}.toList();
+  final allWorldInfoIds =
+      <String>{...enabledWorldInfoIds, ...activeWorldInfoIds}.toList();
 
   if (allWorldInfoIds.isEmpty) {
     _cachedWorldInfoEntries = [];
@@ -107,12 +109,12 @@ final matchedWorldInfoEntriesProvider = FutureProvider<List<WorldInfoEntry>>((re
 /// During generation, returns cached value to avoid performance impact
 final contextUsageProvider = Provider<ContextUsage?>((ref) {
   final chatState = ref.watch(activeChatProvider);
-  
+
   // Skip recalculation during generation, return cached value
   if (chatState.isGenerating) {
     return _cachedContextUsage;
   }
-  
+
   final llmConfig = ref.watch(llmConfigProvider);
   final activePersona = ref.watch(activePersonaProvider);
   final promptConfig = ref.watch(promptManagerProvider);
@@ -137,7 +139,7 @@ final contextUsageProvider = Provider<ContextUsage?>((ref) {
     enabledSections: promptConfig.enabledSections,
     worldInfoEntries: worldInfoEntries,
   );
-  
+
   // Cache the result
   _cachedContextUsage = usage;
   return usage;
@@ -148,17 +150,18 @@ final contextUsageProvider = Provider<ContextUsage?>((ref) {
 /// During generation, returns cached value
 final detailedContextUsageProvider = FutureProvider<ContextUsage?>((ref) async {
   final chatState = ref.watch(activeChatProvider);
-  
+
   // Skip recalculation during generation, return cached value
   if (chatState.isGenerating) {
     return _cachedDetailedContextUsage;
   }
-  
+
   final llmConfig = ref.watch(llmConfigProvider);
   final activePersona = await ref.watch(activePersonaProvider.future);
   final promptConfig = ref.watch(promptManagerProvider);
   final service = ref.watch(contextUsageServiceProvider);
-  final worldInfoEntries = await ref.watch(matchedWorldInfoEntriesProvider.future);
+  final worldInfoEntries =
+      await ref.watch(matchedWorldInfoEntriesProvider.future);
 
   if (chatState.chat == null) {
     _cachedDetailedContextUsage = null;
@@ -174,7 +177,7 @@ final detailedContextUsageProvider = FutureProvider<ContextUsage?>((ref) async {
     enabledSections: promptConfig.enabledSections,
     worldInfoEntries: worldInfoEntries,
   );
-  
+
   // Cache the result
   _cachedDetailedContextUsage = usage;
   return usage;

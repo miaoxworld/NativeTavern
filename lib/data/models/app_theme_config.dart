@@ -171,7 +171,8 @@ class AppThemeConfig {
   String toJsonString() => jsonEncode(toJson());
 
   factory AppThemeConfig.fromJsonString(String jsonString) {
-    return AppThemeConfig.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+    return AppThemeConfig.fromJson(
+        jsonDecode(jsonString) as Map<String, dynamic>);
   }
 
   @override

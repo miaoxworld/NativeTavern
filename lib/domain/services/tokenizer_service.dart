@@ -67,7 +67,7 @@ class TokenizerService {
   /// Estimate tokenization based on character count
   TokenizationResult _estimateTokenization(String text) {
     final tokenCount = estimateTokenCount(text);
-    
+
     // Create pseudo-tokens based on words
     final words = text.split(RegExp(r'\s+'));
     final tokens = <Token>[];
@@ -96,13 +96,14 @@ class TokenizerService {
   }
 
   /// Word-based tokenization approximation
-  TokenizationResult _wordBasedTokenization(String text, TokenizerType tokenizer) {
+  TokenizationResult _wordBasedTokenization(
+      String text, TokenizerType tokenizer) {
     final tokens = <Token>[];
     int tokenId = 0;
     int offset = 0;
 
     // Split into words and punctuation
-    final pattern = RegExp(r"(\s+|[^\s\w]|\w+)");
+    final pattern = RegExp(r'(\s+|[^\s\w]|\w+)');
     final matches = pattern.allMatches(text);
 
     for (final match in matches) {
@@ -233,7 +234,7 @@ class _LRUCache<K, V> {
 
   V? get(K key) {
     if (!_cache.containsKey(key)) return null;
-    
+
     // Move to end (most recently used)
     final value = _cache.remove(key);
     _cache[key] = value as V;

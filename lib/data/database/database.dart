@@ -558,7 +558,7 @@ class MomentPosts extends Table {
         "CHECK (origin IN ('chapter', 'user', 'character'))",
         "CHECK (status IN ('open', 'waiting', 'ignored'))",
         "CHECK (origin != 'chapter' OR chapter_id IS NOT NULL)",
-        "CHECK (length(public_body) > 0 OR image_path IS NOT NULL)",
+        'CHECK (length(public_body) > 0 OR image_path IS NOT NULL)',
       ];
 }
 

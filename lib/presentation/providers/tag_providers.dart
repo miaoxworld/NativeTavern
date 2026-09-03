@@ -185,13 +185,14 @@ final tagFilterProvider =
 });
 
 /// Provider for filtered character IDs based on tag selection
-final tagFilteredCharacterIdsProvider = FutureProvider<Set<String>?>((ref) async {
+final tagFilteredCharacterIdsProvider =
+    FutureProvider<Set<String>?>((ref) async {
   final filterState = ref.watch(tagFilterProvider);
   if (!filterState.hasFilter) return null;
 
   final repository = ref.watch(tagRepositoryProvider);
   final tagIds = filterState.selectedTagIds.toList();
-  
+
   final characterIds = filterState.matchAll
       ? await repository.getCharactersWithAllTags(tagIds)
       : await repository.getCharactersWithAnyTags(tagIds);

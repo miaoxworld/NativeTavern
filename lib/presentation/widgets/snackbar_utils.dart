@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 void _logSnackBar(String message, {String? error, StackTrace? stackTrace}) {
   final timestamp = DateTime.now().toIso8601String();
   final logMessage = '[$timestamp] SnackBar: $message';
-  
+
   if (kDebugMode) {
     debugPrint(logMessage);
     if (error != null) {
       debugPrint('  Error: $error');
     }
   }
-  
+
   developer.log(
     message,
     name: 'SnackBar',
@@ -23,7 +23,7 @@ void _logSnackBar(String message, {String? error, StackTrace? stackTrace}) {
 }
 
 /// Show a SnackBar with automatic logging
-/// 
+///
 /// This utility function wraps ScaffoldMessenger.showSnackBar with logging
 /// to help debug UI messages in production.
 void showLoggedSnackBar(
@@ -35,7 +35,7 @@ void showLoggedSnackBar(
   bool isError = false,
 }) {
   _logSnackBar(message, error: isError ? message : null);
-  
+
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
@@ -56,7 +56,7 @@ void showErrorSnackBar(
   StackTrace? stackTrace,
 }) {
   _logSnackBar(message, error: error?.toString(), stackTrace: stackTrace);
-  
+
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
@@ -75,7 +75,7 @@ void showSuccessSnackBar(
   SnackBarAction? action,
 }) {
   _logSnackBar(message);
-  
+
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
@@ -93,8 +93,10 @@ extension LoggedSnackBarExtension on ScaffoldMessengerState {
     SnackBar snackBar, {
     String? logMessage,
   }) {
-    final message = logMessage ?? 
-        (snackBar.content is Text ? (snackBar.content as Text).data : 'SnackBar shown');
+    final message = logMessage ??
+        (snackBar.content is Text
+            ? (snackBar.content as Text).data
+            : 'SnackBar shown');
     _logSnackBar(message ?? 'SnackBar shown');
     return showSnackBar(snackBar);
   }

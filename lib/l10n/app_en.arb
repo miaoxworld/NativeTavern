@@ -718,9 +718,17 @@
   "@ollama": {
     "description": "Ollama provider name"
   },
+  "lmStudio": "LM Studio",
+  "@lmStudio": {
+    "description": "LM Studio local provider name"
+  },
   "koboldCpp": "KoboldCpp",
   "@koboldCpp": {
     "description": "KoboldCpp provider name"
+  },
+  "xai": "xAI (Grok)",
+  "@xai": {
+    "description": "xAI (Grok) provider name"
   },
   "local": "Local",
   "@local": {
@@ -4510,7 +4518,11 @@
   },
   "apiKeyHint": "sk-...",
   "@apiKeyHint": {
-    "description": "API key hint"
+    "description": "API key hint for OpenAI-compatible providers"
+  },
+  "xaiApiKeyHint": "xai-...",
+  "@xaiApiKeyHint": {
+    "description": "API key hint for the xAI/Grok provider"
   },
   "temperatureValue": "{value}",
   "@temperatureValue": {
@@ -4986,7 +4998,9 @@
   "@mediaRestoreComplete": {
     "description": "Media file restore count shown after a backup restore",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "mediaNotIncludedInBackup": "This backup does not include a media package; only data was restored.",
@@ -4998,8 +5012,12 @@
   "backupStageCompressingMedia": "Compressing media: {processed}/{total} files",
   "@backupStageCompressingMedia": {
     "placeholders": {
-      "processed": {"type": "int"},
-      "total": {"type": "int"}
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "backupStageUploadingData": "Uploading data backup...",
@@ -5010,8 +5028,12 @@
   "backupStageRestoringMedia": "Restoring media: {processed}/{total} files",
   "@backupStageRestoringMedia": {
     "placeholders": {
-      "processed": {"type": "int"},
-      "total": {"type": "int"}
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "backupStageRestoringData": "Merging or replacing database...",
@@ -5019,9 +5041,37 @@
   "@enableICloudBackup": {
     "description": "Enable iCloud backup toggle"
   },
-  "enableICloudBackupDescription": "Automatically sync backups to iCloud",
+  "enableICloudBackupDescription": "Save backups to iCloud Drive so they appear on your other Apple devices",
   "@enableICloudBackupDescription": {
     "description": "Enable iCloud backup description"
+  },
+  "enableCrossDeviceSync": "Automatic cross-device sync",
+  "@enableCrossDeviceSync": {
+    "description": "Toggle for automatic iCloud/Google Drive sync"
+  },
+  "enableCrossDeviceSyncDescription": "Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.",
+  "@enableCrossDeviceSyncDescription": {
+    "description": "Description of automatic cross-device backup sync"
+  },
+  "enableGoogleDriveBackup": "Enable Google Drive Backup",
+  "@enableGoogleDriveBackup": {
+    "description": "Enable Google Drive backup toggle, the Android counterpart to iCloud backup"
+  },
+  "enableGoogleDriveBackupDescription": "Save backups to Google Drive so they appear on your other Android and signed-in devices",
+  "@enableGoogleDriveBackupDescription": {
+    "description": "Enable Google Drive backup description"
+  },
+  "syncNow": "Sync now",
+  "@syncNow": {
+    "description": "Button that runs an immediate cloud sync"
+  },
+  "crossDeviceSyncComplete": "Devices are in sync",
+  "@crossDeviceSyncComplete": {
+    "description": "Shown after a successful automatic cloud sync"
+  },
+  "openingBackupFile": "Opening backup…",
+  "@openingBackupFile": {
+    "description": "Shown while a backup file opened from the Files app is being prepared"
   },
   "iCloudNotAvailable": "iCloud Not Available",
   "@iCloudNotAvailable": {
@@ -5131,7 +5181,7 @@
   "@aboutRestoreModes": {
     "description": "About restore modes label"
   },
-  "aboutRestoreModesDescription": "Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.",
+  "aboutRestoreModesDescription": "Replace: Overwrites all local data with backup data.\nMerge: Keeps both, newer data wins for conflicts.\nAdd New Only: Only adds new items, keeps all existing data.",
   "@aboutRestoreModesDescription": {
     "description": "About restore modes description"
   },
@@ -5442,14 +5492,18 @@
   "@playAiFeatureEnableTitle": {
     "description": "Title of the confirmation shown before enabling an AI-powered play feature",
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
   "playAiFeatureEnableDescription": "{feature} actively sends character information and relevant conversations to your configured AI provider to generate content. It is off by default. Enable it now?",
   "@playAiFeatureEnableDescription": {
     "description": "Disclosure shown before enabling an AI-powered play feature",
     "placeholders": {
-      "feature": {"type": "String"}
+      "feature": {
+        "type": "String"
+      }
     }
   },
   "playAiFeatureEnableAction": "Enable",
@@ -5488,13 +5542,21 @@
   "storyContinueDraft": "Continue \"{title}\" from here: {direction}",
   "@storyContinueDraft": {
     "placeholders": {
-      "title": {"type": "String"},
-      "direction": {"type": "String"}
+      "title": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "storyForkCreated": "Branch \"{name}\" is ready.",
   "@storyForkCreated": {
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "storyNoOutcome": "No new chapter has formed on this line yet.",
   "storyChooseTwoLines": "Choose two lines to compare.",
@@ -5597,11 +5659,19 @@
   "toolTokens": "tokens",
   "toolDecrease": "Decrease {control}",
   "@toolDecrease": {
-    "placeholders": {"control": {"type": "String"}}
+    "placeholders": {
+      "control": {
+        "type": "String"
+      }
+    }
   },
   "toolIncrease": "Increase {control}",
   "@toolIncrease": {
-    "placeholders": {"control": {"type": "String"}}
+    "placeholders": {
+      "control": {
+        "type": "String"
+      }
+    }
   },
   "toolActivity": "Tool activity",
   "toolApprovalRequired": "Approval required",
@@ -5620,15 +5690,23 @@
   "storageUsedOfQuota": "{used} used of {quota}",
   "@storageUsedOfQuota": {
     "placeholders": {
-      "used": {"type": "String"},
-      "quota": {"type": "String"}
+      "used": {
+        "type": "String"
+      },
+      "quota": {
+        "type": "String"
+      }
     }
   },
   "storageQuotaWarning": "Storage usage is above the warning threshold",
   "storageWithinQuota": "Storage usage is within the warning threshold",
   "storageScanIncomplete": "{count} path(s) could not be inspected",
   "@storageScanIncomplete": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "storageCategoryLive2d": "Live2D models",
   "storageCategoryAttachments": "Attachments and media",
@@ -5637,11 +5715,19 @@
   "storageCategoryCache": "Cache",
   "storageFilesCount": "{count} file(s)",
   "@storageFilesCount": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "storageReclaimable": "{size} reclaimable",
   "@storageReclaimable": {
-    "placeholders": {"size": {"type": "String"}}
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "storageCleanupCandidates": "Safe cleanup",
   "storageNoCleanupCandidates": "No unreferenced or expired files found",
@@ -5653,21 +5739,35 @@
   "storageCleanupReviewBody": "Move {items} item(s), containing {files} file(s) and using {size}, to recoverable trash?",
   "@storageCleanupReviewBody": {
     "placeholders": {
-      "items": {"type": "int"},
-      "files": {"type": "int"},
-      "size": {"type": "String"}
+      "items": {
+        "type": "int"
+      },
+      "files": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "storageCleanupRecoverableHint": "Referenced files are protected. You can undo until staged files are permanently removed.",
   "storageCleanupMoved": "{count} item(s) moved to recoverable trash",
   "@storageCleanupMoved": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "storageCleanupRestored": "Cleanup undone",
   "storageCleanupCompleted": "Cleanup completed",
   "storageCleanupFailed": "Cleanup failed: {error}",
   "@storageCleanupFailed": {
-    "placeholders": {"error": {"type": "String"}}
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "storageReasonInterruptedTemporary": "Interrupted temporary data",
   "storageReasonMissingDatabaseReference": "No database document references this data",
@@ -5678,22 +5778,52 @@
   "live2dUnavailableModelMessage": "The assigned Live2D model is unavailable. Choose another model or import it again.",
   "live2dSelectionExpiredMessage": "That Live2D model is no longer available. Choose another model or import it again.",
   "live2dModelsImported": "{count, plural, =1{Live2D model imported} other{{count} Live2D models imported}}",
-  "@live2dModelsImported": {"placeholders": {"count": {"type": "int"}}},
+  "@live2dModelsImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "live2dModelDeleted": "Imported Live2D model deleted.",
   "live2dCleanupPending": " File cleanup will be retried on the next library refresh.",
   "live2dDeleteImportedModelQuestion": "Delete imported model?",
   "live2dDeletePackageBody": "This package contains {count} models. All of them will be deleted.",
-  "@live2dDeletePackageBody": {"placeholders": {"count": {"type": "int"}}},
+  "@live2dDeletePackageBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "live2dDeleteModelBody": "\"{name}\" will be deleted from this device.",
-  "@live2dDeleteModelBody": {"placeholders": {"name": {"type": "String"}}},
+  "@live2dDeleteModelBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "live2dDisabledFor": "Live2D will be disabled for:",
   "live2dLicensing": "Live2D licensing",
   "live2dLicenseNotice": "The renderer includes the Live2D Cubism SDK and Core. Model files and commercial distribution may have separate terms.\n\nThe bundled Hiyori Momose model is official sample data owned and copyrighted by Live2D Inc. It is used under the Live2D Free Material License Agreement and Sample Data Terms of Use. This app itself is created at the author's sole discretion.\n\nVerify the rights for every imported model before publishing the app.",
   "live2dReviewTerms": "Review terms",
   "live2dUnavailableLabel": "{name} (Unavailable)",
-  "@live2dUnavailableLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@live2dUnavailableLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "live2dImportedLabel": "{name} (Imported)",
-  "@live2dImportedLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@live2dImportedLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "live2dImportZip": "Import model",
   "live2dMotion": "Motion",
   "live2dPlayMotion": "Play motion",
@@ -5701,7 +5831,13 @@
   "live2dMotionSpeed": "Motion speed",
   "live2dImportedModels": "Imported models",
   "live2dModelsCount": "{count, plural, =1{1 model} other{{count} models}}",
-  "@live2dModelsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@live2dModelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "live2dDeleteImportedModel": "Delete imported model",
   "rpgScenarioTitle": "RPG Scenario",
   "rpgImportScenario": "Import scenario",
@@ -5710,31 +5846,67 @@
   "rpgExportScenario": "Export scenario",
   "rpgIssues": "Issues",
   "rpgIssuesCount": "Issues ({count})",
-  "@rpgIssuesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@rpgIssuesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "rpgScenarioImportFailed": "Scenario import failed",
   "rpgScenarioImported": "Imported {name}",
-  "@rpgScenarioImported": {"placeholders": {"name": {"type": "String"}}},
+  "@rpgScenarioImported": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rpgDraftSaved": "Draft saved",
   "rpgDraftRestored": "Draft restored",
   "rpgNoSavedDraft": "No saved draft",
   "rpgScenarioExported": "Scenario exported",
   "rpgSetValue": "Set value",
   "rpgAddItem": "Add {label}",
-  "@rpgAddItem": {"placeholders": {"label": {"type": "String"}}},
+  "@rpgAddItem": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "rpgItemActions": "Item actions",
   "rpgMoveUp": "Move up",
   "rpgMoveDown": "Move down",
   "rpgAddEntry": "Add entry",
   "rpgDeleteEntry": "Delete entry",
   "rpgAddEntryTitle": "Add {label} entry",
-  "@rpgAddEntryTitle": {"placeholders": {"label": {"type": "String"}}},
+  "@rpgAddEntryTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "rpgValue": "Value",
   "rpgEnterInteger": "Enter an integer",
   "rpgEnterNumber": "Enter a number",
   "rpgItemNumber": "Item {number}",
-  "@rpgItemNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@rpgItemNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "rpgFieldLabel": "{field, select, metadata{Metadata} compatibility{Compatibility} initialState{Initial State} initialSeed{Initial Seed} schemaVersion{Schema Version} protectedFields{Protected Fields} minimumEngineVersion{Minimum Engine Version} maximumEngineVersion{Maximum Engine Version} requiredCapabilities{Required Capabilities} actors{Actors} attributes{Attributes} author{Author} availability{Availability} branchId{Branch ID} conditions{Conditions} cooldowns{Cooldowns} costs{Costs} createdAt{Created At} data{Data} day{Day} description{Description} difficulty{Difficulty} effects{Effects} elapsedMinutes{Elapsed Minutes} eventHistory{Event History} expression{Expression} failureEffects{Failure Effects} format{Format} id{ID} initialValue{Initial Value} inventory{Inventory} items{Items} label{Label} locations{Locations} maximum{Maximum} minimum{Minimum} minuteOfDay{Minute of Day} name{Name} narrative{Narrative} objectiveIds{Objective IDs} objectiveProgress{Objective Progress} operator{Operator} quantity{Quantity} quests{Quests} relationships{Relationships} source{Source} stages{Stages} status{Status} successEffects{Success Effects} summary{Summary} tags{Tags} target{Target} turn{Turn} type{Type} updatedAt{Updated At} value{Value} variables{Variables} version{Version} other{{field}}}",
-  "@rpgFieldLabel": {"placeholders": {"field": {"type": "String"}}},
+  "@rpgFieldLabel": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
   "dataBankChatRetrievalSettings": "Chat retrieval settings",
   "dataBankRebuildSearchIndex": "Rebuild search index",
   "dataBankImportDocument": "Import document",
@@ -5744,9 +5916,30 @@
   "dataBankNoDocuments": "No documents",
   "dataBankSearchIndexRebuilt": "Search index rebuilt",
   "dataBankDeleteDocumentQuestion": "Delete {name}?",
-  "@dataBankDeleteDocumentQuestion": {"placeholders": {"name": {"type": "String"}}},
+  "@dataBankDeleteDocumentQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dataBankDeleteDocumentBody": "{versions} version(s), {chunks} chunk(s), {bindings} binding(s), and {files} managed file(s) will be removed.",
-  "@dataBankDeleteDocumentBody": {"placeholders": {"versions": {"type": "int"}, "chunks": {"type": "int"}, "bindings": {"type": "int"}, "files": {"type": "int"}}},
+  "@dataBankDeleteDocumentBody": {
+    "placeholders": {
+      "versions": {
+        "type": "int"
+      },
+      "chunks": {
+        "type": "int"
+      },
+      "bindings": {
+        "type": "int"
+      },
+      "files": {
+        "type": "int"
+      }
+    }
+  },
   "dataBankChatRetrieval": "Chat retrieval",
   "dataBankUseInChat": "Use Data Bank in chat",
   "dataBankQueryExpansion": "Conversation-aware query expansion",
@@ -5761,12 +5954,30 @@
   "dataBankModeSemantic": "Hybrid semantic reranking",
   "dataBankModeFallback": "Local fallback",
   "dataBankSourcesCount": "{count, plural, =1{1 source} other{{count} sources}}",
-  "@dataBankSourcesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@dataBankSourcesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataBankInspectAllSources": "Inspect all sources",
   "dataBankChunksCount": "{count, plural, =1{1 chunk} other{{count} chunks}}",
-  "@dataBankChunksCount": {"placeholders": {"count": {"type": "int"}}},
+  "@dataBankChunksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataBankBindingsCount": "{count, plural, =1{1 binding} other{{count} bindings}}",
-  "@dataBankBindingsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@dataBankBindingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataBankProcessingFailed": "Processing failed",
   "dataBankManageBindings": "Manage bindings",
   "dataBankRebuildDocument": "Rebuild document",
@@ -5774,7 +5985,13 @@
   "dataBankRemoveBinding": "Remove binding",
   "dataBankAddBinding": "Add binding",
   "dataBankStatusSemantics": "Status: {status}",
-  "@dataBankStatusSemantics": {"placeholders": {"status": {"type": "String"}}},
+  "@dataBankStatusSemantics": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "dataBankDismiss": "Dismiss",
   "dataBankStatePending": "Pending",
   "dataBankStateProcessing": "Processing",
@@ -5789,31 +6006,85 @@
   "memoryCancelExtraction": "Cancel extraction",
   "memoryExtractFromChat": "Extract from chat",
   "memoryExtractionResult": "{candidates} candidates, {duplicates} duplicates, {rejected} rejected",
-  "@memoryExtractionResult": {"placeholders": {"candidates": {"type": "int"}, "duplicates": {"type": "int"}, "rejected": {"type": "int"}}},
+  "@memoryExtractionResult": {
+    "placeholders": {
+      "candidates": {
+        "type": "int"
+      },
+      "duplicates": {
+        "type": "int"
+      },
+      "rejected": {
+        "type": "int"
+      }
+    }
+  },
   "memoryCandidatesCount": "Candidates {count}",
-  "@memoryCandidatesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@memoryCandidatesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryActiveCount": "Active {count}",
-  "@memoryActiveCount": {"placeholders": {"count": {"type": "int"}}},
+  "@memoryActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryHistoryCount": "History {count}",
-  "@memoryHistoryCount": {"placeholders": {"count": {"type": "int"}}},
+  "@memoryHistoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryCreate": "Create memory",
   "memoryClearSelection": "Clear selection",
   "memoryIgnoreSelected": "Ignore selected",
   "memoryMergeSelected": "Merge selected",
   "memorySelectedCount": "{count} selected",
-  "@memorySelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@memorySelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryUseInChat": "Use memories in chat",
   "memorySemanticReranking": "Semantic reranking",
   "memoryConfiguredEmbeddingProvider": "Configured embedding provider",
   "memoryContextBudget": "Context budget",
   "memoryTokensCount": "{count} tokens",
-  "@memoryTokensCount": {"placeholders": {"count": {"type": "int"}}},
+  "@memoryTokensCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryEdit": "Edit memory",
   "memoryMerge": "Merge memories",
   "memoryImportancePercent": "{percent}% importance",
-  "@memoryImportancePercent": {"placeholders": {"percent": {"type": "int"}}},
+  "@memoryImportancePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "memoryExpires": "Expires {date}",
-  "@memoryExpires": {"placeholders": {"date": {"type": "String"}}},
+  "@memoryExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "memoryApprove": "Approve",
   "memoryUnlock": "Unlock",
   "memoryLock": "Lock",
@@ -5840,9 +6111,21 @@
   "mcpProtocolName": "Model Context Protocol",
   "mcpNoServers": "No MCP servers",
   "mcpErrorCode": "Code: {code}",
-  "@mcpErrorCode": {"placeholders": {"code": {"type": "String"}}},
+  "@mcpErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "mcpProtocolVersion": "Protocol {version}",
-  "@mcpProtocolVersion": {"placeholders": {"version": {"type": "String"}}},
+  "@mcpProtocolVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "mcpDisconnect": "Disconnect",
   "mcpRefreshTools": "Refresh tools",
   "mcpReconnect": "Reconnect",
@@ -5877,7 +6160,16 @@
   "capabilityAuditUnavailable": "Audit history unavailable",
   "capabilityNoExternalCalls": "No external calls recorded",
   "capabilityReadyCount": "{ready} of {total} ready",
-  "@capabilityReadyCount": {"placeholders": {"ready": {"type": "int"}, "total": {"type": "int"}}},
+  "@capabilityReadyCount": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "capabilityOpenSettings": "Open settings",
   "capabilityRequestPermission": "Request permission",
   "capabilityCurrentAi": "Current AI",
@@ -5912,15 +6204,42 @@
   "capabilityDataCharacterCard": "character card",
   "capabilityDataToolArguments": "tool arguments",
   "dataBankCitationSourcesCount": "{count, plural, =1{1 Data Bank source} other{{count} Data Bank sources}}",
-  "@dataBankCitationSourcesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@dataBankCitationSourcesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataBankCitationSources": "Data Bank sources",
   "dataBankLocalQueriesFused": "{count} local queries fused",
-  "@dataBankLocalQueriesFused": {"placeholders": {"count": {"type": "int"}}},
+  "@dataBankLocalQueriesFused": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "memoryUsed": "Memories used",
   "memoryTokenUsage": "{used}/{allocated} tokens",
-  "@memoryTokenUsage": {"placeholders": {"used": {"type": "int"}, "allocated": {"type": "int"}}},
+  "@memoryTokenUsage": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "allocated": {
+        "type": "int"
+      }
+    }
+  },
   "memoryRelevancePercent": "{percent}% relevance",
-  "@memoryRelevancePercent": {"placeholders": {"percent": {"type": "int"}}},
+  "@memoryRelevancePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "memoryModeLocalFts": "Local FTS",
   "memoryModeHybrid": "Hybrid",
   "memoryModeLocalFallback": "Local FTS fallback",
@@ -5928,7 +6247,13 @@
   "memoryTrimmed": "Trimmed",
   "memoryExcluded": "Excluded",
   "rpgTurnNumber": "Turn {turn}",
-  "@rpgTurnNumber": {"placeholders": {"turn": {"type": "int"}}},
+  "@rpgTurnNumber": {
+    "placeholders": {
+      "turn": {
+        "type": "int"
+      }
+    }
+  },
   "rpgDisableMode": "Disable RPG mode",
   "rpgStatus": "Status",
   "rpgInventory": "Inventory",
@@ -5939,17 +6264,50 @@
   "rpgLocation": "Location",
   "rpgTime": "Time",
   "rpgDayTime": "Day {day}, {time}",
-  "@rpgDayTime": {"placeholders": {"day": {"type": "int"}, "time": {"type": "String"}}},
+  "@rpgDayTime": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "rpgInventoryEmpty": "Inventory is empty",
   "rpgNoQuests": "No quests",
   "rpgNoRelationships": "No relationships",
   "rpgNoActions": "No actions defined",
   "rpgCost": "Cost: {cost}",
-  "@rpgCost": {"placeholders": {"cost": {"type": "String"}}},
+  "@rpgCost": {
+    "placeholders": {
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
   "rpgCheck": "Check: {dice} + {attribute} vs {difficulty}",
-  "@rpgCheck": {"placeholders": {"dice": {"type": "String"}, "attribute": {"type": "String"}, "difficulty": {"type": "num"}}},
+  "@rpgCheck": {
+    "placeholders": {
+      "dice": {
+        "type": "String"
+      },
+      "attribute": {
+        "type": "String"
+      },
+      "difficulty": {
+        "type": "num"
+      }
+    }
+  },
   "rpgCooldown": "Cooldown: {turns} turn(s)",
-  "@rpgCooldown": {"placeholders": {"turns": {"type": "int"}}},
+  "@rpgCooldown": {
+    "placeholders": {
+      "turns": {
+        "type": "int"
+      }
+    }
+  },
   "rpgRequirementsNotMet": "Requirements or resources not met",
   "rpgNoTurnsRecorded": "No turns recorded",
   "rpgSnapshots": "Snapshots",
@@ -5958,9 +6316,24 @@
   "rpgForkNewBranch": "Fork new branch",
   "rpgRuleEngineSource": "Source: Rule engine",
   "rpgRoll": "Roll: {total} ({expression})",
-  "@rpgRoll": {"placeholders": {"total": {"type": "String"}, "expression": {"type": "String"}}},
+  "@rpgRoll": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "expression": {
+        "type": "String"
+      }
+    }
+  },
   "rpgChanges": "Changes: {changes}",
-  "@rpgChanges": {"placeholders": {"changes": {"type": "String"}}},
+  "@rpgChanges": {
+    "placeholders": {
+      "changes": {
+        "type": "String"
+      }
+    }
+  },
   "rpgForkBranch": "Fork branch",
   "rpgBranchId": "Branch ID",
   "rpgFork": "Fork",
@@ -5971,16 +6344,40 @@
   "rpgEnableMode": "Enable RPG mode",
   "noImageGenerated": "No image was generated",
   "failedToSaveImage": "Failed to save image: {error}",
-  "@failedToSaveImage": {"placeholders": {"error": {"type": "String"}}},
+  "@failedToSaveImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "imagesAdded": "Added {count} image(s)",
-  "@imagesAdded": {"placeholders": {"count": {"type": "int"}}},
+  "@imagesAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "addConnection": "Add connection",
   "group": "Group",
   "lockType": "Lock type",
   "errorLoadingCharacters": "Failed to load characters: {error}",
-  "@errorLoadingCharacters": {"placeholders": {"error": {"type": "String"}}},
+  "@errorLoadingCharacters": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "errorLoadingGroups": "Failed to load groups: {error}",
-  "@errorLoadingGroups": {"placeholders": {"error": {"type": "String"}}},
+  "@errorLoadingGroups": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "inSystemPrompt": "In system prompt",
   "connectingGoogleDrive": "Connecting to Google Drive...",
   "checkingICloud": "Checking iCloud...",
@@ -5992,17 +6389,56 @@
   "promptManagerTips": "Sections near the top have higher priority. Disable sections you do not need to save tokens, and adjust their order for different results.",
   "customImportedPrompt": "Custom prompt from an imported preset",
   "editPromptSection": "Edit {name}",
-  "@editPromptSection": {"placeholders": {"name": {"type": "String"}}},
+  "@editPromptSection": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "promptName": "Prompt name",
   "identifierLabel": "ID: {identifier}",
-  "@identifierLabel": {"placeholders": {"identifier": {"type": "String"}}},
+  "@identifierLabel": {
+    "placeholders": {
+      "identifier": {
+        "type": "String"
+      }
+    }
+  },
   "roleLabel": "Role: {role}",
-  "@roleLabel": {"placeholders": {"role": {"type": "String"}}},
+  "@roleLabel": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "supportedPromptMacros": "Supports macros such as {userMacro}, {charMacro}, {timeMacro}, and {dateMacro}.",
-  "@supportedPromptMacros": {"placeholders": {"userMacro": {"type": "String"}, "charMacro": {"type": "String"}, "timeMacro": {"type": "String"}, "dateMacro": {"type": "String"}}},
+  "@supportedPromptMacros": {
+    "placeholders": {
+      "userMacro": {
+        "type": "String"
+      },
+      "charMacro": {
+        "type": "String"
+      },
+      "timeMacro": {
+        "type": "String"
+      },
+      "dateMacro": {
+        "type": "String"
+      }
+    }
+  },
   "enterPromptContent": "Enter prompt content...",
   "updated": "Updated {name}",
-  "@updated": {"placeholders": {"name": {"type": "String"}}},
+  "@updated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "customPrompt": "Custom prompt",
   "promptSectionSystemPrompt": "System prompt",
   "promptSectionSystemPromptDescription": "Base roleplay instructions",
@@ -6090,18 +6526,51 @@
   "variableSystemDescription": "Variables store reusable values globally or for the current chat. Reference them in prompts with macros.",
   "macroUsage": "Macro usage",
   "macroUsageDescription": "Use {localMacro} for local variables and {globalMacro} for global variables. You can also set values with variable macros.",
-  "@macroUsageDescription": {"placeholders": {"localMacro": {"type": "String"}, "globalMacro": {"type": "String"}}},
+  "@macroUsageDescription": {
+    "placeholders": {
+      "localMacro": {
+        "type": "String"
+      },
+      "globalMacro": {
+        "type": "String"
+      }
+    }
+  },
   "noGlobalVariables": "No global variables",
   "noLocalVariables": "No local variables",
   "editVariable": "Edit {name}",
-  "@editVariable": {"placeholders": {"name": {"type": "String"}}},
+  "@editVariable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "deleteVariable": "Delete variable",
   "deleteVariableQuestion": "Delete variable \"{name}\"?",
-  "@deleteVariableQuestion": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteVariableQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clearVariables": "Clear {scope} variables",
-  "@clearVariables": {"placeholders": {"scope": {"type": "String"}}},
+  "@clearVariables": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
   "clearVariablesConfirmation": "Clear all {scope} variables? This cannot be undone.",
-  "@clearVariablesConfirmation": {"placeholders": {"scope": {"type": "String"}}},
+  "@clearVariablesConfirmation": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
   "decrement": "Decrease",
   "increment": "Increase",
   "testInput": "Test input",
@@ -6112,15 +6581,33 @@
   "retrievalAugmentedGeneration": "Retrieval-augmented generation (RAG)",
   "searchSettings": "Search settings",
   "topKResultsDescription": "Return up to {count} matching results",
-  "@topKResultsDescription": {"placeholders": {"count": {"type": "int"}}},
+  "@topKResultsDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "minimumPercent": "Minimum similarity: {percent}%",
-  "@minimumPercent": {"placeholders": {"percent": {"type": "String"}}},
+  "@minimumPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "promptIntegration": "Prompt integration",
   "includeInPrompt": "Include in prompt",
   "automaticallyAddContext": "Automatically add relevant context to the prompt",
   "promptTemplate": "Prompt template",
   "useContextPlaceholder": "Use {contextMacro} where retrieved content should appear",
-  "@useContextPlaceholder": {"placeholders": {"contextMacro": {"type": "String"}}},
+  "@useContextPlaceholder": {
+    "placeholders": {
+      "contextMacro": {
+        "type": "String"
+      }
+    }
+  },
   "vectorStorageHelp": "Vector storage help",
   "vectorStorageHelpContent": "Vector storage converts documents into embeddings and retrieves relevant passages for each message. Configure an embedding provider, create a collection, add documents, and enable prompt integration.",
   "enterCollectionName": "Enter collection name",
@@ -6132,18 +6619,48 @@
   "collectionImported": "Collection imported",
   "activeCollection": "Active collection",
   "collectionWithDocumentCount": "{name} ({count} documents)",
-  "@collectionWithDocumentCount": {"placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
+  "@collectionWithDocumentCount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "documentsCount": "{count} documents",
-  "@documentsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@documentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embeddedCount": "{percent} embedded",
-  "@embeddedCount": {"placeholders": {"percent": {"type": "String"}}},
+  "@embeddedCount": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "addDocument": "Add document",
   "viewDocuments": "View documents",
   "enterDocumentContent": "Enter document content",
   "documentAdded": "Document added",
   "noDocuments": "No documents",
   "documentEmbeddingStatus": "{characters} characters - {status}",
-  "@documentEmbeddingStatus": {"placeholders": {"characters": {"type": "int"}, "status": {"type": "String"}}},
+  "@documentEmbeddingStatus": {
+    "placeholders": {
+      "characters": {
+        "type": "int"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "embedded": "Embedded",
   "notEmbedded": "Not embedded",
   "tokenProbabilities": "Token probabilities",
@@ -6151,7 +6668,13 @@
   "requestTokenProbabilitiesDescription": "Ask the model to return probability data for generated tokens",
   "topCandidatesCount": "Top candidates",
   "topCandidatesDescription": "Show up to {count} alternatives per token",
-  "@topCandidatesDescription": {"placeholders": {"count": {"type": "int"}}},
+  "@topCandidatesDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "showLogprobsPanel": "Show token probability panel",
   "showLogprobsPanelDescription": "Display token probabilities below supported messages",
   "colorIntensity": "Color intensity",
@@ -6166,7 +6689,13 @@
   "stopReading": "Stop reading",
   "noTagsAvailable": "No tags available",
   "rerollAlternativeNotImplemented": "Rerolling with \"{alternative}\" is not implemented yet",
-  "@rerollAlternativeNotImplemented": {"placeholders": {"alternative": {"type": "String"}}},
+  "@rerollAlternativeNotImplemented": {
+    "placeholders": {
+      "alternative": {
+        "type": "String"
+      }
+    }
+  },
   "enableTokenProbabilitiesHint": "Enable token probabilities in settings to view this data",
   "noTokenProbabilities": "No token probability data available",
   "noAlternativeTokens": "No alternative tokens",
@@ -6186,16 +6715,46 @@
   "bindPersonaDescription": "Bind persona description",
   "noConnections": "No connections",
   "connectionCharacter": "Character: {id}",
-  "@connectionCharacter": {"placeholders": {"id": {"type": "String"}}},
+  "@connectionCharacter": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "connectionGroup": "Group: {id}",
-  "@connectionGroup": {"placeholders": {"id": {"type": "String"}}},
+  "@connectionGroup": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "connectionChat": "Chat: {id}",
-  "@connectionChat": {"placeholders": {"id": {"type": "String"}}},
+  "@connectionChat": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "lockLabel": "Lock: {type}",
-  "@lockLabel": {"placeholders": {"type": {"type": "String"}}},
+  "@lockLabel": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "addTag": "Add tag",
   "errorLoadingLorebooks": "Failed to load lorebooks: {error}",
-  "@errorLoadingLorebooks": {"placeholders": {"error": {"type": "String"}}},
+  "@errorLoadingLorebooks": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "personaLorebook": "Persona lorebook",
   "selectLorebook": "Select a lorebook",
   "personaLorebookDescription": "Lorebook linked to this persona",
@@ -6221,11 +6780,29 @@
   "oaiCompatibleChatDescription": "Generate images through an OAI Compatible chat completion endpoint",
   "errorFetchingModels": "Failed to fetch models",
   "generatedPrompt": "Prompt: {prompt}",
-  "@generatedPrompt": {"placeholders": {"prompt": {"type": "String"}}},
+  "@generatedPrompt": {
+    "placeholders": {
+      "prompt": {
+        "type": "String"
+      }
+    }
+  },
   "generatedSeed": "Seed: {seed}",
-  "@generatedSeed": {"placeholders": {"seed": {"type": "String"}}},
+  "@generatedSeed": {
+    "placeholders": {
+      "seed": {
+        "type": "String"
+      }
+    }
+  },
   "imagesGenerated": "Generated {count} image(s)",
-  "@imagesGenerated": {"placeholders": {"count": {"type": "int"}}},
+  "@imagesGenerated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "myTheme": "My theme",
   "translate": "Translate",
   "stopSpeaking": "Stop speaking",
@@ -6257,7 +6834,13 @@
   "useProbability": "Use probability",
   "randomActivationProbability": "Random chance for this entry to activate",
   "probabilityPercent": "Activation probability: {percent}%",
-  "@probabilityPercent": {"placeholders": {"percent": {"type": "int"}}},
+  "@probabilityPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "timedEffects": "Timed effects",
   "filterType": "Filter type",
   "characterIds": "Character IDs",
@@ -6271,9 +6854,21 @@
   "include": "Include",
   "exclude": "Exclude",
   "translatedFromLanguage": "Translated from {language}",
-  "@translatedFromLanguage": {"placeholders": {"language": {"type": "String"}}},
+  "@translatedFromLanguage": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
   "originalText": "Original: {text}",
-  "@originalText": {"placeholders": {"text": {"type": "String"}}},
+  "@originalText": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
   "loadingImage": "Loading image...",
   "backupIntervalNever": "Never",
   "backupIntervalHourly": "Hourly",
@@ -6306,19 +6901,117 @@
   "mcpStreamableHttp": "Streamable HTTP",
   "mcpLegacyHttpSse": "Legacy HTTP + SSE",
   "chatWithName": "Chat with {name}",
-  "@chatWithName": {"placeholders": {"name": {"type": "String"}}},
+  "@chatWithName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "noValidCharactersInGroup": "No valid characters in group",
   "aiDataSharingTitle": "Choose how remote AI handles your data",
   "aiDataSharingIntroduction": "NativeTavern is local-first. When you use a remote AI feature, this device sends the required data directly to the provider you configured. NativeTavern does not proxy or store those requests.",
   "aiDataSharingDataTitle": "Data that may be sent",
   "aiDataSharingDataTypes": "- Your messages and relevant chat history\n- Character, persona and system instructions, lorebook, memory and tool inputs\n- Documents used for embeddings\n- Prompts and images used for image generation\n- Audio and text used for speech features",
   "aiDataSharingRecipientsTitle": "Who may receive it",
-  "aiDataSharingRecipients": "Depending on your configuration: Anthropic, an OAI Compatible endpoint you configure, OpenRouter, Google Gemini, DeepSeek, Alibaba Qwen, SiliconFlow, Moonshot/Kimi, Z.AI, MiniMax, Cohere, ElevenLabs, Azure Speech, Volcengine, NovelAI, Pollinations, or another custom endpoint you enter.",
+  "aiDataSharingRecipients": "Depending on your configuration: Anthropic, an OAI Compatible endpoint you configure, OpenRouter, Google Gemini, xAI (Grok), DeepSeek, Alibaba Qwen, SiliconFlow, Moonshot/Kimi, Z.AI, MiniMax, Cohere, ElevenLabs, Azure Speech, Volcengine, NovelAI, Pollinations, or another custom endpoint you enter.",
   "aiDataSharingControlTitle": "Your choice",
   "aiDataSharingControlDescription": "Remote providers process data under their own privacy policies. Your API credentials stay on this device except when used to authenticate directly with the selected provider. You can change this choice in Settings at any time. Local AI endpoints remain available without consent.",
   "allowRemoteAi": "Allow remote AI",
   "useLocalAiOnly": "Use local AI only",
   "aiDataSharingSettingsTitle": "Remote AI data sharing",
   "aiDataSharingAllowedDescription": "Allowed for providers and endpoints you configure",
-  "aiDataSharingLocalOnlyDescription": "Blocked; local AI endpoints remain available"
+  "aiDataSharingLocalOnlyDescription": "Blocked; local AI endpoints remain available",
+  "localBackup": "Local & File Backup",
+  "@localBackup": {
+    "description": "Local and file backup section header"
+  },
+  "localBackupDescription": "Export and import NativeTavern .ntx combined backups or .ntb data backups to your device storage or files app",
+  "@localBackupDescription": {
+    "description": "Local backup description"
+  },
+  "exportNtbBackup": "Export Data Backup (.ntb)",
+  "@exportNtbBackup": {
+    "description": "Export NTB backup button"
+  },
+  "exportNtbBackupSubtitle": "Save JSON data only; media is stored separately as .ntm",
+  "@exportNtbBackupSubtitle": {
+    "description": "Export NTB backup subtitle"
+  },
+  "exportNtxBackup": "Export Combined Backup (.ntx)",
+  "@exportNtxBackup": {
+    "description": "Export NTX combined backup button"
+  },
+  "exportNtxBackupSubtitle": "Save app data and media together in one .ntx file",
+  "@exportNtxBackupSubtitle": {
+    "description": "Export NTX backup subtitle"
+  },
+  "importNtbBackup": "Import Backup File (.ntb)",
+  "@importNtbBackup": {
+    "description": "Import NTB backup button"
+  },
+  "importNtbBackupSubtitle": "Restore or merge data from a local .ntb file",
+  "@importNtbBackupSubtitle": {
+    "description": "Import NTB backup subtitle"
+  },
+  "importNtxBackup": "Import Backup (.ntx / .ntb)",
+  "@importNtxBackup": {
+    "description": "Import NTX or NTB backup button"
+  },
+  "importNtxBackupSubtitle": "Restore or merge data from a combined .ntx file or a .ntb data backup",
+  "@importNtxBackupSubtitle": {
+    "description": "Import NTX backup subtitle"
+  },
+  "exportToFiles": "Save to Files",
+  "@exportToFiles": {
+    "description": "Save to files action button"
+  },
+  "shareBackup": "Share Backup",
+  "@shareBackup": {
+    "description": "Share backup action button"
+  },
+  "exportOptions": "Export Options",
+  "@exportOptions": {
+    "description": "Export options modal title"
+  },
+  "selectNtbFile": "Select NativeTavern Backup (.ntb)",
+  "@selectNtbFile": {
+    "description": "Select NTB file title"
+  },
+  "selectNtbFileDescription": "Pick the .ntb backup file and optional .ntm media file",
+  "@selectNtbFileDescription": {
+    "description": "Select NTB file description"
+  },
+  "selectNtxFile": "Select NativeTavern Backup",
+  "@selectNtxFile": {
+    "description": "Select NTX or NTB backup file title"
+  },
+  "selectNtxFileDescription": "Pick a .ntx combined backup, or a .ntb file with optional .ntm media",
+  "@selectNtxFileDescription": {
+    "description": "Select NTX file description"
+  },
+  "backupSavedToFilesApp": "Backup saved to Files",
+  "@backupSavedToFilesApp": {
+    "description": "Snackbar after saving a backup through the system Files app"
+  },
+  "backupSavedToAppFolder": "Could not save to Files. Backup saved to NativeTavern/Backups.",
+  "@backupSavedToAppFolder": {
+    "description": "Snackbar when a backup is stored in the app Backups folder"
+  },
+  "savedToFilesApp": "Saved to Files",
+  "@savedToFilesApp": {
+    "description": "Snackbar after saving an export through the system Files app"
+  },
+  "importBackupExplanation": "Restore or merge characters, chats, settings, and media from this backup file.",
+  "@importBackupExplanation": {
+    "description": "Explanation shown before importing a backup"
+  },
+  "restoringBackup": "Restoring backup...",
+  "@restoringBackup": {
+    "description": "Status text while restoring backup"
+  },
+  "exportingBackup": "Exporting backup...",
+  "@exportingBackup": {
+    "description": "Status text while exporting backup"
+  }
 }

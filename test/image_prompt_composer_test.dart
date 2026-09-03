@@ -31,12 +31,14 @@ void main() {
 
   test('normalizeModelOutput strips fences and quotes', () {
     expect(
-      composer.normalizeModelOutput('```text\n"cinematic portrait of Mira"\n```'),
+      composer
+          .normalizeModelOutput('```text\n"cinematic portrait of Mira"\n```'),
       'cinematic portrait of Mira',
     );
   });
 
-  test('/imagine still parses prompt options for the existing chat handler', () {
+  test('/imagine still parses prompt options for the existing chat handler',
+      () {
     final parsed = SlashCommandService().parse(
       '/imagine rainy harbor --width 768 --height 1024',
     );

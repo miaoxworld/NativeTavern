@@ -325,7 +325,8 @@ class ContextUsageDialog extends ConsumerWidget {
     ContextUsage usage,
   ) {
     final percentage = component.getPercentage(usage.maxContext);
-    final hasChildren = component.children != null && component.children!.isNotEmpty;
+    final hasChildren =
+        component.children != null && component.children!.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

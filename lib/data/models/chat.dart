@@ -3,7 +3,7 @@ class ChatSummary {
   final String id;
   final String content; // Summarized content
   final int
-  endMessageIndex; // Index of the last message included in this summary
+      endMessageIndex; // Index of the last message included in this summary
   final DateTime createdAt;
 
   const ChatSummary({
@@ -14,18 +14,18 @@ class ChatSummary {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'content': content,
-    'endMessageIndex': endMessageIndex,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'content': content,
+        'endMessageIndex': endMessageIndex,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory ChatSummary.fromJson(Map<String, dynamic> json) => ChatSummary(
-    id: json['id'] as String,
-    content: json['content'] as String,
-    endMessageIndex: json['endMessageIndex'] as int,
-    createdAt: DateTime.parse(json['createdAt'] as String),
-  );
+        id: json['id'] as String,
+        content: json['content'] as String,
+        endMessageIndex: json['endMessageIndex'] as int,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
 }
 
 /// Chat session model
@@ -38,7 +38,7 @@ class Chat {
   final int authorNoteDepth; // Depth for injection (messages from end)
   final bool authorNoteEnabled; // Whether Author's Note is active
   final List<ChatSummary>
-  summaries; // History summaries for context compression
+      summaries; // History summaries for context compression
 
   /// Per-chat settings (persisted as JSON):
   /// startReplyWith, linkedWorldInfoIds, momentsInChat, ...
@@ -119,36 +119,35 @@ class Chat {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'characterId': characterId,
-    'groupId': groupId,
-    'title': title,
-    'authorNote': authorNote,
-    'authorNoteDepth': authorNoteDepth,
-    'authorNoteEnabled': authorNoteEnabled,
-    'summaries': summaries.map((s) => s.toJson()).toList(),
-    'settings': settings,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+        'id': id,
+        'characterId': characterId,
+        'groupId': groupId,
+        'title': title,
+        'authorNote': authorNote,
+        'authorNoteDepth': authorNoteDepth,
+        'authorNoteEnabled': authorNoteEnabled,
+        'summaries': summaries.map((s) => s.toJson()).toList(),
+        'settings': settings,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
-    id: json['id'] as String,
-    characterId: json['characterId'] as String,
-    groupId: json['groupId'] as String?,
-    title: json['title'] as String? ?? 'New Chat',
-    authorNote: json['authorNote'] as String? ?? '',
-    authorNoteDepth: json['authorNoteDepth'] as int? ?? 4,
-    authorNoteEnabled: json['authorNoteEnabled'] as bool? ?? false,
-    summaries:
-        (json['summaries'] as List<dynamic>?)
-            ?.map((s) => ChatSummary.fromJson(s as Map<String, dynamic>))
-            .toList() ??
-        [],
-    settings: json['settings'] as Map<String, dynamic>? ?? const {},
-    createdAt: DateTime.parse(json['createdAt'] as String),
-    updatedAt: DateTime.parse(json['updatedAt'] as String),
-  );
+        id: json['id'] as String,
+        characterId: json['characterId'] as String,
+        groupId: json['groupId'] as String?,
+        title: json['title'] as String? ?? 'New Chat',
+        authorNote: json['authorNote'] as String? ?? '',
+        authorNoteDepth: json['authorNoteDepth'] as int? ?? 4,
+        authorNoteEnabled: json['authorNoteEnabled'] as bool? ?? false,
+        summaries: (json['summaries'] as List<dynamic>?)
+                ?.map((s) => ChatSummary.fromJson(s as Map<String, dynamic>))
+                .toList() ??
+            [],
+        settings: json['settings'] as Map<String, dynamic>? ?? const {},
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+      );
 }
 
 /// Message role enum
@@ -173,22 +172,22 @@ class ChatAttachment {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'path': path,
-    if (mimeType != null) 'mimeType': mimeType,
-    if (width != null) 'width': width,
-    if (height != null) 'height': height,
-    if (sizeBytes != null) 'sizeBytes': sizeBytes,
-  };
+        'id': id,
+        'path': path,
+        if (mimeType != null) 'mimeType': mimeType,
+        if (width != null) 'width': width,
+        if (height != null) 'height': height,
+        if (sizeBytes != null) 'sizeBytes': sizeBytes,
+      };
 
   factory ChatAttachment.fromJson(Map<String, dynamic> json) => ChatAttachment(
-    id: json['id'] as String,
-    path: json['path'] as String,
-    mimeType: json['mimeType'] as String?,
-    width: json['width'] as int?,
-    height: json['height'] as int?,
-    sizeBytes: json['sizeBytes'] as int?,
-  );
+        id: json['id'] as String,
+        path: json['path'] as String,
+        mimeType: json['mimeType'] as String?,
+        width: json['width'] as int?,
+        height: json['height'] as int?,
+        sizeBytes: json['sizeBytes'] as int?,
+      );
 }
 
 /// Chat message model
@@ -201,7 +200,7 @@ class ChatMessage {
   final List<String> swipes;
   final int currentSwipeIndex;
   final String?
-  characterId; // For group chats - which character sent this message
+      characterId; // For group chats - which character sent this message
   final String? characterName; // Cached character name for display
   final String? reasoning; // Chain of Thought / Thinking content from LLM
   final List<String>? reasoningSwipes; // Reasoning content for each swipe
@@ -269,58 +268,55 @@ class ChatMessage {
       swipes: swipes ?? this.swipes,
       currentSwipeIndex: currentSwipeIndex ?? this.currentSwipeIndex,
       characterId: clearCharacterId ? null : (characterId ?? this.characterId),
-      characterName: clearCharacterName
-          ? null
-          : (characterName ?? this.characterName),
+      characterName:
+          clearCharacterName ? null : (characterName ?? this.characterName),
       reasoning: clearReasoning ? null : (reasoning ?? this.reasoning),
-      reasoningSwipes: clearReasoning
-          ? null
-          : (reasoningSwipes ?? this.reasoningSwipes),
+      reasoningSwipes:
+          clearReasoning ? null : (reasoningSwipes ?? this.reasoningSwipes),
       attachments: attachments ?? this.attachments,
       metadata: metadata ?? this.metadata,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'chatId': chatId,
-    'role': role.name,
-    'content': content,
-    'timestamp': timestamp.toIso8601String(),
-    'swipes': swipes,
-    'currentSwipeIndex': currentSwipeIndex,
-    'characterId': characterId,
-    'characterName': characterName,
-    if (reasoning != null) 'reasoning': reasoning,
-    if (reasoningSwipes != null) 'reasoningSwipes': reasoningSwipes,
-    if (attachments.isNotEmpty)
-      'attachments': attachments.map((a) => a.toJson()).toList(),
-    if (metadata.isNotEmpty) 'metadata': metadata,
-  };
+        'id': id,
+        'chatId': chatId,
+        'role': role.name,
+        'content': content,
+        'timestamp': timestamp.toIso8601String(),
+        'swipes': swipes,
+        'currentSwipeIndex': currentSwipeIndex,
+        'characterId': characterId,
+        'characterName': characterName,
+        if (reasoning != null) 'reasoning': reasoning,
+        if (reasoningSwipes != null) 'reasoningSwipes': reasoningSwipes,
+        if (attachments.isNotEmpty)
+          'attachments': attachments.map((a) => a.toJson()).toList(),
+        if (metadata.isNotEmpty) 'metadata': metadata,
+      };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
-    id: json['id'] as String,
-    chatId: json['chatId'] as String,
-    role: MessageRole.values.firstWhere(
-      (r) => r.name == json['role'],
-      orElse: () => MessageRole.user,
-    ),
-    content: json['content'] as String,
-    timestamp: DateTime.parse(json['timestamp'] as String),
-    swipes: (json['swipes'] as List<dynamic>?)?.cast<String>() ?? [],
-    currentSwipeIndex: json['currentSwipeIndex'] as int? ?? 0,
-    characterId: json['characterId'] as String?,
-    characterName: json['characterName'] as String?,
-    reasoning: json['reasoning'] as String?,
-    reasoningSwipes: (json['reasoningSwipes'] as List<dynamic>?)
-        ?.cast<String>(),
-    attachments:
-        (json['attachments'] as List<dynamic>?)
-            ?.map((a) => ChatAttachment.fromJson(a as Map<String, dynamic>))
-            .toList() ??
-        [],
-    metadata: json['metadata'] is Map
-        ? Map<String, dynamic>.from(json['metadata'] as Map)
-        : const {},
-  );
+        id: json['id'] as String,
+        chatId: json['chatId'] as String,
+        role: MessageRole.values.firstWhere(
+          (r) => r.name == json['role'],
+          orElse: () => MessageRole.user,
+        ),
+        content: json['content'] as String,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        swipes: (json['swipes'] as List<dynamic>?)?.cast<String>() ?? [],
+        currentSwipeIndex: json['currentSwipeIndex'] as int? ?? 0,
+        characterId: json['characterId'] as String?,
+        characterName: json['characterName'] as String?,
+        reasoning: json['reasoning'] as String?,
+        reasoningSwipes:
+            (json['reasoningSwipes'] as List<dynamic>?)?.cast<String>(),
+        attachments: (json['attachments'] as List<dynamic>?)
+                ?.map((a) => ChatAttachment.fromJson(a as Map<String, dynamic>))
+                .toList() ??
+            [],
+        metadata: json['metadata'] is Map
+            ? Map<String, dynamic>.from(json['metadata'] as Map)
+            : const {},
+      );
 }

@@ -37,15 +37,12 @@ final dataBankLibraryServiceProvider = Provider<DataBankLibraryOperations>((
   );
 });
 
-final dataBankContextSettingsProvider =
-    StateNotifierProvider<
-      DataBankContextSettingsNotifier,
-      DataBankContextSettings
-    >((ref) {
-      return DataBankContextSettingsNotifier(
-        ref.watch(sharedPreferencesProvider),
-      );
-    });
+final dataBankContextSettingsProvider = StateNotifierProvider<
+    DataBankContextSettingsNotifier, DataBankContextSettings>((ref) {
+  return DataBankContextSettingsNotifier(
+    ref.watch(sharedPreferencesProvider),
+  );
+});
 
 final lastDataBankContextProvider = StateProvider<DataBankContextSnapshot?>(
   (ref) => null,
@@ -88,7 +85,7 @@ final class DataBankContextSettingsNotifier
   final SharedPreferences _preferences;
 
   DataBankContextSettingsNotifier(this._preferences)
-    : super(_load(_preferences));
+      : super(_load(_preferences));
 
   void setEnabled(bool enabled) => _update(state.copyWith(enabled: enabled));
 

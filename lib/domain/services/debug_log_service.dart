@@ -58,7 +58,7 @@ class DebugLogService {
   static const int _maxLogs = 1000;
   final Queue<LogEntry> _logs = Queue<LogEntry>();
   final _logController = StreamController<LogEntry>.broadcast();
-  
+
   bool _isCapturing = false;
   DebugPrintCallback? _originalDebugPrint;
 
@@ -81,7 +81,7 @@ class DebugLogService {
     debugPrint = (String? message, {int? wrapWidth}) {
       // Call original debugPrint
       _originalDebugPrint?.call(message, wrapWidth: wrapWidth);
-      
+
       // Capture the log
       if (message != null) {
         _addLog(LogEntry(
@@ -130,7 +130,7 @@ class DebugLogService {
     StackTrace? stackTrace,
   }) {
     if (!_isCapturing) return;
-    
+
     _addLog(LogEntry(
       timestamp: DateTime.now(),
       level: level,
@@ -151,12 +151,12 @@ class DebugLogService {
 
   void _addLog(LogEntry entry) {
     _logs.add(entry);
-    
+
     // Keep only the last _maxLogs entries
     while (_logs.length > _maxLogs) {
       _logs.removeFirst();
     }
-    
+
     _logController.add(entry);
   }
 

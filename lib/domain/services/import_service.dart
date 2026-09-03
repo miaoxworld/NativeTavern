@@ -95,6 +95,58 @@ class ImportService {
     return _parseCharacterJson(data);
   }
 
+  /// Import characters from a NativeTavern .ntb backup JSON string
+  Future<List<Character>> importCharactersFromNtb(String json) async {
+    final data = jsonDecode(json) as Map<String, dynamic>;
+    return importCharactersFromBackupPackage(data);
+  }
+
+  /// Import characters from a NativeTavern backup package map.
+  Future<List<Character>> importCharactersFromBackupPackage(
+    Map<String, dynamic> data,
+  ) async {
+    if (data['app'] != 'NativeTavern') {
+      throw Exception('Invalid backup file: not a NativeTavern backup');
+    }
+    final backupData = data['data'] as Map<String, dynamic>? ?? data;
+    final charactersMap = backupData['characters'];
+    final characters = <Character>[];
+    if (charactersMap is Map) {
+      for (final entry in charactersMap.values) {
+        if (entry is Map<String, dynamic>) {
+          try {
+            characters.add(_parseCharacterJson(entry));
+          } catch (_) {}
+        } else if (entry is Map) {
+          try {
+            characters.add(
+              _parseCharacterJson(Map<String, dynamic>.from(entry)),
+            );
+          } catch (_) {}
+        }
+      }
+    }
+    return characters;
+  }
+
+  /// Import characters from a combined `.ntx` backup archive.
+  Future<List<Character>> importCharactersFromNtx(List<int> bytes) async {
+    final archive = ZipDecoder().decodeBytes(bytes, verify: true);
+    ArchiveFile? dataEntry;
+    for (final entry in archive.files) {
+      if (entry.isFile &&
+          (entry.name == 'data.ntb' || entry.name.endsWith('.ntb'))) {
+        dataEntry = entry;
+        break;
+      }
+    }
+    if (dataEntry == null) {
+      throw Exception('Combined backup is missing data.ntb');
+    }
+    final json = utf8.decode(dataEntry.content);
+    return importCharactersFromNtb(json);
+  }
+
   /// Creates a playable character bound to an already-imported Live2D model.
   Future<Character> createCharacterFromLive2D({
     required Live2DModelDefinition definition,

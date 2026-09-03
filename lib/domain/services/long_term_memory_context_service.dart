@@ -267,8 +267,8 @@ final class LongTermMemoryContextContributor extends ContextContributor {
   final bool Function() _semanticEnabled;
   final double Function() _semanticThreshold;
   final MemorySemanticScorer _semanticScorer;
-  final Future<bool> Function(ChatContextRequest request, LongTermMemory memory)?
-      includeMemory;
+  final Future<bool> Function(
+      ChatContextRequest request, LongTermMemory memory)? includeMemory;
   final int topK;
 
   @override

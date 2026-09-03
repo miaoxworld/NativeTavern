@@ -72,8 +72,8 @@ restore_flutter_state
 echo "Restoring committed Flutter dependencies..."
 flutter pub get --offline
 
-echo "Generating App Icons..."
-flutter pub run flutter_launcher_icons
+echo "=== Generating Launcher Icons ==="
+dart run flutter_launcher_icons
 
 echo "=== Configuring Release Signing ==="
 CONFIG_KEYSTORE="config/upload-keystore.jks"
@@ -107,7 +107,6 @@ import java.io.FileInputStream
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -125,10 +124,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -163,6 +158,21 @@ GRADLE_KTS_CONTENT
     else
         echo "Signing configuration already exists in build.gradle.kts"
     fi
+fi
+
+# Configure settings.gradle.kts with compatible AGP 8.9.1
+SETTINGS_GRADLE_KTS="android/settings.gradle.kts"
+if [ -f "$SETTINGS_GRADLE_KTS" ]; then
+    perl -i -pe 's/id\("com\.android\.application"\) version "[^"]*"/id("com.android.application") version "8.9.1"/' "$SETTINGS_GRADLE_KTS"
+    perl -i -pe 's/id\("org\.jetbrains\.kotlin\.android"\) version "[^"]*"/id("org.jetbrains.kotlin.android") version "2.1.0"/' "$SETTINGS_GRADLE_KTS"
+fi
+
+# Configure Gradle wrapper (AGP 8.9.1 uses Gradle 8.11.1)
+GRADLE_WRAPPER_PROPERTIES="android/gradle/wrapper/gradle-wrapper.properties"
+if [ -f "$GRADLE_WRAPPER_PROPERTIES" ]; then
+    sed -i '' 's/gradle-[0-9.]*-[a-z]*.zip/gradle-8.11.1-all.zip/' "$GRADLE_WRAPPER_PROPERTIES" 2>/dev/null || \
+    sed -i 's/gradle-[0-9.]*-[a-z]*.zip/gradle-8.11.1-all.zip/' "$GRADLE_WRAPPER_PROPERTIES" 2>/dev/null || true
+fi
 elif [ -f "$BUILD_GRADLE" ]; then
     echo "Configuring signing for build.gradle (Groovy DSL)..."
     # Legacy Groovy DSL support
@@ -254,6 +264,12 @@ if [ -f "$ANDROID_MANIFEST" ]; then
         perl -i -pe 's|(android:name="\.MainActivity")|$1\n            android:screenOrientation="portrait"|' "$ANDROID_MANIFEST"
         echo "Added portrait orientation restriction"
     fi
+
+    # Add intent-filter for .jsonl, .ntb, .ntm and chat files if not present
+    if ! grep -q "android:pathPattern=\".*\\.jsonl\"" "$ANDROID_MANIFEST"; then
+        perl -i -pe 's|(</activity>)|            <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="file" />\n                <data android:scheme="content" />\n                <data android:mimeType="*/*" />\n                <data android:pathPattern=".*\\\\.jsonl" />\n                <data android:pathPattern=".*\\\\.ntb" />\n                <data android:pathPattern=".*\\\\.ntm" />\n                <data android:host="*" />\n            </intent-filter>\n            <intent-filter>\n                <action android:name="android.intent.action.SEND" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <data android:mimeType="*/*" />\n            </intent-filter>\n$1|' "$ANDROID_MANIFEST"
+        echo "Added JSONL and NTB intent filters to AndroidManifest.xml"
+    fi
 else
     echo "Warning: AndroidManifest.xml not found at $ANDROID_MANIFEST"
 fi
@@ -283,8 +299,8 @@ else
     echo "Warning: $BACKCLOUD_CONFIG not found, skipping Google Sign-In configuration"
 fi
 
-echo "=== Adding Region Detection Code to MainActivity ==="
-# Create the correct package directory and MainActivity.kt with region detection code
+echo "=== Adding Region Detection and File Open Code to MainActivity ==="
+# Create the correct package directory and MainActivity.kt with region and file open code
 MAIN_ACTIVITY_DIR="android/app/src/main/kotlin/com/miaomiaoxworld/nativetavern"
 MAIN_ACTIVITY_PATH="$MAIN_ACTIVITY_DIR/MainActivity.kt"
 mkdir -p "$MAIN_ACTIVITY_DIR"
@@ -293,19 +309,27 @@ if true; then
 package com.miaomiaoxworld.nativetavern
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.telephony.TelephonyManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Locale
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.nativetavern/region"
+    private val REGION_CHANNEL = "com.nativetavern/region"
+    private val FILE_OPEN_CHANNEL = "com.nativetavern/file_open"
+    private var fileChannel: MethodChannel? = null
+    private var initialFilePath: String? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, REGION_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "isChinaRegion" -> {
                     result.success(isChinaRegion())
@@ -314,6 +338,85 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+        }
+
+        fileChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, FILE_OPEN_CHANNEL).apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getInitialFile" -> {
+                        result.success(initialFilePath)
+                        initialFilePath = null
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
+
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent == null) return
+        val action = intent.action
+        val uri: Uri? = if (Intent.ACTION_VIEW == action) {
+            intent.data
+        } else if (Intent.ACTION_SEND == action) {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(Intent.EXTRA_STREAM)
+        } else {
+            null
+        }
+
+        if (uri != null) {
+            val path = copyUriToCache(uri)
+            if (path != null) {
+                if (fileChannel != null) {
+                    fileChannel?.invokeMethod("onFileOpened", path)
+                } else {
+                    initialFilePath = path
+                }
+            }
+        }
+    }
+
+    private fun copyUriToCache(uri: Uri): String? {
+        return try {
+            val contentResolver = applicationContext.contentResolver
+            var extension = ".jsonl"
+            val uriStr = uri.toString().lowercase(Locale.ROOT)
+            if (uriStr.endsWith(".ntb")) {
+                extension = ".ntb"
+            } else if (uriStr.endsWith(".ntm")) {
+                extension = ".ntm"
+            } else {
+                val cursor = contentResolver.query(uri, null, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        if (nameIndex >= 0) {
+                            val displayName = it.getString(nameIndex)?.lowercase(Locale.ROOT)
+                            if (displayName?.endsWith(".ntb") == true) extension = ".ntb"
+                            else if (displayName?.endsWith(".ntm") == true) extension = ".ntm"
+                        }
+                    }
+                }
+            }
+            val fileName = "imported_${System.currentTimeMillis()}$extension"
+            val tempFile = File(cacheDir, fileName)
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile.absolutePath
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -345,7 +448,7 @@ class MainActivity : FlutterActivity() {
     }
 }
 MAIN_ACTIVITY_CONTENT
-    echo "Created MainActivity.kt with region detection code"
+    echo "Created MainActivity.kt with region detection and file open code"
 fi
 
 echo "Android configuration complete!"
@@ -357,7 +460,7 @@ echo "Building Android APK (for direct distribution)..."
 dart run tool/build_android_release.dart \
     .flutter-plugins-dependencies \
     android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-flutter build apk --release --no-pub
+flutter build apk --release --no-pub --android-skip-build-dependency-validation
 
 # Rename/Move APK
 echo "Copying APK to release directory..."
@@ -369,7 +472,7 @@ echo "Building Android App Bundle (AAB) for Google Play..."
 dart run tool/build_android_release.dart \
     .flutter-plugins-dependencies \
     android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-flutter build appbundle --release --no-pub
+flutter build appbundle --release --no-pub --android-skip-build-dependency-validation
 
 # Rename/Move AAB
 echo "Copying AAB to release directory..."

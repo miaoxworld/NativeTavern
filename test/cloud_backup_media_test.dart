@@ -394,6 +394,85 @@ void main() {
     expect(cleared.processedItems, isNull);
     expect(cleared.totalItems, isNull);
   });
+
+  test('combined .ntx backup includes data and media and restores both',
+      () async {
+    final avatar = File(
+      p.join(documents.path, 'NativeTavern', 'avatars', 'card.png'),
+    );
+    await avatar.parent.create(recursive: true);
+    await avatar.writeAsBytes([9, 8, 7]);
+
+    final source = CloudBackupService.forTesting(
+      documentsDirectory: documents,
+    );
+    final artifacts = await source.createCloudBackupArtifacts(
+      data: {
+        'characters': {
+          'card': {'id': 'card', 'avatarPath': avatar.path},
+        },
+      },
+      provider: CloudProvider.googleDrive,
+      options: const CloudBackupOptions(
+        mediaCategories: {CloudMediaCategory.characterImages},
+      ),
+    );
+
+    expect(artifacts.combinedFile, isNotNull);
+    expect(artifacts.combinedFile!.path, endsWith('.ntx'));
+    expect(
+      p.basename(artifacts.combinedFile!.path),
+      matches(RegExp(r'^NativeTavern_cloud_backup_.+\.ntx$')),
+    );
+
+    final names = _archiveNames(await artifacts.combinedFile!.readAsBytes());
+    expect(names, containsAll(['manifest.json', 'data.ntb', 'media.ntm']));
+
+    final targetDocuments = await Directory.systemTemp.createTemp(
+      'native_tavern_ntx_target_',
+    );
+    addTearDown(() async {
+      if (await targetDocuments.exists()) {
+        await targetDocuments.delete(recursive: true);
+      }
+    });
+    final target = CloudBackupService.forTesting(
+      documentsDirectory: targetDocuments,
+    );
+    final imported = await target.importFromFile(artifacts.combinedFile!);
+
+    expect(
+      ((imported['data'] as Map)['characters'] as Map),
+      contains('card'),
+    );
+    expect(imported['_mediaRestoredFiles'], 1);
+    expect(
+      await File(
+        p.join(targetDocuments.path, 'NativeTavern', 'avatars', 'card.png'),
+      ).readAsBytes(),
+      [9, 8, 7],
+    );
+  });
+
+  test('legacy .ntb remains importable alongside .ntx', () async {
+    final service = CloudBackupService.forTesting(
+      documentsDirectory: documents,
+    );
+    expect(service.isCombinedBackupPath('/tmp/backup.ntx'), isTrue);
+    expect(service.isDataBackupPath('/tmp/backup.ntb'), isTrue);
+    expect(
+      CloudBackupService.cloudBackupFileName(extension: 'ntx').endsWith('.ntx'),
+      isTrue,
+    );
+    expect(
+      CloudBackupService.syncBackupFileName,
+      'NativeTavern_sync.ntx',
+    );
+    expect(
+      CloudBackupService.syncMetadataFileName,
+      'NativeTavern_sync.meta.json',
+    );
+  });
 }
 
 Set<String> _archiveNames(List<int> bytes) {

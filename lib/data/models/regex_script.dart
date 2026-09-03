@@ -5,12 +5,16 @@
 enum RegexPlacement {
   /// User input before sending
   userInput,
+
   /// AI output after receiving
   aiOutput,
+
   /// Slash command processing
   slashCommand,
+
   /// World info entries
   worldInfo,
+
   /// Reasoning/thinking blocks
   reasoning,
 }
@@ -19,8 +23,10 @@ enum RegexPlacement {
 enum RegexScriptType {
   /// Global scripts (app-wide)
   global,
+
   /// Character-scoped scripts
   character,
+
   /// Chat-scoped scripts
   chat,
 }
@@ -29,8 +35,10 @@ enum RegexScriptType {
 enum SubstituteRegex {
   /// No substitution
   none,
+
   /// Raw substitution (macros expanded as-is)
   raw,
+
   /// Escaped substitution (special regex chars escaped)
   escaped,
 }
@@ -39,61 +47,61 @@ enum SubstituteRegex {
 class RegexScript {
   /// Unique identifier
   final String id;
-  
+
   /// Display name for the script
   final String scriptName;
-  
+
   /// Description of what the script does
   final String? description;
-  
+
   /// Whether the script is disabled
   final bool disabled;
-  
+
   /// The regex pattern to find
   final String findRegex;
-  
+
   /// The replacement string (supports $1, $2, etc. for capture groups)
   final String replaceString;
-  
+
   /// Strings to trim from matches
   final List<String> trimStrings;
-  
+
   /// Where this script applies
   final List<RegexPlacement> placement;
-  
+
   /// Script type/scope
   final RegexScriptType scriptType;
-  
+
   /// Only apply to markdown rendering
   final bool markdownOnly;
-  
+
   /// Only apply during prompt generation
   final bool promptOnly;
-  
+
   /// Run on message edit
   final bool runOnEdit;
-  
+
   /// How to substitute macros in the find regex
   final SubstituteRegex substituteRegex;
-  
+
   /// Minimum message depth to apply (-1 for no limit)
   final int? minDepth;
-  
+
   /// Maximum message depth to apply (-1 for no limit)
   final int? maxDepth;
-  
+
   /// Order for script execution (lower = earlier)
   final int order;
-  
+
   /// Associated character ID (for character-scoped scripts)
   final String? characterId;
-  
+
   /// Associated chat ID (for chat-scoped scripts)
   final String? chatId;
-  
+
   /// Creation timestamp
   final DateTime createdAt;
-  
+
   /// Last modified timestamp
   final DateTime updatedAt;
 
@@ -203,14 +211,16 @@ class RegexScript {
       findRegex: json['findRegex'] as String,
       replaceString: json['replaceString'] as String,
       trimStrings: (json['trimStrings'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       placement: (json['placement'] as List<dynamic>?)
-          ?.map((e) => RegexPlacement.values.firstWhere(
-                (p) => p.name == e,
-                orElse: () => RegexPlacement.aiOutput,
-              ))
-          .toList() ?? [RegexPlacement.aiOutput],
+              ?.map((e) => RegexPlacement.values.firstWhere(
+                    (p) => p.name == e,
+                    orElse: () => RegexPlacement.aiOutput,
+                  ))
+              .toList() ??
+          [RegexPlacement.aiOutput],
       scriptType: RegexScriptType.values.firstWhere(
         (t) => t.name == json['scriptType'],
         orElse: () => RegexScriptType.global,
@@ -237,7 +247,8 @@ class RegexScript {
   }
 
   @override
-  String toString() => 'RegexScript(id: $id, name: $scriptName, find: $findRegex)';
+  String toString() =>
+      'RegexScript(id: $id, name: $scriptName, find: $findRegex)';
 
   @override
   bool operator ==(Object other) =>

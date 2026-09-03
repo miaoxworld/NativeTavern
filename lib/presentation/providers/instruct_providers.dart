@@ -56,7 +56,8 @@ class InstructFormatter {
         if (isFirstAssistant && template.firstAssistantPrefix != null) {
           buffer.write(template.firstAssistantPrefix);
           buffer.write(content);
-          buffer.write(template.firstAssistantSuffix ?? template.assistantSuffix);
+          buffer
+              .write(template.firstAssistantSuffix ?? template.assistantSuffix);
         } else {
           buffer.write(template.assistantPrefix);
           buffer.write(content);

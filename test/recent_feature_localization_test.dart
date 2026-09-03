@@ -3,6 +3,7 @@ import 'package:native_tavern/data/models/vector_storage.dart';
 import 'package:native_tavern/domain/services/image_generation_service.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
+import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/l10n/generated/app_localizations_en.dart';
 import 'package:native_tavern/l10n/generated/app_localizations_zh.dart';
 
@@ -11,6 +12,10 @@ void main() {
     final l10n = AppLocalizationsEn();
 
     expect(l10n.openai, 'OAI Compatible');
+    expect(l10n.lmStudio, 'LM Studio');
+    expect(l10n.xaiApiKeyHint, 'xai-...');
+    expect(l10n.aboutRestoreModesDescription, isNot(contains(r'\n')));
+    expect(l10n.aboutRestoreModesDescription.split('\n'), hasLength(3));
     expect(l10n.instructTemplateDescription, isNot(contains('OpenAI')));
     expect(l10n.dalleDescription, isNot(contains('OpenAI')));
     expect(l10n.whisperDescription, isNot(contains('OpenAI')));
@@ -75,6 +80,9 @@ void main() {
     expect(l10n.chatPreview, '聊天预览');
     expect(l10n.translatedFromLanguage('日语'), '译自日语');
     expect(l10n.loadingImage, '正在加载图片...');
+    expect(l10n.aboutRestoreModesDescription, isNot(contains(r'\n')));
+    expect(l10n.aboutRestoreModesDescription, contains('\n'));
+    expect(l10n.lmStudio, 'LM Studio');
     expect(l10n.restoreModeMerge, '合并');
     expect(l10n.backupStageScanningMedia, '正在扫描媒体文件...');
     expect(l10n.backupStageRestoringMedia(2, 5), '正在恢复媒体：2/5 个文件');
@@ -113,6 +121,9 @@ void main() {
     expect(l10n.chatPreview, '聊天預覽');
     expect(l10n.translatedFromLanguage('日文'), '譯自日文');
     expect(l10n.loadingImage, '正在載入圖片...');
+    expect(l10n.aboutRestoreModesDescription, isNot(contains(r'\n')));
+    expect(l10n.aboutRestoreModesDescription, contains('\n'));
+    expect(l10n.lmStudio, 'LM Studio');
     expect(l10n.restoreModeMerge, '合併');
     expect(l10n.backupStageScanningMedia, '正在掃描媒體檔案...');
     expect(l10n.backupStageRestoringMedia(2, 5), '正在還原媒體：2/5 個檔案');
@@ -121,5 +132,24 @@ void main() {
     expect(l10n.officialWebsite, '官方網站');
     expect(l10n.mcpStreamableHttp, '可串流 HTTP');
     expect(l10n.chatWithName('小酒館'), '與小酒館聊天');
+  });
+
+  test('Chinese localizations do not mention xAI', () {
+    final locales = <AppLocalizations>[
+      AppLocalizationsZh(),
+      AppLocalizationsZhTw(),
+    ];
+    for (final l10n in locales) {
+      expect(l10n.xai.toLowerCase(), isNot(contains('xai')));
+      expect(l10n.xai.toLowerCase(), isNot(contains('grok')));
+      expect(l10n.xaiApiKeyHint.toLowerCase(), isNot(contains('xai')));
+      expect(l10n.xaiApiKeyHint.toLowerCase(), isNot(contains('grok')));
+      expect(
+          l10n.aiDataSharingRecipients.toLowerCase(), isNot(contains('xai')));
+      expect(
+        l10n.aiDataSharingRecipients.toLowerCase(),
+        isNot(contains('grok')),
+      );
+    }
   });
 }

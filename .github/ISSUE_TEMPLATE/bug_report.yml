@@ -1,0 +1,101 @@
+name: Bug Report
+description: Report an issue or unexpected behavior in NativeTavern
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide as much detail as possible to help us diagnose and resolve the bug.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating System / Platform
+      description: Which platform were you using?
+      options:
+        - iOS (TestFlight / App Store)
+        - Android (APK / Google Play)
+        - macOS (Desktop App)
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App Version
+      description: The version and build number of NativeTavern (found in Settings > About).
+      placeholder: "e.g. v0.1.16+40"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: What part of the app is experiencing the problem?
+      options:
+        - Chat & AI Generation
+        - Live2D / Spine Avatar Rendering
+        - Lorebook / World Info
+        - Character Cards & Personas
+        - Voice / TTS / STT
+        - Cloud Backup & Sync (iCloud / Google Drive)
+        - Tool Calling & MCP
+        - UI & Localization
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: llm_provider
+    attributes:
+      label: AI Provider & Model (if applicable)
+      description: Which LLM provider and model were configured?
+      placeholder: "e.g. xAI (grok-4.3), Claude (Claude 4.5), OpenRouter, Local (Ollama)"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the problem.
+      placeholder: |
+        1. Open '...'
+        2. Navigate to '...'
+        3. Tap on '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_or_screenshots
+    attributes:
+      label: Relevant Logs or Screenshots
+      description: Paste any relevant logs from the Debug Log overlay or attach screenshots/screen recordings here.
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have verified this bug is not already reported in existing issues.
+          required: true
+        - label: I have tested with the latest release / build.
+          required: false

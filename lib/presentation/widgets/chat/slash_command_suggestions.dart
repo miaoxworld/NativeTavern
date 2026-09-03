@@ -57,8 +57,8 @@ class SlashCommandSuggestions extends ConsumerWidget {
                 Text(
                   AppLocalizations.of(context)!.commands,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppTheme.textMuted,
-                  ),
+                        color: AppTheme.textMuted,
+                      ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -133,18 +133,19 @@ class _CommandSuggestionTile extends StatelessWidget {
                   Text(
                     command.description,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textPrimary,
-                    ),
+                          color: AppTheme.textPrimary,
+                        ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (command.aliases.isNotEmpty)
                     Text(
-                      AppLocalizations.of(context)!.aliasesLabel(command.aliases.map((a) => '/$a').join(', ')),
+                      AppLocalizations.of(context)!.aliasesLabel(
+                          command.aliases.map((a) => '/$a').join(', ')),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textMuted,
-                        fontSize: 10,
-                      ),
+                            color: AppTheme.textMuted,
+                            fontSize: 10,
+                          ),
                     ),
                 ],
               ),
@@ -187,7 +188,8 @@ class SlashCommandHelpDialog extends ConsumerWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppTheme.accentColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -205,9 +207,10 @@ class SlashCommandHelpDialog extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Text(
                           command.aliases.map((a) => '/$a').join(', '),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textMuted,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textMuted,
+                                  ),
                         ),
                       ],
                     ],
@@ -221,9 +224,9 @@ class SlashCommandHelpDialog extends ConsumerWidget {
                   Text(
                     command.usage,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      color: AppTheme.textMuted,
-                    ),
+                          fontFamily: 'monospace',
+                          color: AppTheme.textMuted,
+                        ),
                   ),
                 ],
               ),

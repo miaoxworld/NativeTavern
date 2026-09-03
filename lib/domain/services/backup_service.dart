@@ -8,13 +8,14 @@ import 'package:intl/intl.dart';
 class BackupService {
   /// Singleton instance
   static final BackupService instance = BackupService._();
-  
+
   BackupService._();
 
   /// Get the backups directory
   Future<Directory> getBackupsDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();
-    final backupsDir = Directory(path.join(appDir.path, 'NativeTavern', 'backups'));
+    final backupsDir =
+        Directory(path.join(appDir.path, 'NativeTavern', 'backups'));
     if (!await backupsDir.exists()) {
       await backupsDir.create(recursive: true);
     }
@@ -102,12 +103,12 @@ class BackupService {
       if (entity is File && entity.path.endsWith('.jsonl')) {
         final stat = await entity.stat();
         final fileName = path.basename(entity.path);
-        
+
         // Parse filename to extract info
         final parts = fileName.replaceAll('.jsonl', '').split('_');
         String? characterName;
         String? chatId;
-        
+
         if (parts.length >= 3) {
           characterName = parts[0];
           chatId = parts[1];
@@ -143,7 +144,7 @@ class BackupService {
 
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
-      
+
       try {
         final data = jsonDecode(line) as Map<String, dynamic>;
         if (data['type'] == 'metadata') {
@@ -367,7 +368,8 @@ class BackupService {
   String formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024)
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }
@@ -434,7 +436,7 @@ class BackupInfo {
     if (diff.inHours < 1) return '${diff.inMinutes}m ago';
     if (diff.inDays < 1) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
-    
+
     return DateFormat('MMM d, yyyy').format(createdAt);
   }
 }

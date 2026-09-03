@@ -23,9 +23,11 @@ class MessageContentWidget extends StatefulWidget {
   final VoidCallback? onCopy;
   final void Function(String)? onCopySelection;
   final VoidCallback? onLongPress;
+
   /// Whether the message is currently being streamed (AI is still generating)
   /// When true, WebView will not be used even for complex HTML to avoid rendering issues
   final bool isStreaming;
+
   /// Optional message ID for tracking content changes and forcing re-renders
   final String? messageId;
 
@@ -48,6 +50,7 @@ class MessageContentWidget extends StatefulWidget {
 
 class _MessageContentWidgetState extends State<MessageContentWidget> {
   String? _selectedText;
+
   /// Content key for forcing WebView re-render after streaming ends
   int _contentVersion = 0;
 
@@ -64,7 +67,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
   @override
   void didUpdateWidget(MessageContentWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Detect when streaming ends - this is the key moment to re-render
     if (oldWidget.isStreaming && !widget.isStreaming) {
       // Streaming just ended, increment content version to force WebView reload
@@ -88,38 +91,42 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
   bool _containsMarkdown(String text) {
     // Simple check: if text contains any common Markdown markers, use Markdown renderer
     // The Markdown renderer will handle the actual parsing
-    
+
     // Check for bold/italic markers
     if (text.contains('**') || text.contains('__')) return true;
     if (text.contains('~~')) return true; // Strikethrough
     if (text.contains('`')) return true; // Code
-    
+
     // Check for single asterisk italic: *text* (but not * alone or **)
     // Match pattern: space or start, *, non-space, content, non-space, *, space or end
-    if (RegExp(r'(?:^|[\s\(])\*[^\s*].*?[^\s*]\*(?:[\s\)\.,!?]|$)').hasMatch(text)) return true;
+    if (RegExp(r'(?:^|[\s\(])\*[^\s*].*?[^\s*]\*(?:[\s\)\.,!?]|$)')
+        .hasMatch(text)) return true;
     // Also match short italic like *a*
-    if (RegExp(r'(?:^|[\s\(])\*[^\s*]\*(?:[\s\)\.,!?]|$)').hasMatch(text)) return true;
-    
+    if (RegExp(r'(?:^|[\s\(])\*[^\s*]\*(?:[\s\)\.,!?]|$)').hasMatch(text))
+      return true;
+
     // Check for single underscore italic: _text_
-    if (RegExp(r'(?:^|[\s\(])_[^\s_].*?[^\s_]_(?:[\s\)\.,!?]|$)').hasMatch(text)) return true;
-    if (RegExp(r'(?:^|[\s\(])_[^\s_]_(?:[\s\)\.,!?]|$)').hasMatch(text)) return true;
-    
+    if (RegExp(r'(?:^|[\s\(])_[^\s_].*?[^\s_]_(?:[\s\)\.,!?]|$)')
+        .hasMatch(text)) return true;
+    if (RegExp(r'(?:^|[\s\(])_[^\s_]_(?:[\s\)\.,!?]|$)').hasMatch(text))
+      return true;
+
     // Check for headers
     if (RegExp(r'^#{1,6}\s', multiLine: true).hasMatch(text)) return true;
-    
+
     // Check for lists
     if (RegExp(r'^\s*[-*+]\s', multiLine: true).hasMatch(text)) return true;
     if (RegExp(r'^\s*\d+\.\s', multiLine: true).hasMatch(text)) return true;
-    
+
     // Check for links and images
     if (RegExp(r'\[([^\]]+)\]\(([^)]+)\)').hasMatch(text)) return true;
-    
+
     // Check for blockquote
     if (RegExp(r'^>\s', multiLine: true).hasMatch(text)) return true;
-    
+
     // Check for horizontal rule
     if (RegExp(r'^---+$', multiLine: true).hasMatch(text)) return true;
-    
+
     return false;
   }
 
@@ -128,7 +135,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppLocalizations.of(context)!.copiedToClipboard),
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -139,9 +146,10 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
       widget.onLongPress!();
       return;
     }
-    
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    
+
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+
     showMenu<String>(
       context: context,
       position: RelativeRect.fromRect(
@@ -216,13 +224,14 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     final hasHtml = _containsHtml(widget.content);
 
     Widget contentWidget;
-    
+
     // If content has complex HTML (flexbox, grid, shadows, etc.) AND streaming is complete,
     // use WebView for full CSS support. During streaming, always use Markdown to avoid
     // rendering issues with constantly updating content.
     if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
       // Generate a content key that changes when streaming ends, forcing a re-render
-      final contentKey = '${widget.messageId ?? widget.content.hashCode}_v$_contentVersion';
+      final contentKey =
+          '${widget.messageId ?? widget.content.hashCode}_v$_contentVersion';
       contentWidget = HtmlWebViewWidget(
         htmlContent: widget.content,
         textColor: widget.textColor,
@@ -234,7 +243,8 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     // For all other content (including simple HTML), convert to Markdown and render
     else {
       // Convert HTML to Markdown-friendly format
-      final processedContent = hasHtml ? _convertHtmlToMarkdown(widget.content) : widget.content;
+      final processedContent =
+          hasHtml ? _convertHtmlToMarkdown(widget.content) : widget.content;
       contentWidget = _buildMarkdownContent(context, processedContent);
     }
 
@@ -242,54 +252,56 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     if (hasHtml && !widget.isStreaming && isComplexHtml(widget.content)) {
       return contentWidget;
     }
-    
+
     return GestureDetector(
-      onSecondaryTapDown: (details) => _showContextMenu(context, details.globalPosition),
-      onLongPressStart: (details) => _showContextMenu(context, details.globalPosition),
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, details.globalPosition),
+      onLongPressStart: (details) =>
+          _showContextMenu(context, details.globalPosition),
       child: contentWidget,
     );
   }
-  
+
   /// Convert simple HTML tags to Markdown equivalents
   String _convertHtmlToMarkdown(String html) {
     var result = html;
-    
+
     // Convert bold tags
     result = result.replaceAllMapped(
       RegExp(r'<(b|strong)>(.*?)</\1>', caseSensitive: false, dotAll: true),
       (m) => '**${m.group(2)}**',
     );
-    
+
     // Convert italic tags
     result = result.replaceAllMapped(
       RegExp(r'<(i|em)>(.*?)</\1>', caseSensitive: false, dotAll: true),
       (m) => '*${m.group(2)}*',
     );
-    
+
     // Convert underline to bold (Markdown doesn't have underline)
     result = result.replaceAllMapped(
       RegExp(r'<u>(.*?)</u>', caseSensitive: false, dotAll: true),
       (m) => '**${m.group(1)}**',
     );
-    
+
     // Convert strikethrough
     result = result.replaceAllMapped(
       RegExp(r'<(s|del|strike)>(.*?)</\1>', caseSensitive: false, dotAll: true),
       (m) => '~~${m.group(2)}~~',
     );
-    
+
     // Convert code tags
     result = result.replaceAllMapped(
       RegExp(r'<code>(.*?)</code>', caseSensitive: false, dotAll: true),
       (m) => '`${m.group(1)}`',
     );
-    
+
     // Convert pre tags to code blocks
     result = result.replaceAllMapped(
       RegExp(r'<pre>(.*?)</pre>', caseSensitive: false, dotAll: true),
       (m) => '\n```\n${m.group(1)}\n```\n',
     );
-    
+
     // Convert headers
     result = result.replaceAllMapped(
       RegExp(r'<h1[^>]*>(.*?)</h1>', caseSensitive: false, dotAll: true),
@@ -315,47 +327,52 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
       RegExp(r'<h6[^>]*>(.*?)</h6>', caseSensitive: false, dotAll: true),
       (m) => '\n###### ${m.group(1)}\n',
     );
-    
+
     // Convert links
     result = result.replaceAllMapped(
-      RegExp(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>', caseSensitive: false, dotAll: true),
+      RegExp(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>',
+          caseSensitive: false, dotAll: true),
       (m) => '[${m.group(2)}](${m.group(1)})',
     );
-    
+
     // Convert images - keep as Markdown image syntax
     result = result.replaceAllMapped(
       RegExp(r'<img[^>]*src="([^"]*)"[^>]*/?\s*>', caseSensitive: false),
       (m) => '![image](${m.group(1)})',
     );
-    
+
     // Convert blockquote
     result = result.replaceAllMapped(
-      RegExp(r'<blockquote[^>]*>(.*?)</blockquote>', caseSensitive: false, dotAll: true),
+      RegExp(r'<blockquote[^>]*>(.*?)</blockquote>',
+          caseSensitive: false, dotAll: true),
       (m) {
         final content = m.group(1) ?? '';
-        final lines = content.split('\n').map((line) => '> ${line.trim()}').join('\n');
+        final lines =
+            content.split('\n').map((line) => '> ${line.trim()}').join('\n');
         return '\n$lines\n';
       },
     );
-    
+
     // Convert horizontal rule
-    result = result.replaceAll(RegExp(r'<hr\s*/?\s*>', caseSensitive: false), '\n---\n');
-    
+    result = result.replaceAll(
+        RegExp(r'<hr\s*/?\s*>', caseSensitive: false), '\n---\n');
+
     // Convert line breaks
-    result = result.replaceAll(RegExp(r'<br\s*/?\s*>', caseSensitive: false), '\n');
-    
+    result =
+        result.replaceAll(RegExp(r'<br\s*/?\s*>', caseSensitive: false), '\n');
+
     // Convert paragraphs
     result = result.replaceAllMapped(
       RegExp(r'<p[^>]*>(.*?)</p>', caseSensitive: false, dotAll: true),
       (m) => '\n${m.group(1)}\n',
     );
-    
+
     // Convert divs to paragraphs
     result = result.replaceAllMapped(
       RegExp(r'<div[^>]*>(.*?)</div>', caseSensitive: false, dotAll: true),
       (m) => '\n${m.group(1)}\n',
     );
-    
+
     // Convert unordered lists
     result = result.replaceAllMapped(
       RegExp(r'<ul[^>]*>(.*?)</ul>', caseSensitive: false, dotAll: true),
@@ -367,7 +384,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         );
       },
     );
-    
+
     // Convert ordered lists
     result = result.replaceAllMapped(
       RegExp(r'<ol[^>]*>(.*?)</ol>', caseSensitive: false, dotAll: true),
@@ -380,19 +397,19 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         );
       },
     );
-    
+
     // Remove remaining HTML tags (span, font, center, etc.)
     result = result.replaceAll(RegExp(r'<[^>]+>'), '');
-    
+
     // Clean up multiple newlines
     result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-    
+
     // Decode HTML entities
     result = _decodeHtmlEntities(result);
-    
+
     return result.trim();
   }
-  
+
   /// Decode common HTML entities
   String _decodeHtmlEntities(String text) {
     return text
@@ -413,14 +430,15 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
 
   Widget _buildMarkdownContent(BuildContext context, String content) {
     final effectiveFontSize = widget.fontSize ?? 14.0;
-    
+
     return SelectionArea(
       onSelectionChanged: (selection) {
         _selectedText = selection?.plainText;
       },
       child: MarkdownBody(
         data: content,
-        selectable: false, // Must be false when wrapped in SelectionArea to avoid conflict
+        selectable:
+            false, // Must be false when wrapped in SelectionArea to avoid conflict
         shrinkWrap: true,
         softLineBreak: true, // Enable soft line breaks for proper text wrapping
         imageBuilder: (uri, title, alt) {
@@ -559,7 +577,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
 
   Widget _buildPlainText(BuildContext context) {
     final effectiveFontSize = widget.fontSize ?? 14.0;
-    
+
     if (widget.selectable) {
       return SelectionArea(
         onSelectionChanged: (selection) {
@@ -574,7 +592,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         ),
       );
     }
-    
+
     return Text(
       widget.content,
       style: TextStyle(

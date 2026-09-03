@@ -75,14 +75,14 @@ class AIPreset {
       // Metadata
       'preset_name': name,
       'description': description,
-      
+
       // Generation settings at root level (SillyTavern format)
       ...generationSettings.toJson(),
-      
+
       // Prompt ordering
       if (promptManagerConfig != null)
         'prompt_order': _promptConfigToSillyTavernFormat(promptManagerConfig!),
-      
+
       // NativeTavern-specific fields
       '_native_tavern': {
         'version': 1,
@@ -157,7 +157,8 @@ class AIPreset {
           : null,
       instructTemplateId: json['instructTemplateId'] as String?,
       provider: json['provider'] as String?,
-      providerSettings: (json['providerSettings'] as Map<String, dynamic>?)?.map(
+      providerSettings:
+          (json['providerSettings'] as Map<String, dynamic>?)?.map(
         (key, value) => MapEntry(
           key,
           (value as Map<String, dynamic>).map(
@@ -191,7 +192,8 @@ class AIPreset {
             : null,
         instructTemplateId: json['instructTemplateId'] as String?,
         provider: json['provider'] as String?,
-        providerSettings: (json['providerSettings'] as Map<String, dynamic>?)?.map(
+        providerSettings:
+            (json['providerSettings'] as Map<String, dynamic>?)?.map(
           (key, value) => MapEntry(
             key,
             (value as Map<String, dynamic>).map(
@@ -213,7 +215,7 @@ class AIPreset {
     final name = json['preset_name'] as String? ??
         json['name'] as String? ??
         'Imported Preset';
-    
+
     // Extract description
     final description = json['description'] as String?;
 
@@ -221,7 +223,7 @@ class AIPreset {
     final nativeTavernMeta = json['_native_tavern'] as Map<String, dynamic>?;
     DateTime createdAt = DateTime.now();
     String? instructTemplateId;
-    
+
     if (nativeTavernMeta != null) {
       if (nativeTavernMeta['createdAt'] != null) {
         createdAt = DateTime.parse(nativeTavernMeta['createdAt'] as String);
@@ -231,10 +233,11 @@ class AIPreset {
 
     // Extract connection settings from _native_tavern if available
     final provider = nativeTavernMeta?['provider'] as String?;
-    
+
     Map<String, Map<String, dynamic>>? providerSettings;
     if (nativeTavernMeta?['providerSettings'] != null) {
-      providerSettings = (nativeTavernMeta!['providerSettings'] as Map<String, dynamic>).map(
+      providerSettings =
+          (nativeTavernMeta!['providerSettings'] as Map<String, dynamic>).map(
         (key, value) => MapEntry(
           key,
           (value as Map<String, dynamic>).map(
@@ -245,15 +248,15 @@ class AIPreset {
     } else if (nativeTavernMeta?['model'] != null) {
       // Legacy support: migrate single provider settings to map if present
       // Assume it belongs to the active 'provider' if set, or just skip
-       if (provider != null) {
-         providerSettings = {
-           provider: {
-             'model': nativeTavernMeta!['model'],
-             'apiKey': nativeTavernMeta['apiKey'],
-             'apiUrl': nativeTavernMeta['apiUrl'],
-           }
-         };
-       }
+      if (provider != null) {
+        providerSettings = {
+          provider: {
+            'model': nativeTavernMeta!['model'],
+            'apiKey': nativeTavernMeta['apiKey'],
+            'apiUrl': nativeTavernMeta['apiUrl'],
+          }
+        };
+      }
     }
 
     // Parse generation settings from root level
@@ -309,8 +312,8 @@ class GenerationPreset {
   final int mirostatMode;
   final double mirostatTau;
   final double mirostatEta;
-  final int maxTokens;      // Maximum OUTPUT tokens to generate
-  final int contextLength;  // Maximum INPUT context window size
+  final int maxTokens; // Maximum OUTPUT tokens to generate
+  final int contextLength; // Maximum INPUT context window size
   final List<String> stopSequences;
   final int seed;
   final bool streamEnabled;
@@ -330,8 +333,8 @@ class GenerationPreset {
     this.mirostatMode = 0,
     this.mirostatTau = 5.0,
     this.mirostatEta = 0.1,
-    this.maxTokens = 8192,        // Default max output tokens
-    this.contextLength = 1000000,   // Default context window (1M)
+    this.maxTokens = 8192, // Default max output tokens
+    this.contextLength = 1000000, // Default context window (1M)
     this.stopSequences = const [],
     this.seed = -1,
     this.streamEnabled = true,
@@ -365,7 +368,8 @@ class GenerationPreset {
       minP: minP ?? this.minP,
       typicalP: typicalP ?? this.typicalP,
       repetitionPenalty: repetitionPenalty ?? this.repetitionPenalty,
-      repetitionPenaltyRange: repetitionPenaltyRange ?? this.repetitionPenaltyRange,
+      repetitionPenaltyRange:
+          repetitionPenaltyRange ?? this.repetitionPenaltyRange,
       frequencyPenalty: frequencyPenalty ?? this.frequencyPenalty,
       presencePenalty: presencePenalty ?? this.presencePenalty,
       tailFreeSampling: tailFreeSampling ?? this.tailFreeSampling,
@@ -410,37 +414,53 @@ class GenerationPreset {
       temperature: (json['temperature'] as num?)?.toDouble() ?? 1.0,
       // Support both snake_case (SillyTavern) and camelCase (legacy)
       topP: (json['top_p'] as num?)?.toDouble() ??
-            (json['topP'] as num?)?.toDouble() ?? 1.0,
+          (json['topP'] as num?)?.toDouble() ??
+          1.0,
       topK: (json['top_k'] as num?)?.toInt() ??
-            (json['topK'] as num?)?.toInt() ?? 0,
+          (json['topK'] as num?)?.toInt() ??
+          0,
       minP: (json['min_p'] as num?)?.toDouble() ??
-            (json['minP'] as num?)?.toDouble() ?? 0.0,
+          (json['minP'] as num?)?.toDouble() ??
+          0.0,
       typicalP: (json['typical_p'] as num?)?.toDouble() ??
-                (json['typicalP'] as num?)?.toDouble() ?? 1.0,
+          (json['typicalP'] as num?)?.toDouble() ??
+          1.0,
       repetitionPenalty: (json['repetition_penalty'] as num?)?.toDouble() ??
-                         (json['repetitionPenalty'] as num?)?.toDouble() ?? 1.0,
-      repetitionPenaltyRange: (json['repetition_penalty_range'] as num?)?.toInt() ??
-                              (json['repetitionPenaltyRange'] as num?)?.toInt() ?? 0,
+          (json['repetitionPenalty'] as num?)?.toDouble() ??
+          1.0,
+      repetitionPenaltyRange:
+          (json['repetition_penalty_range'] as num?)?.toInt() ??
+              (json['repetitionPenaltyRange'] as num?)?.toInt() ??
+              0,
       frequencyPenalty: (json['frequency_penalty'] as num?)?.toDouble() ??
-                        (json['frequencyPenalty'] as num?)?.toDouble() ?? 0.0,
+          (json['frequencyPenalty'] as num?)?.toDouble() ??
+          0.0,
       presencePenalty: (json['presence_penalty'] as num?)?.toDouble() ??
-                       (json['presencePenalty'] as num?)?.toDouble() ?? 0.0,
+          (json['presencePenalty'] as num?)?.toDouble() ??
+          0.0,
       tailFreeSampling: (json['tfs'] as num?)?.toDouble() ??
-                        (json['tailFreeSampling'] as num?)?.toDouble() ?? 1.0,
+          (json['tailFreeSampling'] as num?)?.toDouble() ??
+          1.0,
       topA: (json['top_a'] as num?)?.toDouble() ??
-            (json['topA'] as num?)?.toDouble() ?? 0.0,
+          (json['topA'] as num?)?.toDouble() ??
+          0.0,
       mirostatMode: (json['mirostat_mode'] as num?)?.toInt() ??
-                    (json['mirostatMode'] as num?)?.toInt() ?? 0,
+          (json['mirostatMode'] as num?)?.toInt() ??
+          0,
       mirostatTau: (json['mirostat_tau'] as num?)?.toDouble() ??
-                   (json['mirostatTau'] as num?)?.toDouble() ?? 5.0,
+          (json['mirostatTau'] as num?)?.toDouble() ??
+          5.0,
       mirostatEta: (json['mirostat_eta'] as num?)?.toDouble() ??
-                   (json['mirostatEta'] as num?)?.toDouble() ?? 0.1,
+          (json['mirostatEta'] as num?)?.toDouble() ??
+          0.1,
       maxTokens: (json['openai_max_tokens'] as num?)?.toInt() ??
-                 (json['max_tokens'] as num?)?.toInt() ??
-                 (json['maxTokens'] as num?)?.toInt() ?? 8192,
+          (json['max_tokens'] as num?)?.toInt() ??
+          (json['maxTokens'] as num?)?.toInt() ??
+          8192,
       contextLength: (json['openai_max_context'] as num?)?.toInt() ??
-                     (json['max_context'] as num?)?.toInt() ??
-                     (json['contextLength'] as num?)?.toInt() ?? 1000000,
+          (json['max_context'] as num?)?.toInt() ??
+          (json['contextLength'] as num?)?.toInt() ??
+          1000000,
       stopSequences: (json['stop_sequences'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -450,7 +470,8 @@ class GenerationPreset {
           [],
       seed: (json['seed'] as num?)?.toInt() ?? -1,
       streamEnabled: json['stream_openai'] as bool? ??
-                     json['streamEnabled'] as bool? ?? true,
+          json['streamEnabled'] as bool? ??
+          true,
     );
   }
 
@@ -473,8 +494,8 @@ class BuiltInAIPresets {
       temperature: 1.0,
       topP: 0.95,
       topK: 40,
-      maxTokens: 8192,        // Max output tokens
-      contextLength: 1000000,   // Context window size
+      maxTokens: 8192, // Max output tokens
+      contextLength: 1000000, // Context window size
     ),
   );
 
@@ -490,7 +511,7 @@ class BuiltInAIPresets {
       topP: 0.98,
       topK: 100,
       minP: 0.05,
-      maxTokens: 8192,       // Allow longer creative outputs
+      maxTokens: 8192, // Allow longer creative outputs
       contextLength: 1000000,
     ),
   );
@@ -539,8 +560,8 @@ class BuiltInAIPresets {
       temperature: 0.9,
       topP: 0.95,
       topK: 40,
-      maxTokens: 8192,       // Allow much longer outputs
-      contextLength: 1000000,  // Larger context for long form
+      maxTokens: 8192, // Allow much longer outputs
+      contextLength: 1000000, // Larger context for long form
       repetitionPenalty: 1.15,
     ),
   );

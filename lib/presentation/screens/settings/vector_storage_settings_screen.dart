@@ -8,6 +8,7 @@ import 'package:native_tavern/presentation/providers/vector_storage_providers.da
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:native_tavern/presentation/widgets/export_destination_sheet.dart';
 
 /// Settings screen for Vector Storage / RAG
 class VectorStorageSettingsScreen extends ConsumerWidget {
@@ -410,8 +411,13 @@ class VectorStorageSettingsScreen extends ConsumerWidget {
       final json =
           ref.read(vectorCollectionsProvider.notifier).exportCollection(id);
       Clipboard.setData(ClipboardData(text: json));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.collectionExported)),
+      exportTextWithDestination(
+        context: context,
+        fileName: 'nativetavern_collection_$id.json',
+        content: json,
+        subject: 'NativeTavern Collection',
+        allowedExtensions: const ['json'],
+        mimeType: 'application/json',
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

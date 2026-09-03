@@ -218,9 +218,11 @@ Use the above context to help answer the user's question if relevant.
       enabled: json['enabled'] as bool? ?? false,
       activeCollectionId: json['activeCollectionId'] as String?,
       topK: json['topK'] as int? ?? 5,
-      similarityThreshold: (json['similarityThreshold'] as num?)?.toDouble() ?? 0.7,
+      similarityThreshold:
+          (json['similarityThreshold'] as num?)?.toDouble() ?? 0.7,
       includeInPrompt: json['includeInPrompt'] as bool? ?? true,
-      promptTemplate: json['promptTemplate'] as String? ?? defaultPromptTemplate,
+      promptTemplate:
+          json['promptTemplate'] as String? ?? defaultPromptTemplate,
       embeddingProvider: EmbeddingProvider.values.firstWhere(
         (e) => e.name == json['embeddingProvider'],
         orElse: () => EmbeddingProvider.openai,
@@ -261,7 +263,9 @@ Use the above context to help answer the user's question if relevant.
   }) {
     return VectorStorageSettings(
       enabled: enabled ?? this.enabled,
-      activeCollectionId: clearActiveCollection ? null : (activeCollectionId ?? this.activeCollectionId),
+      activeCollectionId: clearActiveCollection
+          ? null
+          : (activeCollectionId ?? this.activeCollectionId),
       topK: topK ?? this.topK,
       similarityThreshold: similarityThreshold ?? this.similarityThreshold,
       includeInPrompt: includeInPrompt ?? this.includeInPrompt,
@@ -278,7 +282,8 @@ Use the above context to help answer the user's question if relevant.
   }
 
   static VectorStorageSettings deserialize(String json) {
-    return VectorStorageSettings.fromJson(jsonDecode(json) as Map<String, dynamic>);
+    return VectorStorageSettings.fromJson(
+        jsonDecode(json) as Map<String, dynamic>);
   }
 }
 
@@ -375,10 +380,13 @@ extension EmbeddingProviderExtension on EmbeddingProvider {
 enum ChunkingStrategy {
   /// Fixed size chunks with overlap
   fixedSize,
+
   /// Split by sentences
   sentence,
+
   /// Split by paragraphs
   paragraph,
+
   /// Split by semantic boundaries
   semantic,
 }

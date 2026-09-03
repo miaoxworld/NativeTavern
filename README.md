@@ -345,6 +345,10 @@ native_tavern/
 
 **总体完成度：约98%** 的核心 SillyTavern 功能
 
+## 贡献指南
+
+欢迎参与 NativeTavern 的开发与改进！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解开发者环境初始化 (`./setup.sh`)、代码规范、多平台本地构建脚本以及 Pull Request 提交流程。
+
 ## 许可证
 
 AGPL-3.0 - 详见 [LICENSE](LICENSE)。

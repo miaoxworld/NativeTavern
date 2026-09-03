@@ -84,6 +84,8 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         return 'https://generativelanguage.googleapis.com/v1';
       case LLMProvider.ollama:
         return 'http://localhost:11434';
+      case LLMProvider.lmStudio:
+        return 'http://localhost:1234/v1';
       case LLMProvider.koboldCpp:
         return 'http://localhost:5001';
       case LLMProvider.deepSeek:
@@ -100,6 +102,8 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         return 'https://api.minimaxi.com/v1';
       case LLMProvider.openAICompatible:
         return 'http://localhost:8080/v1';
+      case LLMProvider.xai:
+        return 'https://api.x.ai/v1';
     }
   }
 
@@ -116,6 +120,8 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         return 'gemini-2.5-flash';
       case LLMProvider.ollama:
         return 'llama3.2';
+      case LLMProvider.lmStudio:
+        return '';
       case LLMProvider.koboldCpp:
         return '';
       case LLMProvider.deepSeek:
@@ -132,6 +138,8 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         return 'MiniMax-M2';
       case LLMProvider.openAICompatible:
         return '';
+      case LLMProvider.xai:
+        return '';
     }
   }
 
@@ -146,6 +154,7 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
       LLMProvider.gemini => const ['/models'],
       LLMProvider.ollama => const ['/api/tags'],
       LLMProvider.koboldCpp => const ['/api/v1/model'],
+      LLMProvider.lmStudio => const ['/chat/completions', '/models'],
       _ => const ['/chat/completions', '/models'],
     };
     for (final suffix in suffixes) {
@@ -1246,7 +1255,12 @@ class ModelFetchNotifier extends StateNotifier<ModelFetchState> {
           case LLMProvider.miniMax:
           case LLMProvider.openAICompatible:
           case LLMProvider.openai:
+          case LLMProvider.xai:
             message = 'No models found. Check your API key.';
+            break;
+          case LLMProvider.lmStudio:
+            message =
+                'No models found. Load a model in LM Studio and start the local server.';
             break;
           case LLMProvider.ollama:
             message =

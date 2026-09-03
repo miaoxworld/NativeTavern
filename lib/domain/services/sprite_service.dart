@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 class SpriteService {
   final EmotionDetectionService _emotionService;
   final Map<String, SpritePack> _spritePackCache = {};
-  
+
   SpriteService({EmotionDetectionService? emotionService})
       : _emotionService = emotionService ?? EmotionDetectionService();
 
@@ -40,7 +40,7 @@ class SpriteService {
     }
 
     final packFile = await _getSpritePackFile(characterId);
-    
+
     if (await packFile.exists()) {
       try {
         final jsonStr = await packFile.readAsString();
@@ -73,15 +73,15 @@ class SpriteService {
     required File sourceImage,
   }) async {
     final spritesDir = await getSpritesDirectory(characterId);
-    
+
     // Generate unique filename
     final ext = p.extension(sourceImage.path);
     final filename = '${emotion}_${DateTime.now().millisecondsSinceEpoch}$ext';
     final destPath = p.join(spritesDir.path, filename);
-    
+
     // Copy image to sprites directory
     await sourceImage.copy(destPath);
-    
+
     // Create sprite
     final sprite = Sprite(
       id: const Uuid().v4(),
@@ -90,22 +90,22 @@ class SpriteService {
       imagePath: destPath,
       createdAt: DateTime.now(),
     );
-    
+
     // Update sprite pack
     final pack = await loadSpritePack(characterId);
     final updatedSprites = Map<String, Sprite>.from(pack.sprites);
     updatedSprites[emotion] = sprite;
-    
+
     final updatedPack = pack.copyWith(sprites: updatedSprites);
     await saveSpritePack(updatedPack);
-    
+
     return sprite;
   }
 
   /// Remove a sprite from a character's pack
   Future<void> removeSprite(String characterId, String emotion) async {
     final pack = await loadSpritePack(characterId);
-    
+
     final sprite = pack.sprites[emotion];
     if (sprite != null) {
       // Delete the image file
@@ -113,11 +113,11 @@ class SpriteService {
       if (await file.exists()) {
         await file.delete();
       }
-      
+
       // Update sprite pack
       final updatedSprites = Map<String, Sprite>.from(pack.sprites);
       updatedSprites.remove(emotion);
-      
+
       final updatedPack = pack.copyWith(sprites: updatedSprites);
       await saveSpritePack(updatedPack);
     }
@@ -139,7 +139,8 @@ class SpriteService {
     if (!pack.hasSprites) return null;
 
     // First try to detect emotion from action text
-    final actionEmotion = _emotionService.detectEmotionFromAction(messageContent);
+    final actionEmotion =
+        _emotionService.detectEmotionFromAction(messageContent);
     if (actionEmotion != null) {
       final sprite = pack.sprites[actionEmotion.id];
       if (sprite != null) return sprite;
@@ -173,21 +174,23 @@ class SpriteService {
 
     // List all image files in the directory
     final entities = await sourceDir.list().toList();
-    
+
     for (final entity in entities) {
       if (entity is File) {
         final ext = p.extension(entity.path).toLowerCase();
         if (['.png', '.jpg', '.jpeg', '.gif', '.webp'].contains(ext)) {
           // Try to determine emotion from filename
-          final filename = p.basenameWithoutExtension(entity.path).toLowerCase();
-          String? emotion = _matchEmotionFromFilename(filename);
-          
+          final filename =
+              p.basenameWithoutExtension(entity.path).toLowerCase();
+          final String? emotion = _matchEmotionFromFilename(filename);
+
           if (emotion != null) {
             // Copy file to sprites directory
-            final destFilename = '${emotion}_${DateTime.now().millisecondsSinceEpoch}$ext';
+            final destFilename =
+                '${emotion}_${DateTime.now().millisecondsSinceEpoch}$ext';
             final destPath = p.join(spritesDir.path, destFilename);
             await entity.copy(destPath);
-            
+
             // Create sprite
             final sprite = Sprite(
               id: const Uuid().v4(),
@@ -196,7 +199,7 @@ class SpriteService {
               imagePath: destPath,
               createdAt: DateTime.now(),
             );
-            
+
             updatedSprites[emotion] = sprite;
             importedCount++;
           }

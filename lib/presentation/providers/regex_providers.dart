@@ -13,14 +13,15 @@ final regexServiceProvider = Provider<RegexService>((ref) {
 });
 
 /// Provider for global regex scripts
-final globalRegexScriptsProvider = StateNotifierProvider<GlobalRegexScriptsNotifier, List<RegexScript>>((ref) {
+final globalRegexScriptsProvider =
+    StateNotifierProvider<GlobalRegexScriptsNotifier, List<RegexScript>>((ref) {
   return GlobalRegexScriptsNotifier();
 });
 
 /// Notifier for managing global regex scripts
 class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
   static const _storageKey = 'global_regex_scripts';
-  
+
   GlobalRegexScriptsNotifier() : super([]) {
     _loadScripts();
   }
@@ -32,7 +33,9 @@ class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
       if (jsonStr != null) {
         final decoded = jsonDecode(jsonStr);
         if (decoded is List) {
-          state = decoded.map((e) => RegexScript.fromJson(e as Map<String, dynamic>)).toList();
+          state = decoded
+              .map((e) => RegexScript.fromJson(e as Map<String, dynamic>))
+              .toList();
         }
       }
     } catch (e) {
@@ -87,12 +90,12 @@ class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
     final scripts = List<RegexScript>.from(state);
     final script = scripts.removeAt(oldIndex);
     scripts.insert(newIndex, script);
-    
+
     // Update order values
     state = scripts.asMap().entries.map((entry) {
       return entry.value.copyWith(order: entry.key);
     }).toList();
-    
+
     await _saveScripts();
   }
 
@@ -112,7 +115,7 @@ class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
           updatedAt: DateTime.now(),
         );
       }).toList();
-      
+
       state = [...state, ...scripts];
       await _saveScripts();
       return scripts.length;
@@ -131,8 +134,9 @@ class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
   Future<void> addPresets() async {
     final presets = RegexPresets.all();
     final existingIds = state.map((s) => s.id).toSet();
-    
-    final newPresets = presets.where((p) => !existingIds.contains(p.id)).toList();
+
+    final newPresets =
+        presets.where((p) => !existingIds.contains(p.id)).toList();
     if (newPresets.isNotEmpty) {
       state = [...state, ...newPresets];
       await _saveScripts();
@@ -147,7 +151,10 @@ class GlobalRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
 }
 
 /// Provider for character-specific regex scripts
-final characterRegexScriptsProvider = StateNotifierProvider.family<CharacterRegexScriptsNotifier, List<RegexScript>, String>((ref, characterId) {
+final characterRegexScriptsProvider = StateNotifierProvider.family<
+    CharacterRegexScriptsNotifier,
+    List<RegexScript>,
+    String>((ref, characterId) {
   return CharacterRegexScriptsNotifier(characterId);
 });
 
@@ -155,7 +162,7 @@ final characterRegexScriptsProvider = StateNotifierProvider.family<CharacterRege
 class CharacterRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
   final String characterId;
   late final Future<void> _loadFuture;
-  
+
   CharacterRegexScriptsNotifier(this.characterId) : super([]) {
     _loadFuture = _loadScripts();
   }
@@ -169,7 +176,9 @@ class CharacterRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
       if (jsonStr != null) {
         final decoded = jsonDecode(jsonStr);
         if (decoded is List) {
-          state = decoded.map((e) => RegexScript.fromJson(e as Map<String, dynamic>)).toList();
+          state = decoded
+              .map((e) => RegexScript.fromJson(e as Map<String, dynamic>))
+              .toList();
         }
       }
     } catch (e) {
@@ -240,26 +249,29 @@ class CharacterRegexScriptsNotifier extends StateNotifier<List<RegexScript>> {
 }
 
 /// Provider for combined regex scripts (global + character)
-final combinedRegexScriptsProvider = Provider.family<List<RegexScript>, String?>((ref, characterId) {
+final combinedRegexScriptsProvider =
+    Provider.family<List<RegexScript>, String?>((ref, characterId) {
   final globalScripts = ref.watch(globalRegexScriptsProvider);
-  
+
   if (characterId == null) {
     return globalScripts.where((s) => !s.disabled).toList();
   }
-  
-  final characterScripts = ref.watch(characterRegexScriptsProvider(characterId));
-  
+
+  final characterScripts =
+      ref.watch(characterRegexScriptsProvider(characterId));
+
   // Combine and sort by order
   final combined = [...globalScripts, ...characterScripts]
-    .where((s) => !s.disabled)
-    .toList()
+      .where((s) => !s.disabled)
+      .toList()
     ..sort((a, b) => a.order.compareTo(b.order));
-  
+
   return combined;
 });
 
 /// Provider for regex settings
-final regexSettingsProvider = StateNotifierProvider<RegexSettingsNotifier, RegexSettings>((ref) {
+final regexSettingsProvider =
+    StateNotifierProvider<RegexSettingsNotifier, RegexSettings>((ref) {
   return RegexSettingsNotifier();
 });
 
@@ -300,13 +312,13 @@ class RegexSettings {
   }
 
   Map<String, dynamic> toJson() => {
-    'enabled': enabled,
-    'applyToUserInput': applyToUserInput,
-    'applyToAiOutput': applyToAiOutput,
-    'applyToSlashCommands': applyToSlashCommands,
-    'applyToWorldInfo': applyToWorldInfo,
-    'applyToReasoning': applyToReasoning,
-  };
+        'enabled': enabled,
+        'applyToUserInput': applyToUserInput,
+        'applyToAiOutput': applyToAiOutput,
+        'applyToSlashCommands': applyToSlashCommands,
+        'applyToWorldInfo': applyToWorldInfo,
+        'applyToReasoning': applyToReasoning,
+      };
 
   factory RegexSettings.fromJson(Map<String, dynamic> json) {
     return RegexSettings(
@@ -323,7 +335,7 @@ class RegexSettings {
 /// Notifier for regex settings
 class RegexSettingsNotifier extends StateNotifier<RegexSettings> {
   static const _storageKey = 'regex_settings';
-  
+
   RegexSettingsNotifier() : super(const RegexSettings()) {
     _loadSettings();
   }

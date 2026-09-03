@@ -4,16 +4,16 @@ import 'dart:convert';
 class CFGScaleSettings {
   /// Global guidance scale (1.0 = no effect)
   final double globalGuidanceScale;
-  
+
   /// Global negative prompt
   final String globalNegativePrompt;
-  
+
   /// Global positive prompt (optional enhancement)
   final String globalPositivePrompt;
-  
+
   /// Whether CFG is enabled globally
   final bool enabled;
-  
+
   /// Character-specific CFG settings
   final List<CharacterCFGSettings> characterSettings;
 
@@ -27,12 +27,14 @@ class CFGScaleSettings {
 
   factory CFGScaleSettings.fromJson(Map<String, dynamic> json) {
     return CFGScaleSettings(
-      globalGuidanceScale: (json['globalGuidanceScale'] as num?)?.toDouble() ?? 1.0,
+      globalGuidanceScale:
+          (json['globalGuidanceScale'] as num?)?.toDouble() ?? 1.0,
       globalNegativePrompt: json['globalNegativePrompt'] as String? ?? '',
       globalPositivePrompt: json['globalPositivePrompt'] as String? ?? '',
       enabled: json['enabled'] as bool? ?? false,
       characterSettings: (json['characterSettings'] as List<dynamic>?)
-              ?.map((e) => CharacterCFGSettings.fromJson(e as Map<String, dynamic>))
+              ?.map((e) =>
+                  CharacterCFGSettings.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -90,15 +92,17 @@ class CFGScaleSettings {
         (s) => s.characterId == characterId,
         orElse: () => CharacterCFGSettings.empty(characterId),
       );
-      
+
       if (charSettings.useCharacterSettings) {
         if (charSettings.guidanceScale != null) {
           scale = charSettings.guidanceScale!;
         }
-        if (charSettings.negativePrompt != null && charSettings.negativePrompt!.isNotEmpty) {
+        if (charSettings.negativePrompt != null &&
+            charSettings.negativePrompt!.isNotEmpty) {
           negative = charSettings.negativePrompt!;
         }
-        if (charSettings.positivePrompt != null && charSettings.positivePrompt!.isNotEmpty) {
+        if (charSettings.positivePrompt != null &&
+            charSettings.positivePrompt!.isNotEmpty) {
           positive = charSettings.positivePrompt!;
         }
       }
@@ -109,10 +113,12 @@ class CFGScaleSettings {
       if (chatSettings.guidanceScale != null) {
         scale = chatSettings.guidanceScale!;
       }
-      if (chatSettings.negativePrompt != null && chatSettings.negativePrompt!.isNotEmpty) {
+      if (chatSettings.negativePrompt != null &&
+          chatSettings.negativePrompt!.isNotEmpty) {
         negative = chatSettings.negativePrompt!;
       }
-      if (chatSettings.positivePrompt != null && chatSettings.positivePrompt!.isNotEmpty) {
+      if (chatSettings.positivePrompt != null &&
+          chatSettings.positivePrompt!.isNotEmpty) {
         positive = chatSettings.positivePrompt!;
       }
     }
@@ -187,9 +193,12 @@ class CharacterCFGSettings {
     return CharacterCFGSettings(
       characterId: characterId ?? this.characterId,
       useCharacterSettings: useCharacterSettings ?? this.useCharacterSettings,
-      guidanceScale: clearGuidanceScale ? null : (guidanceScale ?? this.guidanceScale),
-      negativePrompt: clearNegativePrompt ? null : (negativePrompt ?? this.negativePrompt),
-      positivePrompt: clearPositivePrompt ? null : (positivePrompt ?? this.positivePrompt),
+      guidanceScale:
+          clearGuidanceScale ? null : (guidanceScale ?? this.guidanceScale),
+      negativePrompt:
+          clearNegativePrompt ? null : (negativePrompt ?? this.negativePrompt),
+      positivePrompt:
+          clearPositivePrompt ? null : (positivePrompt ?? this.positivePrompt),
     );
   }
 
@@ -230,7 +239,8 @@ class ChatCFGSettings {
         orElse: () => PromptCombineMode.replace,
       ),
       promptSeparator: json['promptSeparator'] as String?,
-      useGroupCharacterSettings: json['useGroupCharacterSettings'] as bool? ?? false,
+      useGroupCharacterSettings:
+          json['useGroupCharacterSettings'] as bool? ?? false,
     );
   }
 
@@ -257,12 +267,16 @@ class ChatCFGSettings {
     bool clearPositivePrompt = false,
   }) {
     return ChatCFGSettings(
-      guidanceScale: clearGuidanceScale ? null : (guidanceScale ?? this.guidanceScale),
-      negativePrompt: clearNegativePrompt ? null : (negativePrompt ?? this.negativePrompt),
-      positivePrompt: clearPositivePrompt ? null : (positivePrompt ?? this.positivePrompt),
+      guidanceScale:
+          clearGuidanceScale ? null : (guidanceScale ?? this.guidanceScale),
+      negativePrompt:
+          clearNegativePrompt ? null : (negativePrompt ?? this.negativePrompt),
+      positivePrompt:
+          clearPositivePrompt ? null : (positivePrompt ?? this.positivePrompt),
       promptCombineMode: promptCombineMode ?? this.promptCombineMode,
       promptSeparator: promptSeparator ?? this.promptSeparator,
-      useGroupCharacterSettings: useGroupCharacterSettings ?? this.useGroupCharacterSettings,
+      useGroupCharacterSettings:
+          useGroupCharacterSettings ?? this.useGroupCharacterSettings,
     );
   }
 }
@@ -271,8 +285,10 @@ class ChatCFGSettings {
 enum PromptCombineMode {
   /// Replace lower priority prompts
   replace,
+
   /// Prepend to lower priority prompts
   prepend,
+
   /// Append to lower priority prompts
   append,
 }
@@ -294,7 +310,7 @@ class EffectiveCFGSettings {
   /// Convert to API request format
   Map<String, dynamic> toApiFormat() {
     if (!isActive) return {};
-    
+
     return {
       'guidance_scale': guidanceScale,
       if (negativePrompt.isNotEmpty) 'negative_prompt': negativePrompt,

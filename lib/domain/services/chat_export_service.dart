@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:path_provider/path_provider.dart';
 import 'package:native_tavern/data/models/chat.dart';
@@ -150,17 +151,39 @@ class ChatExportService {
     final result = await FilePicker.platform.saveFile(
       dialogTitle: 'Save Chat Export',
       fileName: fileName,
+      bytes: Uint8List.fromList(utf8.encode(content)),
       type: FileType.custom,
       allowedExtensions: [extension],
     );
 
     if (result != null) {
       final file = File(result);
-      await file.writeAsString(content);
+      if (!await file.exists() || await file.length() == 0) {
+        await file.writeAsString(content);
+      }
       return result;
     }
 
     return null;
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is int) {
+      if (value < 10000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+      }
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is String) {
+      final asInt = int.tryParse(value);
+      if (asInt != null) {
+        return _parseDate(asInt);
+      }
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    return DateTime.now();
   }
 
   /// Import chat from JSONL format
@@ -175,18 +198,37 @@ class ChatExportService {
       final userName = metadata['user_name'] as String? ?? 'User';
       final characterName =
           metadata['character_name'] as String? ?? 'Character';
-      final createDate = metadata['create_date'] as int?;
+      final createDate = _parseDate(metadata['create_date']);
       final chatMetadata = metadata['chat_metadata'] as Map<String, dynamic>?;
+
+      final detectedModel = (chatMetadata?['main_model'] as String?) ??
+          (chatMetadata?['model'] as String?) ??
+          (metadata['model'] as String?);
+
+      final personaName = (chatMetadata?['persona'] as String?) ??
+          (chatMetadata?['user_name'] as String?);
+
+      final authorNote = (chatMetadata?['note_prompt'] as String?) ??
+          (metadata['author_note'] as String?);
+      final authorNoteDepth = (chatMetadata?['note_depth'] as int?) ??
+          (metadata['author_note_depth'] as int?);
+      final authorNoteEnabled = (chatMetadata?['note_enabled'] as bool?) ??
+          (metadata['author_note_enabled'] as bool?);
 
       // Parse messages
       final messages = <ImportedMessage>[];
+      String? fallbackModel = detectedModel;
+
       for (var i = 1; i < lines.length; i++) {
-        if (lines[i].trim().isEmpty) continue;
+        final line = lines[i].trim();
+        if (line.isEmpty) continue;
 
         try {
-          final msgData = jsonDecode(lines[i]) as Map<String, dynamic>;
-          final isUser = msgData['is_user'] as bool? ?? false;
-          final isSystem = msgData['is_system'] as bool? ?? false;
+          final msgData = jsonDecode(line) as Map<String, dynamic>;
+          final isUser =
+              msgData['is_user'] as bool? ?? (msgData['role'] == 'user');
+          final isSystem =
+              msgData['is_system'] as bool? ?? (msgData['role'] == 'system');
 
           MessageRole role;
           if (isSystem) {
@@ -197,20 +239,44 @@ class ChatExportService {
             role = MessageRole.assistant;
           }
 
+          final extra = msgData['extra'] as Map<String, dynamic>?;
+          final msgModel =
+              (extra?['model'] as String?) ?? (msgData['model'] as String?);
+          if (fallbackModel == null &&
+              msgModel != null &&
+              msgModel.isNotEmpty) {
+            fallbackModel = msgModel;
+          }
+
+          final rawSwipes =
+              (msgData['swipes'] as List<dynamic>?)?.cast<String>() ?? [];
+          final activeContent =
+              msgData['mes'] as String? ?? msgData['content'] as String? ?? '';
+
+          final reasoning = (msgData['reasoning'] as String?) ??
+              (extra?['reasoning'] as String?);
+          final reasoningSwipes =
+              (msgData['reasoning_swipes'] as List<dynamic>?)?.cast<String>() ??
+                  (extra?['reasoning_swipes'] as List<dynamic>?)
+                      ?.cast<String>();
+
           messages.add(ImportedMessage(
             role: role,
-            content: msgData['mes'] as String? ?? '',
-            timestamp: msgData['send_date'] != null
-                ? DateTime.fromMillisecondsSinceEpoch(
-                    msgData['send_date'] as int)
-                : DateTime.now(),
-            swipes: (msgData['swipes'] as List<dynamic>?)?.cast<String>() ?? [],
-            currentSwipeIndex: msgData['swipe_id'] as int? ?? 0,
-            reasoning: msgData['reasoning'] as String?,
-            reasoningSwipes:
-                (msgData['reasoning_swipes'] as List<dynamic>?)?.cast<String>(),
-            characterId: msgData['original_avatar'] as String?,
-            characterName: msgData['force_avatar'] as String?,
+            content: activeContent,
+            timestamp: _parseDate(msgData['send_date'] ?? msgData['timestamp']),
+            swipes: rawSwipes,
+            currentSwipeIndex: msgData['swipe_id'] as int? ??
+                msgData['current_swipe_index'] as int? ??
+                0,
+            reasoning: reasoning,
+            reasoningSwipes: reasoningSwipes,
+            model: msgModel,
+            characterId: (msgData['original_avatar'] as String?) ??
+                (msgData['character_id'] as String?),
+            characterName: (msgData['force_avatar'] as String?) ??
+                (msgData['character_name'] as String?) ??
+                (msgData['name'] as String?),
+            metadata: extra ?? const {},
           ));
         } catch (e) {
           // Skip malformed message lines
@@ -221,11 +287,12 @@ class ChatExportService {
       return ChatImportResult(
         userName: userName,
         characterName: characterName,
-        createDate: createDate != null
-            ? DateTime.fromMillisecondsSinceEpoch(createDate)
-            : DateTime.now(),
-        authorNote: chatMetadata?['note_prompt'] as String?,
-        authorNoteDepth: chatMetadata?['note_depth'] as int?,
+        createDate: createDate,
+        model: fallbackModel,
+        personaName: personaName,
+        authorNote: authorNote,
+        authorNoteDepth: authorNoteDepth,
+        authorNoteEnabled: authorNoteEnabled,
         messages: messages,
       );
     } catch (e) {
@@ -240,29 +307,44 @@ class ChatExportService {
 
       final userName = data['user_name'] as String? ?? 'User';
       final characterName = data['character_name'] as String? ?? 'Character';
-      final createdAt = data['created_at'] != null
-          ? DateTime.parse(data['created_at'] as String)
-          : DateTime.now();
+      final createdAt = _parseDate(data['created_at'] ?? data['create_date']);
+      final model = data['model'] as String? ??
+          (data['settings'] is Map
+              ? (data['settings'] as Map)['model'] as String?
+              : null);
 
       final messagesData = data['messages'] as List<dynamic>? ?? [];
       final messages = messagesData.map((m) {
         final msgData = m as Map<String, dynamic>;
+        final extra = msgData['extra'] as Map<String, dynamic>?;
         return ImportedMessage(
           role: MessageRole.values.firstWhere(
             (r) => r.name == msgData['role'],
-            orElse: () => MessageRole.user,
+            orElse: () => (msgData['is_user'] == true)
+                ? MessageRole.user
+                : MessageRole.assistant,
           ),
-          content: msgData['content'] as String? ?? '',
-          timestamp: msgData['timestamp'] != null
-              ? DateTime.parse(msgData['timestamp'] as String)
-              : DateTime.now(),
+          content:
+              msgData['content'] as String? ?? msgData['mes'] as String? ?? '',
+          timestamp: _parseDate(msgData['timestamp'] ?? msgData['send_date']),
           swipes: (msgData['swipes'] as List<dynamic>?)?.cast<String>() ?? [],
-          currentSwipeIndex: msgData['current_swipe_index'] as int? ?? 0,
-          reasoning: msgData['reasoning'] as String?,
-          reasoningSwipes:
-              (msgData['reasoning_swipes'] as List<dynamic>?)?.cast<String>(),
-          characterId: msgData['character_id'] as String?,
-          characterName: msgData['character_name'] as String?,
+          currentSwipeIndex: msgData['current_swipe_index'] as int? ??
+              msgData['swipe_id'] as int? ??
+              0,
+          reasoning:
+              msgData['reasoning'] as String? ?? extra?['reasoning'] as String?,
+          reasoningSwipes: (msgData['reasoning_swipes'] as List<dynamic>?)
+                  ?.cast<String>() ??
+              (extra?['reasoning_swipes'] as List<dynamic>?)?.cast<String>(),
+          model: msgData['model'] as String? ?? extra?['model'] as String?,
+          characterId: msgData['character_id'] as String? ??
+              msgData['original_avatar'] as String?,
+          characterName: msgData['character_name'] as String? ??
+              msgData['force_avatar'] as String? ??
+              msgData['name'] as String?,
+          metadata: (msgData['metadata'] is Map)
+              ? Map<String, dynamic>.from(msgData['metadata'] as Map)
+              : (extra ?? const {}),
         );
       }).toList();
 
@@ -270,6 +352,7 @@ class ChatExportService {
         userName: userName,
         characterName: characterName,
         createDate: createdAt,
+        model: model,
         authorNote: data['author_note'] as String?,
         authorNoteDepth: data['author_note_depth'] as int?,
         authorNoteEnabled: data['author_note_enabled'] as bool?,
@@ -280,7 +363,15 @@ class ChatExportService {
     }
   }
 
-  /// Import chat from file
+  /// Import chat from file directly
+  Future<ChatImportResult?> importFromPath(String filePath) async {
+    final file = File(filePath);
+    if (!file.existsSync()) return null;
+    final content = await file.readAsString();
+    return importFromString(content);
+  }
+
+  /// Import chat from file picker
   Future<ChatImportResult?> importFromFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
@@ -288,15 +379,18 @@ class ChatExportService {
     );
 
     if (result == null || result.files.isEmpty) return null;
+    final filePath = result.files.first.path;
+    if (filePath == null) return null;
 
-    final file = File(result.files.first.path!);
+    final file = File(filePath);
     final content = await file.readAsString();
     final fileName = result.files.first.name.toLowerCase();
     final fileExtension =
         fileName.contains('.') ? fileName.split('.').last : '';
 
     if (!_supportedImportExtensions.contains(fileExtension)) {
-      return null;
+      // Fallback: try parsing content directly if extension is unrecognized
+      return importFromString(content);
     }
 
     if (fileName.endsWith('.jsonl')) {
@@ -308,10 +402,13 @@ class ChatExportService {
 
   /// Auto-detect format and import
   Future<ChatImportResult?> importFromString(String content) async {
+    final trimmed = content.trim();
+    if (trimmed.isEmpty) return null;
+
     // Try JSONL first (starts with { and has multiple lines)
-    if (content.trim().startsWith('{') && content.contains('\n')) {
+    if (trimmed.startsWith('{') && trimmed.contains('\n')) {
       final result = await importFromJsonl(content);
-      if (result != null) return result;
+      if (result != null && result.messages.isNotEmpty) return result;
     }
 
     // Try JSON
@@ -324,6 +421,8 @@ class ChatImportResult {
   final String userName;
   final String characterName;
   final DateTime createDate;
+  final String? model;
+  final String? personaName;
   final String? authorNote;
   final int? authorNoteDepth;
   final bool? authorNoteEnabled;
@@ -333,6 +432,8 @@ class ChatImportResult {
     required this.userName,
     required this.characterName,
     required this.createDate,
+    this.model,
+    this.personaName,
     this.authorNote,
     this.authorNoteDepth,
     this.authorNoteEnabled,
@@ -349,8 +450,10 @@ class ImportedMessage {
   final int currentSwipeIndex;
   final String? reasoning;
   final List<String>? reasoningSwipes;
+  final String? model;
   final String? characterId;
   final String? characterName;
+  final Map<String, dynamic> metadata;
 
   ImportedMessage({
     required this.role,
@@ -360,8 +463,10 @@ class ImportedMessage {
     this.currentSwipeIndex = 0,
     this.reasoning,
     this.reasoningSwipes,
+    this.model,
     this.characterId,
     this.characterName,
+    this.metadata = const {},
   });
 
   /// Convert to ChatMessage
@@ -378,6 +483,10 @@ class ImportedMessage {
       reasoningSwipes: reasoningSwipes,
       characterId: characterId,
       characterName: characterName,
+      metadata: {
+        if (model != null && model!.isNotEmpty) 'model': model,
+        ...metadata,
+      },
     );
   }
 }

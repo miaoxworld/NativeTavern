@@ -12,10 +12,10 @@ import 'package:native_tavern/presentation/theme/app_theme.dart';
 class ImageGenerationDialog extends ConsumerStatefulWidget {
   /// The base prompt (usually from message content)
   final String basePrompt;
-  
+
   /// Optional character name for context
   final String? characterName;
-  
+
   /// The generation mode
   final ImageGenMode mode;
 
@@ -31,8 +31,9 @@ class ImageGenerationDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImageGenerationDialog> createState() => _ImageGenerationDialogState();
-  
+  ConsumerState<ImageGenerationDialog> createState() =>
+      _ImageGenerationDialogState();
+
   /// Show the dialog and return the generated image (if any)
   static Future<ImageGenResult?> show(
     BuildContext context, {
@@ -87,7 +88,7 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
 
   String _buildInitialPrompt() {
     final basePrompt = widget.basePrompt.trim();
-    
+
     switch (widget.mode) {
       case ImageGenMode.character:
         return 'full body portrait, ${widget.characterName ?? "character"}, $basePrompt';
@@ -142,7 +143,8 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.cloud, size: 16, color: AppTheme.textMuted),
+                    const Icon(Icons.cloud,
+                        size: 16, color: AppTheme.textMuted),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -164,7 +166,7 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Model selector
               _buildModelSelector(settings),
               const SizedBox(height: 16),
@@ -230,7 +232,8 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                   TextField(
                     controller: _negativePromptController,
                     maxLines: 2,
-                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12),
+                    style: const TextStyle(
+                        color: AppTheme.textPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: l10n.enterTermsToAvoid,
                       hintStyle: const TextStyle(color: AppTheme.textMuted),
@@ -252,7 +255,8 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                 LinearProgressIndicator(
                   value: _progress,
                   backgroundColor: AppTheme.darkBackground,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryColor),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -273,16 +277,19 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                    border:
+                        Border.all(color: Colors.red.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                      const Icon(Icons.error_outline,
+                          color: Colors.red, size: 16),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _error!,
-                          style: const TextStyle(color: Colors.red, fontSize: 12),
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12),
                         ),
                       ),
                     ],
@@ -463,7 +470,7 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
   Widget _buildModelSelector(ImageGenSettings settings) {
     final availableModels = ref.watch(availableModelsProvider);
     final currentModel = settings.model;
-    
+
     return Row(
       children: [
         const Icon(Icons.memory, size: 16, color: AppTheme.textMuted),
@@ -485,7 +492,9 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: availableModels.contains(currentModel) ? currentModel : null,
+                value: availableModels.contains(currentModel)
+                    ? currentModel
+                    : null,
                 isExpanded: true,
                 isDense: true,
                 dropdownColor: AppTheme.darkCard,
@@ -509,11 +518,15 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                     ),
                   );
                 }).toList(),
-                onChanged: _isGenerating ? null : (value) {
-                  if (value != null) {
-                    ref.read(imageGenSettingsProvider.notifier).setModel(value);
-                  }
-                },
+                onChanged: _isGenerating
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          ref
+                              .read(imageGenSettingsProvider.notifier)
+                              .setModel(value);
+                        }
+                      },
               ),
             ),
           ),

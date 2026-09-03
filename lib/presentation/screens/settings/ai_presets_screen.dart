@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:native_tavern/core/utils/share_utils.dart';
+import 'package:native_tavern/presentation/widgets/export_destination_sheet.dart';
 import '../../../data/models/ai_preset.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/ai_preset_providers.dart';
@@ -42,7 +40,8 @@ class AIPresetsScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: AppTheme.primaryColor, size: 20),
+                const Icon(Icons.info_outline,
+                    color: AppTheme.primaryColor, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -125,7 +124,8 @@ class AIPresetsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _applyPreset(BuildContext context, WidgetRef ref, AIPreset preset) async {
+  Future<void> _applyPreset(
+      BuildContext context, WidgetRef ref, AIPreset preset) async {
     final l10n = AppLocalizations.of(context);
     try {
       await ref.read(aiPresetManagerProvider).applyPreset(preset);
@@ -167,7 +167,8 @@ class AIPresetsScreen extends ConsumerWidget {
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
 
       // Check if it's a valid preset format (has temperature or generationSettings)
-      if (!json.containsKey('temperature') && !json.containsKey('generationSettings')) {
+      if (!json.containsKey('temperature') &&
+          !json.containsKey('generationSettings')) {
         throw Exception(l10n.invalidPresetFormat);
       }
 
@@ -177,7 +178,8 @@ class AIPresetsScreen extends ConsumerWidget {
       }
 
       // Import using unified format handler
-      final preset = await ref.read(aiCustomPresetsProvider.notifier).importPreset(json);
+      final preset =
+          await ref.read(aiCustomPresetsProvider.notifier).importPreset(json);
       await ref.read(aiPresetManagerProvider).applyPreset(preset);
 
       if (context.mounted) {
@@ -194,7 +196,8 @@ class AIPresetsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _exportCurrentSettings(BuildContext context, WidgetRef ref) async {
+  Future<void> _exportCurrentSettings(
+      BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     final nameController = TextEditingController(text: 'My AI Preset');
 
@@ -224,22 +227,20 @@ class AIPresetsScreen extends ConsumerWidget {
     );
 
     if (name == null || name.isEmpty || !context.mounted) return;
-    final shareOrigin = sharePositionOrigin(context);
 
     try {
-      final json = await ref.read(aiPresetManagerProvider).exportCurrentSettings(name);
+      final json =
+          await ref.read(aiPresetManagerProvider).exportCurrentSettings(name);
       final jsonString = const JsonEncoder.withIndent('  ').convert(json);
-
-      final tempDir = await getTemporaryDirectory();
       final fileName = '${name.replaceAll(RegExp(r'[^\w\s-]'), '_')}.json';
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsString(jsonString);
-
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path)],
+      await exportTextWithDestination(
+        context: context,
+        fileName: fileName,
+        content: jsonString,
         subject: 'NativeTavern AI Preset: $name',
-        sharePositionOrigin: shareOrigin,
-      ));
+        allowedExtensions: const ['json'],
+        mimeType: 'application/json',
+      );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -307,12 +308,17 @@ class AIPresetsScreen extends ConsumerWidget {
     if (result == null) return;
 
     try {
-      final preset = await ref.read(aiPresetManagerProvider).createFromCurrentSettings(
-            name: result['name']!,
-            description: result['description']!.isEmpty ? null : result['description'],
-          );
+      final preset =
+          await ref.read(aiPresetManagerProvider).createFromCurrentSettings(
+                name: result['name']!,
+                description: result['description']!.isEmpty
+                    ? null
+                    : result['description'],
+              );
       await ref.read(aiCustomPresetsProvider.notifier).addPreset(preset);
-      await ref.read(activeAIPresetIdProvider.notifier).setActivePreset(preset.id);
+      await ref
+          .read(activeAIPresetIdProvider.notifier)
+          .setActivePreset(preset.id);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -329,21 +335,19 @@ class AIPresetsScreen extends ConsumerWidget {
   }
 
   Future<void> _exportPreset(BuildContext context, AIPreset preset) async {
-    final shareOrigin = sharePositionOrigin(context);
     try {
       final json = preset.toExportJson();
       final jsonString = const JsonEncoder.withIndent('  ').convert(json);
-
-      final tempDir = await getTemporaryDirectory();
-      final fileName = '${preset.name.replaceAll(RegExp(r'[^\w\s-]'), '_')}.json';
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsString(jsonString);
-
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path)],
+      final fileName =
+          '${preset.name.replaceAll(RegExp(r'[^\w\s-]'), '_')}.json';
+      await exportTextWithDestination(
+        context: context,
+        fileName: fileName,
+        content: jsonString,
         subject: 'NativeTavern AI Preset: ${preset.name}',
-        sharePositionOrigin: shareOrigin,
-      ));
+        allowedExtensions: const ['json'],
+        mimeType: 'application/json',
+      );
     } catch (e) {
       if (context.mounted) {
         final l10n = AppLocalizations.of(context);
@@ -354,7 +358,8 @@ class AIPresetsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _deletePreset(BuildContext context, WidgetRef ref, AIPreset preset) async {
+  Future<void> _deletePreset(
+      BuildContext context, WidgetRef ref, AIPreset preset) async {
     final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
@@ -448,9 +453,10 @@ class _PresetCard extends StatelessWidget {
                       children: [
                         Text(
                           preset.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         if (isActive) ...[
                           const SizedBox(width: 8),
@@ -504,11 +510,13 @@ class _PresetCard extends StatelessWidget {
                           ),
                         _SettingChip(
                           icon: Icons.thermostat,
-                          label: 'T: ${preset.generationSettings.temperature.toStringAsFixed(1)}',
+                          label:
+                              'T: ${preset.generationSettings.temperature.toStringAsFixed(1)}',
                         ),
                         _SettingChip(
                           icon: Icons.pie_chart,
-                          label: 'P: ${preset.generationSettings.topP.toStringAsFixed(2)}',
+                          label:
+                              'P: ${preset.generationSettings.topP.toStringAsFixed(2)}',
                         ),
                         _SettingChip(
                           icon: Icons.format_list_numbered,
@@ -546,7 +554,8 @@ class _PresetCard extends StatelessWidget {
                         value: 'delete',
                         child: ListTile(
                           leading: const Icon(Icons.delete, color: Colors.red),
-                          title: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+                          title: Text(l10n.delete,
+                              style: const TextStyle(color: Colors.red)),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),

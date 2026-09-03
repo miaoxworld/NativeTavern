@@ -64,13 +64,14 @@ class LogprobsSettingsNotifier extends StateNotifier<LogprobsSettings> {
 }
 
 /// Provider for storing message logprobs data
-final messageLogprobsProvider =
-    StateNotifierProvider<MessageLogprobsNotifier, Map<String, MessageLogprobs>>((ref) {
+final messageLogprobsProvider = StateNotifierProvider<MessageLogprobsNotifier,
+    Map<String, MessageLogprobs>>((ref) {
   return MessageLogprobsNotifier();
 });
 
 /// Notifier for managing message logprobs
-class MessageLogprobsNotifier extends StateNotifier<Map<String, MessageLogprobs>> {
+class MessageLogprobsNotifier
+    extends StateNotifier<Map<String, MessageLogprobs>> {
   static const int _maxStoredMessages = 100;
 
   MessageLogprobsNotifier() : super({});
@@ -88,7 +89,7 @@ class MessageLogprobsNotifier extends StateNotifier<Map<String, MessageLogprobs>
           final bTime = newState[b]!.createdAt;
           return aTime.compareTo(bTime);
         });
-      
+
       // Remove oldest entries
       for (int i = 0; i < newState.length - _maxStoredMessages; i++) {
         newState.remove(sortedKeys[i]);
@@ -119,10 +120,12 @@ class MessageLogprobsNotifier extends StateNotifier<Map<String, MessageLogprobs>
 }
 
 /// Provider for currently selected token in logprobs view
-final selectedTokenLogprobProvider = StateProvider<TokenLogprob?>((ref) => null);
+final selectedTokenLogprobProvider =
+    StateProvider<TokenLogprob?>((ref) => null);
 
 /// Provider for getting logprobs for a specific message
-final messageLogprobProvider = Provider.family<MessageLogprobs?, String>((ref, messageId) {
+final messageLogprobProvider =
+    Provider.family<MessageLogprobs?, String>((ref, messageId) {
   final allLogprobs = ref.watch(messageLogprobsProvider);
   return allLogprobs[messageId];
 });
@@ -160,17 +163,18 @@ class LogprobsParser {
       final tokenLogprobs = content.map((item) {
         final tokenData = item as Map<String, dynamic>;
         final topLogprobs = tokenData['top_logprobs'] as List<dynamic>?;
-        
+
         return TokenLogprob(
           token: tokenData['token'] as String? ?? '',
           logprob: (tokenData['logprob'] as num?)?.toDouble() ?? 0.0,
           topCandidates: topLogprobs?.map((t) {
-            final candidate = t as Map<String, dynamic>;
-            return TokenCandidate(
-              token: candidate['token'] as String? ?? '',
-              logprob: (candidate['logprob'] as num?)?.toDouble() ?? 0.0,
-            );
-          }).toList() ?? [],
+                final candidate = t as Map<String, dynamic>;
+                return TokenCandidate(
+                  token: candidate['token'] as String? ?? '',
+                  logprob: (candidate['logprob'] as num?)?.toDouble() ?? 0.0,
+                );
+              }).toList() ??
+              [],
         );
       }).toList();
 
@@ -229,12 +233,12 @@ class ProbabilityColorCalculator {
   int getColor(double probability) {
     // Clamp probability to 0-100
     final p = probability.clamp(0.0, 100.0) / 100.0;
-    
+
     // Calculate color based on probability
     // High probability = green, low probability = red
     final r = ((1 - p) * 255 * intensity).round();
     final g = (p * 255 * intensity).round();
-    final b = 0;
+    const b = 0;
     final a = (intensity * 255).round();
 
     return (a << 24) | (r << 16) | (g << 8) | b;

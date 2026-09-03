@@ -67,9 +67,7 @@ class MomentsScreen extends ConsumerWidget {
                   return NotificationListener<ScrollNotification>(
                     onNotification: (notification) {
                       if (notification.metrics.extentAfter < 600) {
-                        ref
-                            .read(pagedMomentFeedProvider.notifier)
-                            .loadMore();
+                        ref.read(pagedMomentFeedProvider.notifier).loadMore();
                       }
                       return false;
                     },
@@ -78,65 +76,67 @@ class MomentsScreen extends ConsumerWidget {
                         parent: AlwaysScrollableScrollPhysics(),
                       ),
                       slivers: [
-                      SliverAppBar(
-                        pinned: true,
-                        stretch: true,
-                        elevation: 0,
-                        scrolledUnderElevation: 0,
-                        backgroundColor: palette.page,
-                        surfaceTintColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        title: Text(l10n.moments),
-                        expandedHeight: _coverHeight + topInset,
-                        leading: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-                          onPressed: () => Navigator.of(context).maybePop(),
-                        ),
-                        actions: [
-                          IconButton(
-                            key: const Key('moments-compose'),
-                            tooltip: l10n.momentsCompose,
-                            onPressed: () => _compose(context, ref, selfName),
-                            icon: const Icon(Icons.camera_alt_outlined),
+                        SliverAppBar(
+                          pinned: true,
+                          stretch: true,
+                          elevation: 0,
+                          scrolledUnderElevation: 0,
+                          backgroundColor: palette.page,
+                          surfaceTintColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          title: Text(l10n.moments),
+                          expandedHeight: _coverHeight + topInset,
+                          leading: IconButton(
+                            icon:
+                                const Icon(Icons.arrow_back_ios_new, size: 18),
+                            onPressed: () => Navigator.of(context).maybePop(),
                           ),
-                        ],
-                        flexibleSpace: FlexibleSpaceBar(
-                          collapseMode: CollapseMode.pin,
-                          background: _CoverHeader(
-                            height: _coverHeight + topInset,
-                            topInset: topInset,
-                            selfName: selfName,
-                            selfAvatarPath: persona?.avatarPath,
-                            palette: palette,
-                            showChrome: false,
-                          ),
-                        ),
-                      ),
-                      if (items.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _CenteredMessage(
-                            l10n.momentsEmpty,
-                            key: const Key('moments-empty'),
-                            color: palette.time,
-                          ),
-                        )
-                      else
-                        SliverList.separated(
-                          itemCount: items.length,
-                          separatorBuilder: (_, __) => Divider(
-                            height: 1,
-                            thickness: 0.5,
-                            color: palette.divider,
-                          ),
-                          itemBuilder: (context, index) => _MomentRow(
-                            item: items[index],
-                            character: _authorOf(characters, items[index].post),
-                            persona: persona,
-                            selfName: selfName,
-                            palette: palette,
+                          actions: [
+                            IconButton(
+                              key: const Key('moments-compose'),
+                              tooltip: l10n.momentsCompose,
+                              onPressed: () => _compose(context, ref, selfName),
+                              icon: const Icon(Icons.camera_alt_outlined),
+                            ),
+                          ],
+                          flexibleSpace: FlexibleSpaceBar(
+                            collapseMode: CollapseMode.pin,
+                            background: _CoverHeader(
+                              height: _coverHeight + topInset,
+                              topInset: topInset,
+                              selfName: selfName,
+                              selfAvatarPath: persona?.avatarPath,
+                              palette: palette,
+                              showChrome: false,
+                            ),
                           ),
                         ),
+                        if (items.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _CenteredMessage(
+                              l10n.momentsEmpty,
+                              key: const Key('moments-empty'),
+                              color: palette.time,
+                            ),
+                          )
+                        else
+                          SliverList.separated(
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) => Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              color: palette.divider,
+                            ),
+                            itemBuilder: (context, index) => _MomentRow(
+                              item: items[index],
+                              character:
+                                  _authorOf(characters, items[index].post),
+                              persona: persona,
+                              selfName: selfName,
+                              palette: palette,
+                            ),
+                          ),
                       ],
                     ),
                   );

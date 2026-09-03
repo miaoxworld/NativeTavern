@@ -106,14 +106,16 @@ class CharacterBackgroundImage extends StatelessWidget {
           return Image.file(
             file,
             fit: BoxFit.cover,
-            errorBuilder: errorBuilder ?? (_, __, ___) => Container(color: Colors.black),
+            errorBuilder:
+                errorBuilder ?? (_, __, ___) => Container(color: Colors.black),
           );
         } else if (snapshot.hasError) {
           final file = File(imagePath);
           return Image.file(
             file,
             fit: BoxFit.cover,
-            errorBuilder: errorBuilder ?? (_, __, ___) => Container(color: Colors.black),
+            errorBuilder:
+                errorBuilder ?? (_, __, ___) => Container(color: Colors.black),
           );
         } else {
           return Container(color: Colors.black);

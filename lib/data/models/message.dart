@@ -27,7 +27,8 @@ class Message with _$Message {
     MessageMetadata? metadata,
   }) = _Message;
 
-  factory Message.fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
+  factory Message.fromJson(Map<String, dynamic> json) =>
+      _$MessageFromJson(json);
 }
 
 /// Message metadata for additional info
@@ -38,24 +39,25 @@ class MessageMetadata with _$MessageMetadata {
     int? promptTokens,
     int? completionTokens,
     int? totalTokens,
-    
+
     // Generation info
     String? model,
     double? temperature,
     int? maxTokens,
-    
+
     // Swipe support (multiple regenerations)
     @Default([]) List<String> swipes,
     @Default(0) int currentSwipeIndex,
-    
+
     // Reasoning/thinking content (for models like Claude/o1)
     String? reasoning,
-    
+
     // Extra data
     @Default({}) Map<String, dynamic> extra,
   }) = _MessageMetadata;
 
-  factory MessageMetadata.fromJson(Map<String, dynamic> json) => _$MessageMetadataFromJson(json);
+  factory MessageMetadata.fromJson(Map<String, dynamic> json) =>
+      _$MessageMetadataFromJson(json);
 }
 
 /// Extension for Message utilities
@@ -70,10 +72,10 @@ extension MessageExtension on Message {
     }
     return content;
   }
-  
+
   /// Check if message has multiple swipes
   bool get hasSwipes => (metadata?.swipes.length ?? 0) > 1;
-  
+
   /// Get total swipe count
   int get swipeCount => metadata?.swipes.length ?? 1;
 }

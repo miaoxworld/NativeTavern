@@ -6,12 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class VariablesService {
   /// Singleton instance
   static final VariablesService instance = VariablesService._();
-  
+
   VariablesService._();
 
   /// Global variables (app-wide, persisted)
   final Map<String, dynamic> _globalVariables = {};
-  
+
   /// Local variables (per-chat, stored in chat metadata)
   /// Key is chatId, value is map of variable name to value
   final Map<String, Map<String, dynamic>> _localVariables = {};
@@ -65,14 +65,14 @@ class VariablesService {
         if (value is String) {
           value = jsonDecode(value);
         }
-        
+
         final numIndex = int.tryParse(index);
         if (numIndex != null && value is List) {
           value = value[numIndex];
         } else if (value is Map) {
           value = value[index];
         }
-        
+
         if (value is Map || value is List) {
           return jsonEncode(value);
         }
@@ -93,7 +93,8 @@ class VariablesService {
   }
 
   /// Set a global variable value
-  Future<void> setGlobalVariable(String name, dynamic value, {String? index, String? asType}) async {
+  Future<void> setGlobalVariable(String name, dynamic value,
+      {String? index, String? asType}) async {
     if (name.isEmpty) {
       throw ArgumentError('Variable name cannot be empty');
     }
@@ -108,13 +109,13 @@ class VariablesService {
 
         final convertedValue = _convertValueType(value, asType);
         final numIndex = int.tryParse(index);
-        
+
         if (numIndex != null) {
           if (current is! List) {
             current = [];
           }
           // Extend list if needed
-          while ((current as List).length <= numIndex) {
+          while ((current).length <= numIndex) {
             current.add(null);
           }
           current[numIndex] = convertedValue;
@@ -122,9 +123,9 @@ class VariablesService {
           if (current is! Map) {
             current = {};
           }
-          (current as Map)[index] = convertedValue;
+          (current)[index] = convertedValue;
         }
-        
+
         _globalVariables[name] = jsonEncode(current);
       } catch (_) {
         // Ignore errors
@@ -161,10 +162,11 @@ class VariablesService {
   /// Add to a global variable (increment number or append string/array)
   Future<dynamic> addGlobalVariable(String name, dynamic value) async {
     final currentValue = getGlobalVariable(name);
-    
+
     // Try to handle as array
     try {
-      final parsed = currentValue is String ? jsonDecode(currentValue) : currentValue;
+      final parsed =
+          currentValue is String ? jsonDecode(currentValue) : currentValue;
       if (parsed is List) {
         parsed.add(value);
         await setGlobalVariable(name, jsonEncode(parsed));
@@ -176,7 +178,9 @@ class VariablesService {
 
     // Try to handle as number
     final increment = value is num ? value : double.tryParse(value.toString());
-    final current = currentValue is num ? currentValue : double.tryParse(currentValue.toString());
+    final current = currentValue is num
+        ? currentValue
+        : double.tryParse(currentValue.toString());
 
     if (increment != null && current != null) {
       final newValue = current + increment;
@@ -217,14 +221,14 @@ class VariablesService {
         if (value is String) {
           value = jsonDecode(value);
         }
-        
+
         final numIndex = int.tryParse(index);
         if (numIndex != null && value is List) {
           value = value[numIndex];
         } else if (value is Map) {
           value = value[index];
         }
-        
+
         if (value is Map || value is List) {
           return jsonEncode(value);
         }
@@ -245,7 +249,8 @@ class VariablesService {
   }
 
   /// Set a local variable value for a specific chat
-  void setLocalVariable(String chatId, String name, dynamic value, {String? index, String? asType}) {
+  void setLocalVariable(String chatId, String name, dynamic value,
+      {String? index, String? asType}) {
     if (name.isEmpty) {
       throw ArgumentError('Variable name cannot be empty');
     }
@@ -262,12 +267,12 @@ class VariablesService {
 
         final convertedValue = _convertValueType(value, asType);
         final numIndex = int.tryParse(index);
-        
+
         if (numIndex != null) {
           if (current is! List) {
             current = [];
           }
-          while ((current as List).length <= numIndex) {
+          while ((current).length <= numIndex) {
             current.add(null);
           }
           current[numIndex] = convertedValue;
@@ -275,9 +280,9 @@ class VariablesService {
           if (current is! Map) {
             current = {};
           }
-          (current as Map)[index] = convertedValue;
+          (current)[index] = convertedValue;
         }
-        
+
         _localVariables[chatId]![name] = jsonEncode(current);
       } catch (_) {
         // Ignore errors
@@ -308,7 +313,8 @@ class VariablesService {
   }
 
   /// Load local variables from chat metadata
-  void loadLocalVariablesFromMetadata(String chatId, Map<String, dynamic>? metadata) {
+  void loadLocalVariablesFromMetadata(
+      String chatId, Map<String, dynamic>? metadata) {
     if (metadata != null && metadata.containsKey('variables')) {
       final vars = metadata['variables'];
       if (vars is Map<String, dynamic>) {
@@ -329,10 +335,11 @@ class VariablesService {
   /// Add to a local variable (increment number or append string/array)
   dynamic addLocalVariable(String chatId, String name, dynamic value) {
     final currentValue = getLocalVariable(chatId, name);
-    
+
     // Try to handle as array
     try {
-      final parsed = currentValue is String ? jsonDecode(currentValue) : currentValue;
+      final parsed =
+          currentValue is String ? jsonDecode(currentValue) : currentValue;
       if (parsed is List) {
         parsed.add(value);
         setLocalVariable(chatId, name, jsonEncode(parsed));
@@ -344,7 +351,9 @@ class VariablesService {
 
     // Try to handle as number
     final increment = value is num ? value : double.tryParse(value.toString());
-    final current = currentValue is num ? currentValue : double.tryParse(currentValue.toString());
+    final current = currentValue is num
+        ? currentValue
+        : double.tryParse(currentValue.toString());
 
     if (increment != null && current != null) {
       final newValue = current + increment;

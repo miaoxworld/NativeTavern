@@ -14,9 +14,10 @@ import 'package:native_tavern/data/models/chat_background.dart';
 import 'package:native_tavern/data/models/live2d.dart';
 import 'package:native_tavern/data/models/rpg/rpg.dart';
 import 'package:native_tavern/core/flags/rpg_product_ui.dart';
-import 'package:native_tavern/core/utils/share_utils.dart';
+import 'package:native_tavern/presentation/widgets/export_destination_sheet.dart';
 import 'package:native_tavern/domain/services/chat_export_service.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/domain/services/markdown_hotkey_service.dart';
 import 'package:native_tavern/domain/services/rpg_scenario_package_service.dart';
 import 'package:native_tavern/domain/services/slash_command_service.dart';
@@ -36,6 +37,7 @@ import 'package:native_tavern/presentation/providers/story_providers.dart';
 import 'package:native_tavern/presentation/providers/tts_providers.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/chat/author_note_dialog.dart';
 import 'package:native_tavern/presentation/widgets/chat/bookmark_dialog.dart';
@@ -256,9 +258,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Check if API is properly configured
   bool _isApiConfigured(LLMConfig config) {
-    // Local providers (Ollama, KoboldCpp) don't need API key
-    if (config.provider == LLMProvider.ollama ||
-        config.provider == LLMProvider.koboldCpp) {
+    // Local providers (Ollama, LM Studio, KoboldCpp) don't need API key
+    if (config.provider.isLocalServer) {
       return config.apiUrl.isNotEmpty;
     }
     // Cloud providers need API key
@@ -269,6 +270,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _showApiConfigurationDialog() {
     final parentContext = context;
     final l10n = AppLocalizations.of(context);
+    final hideRestricted = RegionService.hidesRestrictedAiProviders(
+      isChinaRegion: ref.read(isChinaRegionProvider).valueOrNull ?? false,
+      languageCode: Localizations.localeOf(context).languageCode,
+    );
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -293,7 +298,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text('• ${l10n.claude} (Anthropic)'),
             Text('• ${l10n.openRouter}'),
             Text('• ${l10n.gemini} (Google)'),
+            if (!hideRestricted) Text('• ${l10n.xai}'),
             Text('• ${l10n.ollama} (${l10n.local})'),
+            Text('• ${l10n.lmStudio} (${l10n.local})'),
             Text('• ${l10n.koboldCpp} (${l10n.local})'),
           ],
         ),
@@ -3002,13 +3009,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         AppLocalizations.of(context).user;
 
     try {
-      await exportService.exportAndShare(
-        chatState.chat!,
-        chatState.messages,
-        chatState.character!,
-        userName: userName,
-        useJsonl: useJsonl,
-        sharePositionOrigin: sharePositionOrigin(context),
+      final content = useJsonl
+          ? await exportService.exportToJsonl(
+              chatState.chat!,
+              chatState.messages,
+              chatState.character!,
+              userName: userName,
+            )
+          : await exportService.exportToJson(
+              chatState.chat!,
+              chatState.messages,
+              chatState.character!,
+              userName: userName,
+            );
+      final extension = useJsonl ? 'jsonl' : 'json';
+      final fileName =
+          '${chatState.character!.name}_${chatState.chat!.id}.$extension';
+      if (!mounted) return;
+      await exportTextWithDestination(
+        context: context,
+        fileName: fileName,
+        content: content,
+        subject: 'Chat with ${chatState.character!.name}',
+        allowedExtensions: [extension],
+        mimeType: 'application/json',
       );
     } catch (e) {
       final l10n = AppLocalizations.of(context);
@@ -3077,61 +3101,84 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         return;
       }
 
-      // Show confirmation dialog with import details
       if (!mounted) return;
 
+      bool replaceExisting = false;
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.importConfirmation),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${l10n.character}: ${result.characterName}'),
-              Text('${l10n.user}: ${result.userName}'),
-              Text('${l10n.messages}: ${result.messages.length}'),
-              Text(
-                '${l10n.date}: ${result.createDate.toString().split('.')[0]}',
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: Text(l10n.importConfirmation),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${l10n.character}: ${result.characterName}'),
+                Text('${l10n.user}: ${result.userName}'),
+                if (result.model != null && result.model!.isNotEmpty)
+                  Text('Model: ${result.model}'),
+                Text('${l10n.messages}: ${result.messages.length}'),
+                Text(
+                  '${l10n.date}: ${result.createDate.toString().split('.')[0]}',
+                ),
+                if (result.authorNote != null && result.authorNote!.isNotEmpty)
+                  Text('${l10n.hasAuthorsNote}: ${l10n.yes}'),
+                const Divider(height: 24),
+                RadioListTile<bool>(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Append to conversation'),
+                  subtitle: const Text('Add messages after existing ones'),
+                  value: false,
+                  groupValue: replaceExisting,
+                  onChanged: (val) =>
+                      setDialogState(() => replaceExisting = val ?? false),
+                ),
+                RadioListTile<bool>(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Replace all existing messages',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  subtitle: const Text(
+                      'Clears current chat and loads imported session'),
+                  value: true,
+                  groupValue: replaceExisting,
+                  onChanged: (val) =>
+                      setDialogState(() => replaceExisting = val ?? true),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(l10n.cancel),
               ),
-              if (result.authorNote != null && result.authorNote!.isNotEmpty)
-                Text('${l10n.hasAuthorsNote}: ${l10n.yes}'),
-              const SizedBox(height: 16),
-              Text(
-                l10n.importMessagesToCurrentChat,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(l10n.import),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.import),
-            ),
-          ],
         ),
       );
 
-      if (confirmed != true) return;
+      if (confirmed != true || !mounted) return;
 
-      // Import messages to current chat
       final chatState = ref.read(activeChatProvider);
       if (chatState.chat == null) {
         _showSnackBar(l10n.noActiveChat);
         return;
       }
 
-      // Add imported messages
       final chatNotifier = ref.read(activeChatProvider.notifier);
       final uuid = const Uuid();
       final importedCount = await chatNotifier.importMessages(
         result.messages.map((importedMsg) {
           return importedMsg.toChatMessage(chatState.chat!.id, uuid.v4());
         }).toList(),
+        replaceExisting: replaceExisting,
       );
 
       // Update author's note if present

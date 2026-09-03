@@ -303,5 +303,6 @@ class EmotionResult {
   const EmotionResult(this.emotion, this.confidence);
 
   @override
-  String toString() => 'EmotionResult($emotion, ${(confidence * 100).toStringAsFixed(1)}%)';
+  String toString() =>
+      'EmotionResult($emotion, ${(confidence * 100).toStringAsFixed(1)}%)';
 }

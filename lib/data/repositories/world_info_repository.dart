@@ -3,7 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:native_tavern/data/database/database.dart' hide WorldInfo, WorldInfoEntry;
+import 'package:native_tavern/data/database/database.dart'
+    hide WorldInfo, WorldInfoEntry;
 import 'package:native_tavern/data/database/database.dart' as db;
 import 'package:native_tavern/data/models/world_info.dart' as models;
 import 'package:uuid/uuid.dart';
@@ -23,7 +24,7 @@ class WorldInfoRepository {
   /// Get all world infos
   Future<List<models.WorldInfo>> getAllWorldInfos() async {
     final rows = await _db.select(_db.worldInfos).get();
-    
+
     final worldInfos = <models.WorldInfo>[];
     for (final row in rows) {
       final entries = await getEntriesForWorldInfo(row.id);
@@ -59,7 +60,7 @@ class WorldInfoRepository {
     final rows = await (_db.select(_db.worldInfos)
           ..where((t) => t.isGlobal.equals(true)))
         .get();
-    
+
     final worldInfos = <models.WorldInfo>[];
     for (final row in rows) {
       final entries = await getEntriesForWorldInfo(row.id);
@@ -69,11 +70,12 @@ class WorldInfoRepository {
   }
 
   /// Get world infos for a specific character
-  Future<List<models.WorldInfo>> getWorldInfosForCharacter(String characterId) async {
+  Future<List<models.WorldInfo>> getWorldInfosForCharacter(
+      String characterId) async {
     final rows = await (_db.select(_db.worldInfos)
           ..where((t) => t.characterId.equals(characterId)))
         .get();
-    
+
     final worldInfos = <models.WorldInfo>[];
     for (final row in rows) {
       final entries = await getEntriesForWorldInfo(row.id);
@@ -87,9 +89,9 @@ class WorldInfoRepository {
     final row = await (_db.select(_db.worldInfos)
           ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
-    
+
     if (row == null) return null;
-    
+
     final entries = await getEntriesForWorldInfo(id);
     return _worldInfoFromRow(row, entries);
   }
@@ -109,7 +111,7 @@ class WorldInfoRepository {
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
-    
+
     final companion = WorldInfosCompanion(
       id: Value(id),
       name: Value(name),
@@ -126,9 +128,9 @@ class WorldInfoRepository {
       createdAt: Value(now),
       modifiedAt: Value(now),
     );
-    
+
     await _db.into(_db.worldInfos).insert(companion);
-    
+
     return models.WorldInfo(
       id: id,
       name: name,
@@ -145,7 +147,7 @@ class WorldInfoRepository {
   /// Update world info
   Future<models.WorldInfo> updateWorldInfo(models.WorldInfo worldInfo) async {
     final now = DateTime.now();
-    
+
     await (_db.update(_db.worldInfos)..where((t) => t.id.equals(worldInfo.id)))
         .write(
       WorldInfosCompanion(
@@ -157,7 +159,7 @@ class WorldInfoRepository {
         modifiedAt: Value(now),
       ),
     );
-    
+
     return worldInfo.copyWith(modifiedAt: now);
   }
 
@@ -172,7 +174,8 @@ class WorldInfoRepository {
   }
 
   /// Get entries for a world info
-  Future<List<models.WorldInfoEntry>> getEntriesForWorldInfo(String worldInfoId) async {
+  Future<List<models.WorldInfoEntry>> getEntriesForWorldInfo(
+      String worldInfoId) async {
     final rows = await (_db.select(_db.worldInfoEntries)
           ..where((t) => t.worldInfoId.equals(worldInfoId))
           ..orderBy([(t) => OrderingTerm.asc(t.insertionOrder)]))
@@ -187,26 +190,30 @@ class WorldInfoRepository {
     required String content,
     List<String>? secondaryKeys,
     String? comment,
-    models.WorldInfoPosition? position,  // SillyTavern default is 0 (before)
+    models.WorldInfoPosition? position, // SillyTavern default is 0 (before)
     bool? constant,
     bool? selective,
     int? insertionOrder,
     int depth = 4,
   }) async {
     final id = _uuid.v4();
-    
+
     // Get the next insertion order if not provided
     final existingEntries = await getEntriesForWorldInfo(worldInfoId);
-    final actualInsertionOrder = insertionOrder ?? (existingEntries.isEmpty
-        ? 0
-        : existingEntries.map((e) => e.insertionOrder).reduce((a, b) => a > b ? a : b) + 1);
-    
+    final actualInsertionOrder = insertionOrder ??
+        (existingEntries.isEmpty
+            ? 0
+            : existingEntries
+                    .map((e) => e.insertionOrder)
+                    .reduce((a, b) => a > b ? a : b) +
+                1);
+
     final actualPosition = position ?? models.WorldInfoPosition.before;
     // If no keys are provided, the entry is constant by default (always included)
     // Otherwise, default to the provided constant value or false
     final actualConstant = constant ?? (keys.isEmpty ? true : false);
     final actualSelective = selective ?? (secondaryKeys?.isNotEmpty ?? false);
-    
+
     final companion = WorldInfoEntriesCompanion(
       id: Value(id),
       worldInfoId: Value(worldInfoId),
@@ -231,14 +238,13 @@ class WorldInfoRepository {
       scanDepth: const Value(1000),
       extensionsJson: const Value('{}'),
     );
-    
+
     await _db.into(_db.worldInfoEntries).insert(companion);
-    
+
     // Update world info modified time
-    await (_db.update(_db.worldInfos)
-          ..where((t) => t.id.equals(worldInfoId)))
+    await (_db.update(_db.worldInfos)..where((t) => t.id.equals(worldInfoId)))
         .write(WorldInfosCompanion(modifiedAt: Value(DateTime.now())));
-    
+
     return models.WorldInfoEntry(
       id: id,
       worldInfoId: worldInfoId,
@@ -290,12 +296,12 @@ class WorldInfoRepository {
         extensionsJson: Value(jsonEncode(entry.extensions)),
       ),
     );
-    
+
     // Update world info modified time
     await (_db.update(_db.worldInfos)
           ..where((t) => t.id.equals(entry.worldInfoId)))
         .write(WorldInfosCompanion(modifiedAt: Value(DateTime.now())));
-    
+
     return entry;
   }
 
@@ -316,56 +322,60 @@ class WorldInfoRepository {
     debugPrint('=== Repository.findMatchingEntries ===');
     debugPrint('Searching in ${worldInfoIds.length} world infos');
     debugPrint('Text length: ${text.length}');
-    
+
     final matchingEntries = <models.WorldInfoEntry>[];
-    
+
     for (final worldInfoId in worldInfoIds) {
       final entries = await getEntriesForWorldInfo(worldInfoId);
       debugPrint('World info $worldInfoId has ${entries.length} entries');
-      
+
       for (final entry in entries) {
         if (!entry.enabled) {
-          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" is disabled, skipping');
+          debugPrint(
+              '  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" is disabled, skipping');
           continue;
         }
-        
+
         // Entries with no keys are treated as constant (always included)
         // They will be handled by WorldInfoMatcher, skip them here to avoid duplicates
         if (entry.keys.isEmpty) {
-          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : "(no keys)"}" has no keys, treating as constant');
+          debugPrint(
+              '  Entry "${entry.comment.isNotEmpty ? entry.comment : "(no keys)"}" has no keys, treating as constant');
           continue;
         }
-        
+
         final textToSearch = entry.caseSensitive ? text : text.toLowerCase();
-        
+
         bool keyMatched = false;
         String matchedKey = '';
         for (final key in entry.keys) {
           // Skip empty keys
           if (key.trim().isEmpty) continue;
-          
+
           final searchKey = entry.caseSensitive ? key : key.toLowerCase();
-          
+
           if (entry.matchWholeWords) {
             final regex = RegExp(r'\b' + RegExp.escape(searchKey) + r'\b');
             keyMatched = regex.hasMatch(textToSearch);
           } else {
             keyMatched = textToSearch.contains(searchKey);
           }
-          
+
           if (keyMatched) {
             matchedKey = key;
             break;
           }
         }
-        
+
         if (!keyMatched) {
-          debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - no key match (keys: ${entry.keys})');
+          debugPrint(
+              '  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - no key match (keys: ${entry.keys})');
           continue;
         }
-        
-        debugPrint('  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - key "$matchedKey" matched!');
-        
+
+        debugPrint(
+            '  Entry "${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}" - key "$matchedKey" matched!');
+
         // Check secondary keys if selective
         if (entry.selective && entry.secondaryKeys.isNotEmpty) {
           bool secondaryMatched = false;
@@ -378,37 +388,41 @@ class WorldInfoRepository {
             }
           }
           if (!secondaryMatched) {
-            debugPrint('    But no secondary key matched (selective mode), skipping');
+            debugPrint(
+                '    But no secondary key matched (selective mode), skipping');
             continue;
           }
         }
-        
+
         // Check probability
         if (entry.probability < 100) {
           final random = DateTime.now().millisecondsSinceEpoch % 100;
           if (random >= entry.probability) {
-            debugPrint('    But probability check failed (${entry.probability}%), skipping');
+            debugPrint(
+                '    But probability check failed (${entry.probability}%), skipping');
             continue;
           }
         }
-        
+
         debugPrint('    -> ADDED to matches');
         matchingEntries.add(entry);
       }
     }
-    
+
     // Sort by insertion order
-    matchingEntries.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
-    
+    matchingEntries
+        .sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
+
     debugPrint('Total matches: ${matchingEntries.length}');
     debugPrint('=== End Repository.findMatchingEntries ===');
-    
+
     return matchingEntries;
   }
 
   // Private helpers
-  
-  models.WorldInfo _worldInfoFromRow(db.WorldInfo row, List<models.WorldInfoEntry> entries) {
+
+  models.WorldInfo _worldInfoFromRow(
+      db.WorldInfo row, List<models.WorldInfoEntry> entries) {
     return models.WorldInfo(
       id: row.id,
       name: row.name,
@@ -482,7 +496,7 @@ class WorldInfoRepository {
           final jsonString = await rootBundle.loadString(assetPath);
           final json = jsonDecode(jsonString) as Map<String, dynamic>;
           final worldInfoId = json['id'] as String;
-          
+
           // Check if already exists
           final existing = await getWorldInfoById(worldInfoId);
           if (existing != null) {
@@ -491,69 +505,86 @@ class WorldInfoRepository {
 
           // Create world info
           await _db.into(_db.worldInfos).insert(
-            WorldInfosCompanion(
-              id: Value(worldInfoId),
-              name: Value(json['name'] as String),
-              description: Value(json['description'] as String?),
-              enabled: Value(json['enabled'] as bool? ?? true),
-              isGlobal: Value(json['isGlobal'] as bool? ?? false),
-              characterId: Value(json['characterId'] as String?),
-              scanDepth: Value(json['scanDepth'] as String?),
-              caseSensitive: Value(json['caseSensitive'] as bool?),
-              matchWholeWords: Value(json['matchWholeWords'] as bool?),
-              useGroupScoring: Value(json['useGroupScoring'] as bool?),
-              recursionDepth: Value(json['recursionDepth'] as int?),
-              extensionsJson: Value(json['extensions'] != null ? jsonEncode(json['extensions']) : '{}'),
-              createdAt: Value(DateTime.parse(json['createdAt'] as String)),
-              modifiedAt: Value(DateTime.parse(json['modifiedAt'] as String)),
-            ),
-          );
+                WorldInfosCompanion(
+                  id: Value(worldInfoId),
+                  name: Value(json['name'] as String),
+                  description: Value(json['description'] as String?),
+                  enabled: Value(json['enabled'] as bool? ?? true),
+                  isGlobal: Value(json['isGlobal'] as bool? ?? false),
+                  characterId: Value(json['characterId'] as String?),
+                  scanDepth: Value(json['scanDepth'] as String?),
+                  caseSensitive: Value(json['caseSensitive'] as bool?),
+                  matchWholeWords: Value(json['matchWholeWords'] as bool?),
+                  useGroupScoring: Value(json['useGroupScoring'] as bool?),
+                  recursionDepth: Value(json['recursionDepth'] as int?),
+                  extensionsJson: Value(json['extensions'] != null
+                      ? jsonEncode(json['extensions'])
+                      : '{}'),
+                  createdAt: Value(DateTime.parse(json['createdAt'] as String)),
+                  modifiedAt:
+                      Value(DateTime.parse(json['modifiedAt'] as String)),
+                ),
+              );
 
           // Create entries
           final entries = json['entries'] as List<dynamic>? ?? [];
           debugPrint('Loading ${entries.length} entries for ${json['name']}');
-          
+
           for (final entryJson in entries) {
             final entry = entryJson as Map<String, dynamic>;
-            debugPrint('  - Loading entry: ${entry['id']} with keys: ${entry['keys']}');
-            
+            debugPrint(
+                '  - Loading entry: ${entry['id']} with keys: ${entry['keys']}');
+
             try {
               await _db.into(_db.worldInfoEntries).insert(
-                WorldInfoEntriesCompanion(
-                  id: Value(entry['id'] as String),
-                  worldInfoId: Value(worldInfoId),
-                  keys: Value(jsonEncode(entry['keys'] ?? [])),
-                  secondaryKeys: Value(jsonEncode(entry['secondaryKeys'] ?? [])),
-                  content: Value(entry['content'] as String? ?? ''),
-                  comment: Value(entry['comment'] as String? ?? ''),
-                  enabled: Value(entry['enabled'] as bool? ?? true),
-                  constant: Value(entry['constant'] as bool? ?? false),
-                  selective: Value(entry['selective'] as bool? ?? false),
-                  insertionOrder: Value(entry['insertionOrder'] as int? ?? 0),
-                  caseSensitive: Value(entry['caseSensitive'] as bool? ?? false),
-                  matchWholeWords: Value(entry['matchWholeWords'] as bool? ?? false),
-                  useGroupScoring: Value(entry['useGroupScoring'] as bool? ?? false),
-                  automationId: Value(entry['automationId'] as String? ?? ''),
-                  probability: Value(entry['probability'] as int? ?? 100),
-                  position: Value(entry['position'] as int? ?? 1),
-                  depth: Value(entry['depth'] as int? ?? 4),
-                  group: Value(entry['group'] as String?),
-                  groupWeight: Value(entry['groupWeight'] as int? ?? 100),
-                  preventRecursion: Value(entry['preventRecursion'] as bool? ?? false),
-                  delayUntilRecursion: Value(entry['delayUntilRecursion'] as bool? ?? false),
-                  scanDepth: Value(entry['scanDepth'] as int? ?? 1000),
-                  extensionsJson: Value(entry['extensions'] != null ? jsonEncode(entry['extensions']) : '{}'),
-                ),
-              );
-            } catch (entryError, entryStack) {
-              debugPrint('  ❌ Failed to insert entry ${entry['id']}: $entryError');
+                    WorldInfoEntriesCompanion(
+                      id: Value(entry['id'] as String),
+                      worldInfoId: Value(worldInfoId),
+                      keys: Value(jsonEncode(entry['keys'] ?? [])),
+                      secondaryKeys:
+                          Value(jsonEncode(entry['secondaryKeys'] ?? [])),
+                      content: Value(entry['content'] as String? ?? ''),
+                      comment: Value(entry['comment'] as String? ?? ''),
+                      enabled: Value(entry['enabled'] as bool? ?? true),
+                      constant: Value(entry['constant'] as bool? ?? false),
+                      selective: Value(entry['selective'] as bool? ?? false),
+                      insertionOrder:
+                          Value(entry['insertionOrder'] as int? ?? 0),
+                      caseSensitive:
+                          Value(entry['caseSensitive'] as bool? ?? false),
+                      matchWholeWords:
+                          Value(entry['matchWholeWords'] as bool? ?? false),
+                      useGroupScoring:
+                          Value(entry['useGroupScoring'] as bool? ?? false),
+                      automationId:
+                          Value(entry['automationId'] as String? ?? ''),
+                      probability: Value(entry['probability'] as int? ?? 100),
+                      position: Value(entry['position'] as int? ?? 1),
+                      depth: Value(entry['depth'] as int? ?? 4),
+                      group: Value(entry['group'] as String?),
+                      groupWeight: Value(entry['groupWeight'] as int? ?? 100),
+                      preventRecursion:
+                          Value(entry['preventRecursion'] as bool? ?? false),
+                      delayUntilRecursion:
+                          Value(entry['delayUntilRecursion'] as bool? ?? false),
+                      scanDepth: Value(entry['scanDepth'] as int? ?? 1000),
+                      extensionsJson: Value(entry['extensions'] != null
+                          ? jsonEncode(entry['extensions'])
+                          : '{}'),
+                    ),
+                  );
+            } catch (entryError) {
+              debugPrint(
+                  '  ❌ Failed to insert entry ${entry['id']}: $entryError');
               debugPrint('  Entry data: ${jsonEncode(entry)}');
             }
           }
-          
-          debugPrint('✅ Loaded built-in world info: ${json['name']} with ${entries.length} entries');
+
+          debugPrint(
+              '✅ Loaded built-in world info: ${json['name']} with ${entries.length} entries');
         } catch (e, stackTrace) {
-          debugPrint('❌ Failed to load built-in world info from $assetPath: $e');
+          debugPrint(
+              '❌ Failed to load built-in world info from $assetPath: $e');
           debugPrint('Stack trace: $stackTrace');
         }
       }

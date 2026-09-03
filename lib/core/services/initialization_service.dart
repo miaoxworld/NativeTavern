@@ -198,6 +198,7 @@ class InitializationService {
       'models',
       'live2d_models',
       'exports',
+      'Backups',
     ];
 
     for (final dir in directories) {

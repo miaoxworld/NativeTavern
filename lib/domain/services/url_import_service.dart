@@ -38,14 +38,14 @@ class UrlImportService {
     Dio? dio,
     ExternalCallAuditRepository auditRepository =
         const NoopExternalCallAuditRepository(),
-  })
-      : _dio = dio ?? Dio(BaseOptions(
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 60),
-          headers: {
-            'User-Agent': 'NativeTavern/1.0',
-          },
-        )) {
+  }) : _dio = dio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 30),
+              receiveTimeout: const Duration(seconds: 60),
+              headers: {
+                'User-Agent': 'NativeTavern/1.0',
+              },
+            )) {
     _dio.interceptors.add(ExternalCallAuditInterceptor(
       repository: auditRepository,
       capabilityId: 'characterImport',
@@ -69,7 +69,8 @@ class UrlImportService {
     if (host.contains('chub.ai') || host.contains('characterhub.org')) {
       return UrlSource.chub;
     }
-    if (host.contains('janitorai.com') || host.contains('janitor.ai') ||
+    if (host.contains('janitorai.com') ||
+        host.contains('janitor.ai') ||
         host.contains('jannyai.com')) {
       return UrlSource.janitorAI;
     }
@@ -199,7 +200,8 @@ class UrlImportService {
     }
 
     if (fullPath == null) {
-      throw Exception('Invalid Chub.ai URL. Expected: https://chub.ai/characters/{author}/{name}');
+      throw Exception(
+          'Invalid Chub.ai URL. Expected: https://chub.ai/characters/{author}/{name}');
     }
 
     try {
@@ -215,7 +217,8 @@ class UrlImportService {
       );
 
       if (metaResponse.statusCode != 200) {
-        throw Exception('Chub.ai API returned status ${metaResponse.statusCode}');
+        throw Exception(
+            'Chub.ai API returned status ${metaResponse.statusCode}');
       }
 
       final metaData = metaResponse.data is String
@@ -281,13 +284,16 @@ class UrlImportService {
       id: id,
       name: defn['name']?.toString() ?? '',
       description: defn['description']?.toString() ?? '',
-      personality: defn['personality']?.toString() ?? defn['tavern_personality']?.toString() ?? '',
+      personality: defn['personality']?.toString() ??
+          defn['tavern_personality']?.toString() ??
+          '',
       scenario: defn['scenario']?.toString() ?? '',
       firstMessage: defn['first_message']?.toString() ?? '',
       alternateGreetings: _parseStringList(defn['alternate_greetings']),
       exampleMessages: defn['example_dialogs']?.toString() ?? '',
       systemPrompt: defn['system_prompt']?.toString() ?? '',
-      postHistoryInstructions: defn['post_history_instructions']?.toString() ?? '',
+      postHistoryInstructions:
+          defn['post_history_instructions']?.toString() ?? '',
       creatorNotes: defn['creator_notes']?.toString() ?? '',
       tags: _parseStringList(defn['tags']),
       creator: defn['creator']?.toString() ?? '',
@@ -324,9 +330,8 @@ class UrlImportService {
 
       if (response.statusCode == 403) {
         throw Exception(
-          'JanitorAI is protected by Cloudflare and cannot be accessed directly. '
-          'Please download the character card PNG from the JanitorAI website and import it as a local file.'
-        );
+            'JanitorAI is protected by Cloudflare and cannot be accessed directly. '
+            'Please download the character card PNG from the JanitorAI website and import it as a local file.');
       }
 
       if (response.statusCode == 200) {
@@ -362,9 +367,8 @@ class UrlImportService {
     } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
         throw Exception(
-          'JanitorAI is protected by Cloudflare and cannot be accessed directly. '
-          'Please download the character card PNG from the JanitorAI website and import it as a local file.'
-        );
+            'JanitorAI is protected by Cloudflare and cannot be accessed directly. '
+            'Please download the character card PNG from the JanitorAI website and import it as a local file.');
       }
       if (e.response?.statusCode == 404) {
         throw Exception('Character not found on JanitorAI');
@@ -388,7 +392,8 @@ class UrlImportService {
     }
 
     if (characterId == null) {
-      throw Exception('Invalid Pygmalion Chat URL. Expected: https://pygmalion.chat/character/{id}');
+      throw Exception(
+          'Invalid Pygmalion Chat URL. Expected: https://pygmalion.chat/character/{id}');
     }
 
     try {
@@ -412,7 +417,8 @@ class UrlImportService {
           sourceUrl: url,
         );
       }
-      throw Exception('Pygmalion Chat API returned status ${response.statusCode}');
+      throw Exception(
+          'Pygmalion Chat API returned status ${response.statusCode}');
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('Character not found on Pygmalion Chat');
@@ -440,7 +446,8 @@ class UrlImportService {
     }
 
     if (characterId == null) {
-      throw Exception('Invalid RisuRealm URL. Expected: https://realm.risuai.net/character/{id}');
+      throw Exception(
+          'Invalid RisuRealm URL. Expected: https://realm.risuai.net/character/{id}');
     }
 
     try {
@@ -488,7 +495,8 @@ class UrlImportService {
     }
   }
 
-  Future<UrlImportResult> _importFromRisurealmJson(String characterId, String url) async {
+  Future<UrlImportResult> _importFromRisurealmJson(
+      String characterId, String url) async {
     final response = await _dio.get(
       'https://realm.risuai.net/api/v1/download/json-v3/$characterId',
       queryParameters: {
@@ -517,9 +525,7 @@ class UrlImportService {
   /// URL format: https://aicharactercards.com/character-cards/{slug}/
   Future<UrlImportResult> _importFromAICharacterCards(String url) async {
     final uri = Uri.parse(url.trim());
-    final pathSegments = uri.pathSegments
-        .where((s) => s.isNotEmpty)
-        .toList();
+    final pathSegments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
 
     // Try to extract the card slug or ID
     String? slug;
@@ -567,18 +573,22 @@ class UrlImportService {
 
         // Try to parse as HTML and extract image URL
         final html = utf8.decode(bytes);
-        final pngMatch = RegExp(r'https://aicharactercards\.com/wp-json/pngapi/v1/image/(\d+)')
+        final pngMatch = RegExp(
+                r'https://aicharactercards\.com/wp-json/pngapi/v1/image/(\d+)')
             .firstMatch(html);
         if (pngMatch != null) {
           final id = int.parse(pngMatch.group(1)!);
           return await _downloadAICCById(id, url);
         }
 
-        throw Exception('Could not find character card on AI Character Cards page');
+        throw Exception(
+            'Could not find character card on AI Character Cards page');
       }
-      throw Exception('AI Character Cards returned status ${response.statusCode}');
+      throw Exception(
+          'AI Character Cards returned status ${response.statusCode}');
     } on DioException catch (e) {
-      throw Exception('Failed to download from AI Character Cards: ${e.message}');
+      throw Exception(
+          'Failed to download from AI Character Cards: ${e.message}');
     }
   }
 
@@ -599,7 +609,8 @@ class UrlImportService {
         sourceUrl: url,
       );
     }
-    throw Exception('AI Character Cards image API returned ${response.statusCode}');
+    throw Exception(
+        'AI Character Cards image API returned ${response.statusCode}');
   }
 
   /// Direct PNG link
@@ -700,7 +711,8 @@ class UrlImportService {
           } catch (_) {}
         }
 
-        throw Exception('Could not parse character data from the URL. The file may not contain valid character card data.');
+        throw Exception(
+            'Could not parse character data from the URL. The file may not contain valid character card data.');
       }
       throw Exception('Failed to download: status ${response.statusCode}');
     } on DioException catch (e) {
@@ -727,7 +739,10 @@ class UrlImportService {
   List<String> _parseStringList(dynamic value) {
     if (value == null) return [];
     if (value is List) {
-      return value.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+      return value
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
     return [];
   }

@@ -88,8 +88,7 @@ abstract class CapabilityInputFactory {
     required VectorStorageSettings vector,
     required ImageGenSettings image,
   }) {
-    final llmLocalProvider = llm.provider == LLMProvider.ollama ||
-        llm.provider == LLMProvider.koboldCpp;
+    final llmLocalProvider = llm.provider.isLocalServer;
     final llmNeedsKey =
         !llmLocalProvider && llm.provider != LLMProvider.openAICompatible;
     final llmNeedsModel = llm.provider != LLMProvider.koboldCpp;

@@ -69,10 +69,12 @@ class TokenizerSettingsNotifier extends StateNotifier<TokenizerSettings> {
 }
 
 /// Provider for tokenization result
-final tokenizationResultProvider = FutureProvider.family<TokenizationResult, TokenizationRequest>((ref, request) async {
+final tokenizationResultProvider =
+    FutureProvider.family<TokenizationResult, TokenizationRequest>(
+        (ref, request) async {
   final service = ref.watch(tokenizerServiceProvider);
   final settings = ref.watch(tokenizerSettingsProvider);
-  
+
   final tokenizer = request.tokenizer ?? settings.selectedTokenizer;
   return service.tokenize(
     request.text,
@@ -110,7 +112,9 @@ final tokenCountEstimateProvider = Provider.family<int, String>((ref, text) {
 });
 
 /// Provider for token statistics
-final tokenStatisticsProvider = Provider.family<AsyncValue<TokenStatistics>, TokenizationRequest>((ref, request) {
+final tokenStatisticsProvider =
+    Provider.family<AsyncValue<TokenStatistics>, TokenizationRequest>(
+        (ref, request) {
   final resultAsync = ref.watch(tokenizationResultProvider(request));
   return resultAsync.when(
     data: (result) {
@@ -123,7 +127,8 @@ final tokenStatisticsProvider = Provider.family<AsyncValue<TokenStatistics>, Tok
 });
 
 /// Provider for best tokenizer based on current API
-final bestTokenizerProvider = Provider.family<TokenizerType, ApiModelInfo>((ref, info) {
+final bestTokenizerProvider =
+    Provider.family<TokenizerType, ApiModelInfo>((ref, info) {
   final service = ref.watch(tokenizerServiceProvider);
   return service.getBestTokenizer(info.api, info.model);
 });
@@ -141,9 +146,7 @@ class ApiModelInfo {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ApiModelInfo &&
-        other.api == api &&
-        other.model == model;
+    return other is ApiModelInfo && other.api == api && other.model == model;
   }
 
   @override

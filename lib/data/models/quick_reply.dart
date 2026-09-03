@@ -7,7 +7,8 @@ class QuickReply {
   final String message;
   final bool enabled;
   final int order;
-  final bool autoSend; // If true, sends immediately; if false, fills input field
+  final bool
+      autoSend; // If true, sends immediately; if false, fills input field
 
   const QuickReply({
     required this.id,
@@ -72,7 +73,8 @@ class QuickReply {
 class QuickReplyConfig {
   final List<QuickReply> replies;
   final bool showQuickReplies;
-  final bool showAboveInput; // If true, shows above input; if false, shows below
+  final bool
+      showAboveInput; // If true, shows above input; if false, shows below
 
   const QuickReplyConfig({
     this.replies = const [],
@@ -158,7 +160,8 @@ class QuickReplyConfig {
 
   /// Update an existing quick reply
   QuickReplyConfig updateReply(QuickReply reply) {
-    final newReplies = replies.map((r) => r.id == reply.id ? reply : r).toList();
+    final newReplies =
+        replies.map((r) => r.id == reply.id ? reply : r).toList();
     return copyWith(replies: newReplies);
   }
 
@@ -172,16 +175,16 @@ class QuickReplyConfig {
   QuickReplyConfig reorder(int oldIndex, int newIndex) {
     final sortedReplies = List<QuickReply>.from(replies)
       ..sort((a, b) => a.order.compareTo(b.order));
-    
+
     final item = sortedReplies.removeAt(oldIndex);
     sortedReplies.insert(newIndex, item);
-    
+
     // Update order values
     final reorderedReplies = <QuickReply>[];
     for (int i = 0; i < sortedReplies.length; i++) {
       reorderedReplies.add(sortedReplies[i].copyWith(order: i));
     }
-    
+
     return copyWith(replies: reorderedReplies);
   }
 
@@ -218,6 +221,7 @@ class QuickReplyConfig {
   String toJsonString() => jsonEncode(toJson());
 
   factory QuickReplyConfig.fromJsonString(String jsonString) {
-    return QuickReplyConfig.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+    return QuickReplyConfig.fromJson(
+        jsonDecode(jsonString) as Map<String, dynamic>);
   }
 }

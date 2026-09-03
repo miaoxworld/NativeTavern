@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import 'package:native_tavern/data/models/bookmark.dart';
 import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/data/models/operation_log.dart';
@@ -23,6 +24,7 @@ import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/macro_service.dart';
 import 'package:native_tavern/domain/services/chat_summarization_service.dart';
 import 'package:native_tavern/domain/services/chat_generation_pipeline.dart';
+import 'package:native_tavern/domain/services/chat_export_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/chat_extension_providers.dart';
 import 'package:native_tavern/presentation/providers/data_bank_providers.dart';
@@ -2677,8 +2679,8 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
         final name = entry.comment.isNotEmpty
             ? entry.comment
             : (entry.keys.isEmpty
-                ? "(constant, no keys)"
-                : entry.keys.join(", "));
+                ? '(constant, no keys)'
+                : entry.keys.join(', '));
         final isConstant = entry.constant || entry.keys.isEmpty;
         debugPrint('║   • [${entry.position.name}] $name');
         debugPrint(
@@ -2825,10 +2827,17 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
   }
 
   /// Import messages into the current chat and refresh local state.
-  Future<int> importMessages(List<ChatMessage> messages) async {
+  Future<int> importMessages(
+    List<ChatMessage> messages, {
+    bool replaceExisting = false,
+  }) async {
     if (state.chat == null || messages.isEmpty) return 0;
 
     final chatId = state.chat!.id;
+    if (replaceExisting) {
+      await _chatRepository.clearMessages(chatId);
+    }
+
     final sortedMessages = [...messages]
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
@@ -2845,6 +2854,62 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     );
 
     return sortedMessages.length;
+  }
+
+  /// Create a new chat session from an imported chat result.
+  Future<Chat> createChatFromImport({
+    required String characterId,
+    String? personaId,
+    required ChatImportResult importResult,
+    String? customTitle,
+  }) async {
+    final title = (customTitle != null && customTitle.isNotEmpty)
+        ? customTitle
+        : (importResult.characterName.isNotEmpty
+            ? importResult.characterName
+            : 'Imported Chat');
+
+    final settings = <String, dynamic>{};
+    if (importResult.model != null && importResult.model!.isNotEmpty) {
+      settings['model'] = importResult.model;
+    }
+    if (importResult.userName.isNotEmpty) {
+      settings['userName'] = importResult.userName;
+    }
+    if (personaId != null && personaId.isNotEmpty) {
+      settings['personaId'] = personaId;
+    }
+
+    final uuid = const Uuid();
+    final newChat = await _chatRepository.createChat(
+      Chat(
+        id: uuid.v4(),
+        characterId: characterId,
+        title: title,
+        authorNote: importResult.authorNote ?? '',
+        authorNoteDepth: importResult.authorNoteDepth ?? 4,
+        authorNoteEnabled: importResult.authorNoteEnabled ??
+            (importResult.authorNote != null &&
+                importResult.authorNote!.isNotEmpty),
+        settings: settings,
+        createdAt: importResult.createDate,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    final sortedMessages = [...importResult.messages]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    for (final msg in sortedMessages) {
+      await _chatRepository.addMessage(
+        msg.toChatMessage(newChat.id, uuid.v4()),
+      );
+    }
+
+    _ref.invalidate(allChatsProvider);
+    _ref.invalidate(pagedChatsProvider);
+    _ref.invalidate(characterChatsProvider(characterId));
+    return newChat;
   }
 
   // ============================================

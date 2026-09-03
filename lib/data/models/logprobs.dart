@@ -4,10 +4,10 @@ import 'dart:convert';
 class TokenLogprob {
   /// The token text
   final String token;
-  
+
   /// Log probability of this token being chosen
   final double logprob;
-  
+
   /// Top alternative tokens with their log probabilities
   final List<TokenCandidate> topCandidates;
 
@@ -37,7 +37,8 @@ class TokenLogprob {
   }
 
   /// Convert log probability to percentage
-  double get probability => logprob <= 0 ? (logprob * 100).exp() * 100 : logprob;
+  double get probability =>
+      logprob <= 0 ? (logprob * 100).exp() * 100 : logprob;
 
   /// Get probability as formatted string
   String get probabilityString => '${probability.toStringAsFixed(2)}%';
@@ -88,22 +89,22 @@ class TokenCandidate {
 class MessageLogprobs {
   /// Unique identifier
   final String id;
-  
+
   /// Message ID this logprobs data belongs to
   final String messageId;
-  
+
   /// Swipe ID if applicable
   final int? swipeId;
-  
+
   /// API used to generate the message
   final String api;
-  
+
   /// Token logprobs for each token in the message
   final List<TokenLogprob> tokenLogprobs;
-  
+
   /// Continue prefix if this was a continuation
   final String? continueFrom;
-  
+
   /// Timestamp when generated
   final DateTime createdAt;
 
@@ -165,13 +166,13 @@ class MessageLogprobs {
 class LogprobsSettings {
   /// Whether to request token probabilities from the API
   final bool requestTokenProbabilities;
-  
+
   /// Number of top candidates to request
   final int topLogprobsCount;
-  
+
   /// Whether to show logprobs panel in chat
   final bool showLogprobsPanel;
-  
+
   /// Color tint intensity for probability visualization
   final double colorIntensity;
 
@@ -184,7 +185,8 @@ class LogprobsSettings {
 
   factory LogprobsSettings.fromJson(Map<String, dynamic> json) {
     return LogprobsSettings(
-      requestTokenProbabilities: json['requestTokenProbabilities'] as bool? ?? false,
+      requestTokenProbabilities:
+          json['requestTokenProbabilities'] as bool? ?? false,
       topLogprobsCount: json['topLogprobsCount'] as int? ?? 5,
       showLogprobsPanel: json['showLogprobsPanel'] as bool? ?? false,
       colorIntensity: (json['colorIntensity'] as num?)?.toDouble() ?? 0.5,
@@ -207,7 +209,8 @@ class LogprobsSettings {
     double? colorIntensity,
   }) {
     return LogprobsSettings(
-      requestTokenProbabilities: requestTokenProbabilities ?? this.requestTokenProbabilities,
+      requestTokenProbabilities:
+          requestTokenProbabilities ?? this.requestTokenProbabilities,
       topLogprobsCount: topLogprobsCount ?? this.topLogprobsCount,
       showLogprobsPanel: showLogprobsPanel ?? this.showLogprobsPanel,
       colorIntensity: colorIntensity ?? this.colorIntensity,

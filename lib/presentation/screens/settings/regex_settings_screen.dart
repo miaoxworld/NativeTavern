@@ -9,6 +9,7 @@ import 'package:native_tavern/presentation/providers/regex_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:native_tavern/presentation/widgets/export_destination_sheet.dart';
 
 /// Screen for managing regex scripts
 class RegexSettingsScreen extends ConsumerWidget {
@@ -434,6 +435,21 @@ class RegexSettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(AppLocalizations.of(context)!.close),
+          ),
+          TextButton.icon(
+            onPressed: () async {
+              Navigator.pop(context);
+              await exportTextWithDestination(
+                context: context,
+                fileName: 'nativetavern_regex_scripts.json',
+                content: json,
+                subject: 'NativeTavern Regex Scripts',
+                allowedExtensions: const ['json'],
+                mimeType: 'application/json',
+              );
+            },
+            icon: const Icon(Icons.save_alt),
+            label: Text(AppLocalizations.of(context)!.exportToFiles),
           ),
           ElevatedButton.icon(
             onPressed: () {

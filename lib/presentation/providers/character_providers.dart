@@ -47,10 +47,11 @@ class CharacterListNotifier extends AsyncNotifier<List<Character>> {
     _hasMore = true;
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final page = await ref.read(characterRepositoryProvider).getCharactersPage(
-            limit: _pageSize,
-            query: _query,
-          );
+      final page =
+          await ref.read(characterRepositoryProvider).getCharactersPage(
+                limit: _pageSize,
+                query: _query,
+              );
       _offset = page.length;
       _hasMore = page.length == _pageSize;
       return page;
@@ -66,11 +67,12 @@ class CharacterListNotifier extends AsyncNotifier<List<Character>> {
     if (_loadingMore || !_hasMore || !state.hasValue) return;
     _loadingMore = true;
     try {
-      final page = await ref.read(characterRepositoryProvider).getCharactersPage(
-            limit: _pageSize,
-            offset: _offset,
-            query: _query,
-          );
+      final page =
+          await ref.read(characterRepositoryProvider).getCharactersPage(
+                limit: _pageSize,
+                offset: _offset,
+                query: _query,
+              );
       final current = state.valueOrNull ?? const <Character>[];
       state = AsyncData([...current, ...page]);
       _offset += page.length;

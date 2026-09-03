@@ -1,0 +1,65 @@
+name: Feature Request
+description: Suggest a new feature, capability, or enhancement for NativeTavern
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an enhancement! Please describe your proposed feature and use case clearly.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Feature Area
+      description: Which part of NativeTavern would this feature enhance?
+      options:
+        - Chat & AI Generation
+        - LLM Provider / Model Integration
+        - Live2D / Spine Avatar Rendering
+        - Lorebook / World Info
+        - Character Cards & Personas
+        - Voice / TTS / STT
+        - Cloud Backup & Sync
+        - Tool Calling & MCP
+        - UI & Localization
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_or_use_case
+    attributes:
+      label: Problem or Use Case
+      description: Is your feature request related to a problem or a specific workflow?
+      placeholder: "I would like to be able to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution / Feature Description
+      description: A clear and concise description of what you want to happen and how it should work.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives_considered
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions, workarounds, or existing features you've considered.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, UI mockups, screenshots, or reference links here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to make sure this feature hasn't already been requested.
+          required: true

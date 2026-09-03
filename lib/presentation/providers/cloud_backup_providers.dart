@@ -1,11 +1,20 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
+import 'package:native_tavern/domain/services/file_export_service.dart';
 import 'package:native_tavern/domain/services/google_drive_service.dart';
+
+/// Path of a backup file opened from the system Files app / share sheet.
+final pendingBackupImportPathProvider = StateProvider<String?>((ref) => null);
+
+/// Path of a non-backup file opened from the system for character/chat import.
+final pendingImportFilePathProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for cloud backup service
 final cloudBackupServiceProvider = Provider<CloudBackupService>((ref) {
@@ -571,54 +580,121 @@ class CloudBackupOperationNotifier
     }
   }
 
-  /// Export backup to file (for Google Drive)
-  Future<File?> exportToFile(Map<String, dynamic> data) async {
+  FileExportService get _fileExport => fileExportService;
+
+  Future<CloudBackupArtifacts> _createLocalArtifacts({
+    required Map<String, dynamic> data,
+    CloudBackupOptions? options,
+  }) async {
+    final opts =
+        options ?? _ref.read(cloudBackupSettingsProvider).backupOptions;
+    return _service.exportLocalBackupArtifacts(
+      data: data,
+      options: opts,
+      onProgress: (progress) {
+        final progressValue = switch (progress.stage) {
+          CloudBackupArtifactStage.scanningMedia => 0.15,
+          CloudBackupArtifactStage.compressingMedia =>
+            progress.totalFiles != null && progress.totalFiles! > 0
+                ? 0.2 + (0.5 * (progress.processedFiles / progress.totalFiles!))
+                : 0.45,
+          CloudBackupArtifactStage.writingData => 0.85,
+        };
+        state = state.copyWith(
+          currentOperation: switch (progress.stage) {
+            CloudBackupArtifactStage.scanningMedia => 'Scanning media files...',
+            CloudBackupArtifactStage.compressingMedia =>
+              'Compressing media (${progress.processedFiles}/${progress.totalFiles ?? '?'})...',
+            CloudBackupArtifactStage.writingData => 'Writing backup file...',
+          },
+          progress: progressValue,
+        );
+      },
+    );
+  }
+
+  Future<File> _combinedBackupFile(CloudBackupArtifacts artifacts) async {
+    if (artifacts.combinedFile != null &&
+        await artifacts.combinedFile!.exists()) {
+      return artifacts.combinedFile!;
+    }
+    return _service.packageCombinedBackup(
+      dataFile: artifacts.dataFile,
+      mediaFile: artifacts.mediaFile,
+      mediaFileCount: artifacts.mediaFileCount,
+    );
+  }
+
+  /// Export a combined `.ntx` backup to a user-chosen folder. Falls back to
+  /// `NativeTavern/Backups` only when that chosen-folder save cannot complete.
+  Future<FileExportOutcome?> exportBackupToFile({
+    required Map<String, dynamic> data,
+    CloudBackupOptions? options,
+    bool combined = true,
+  }) async {
     state = state.copyWith(
       isLoading: true,
-      currentOperation: 'Creating backup file...',
+      currentOperation: 'Creating backup files...',
       status: CloudBackupStatus.uploading,
       error: null,
     );
 
     try {
-      final file = await _service.exportForGoogleDrive(data: data);
-
-      // Let user pick destination
-      final result = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save backup to Google Drive or other location',
-        fileName: file.uri.pathSegments.last,
-        type: FileType.any,
+      final artifacts = await _createLocalArtifacts(
+        data: data,
+        options: options,
+      );
+      final source =
+          combined ? await _combinedBackupFile(artifacts) : artifacts.dataFile;
+      final extension = path.extension(source.path).replaceFirst('.', '');
+      final outcome = await _fileExport.exportBackup(
+        source: source,
+        fileName: path.basename(source.path),
+        allowedExtensions: [extension],
+        dialogTitle: combined
+            ? 'Save NativeTavern Backup (.ntx)'
+            : 'Save NativeTavern Backup (.ntb)',
       );
 
-      if (result != null) {
-        final destFile = await file.copy(result);
-
-        state = state.copyWith(
-          isLoading: false,
-          currentOperation: null,
-          status: CloudBackupStatus.success,
-        );
-
-        _ref
-            .read(cloudBackupSettingsProvider.notifier)
-            .updateLastGoogleDriveSync();
-
-        return destFile;
+      if (!combined &&
+          artifacts.mediaFile != null &&
+          await artifacts.mediaFile!.exists()) {
+        try {
+          if (outcome.filesAppFile != null) {
+            final destMedia = File(
+              path.join(
+                outcome.filesAppFile!.parent.path,
+                path.basename(artifacts.mediaFile!.path),
+              ),
+            );
+            await artifacts.mediaFile!.copy(destMedia.path);
+          } else if (outcome.savedToAppBackups) {
+            await _fileExport.copyToAppBackups(artifacts.mediaFile!);
+          }
+        } catch (mediaCopyErr) {
+          debugPrint(
+              '[CloudBackup] Could not auto-save .ntm sidecar: $mediaCopyErr');
+        }
       }
 
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
-        status: CloudBackupStatus.idle,
+        progress: null,
+        status: outcome.succeeded
+            ? CloudBackupStatus.success
+            : CloudBackupStatus.idle,
+        warning: _service.lastMediaWarning ?? outcome.error,
       );
 
-      return null;
+      return outcome;
     } catch (e, stackTrace) {
-      debugPrint('[CloudBackup] exportToFile error: $e');
+      debugPrint('[CloudBackup] exportBackupToFile error: $e');
       debugPrint('[CloudBackup] Stack trace: $stackTrace');
       state = state.copyWith(
         isLoading: false,
         currentOperation: null,
+        progress: null,
         error: e.toString(),
         status: CloudBackupStatus.error,
       );
@@ -626,7 +702,172 @@ class CloudBackupOperationNotifier
     }
   }
 
-  /// Import backup from file (for Google Drive)
+  /// Share a combined `.ntx` backup via the native share sheet.
+  Future<bool> shareBackup({
+    required Map<String, dynamic> data,
+    CloudBackupOptions? options,
+    Rect? sharePositionOrigin,
+    bool combined = true,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Preparing backup to share...',
+      status: CloudBackupStatus.uploading,
+      error: null,
+    );
+
+    try {
+      final artifacts = await _createLocalArtifacts(
+        data: data,
+        options: options,
+      );
+      final combinedFile =
+          combined ? await _combinedBackupFile(artifacts) : artifacts.dataFile;
+
+      final filesToShare = <XFile>[
+        XFile(
+          combinedFile.path,
+          mimeType: combined
+              ? 'application/x-nativetavern-package'
+              : 'application/x-nativetavern-backup',
+          name: path.basename(combinedFile.path),
+        ),
+      ];
+
+      if (!combined &&
+          artifacts.mediaFile != null &&
+          await artifacts.mediaFile!.exists()) {
+        filesToShare.add(
+          XFile(
+            artifacts.mediaFile!.path,
+            mimeType: 'application/x-nativetavern-media',
+            name: path.basename(artifacts.mediaFile!.path),
+          ),
+        );
+      }
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: filesToShare,
+          subject: 'NativeTavern Backup',
+          sharePositionOrigin: sharePositionOrigin,
+        ),
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        status: CloudBackupStatus.success,
+        warning: _service.lastMediaWarning,
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] shareBackup error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return false;
+    }
+  }
+
+  /// Import backup directly from specific local file path(s)
+  Future<MergeResult?> importFromPath({
+    required String filePath,
+    String? mediaPath,
+    required RestoreMode mode,
+    required Map<String, dynamic> localData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Reading backup file...',
+      status: CloudBackupStatus.downloading,
+      error: null,
+    );
+
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('Backup file does not exist: $filePath');
+      }
+
+      File? mediaFile = mediaPath != null ? File(mediaPath) : null;
+      if (!_service.isCombinedBackupPath(filePath) &&
+          (mediaFile == null || !await mediaFile.exists())) {
+        final ntmCandidate = '${path.withoutExtension(filePath)}.ntm';
+        final candidateFile = File(ntmCandidate);
+        if (await candidateFile.exists()) {
+          mediaFile = candidateFile;
+        }
+      }
+
+      state = state.copyWith(
+        currentOperation:
+            mediaFile != null || _service.isCombinedBackupPath(filePath)
+                ? 'Reading data and restoring media...'
+                : 'Reading data backup...',
+        progress: 0.3,
+      );
+
+      final backupData = await _service.importFromFile(
+        file,
+        mediaFile: mediaFile,
+      );
+
+      state = state.copyWith(
+        currentOperation: 'Restoring data...',
+        progress: 0.6,
+      );
+
+      final mergeResult = await _service.mergeData(
+        backupData: backupData,
+        localData: localData,
+        mode: mode,
+      );
+
+      await restoreCallback(backupData, mode);
+
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        status: CloudBackupStatus.success,
+        warning: (backupData['_mediaRestoreWarning'] ??
+            backupData['_textRestoreWarning']) as String?,
+        mediaIncluded: backupData['media'] is Map,
+        mediaRestoredFiles: backupData['_mediaRestoredFiles'] as int?,
+        mediaCategories: _mediaCategoriesFromBackup(backupData),
+      );
+
+      return mergeResult;
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] importFromPath error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        progress: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return null;
+    }
+  }
+
+  /// Export backup to file (for Google Drive / local Files)
+  Future<FileExportOutcome?> exportToFile(Map<String, dynamic> data) async {
+    return exportBackupToFile(data: data);
+  }
+
+  /// Import backup from file (for Google Drive or local storage)
   Future<MergeResult?> importFromFile({
     required RestoreMode mode,
     required Map<String, dynamic> localData,
@@ -643,9 +884,10 @@ class CloudBackupOperationNotifier
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: const ['ntb', 'ntm'],
+        allowedExtensions: const ['ntx', 'ntb', 'ntm'],
         allowMultiple: true,
-        dialogTitle: 'Select the .ntb backup and its matching .ntm media file',
+        dialogTitle:
+            'Select a .ntx combined backup, or a .ntb file with its matching .ntm media file',
       );
 
       if (result == null || result.files.isEmpty) {
@@ -657,26 +899,41 @@ class CloudBackupOperationNotifier
         return null;
       }
 
+      final combinedFiles = result.files
+          .where((selected) => selected.name.toLowerCase().endsWith('.ntx'))
+          .toList();
       final dataFiles = result.files
           .where((selected) => selected.name.toLowerCase().endsWith('.ntb'))
           .toList();
-      if (dataFiles.length != 1) {
-        throw Exception('Select exactly one NativeTavern .ntb backup file');
+
+      late final File file;
+      File? selectedMediaFile;
+      if (combinedFiles.length == 1 && dataFiles.isEmpty) {
+        final filePath = combinedFiles.single.path;
+        if (filePath == null) {
+          throw Exception('The selected backup file is not locally accessible');
+        }
+        file = File(filePath);
+      } else if (dataFiles.length == 1 && combinedFiles.isEmpty) {
+        final dataSelection = dataFiles.single;
+        final filePath = dataSelection.path;
+        if (filePath == null) {
+          throw Exception('The selected backup file is not locally accessible');
+        }
+        file = File(filePath);
+        final expectedMediaName =
+            '${path.withoutExtension(dataSelection.name)}.ntm';
+        final mediaSelection = result.files.cast<PlatformFile?>().firstWhere(
+              (candidate) => candidate?.name == expectedMediaName,
+              orElse: () => null,
+            );
+        selectedMediaFile =
+            mediaSelection?.path == null ? null : File(mediaSelection!.path!);
+      } else {
+        throw Exception(
+          'Select exactly one NativeTavern .ntx combined backup, or one .ntb data backup',
+        );
       }
-      final dataSelection = dataFiles.single;
-      final filePath = dataSelection.path;
-      if (filePath == null) {
-        throw Exception('The selected backup file is not locally accessible');
-      }
-      final file = File(filePath);
-      final expectedMediaName =
-          '${dataSelection.name.substring(0, dataSelection.name.length - 4)}.ntm';
-      final mediaSelection = result.files.cast<PlatformFile?>().firstWhere(
-            (candidate) => candidate?.name == expectedMediaName,
-            orElse: () => null,
-          );
-      final selectedMediaFile =
-          mediaSelection?.path == null ? null : File(mediaSelection!.path!);
 
       state = state.copyWith(
         currentOperation: selectedMediaFile == null
@@ -754,6 +1011,9 @@ class CloudBackupOperationNotifier
 
       if (success) {
         _ref.read(googleDriveSignedInProvider.notifier).state = true;
+        _ref
+            .read(cloudBackupSettingsProvider.notifier)
+            .setGoogleDriveEnabled(true);
         _ref.invalidate(googleDriveUserProvider);
         _ref.invalidate(googleDriveBackupsProvider);
       }
@@ -782,6 +1042,9 @@ class CloudBackupOperationNotifier
   Future<void> signOutFromGoogleDrive() async {
     await _googleDriveService.signOut();
     _ref.read(googleDriveSignedInProvider.notifier).state = false;
+    _ref
+        .read(cloudBackupSettingsProvider.notifier)
+        .setGoogleDriveEnabled(false);
     _ref.invalidate(googleDriveUserProvider);
     _ref.invalidate(googleDriveBackupsProvider);
   }
@@ -914,13 +1177,35 @@ class CloudBackupOperationNotifier
     );
 
     try {
-      // Download backup
-      var backupData = await _googleDriveService.downloadBackup(
-        fileId: fileId,
-        onProgress: (progress) {
-          state = state.copyWith(progress: progress * 0.5);
-        },
-      );
+      Map<String, dynamic>? backupData;
+      final listed = _ref.read(googleDriveBackupsProvider).valueOrNull;
+      GoogleDriveBackupInfo? named;
+      if (listed != null) {
+        for (final item in listed) {
+          if (item.id == fileId) {
+            named = item;
+            break;
+          }
+        }
+      }
+      if (named != null && named.name.toLowerCase().endsWith('.ntx')) {
+        final cacheDir = await _service.getCloudCacheDirectory();
+        final downloaded = await _googleDriveService.downloadToFile(
+          fileId: fileId,
+          destination: File(path.join(cacheDir.path, named.name)),
+        );
+        if (downloaded == null) {
+          throw Exception('Failed to download backup');
+        }
+        backupData = await _service.importFromFile(downloaded);
+      } else {
+        backupData = await _googleDriveService.downloadBackup(
+          fileId: fileId,
+          onProgress: (progress) {
+            state = state.copyWith(progress: progress * 0.5);
+          },
+        );
+      }
 
       if (backupData == null) {
         throw Exception('Failed to download backup');
@@ -1052,6 +1337,250 @@ class CloudBackupOperationNotifier
         status: CloudBackupStatus.error,
       );
       return false;
+    }
+  }
+
+  static const _deviceIdKey = 'cloud_sync_device_id';
+  bool _autoSyncInFlight = false;
+
+  Future<String> _deviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString(_deviceIdKey);
+    if (id == null || id.isEmpty) {
+      id = DateTime.now().microsecondsSinceEpoch.toRadixString(16);
+      await prefs.setString(_deviceIdKey, id);
+    }
+    return id;
+  }
+
+  Future<File> _namedSyncSnapshot(CloudBackupArtifacts artifacts) async {
+    final combined = await _combinedBackupFile(artifacts);
+    final dest = File(
+      path.join(combined.parent.path, CloudBackupService.syncBackupFileName),
+    );
+    if (dest.path != combined.path) {
+      if (await dest.exists()) {
+        await dest.delete();
+      }
+      await combined.copy(dest.path);
+    }
+    return dest;
+  }
+
+  Map<String, dynamic> _syncMetadata(String deviceId) => {
+        'deviceId': deviceId,
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+        'fileName': CloudBackupService.syncBackupFileName,
+      };
+
+  bool _remoteIsNewer({
+    required DateTime? remoteUpdatedAt,
+    required DateTime? lastLocalSync,
+    required String? remoteDeviceId,
+    required String localDeviceId,
+  }) {
+    if (remoteUpdatedAt == null) return false;
+    if (remoteDeviceId != null && remoteDeviceId == localDeviceId) {
+      return false;
+    }
+    if (lastLocalSync == null) return true;
+    return remoteUpdatedAt.isAfter(
+      lastLocalSync.add(const Duration(seconds: 15)),
+    );
+  }
+
+  /// Pull remote changes then push the merged local snapshot.
+  Future<void> runAutoSync({
+    required Future<Map<String, dynamic>> Function() loadData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+    bool uploadAfterPull = true,
+  }) async {
+    final settings = _ref.read(cloudBackupSettingsProvider);
+    if (!settings.autoSyncEnabled || _autoSyncInFlight || state.isLoading) {
+      return;
+    }
+    _autoSyncInFlight = true;
+    try {
+      if (settings.iCloudEnabled) {
+        await _autoSyncICloud(
+          loadData: loadData,
+          restoreCallback: restoreCallback,
+          uploadAfterPull: uploadAfterPull,
+        );
+      }
+      if (settings.googleDriveEnabled &&
+          _ref.read(googleDriveSignedInProvider)) {
+        await _autoSyncGoogleDrive(
+          loadData: loadData,
+          restoreCallback: restoreCallback,
+          uploadAfterPull: uploadAfterPull,
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] runAutoSync error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+    } finally {
+      _autoSyncInFlight = false;
+    }
+  }
+
+  /// Upload the current snapshot without downloading.
+  Future<void> pushAutoSync({
+    required Future<Map<String, dynamic>> Function() loadData,
+  }) async {
+    final settings = _ref.read(cloudBackupSettingsProvider);
+    if (!settings.autoSyncEnabled || _autoSyncInFlight || state.isLoading) {
+      return;
+    }
+    _autoSyncInFlight = true;
+    try {
+      final data = await loadData();
+      final artifacts = await _service.createCloudBackupArtifacts(
+        data: data,
+        provider: settings.iCloudEnabled
+            ? CloudProvider.iCloud
+            : CloudProvider.googleDrive,
+        options: settings.backupOptions,
+      );
+      final snapshot = await _namedSyncSnapshot(artifacts);
+      final deviceId = await _deviceId();
+      if (settings.iCloudEnabled) {
+        await _service.uploadToICloud(backupFile: snapshot);
+        await _service.writeICloudSyncMetadata(_syncMetadata(deviceId));
+        _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
+        _ref.invalidate(iCloudBackupsProvider);
+      }
+      if (settings.googleDriveEnabled &&
+          _ref.read(googleDriveSignedInProvider)) {
+        await _googleDriveService.upsertNamedFile(
+          fileName: CloudBackupService.syncBackupFileName,
+          source: snapshot,
+        );
+        await _googleDriveService.upsertNamedJson(
+          CloudBackupService.syncMetadataFileName,
+          _syncMetadata(deviceId),
+        );
+        _ref
+            .read(cloudBackupSettingsProvider.notifier)
+            .updateLastGoogleDriveSync();
+        _ref.invalidate(googleDriveBackupsProvider);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] pushAutoSync error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+    } finally {
+      _autoSyncInFlight = false;
+    }
+  }
+
+  Future<void> _autoSyncICloud({
+    required Future<Map<String, dynamic>> Function() loadData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+    required bool uploadAfterPull,
+  }) async {
+    if (await _service.getICloudDirectory() == null) {
+      return;
+    }
+    final settings = _ref.read(cloudBackupSettingsProvider);
+    final deviceId = await _deviceId();
+    final metadata = await _service.readICloudSyncMetadata();
+    final remote = await _service.getICloudSyncBackup();
+    final remoteUpdatedAt = metadata?['updatedAt'] != null
+        ? DateTime.tryParse(metadata!['updatedAt'] as String)?.toUtc()
+        : remote?.createdAt.toUtc();
+    final shouldPull = _remoteIsNewer(
+      remoteUpdatedAt: remoteUpdatedAt,
+      lastLocalSync: settings.lastICloudSync?.toUtc(),
+      remoteDeviceId: metadata?['deviceId'] as String?,
+      localDeviceId: deviceId,
+    );
+    if (shouldPull && remote != null) {
+      final localData = await loadData();
+      await downloadFromICloud(
+        backup: remote,
+        mode: RestoreMode.merge,
+        localData: localData,
+        restoreCallback: restoreCallback,
+      );
+    }
+    if (uploadAfterPull) {
+      final data = await loadData();
+      final artifacts = await _service.createCloudBackupArtifacts(
+        data: data,
+        provider: CloudProvider.iCloud,
+        options: settings.backupOptions,
+      );
+      final snapshot = await _namedSyncSnapshot(artifacts);
+      await _service.uploadToICloud(backupFile: snapshot);
+      await _service.writeICloudSyncMetadata(_syncMetadata(deviceId));
+      _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
+      _ref.invalidate(iCloudBackupsProvider);
+    }
+  }
+
+  Future<void> _autoSyncGoogleDrive({
+    required Future<Map<String, dynamic>> Function() loadData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+    required bool uploadAfterPull,
+  }) async {
+    final settings = _ref.read(cloudBackupSettingsProvider);
+    final deviceId = await _deviceId();
+    final metadata = await _googleDriveService.readNamedJson(
+      CloudBackupService.syncMetadataFileName,
+    );
+    final remote = await _googleDriveService.findNamedFile(
+      CloudBackupService.syncBackupFileName,
+    );
+    final remoteUpdatedAt = metadata?['updatedAt'] != null
+        ? DateTime.tryParse(metadata!['updatedAt'] as String)?.toUtc()
+        : remote?.modifiedAt?.toUtc() ?? remote?.createdAt.toUtc();
+    final shouldPull = _remoteIsNewer(
+      remoteUpdatedAt: remoteUpdatedAt,
+      lastLocalSync: settings.lastGoogleDriveSync?.toUtc(),
+      remoteDeviceId: metadata?['deviceId'] as String?,
+      localDeviceId: deviceId,
+    );
+    if (shouldPull && remote != null) {
+      final cacheDir = await _service.getCloudCacheDirectory();
+      final downloaded = await _googleDriveService.downloadToFile(
+        fileId: remote.id,
+        destination: File(
+          path.join(cacheDir.path, CloudBackupService.syncBackupFileName),
+        ),
+      );
+      if (downloaded != null) {
+        final localData = await loadData();
+        await importFromPath(
+          filePath: downloaded.path,
+          mode: RestoreMode.merge,
+          localData: localData,
+          restoreCallback: restoreCallback,
+        );
+      }
+    }
+    if (uploadAfterPull) {
+      final data = await loadData();
+      final artifacts = await _service.createCloudBackupArtifacts(
+        data: data,
+        provider: CloudProvider.googleDrive,
+        options: settings.backupOptions,
+      );
+      final snapshot = await _namedSyncSnapshot(artifacts);
+      await _googleDriveService.upsertNamedFile(
+        fileName: CloudBackupService.syncBackupFileName,
+        source: snapshot,
+      );
+      await _googleDriveService.upsertNamedJson(
+        CloudBackupService.syncMetadataFileName,
+        _syncMetadata(deviceId),
+      );
+      _ref
+          .read(cloudBackupSettingsProvider.notifier)
+          .updateLastGoogleDriveSync();
+      _ref.invalidate(googleDriveBackupsProvider);
     }
   }
 }

@@ -5,20 +5,20 @@ import 'package:native_tavern/presentation/widgets/chat/message_content_widget.d
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// A collapsible widget that displays AI reasoning/thinking content
-/// 
+///
 /// This widget shows the chain-of-thought or thinking process from AI models
 /// like Claude (extended thinking), OpenAI o1/o3 (reasoning), DeepSeek (thinking),
 /// and Gemini 2.0 Flash Thinking.
 class ReasoningWidget extends StatefulWidget {
   /// The reasoning/thinking content to display
   final String reasoning;
-  
+
   /// Whether the widget should start expanded
   final bool initiallyExpanded;
-  
+
   /// Optional label for the reasoning section
   final String label;
-  
+
   /// Text color for the content
   final Color? textColor;
 
@@ -45,22 +45,22 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
   void initState() {
     super.initState();
     _isExpanded = widget.initiallyExpanded;
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     _expandAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    
+
     _rotationAnimation = Tween<double>(
       begin: 0.0,
       end: 0.5,
     ).animate(_expandAnimation);
-    
+
     if (_isExpanded) {
       _animationController.value = 1.0;
     }
@@ -88,7 +88,7 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppLocalizations.of(context)!.reasoningCopiedToClipboard),
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -139,7 +139,8 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
                   ),
                   // Character count
                   Text(
-                    AppLocalizations.of(context)!.charsCount(widget.reasoning.length),
+                    AppLocalizations.of(context)!
+                        .charsCount(widget.reasoning.length),
                     style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 11,
@@ -226,10 +227,10 @@ class _ReasoningWidgetState extends State<ReasoningWidget>
 class StreamingReasoningWidget extends StatefulWidget {
   /// The reasoning/thinking content being streamed
   final String reasoning;
-  
+
   /// Whether streaming is still in progress
   final bool isStreaming;
-  
+
   /// Optional label for the reasoning section
   final String label;
 
@@ -241,7 +242,8 @@ class StreamingReasoningWidget extends StatefulWidget {
   });
 
   @override
-  State<StreamingReasoningWidget> createState() => _StreamingReasoningWidgetState();
+  State<StreamingReasoningWidget> createState() =>
+      _StreamingReasoningWidgetState();
 }
 
 class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
@@ -256,7 +258,7 @@ class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -264,7 +266,7 @@ class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     if (widget.isStreaming) {
       _pulseController.repeat(reverse: true);
     }
@@ -362,7 +364,8 @@ class _StreamingReasoningWidgetState extends State<StreamingReasoningWidget>
                 ),
                 // Character count
                 Text(
-                  AppLocalizations.of(context)!.charsCount(widget.reasoning.length),
+                  AppLocalizations.of(context)!
+                      .charsCount(widget.reasoning.length),
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 11,

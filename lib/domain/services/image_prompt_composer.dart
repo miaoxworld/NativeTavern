@@ -33,12 +33,11 @@ class ImagePromptComposer {
         'role': 'system',
         'content':
             'Write one concise image-generation prompt. Output only the prompt. '
-            'No quotes, no explanation, no markdown.',
+                'No quotes, no explanation, no markdown.',
       },
       {
         'role': 'user',
-        'content':
-            '$subjectLine\nScene:\n${scene.isEmpty ? '(empty)' : scene}',
+        'content': '$subjectLine\nScene:\n${scene.isEmpty ? '(empty)' : scene}',
       },
     ];
   }

@@ -9,7 +9,8 @@ const String _activeThemeIdKey = 'active_theme_id';
 const String _customThemesKey = 'custom_themes';
 
 /// Provider for the active theme ID
-final activeThemeIdProvider = StateNotifierProvider<ActiveThemeIdNotifier, String>((ref) {
+final activeThemeIdProvider =
+    StateNotifierProvider<ActiveThemeIdNotifier, String>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return ActiveThemeIdNotifier(prefs);
 });
@@ -36,7 +37,8 @@ class ActiveThemeIdNotifier extends StateNotifier<String> {
 }
 
 /// Provider for custom themes
-final customThemesProvider = StateNotifierProvider<CustomThemesNotifier, List<AppThemeConfig>>((ref) {
+final customThemesProvider =
+    StateNotifierProvider<CustomThemesNotifier, List<AppThemeConfig>>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return CustomThemesNotifier(prefs);
 });
@@ -94,7 +96,7 @@ final allThemesProvider = Provider<List<AppThemeConfig>>((ref) {
 final activeThemeConfigProvider = Provider<AppThemeConfig>((ref) {
   final activeId = ref.watch(activeThemeIdProvider);
   final allThemes = ref.watch(allThemesProvider);
-  
+
   return allThemes.firstWhere(
     (t) => t.id == activeId,
     orElse: () => BuiltInThemes.defaultDark,

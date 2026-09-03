@@ -121,11 +121,21 @@ class _BackgroundRenderer extends StatelessWidget {
     // Convert angle to alignment
     final radians = angle * (3.14159 / 180);
     final begin = Alignment(
-      -1 * (radians.isNaN ? 0 : (radians / 3.14159).abs() > 1 ? 0 : -1 * (radians / 3.14159).abs()),
+      -1 *
+          (radians.isNaN
+              ? 0
+              : (radians / 3.14159).abs() > 1
+                  ? 0
+                  : -1 * (radians / 3.14159).abs()),
       -1,
     );
     final end = Alignment(
-      1 * (radians.isNaN ? 0 : (radians / 3.14159).abs() > 1 ? 0 : 1 * (radians / 3.14159).abs()),
+      1 *
+          (radians.isNaN
+              ? 0
+              : (radians / 3.14159).abs() > 1
+                  ? 0
+                  : 1 * (radians / 3.14159).abs()),
       1,
     );
 
@@ -145,8 +155,12 @@ class _BackgroundRenderer extends StatelessWidget {
     final radians = angle * (3.14159 / 180);
 
     // Calculate x and y components
-    final x = (radians - 1.5708).abs() < 0.01 ? 0.0 : -1 * (radians / 3.14159 - 0.5).clamp(-1.0, 1.0);
-    final y = (radians).abs() < 0.01 || (radians - 3.14159).abs() < 0.01 ? 0.0 : -1 * ((radians - 1.5708) / 1.5708).clamp(-1.0, 1.0);
+    final x = (radians - 1.5708).abs() < 0.01
+        ? 0.0
+        : -1 * (radians / 3.14159 - 0.5).clamp(-1.0, 1.0);
+    final y = (radians).abs() < 0.01 || (radians - 3.14159).abs() < 0.01
+        ? 0.0
+        : -1 * ((radians - 1.5708) / 1.5708).clamp(-1.0, 1.0);
 
     // Simplified angle to alignment mapping
     if (angle >= 0 && angle < 45) return Alignment.topCenter;
@@ -223,7 +237,8 @@ class BackgroundPreview extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: selected
-              ? Border.all(color: Theme.of(context).colorScheme.primary, width: 3)
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary, width: 3)
               : Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         ),
         clipBehavior: Clip.antiAlias,
@@ -268,7 +283,8 @@ class BackgroundPreview extends StatelessWidget {
                 return Image.file(
                   File(snapshot.data!),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: Colors.grey[800]),
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: Colors.grey[800]),
                 );
               }
               return Container(color: Colors.grey[800]);

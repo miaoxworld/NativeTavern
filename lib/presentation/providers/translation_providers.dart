@@ -9,7 +9,9 @@ final translationServiceProvider = Provider<TranslationService>((ref) {
 });
 
 /// Provider for translation settings
-final translationSettingsProvider = StateNotifierProvider<TranslationSettingsNotifier, TranslationSettings>((ref) {
+final translationSettingsProvider =
+    StateNotifierProvider<TranslationSettingsNotifier, TranslationSettings>(
+        (ref) {
   return TranslationSettingsNotifier(ref.watch(translationServiceProvider));
 });
 
@@ -18,7 +20,8 @@ class TranslationSettingsNotifier extends StateNotifier<TranslationSettings> {
   static const _prefsKey = 'translation_settings';
   final TranslationService _service;
 
-  TranslationSettingsNotifier(this._service) : super(const TranslationSettings()) {
+  TranslationSettingsNotifier(this._service)
+      : super(const TranslationSettings()) {
     _loadSettings();
   }
 
@@ -108,12 +111,14 @@ class TranslationSettingsNotifier extends StateNotifier<TranslationSettings> {
 }
 
 /// Provider for translating text
-final translateTextProvider = FutureProvider.family<TranslationResult?, TranslateParams>((ref, params) async {
+final translateTextProvider =
+    FutureProvider.family<TranslationResult?, TranslateParams>(
+        (ref, params) async {
   final service = ref.watch(translationServiceProvider);
   final settings = ref.watch(translationSettingsProvider);
-  
+
   if (!settings.enabled) return null;
-  
+
   return service.translate(
     params.text,
     sourceLanguage: params.sourceLanguage,
@@ -143,20 +148,24 @@ class TranslateParams {
           targetLanguage == other.targetLanguage;
 
   @override
-  int get hashCode => text.hashCode ^ sourceLanguage.hashCode ^ targetLanguage.hashCode;
+  int get hashCode =>
+      text.hashCode ^ sourceLanguage.hashCode ^ targetLanguage.hashCode;
 }
 
 /// Provider for detecting language
-final detectLanguageProvider = FutureProvider.family<String?, String>((ref, text) async {
+final detectLanguageProvider =
+    FutureProvider.family<String?, String>((ref, text) async {
   final service = ref.watch(translationServiceProvider);
   return service.detectLanguage(text);
 });
 
 /// Translation action provider
-final translateProvider = Provider<Future<TranslationResult?> Function(String, {String? source, String? target})>((ref) {
+final translateProvider = Provider<
+    Future<TranslationResult?> Function(String,
+        {String? source, String? target})>((ref) {
   final service = ref.watch(translationServiceProvider);
   final settings = ref.watch(translationSettingsProvider);
-  
+
   return (String text, {String? source, String? target}) async {
     if (!settings.enabled) return null;
     return service.translate(
@@ -200,7 +209,7 @@ class TranslationStateNotifier extends StateNotifier<TranslationState> {
 
   Future<void> translate(String text, {String? source, String? target}) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       final result = await _service.translate(
         text,
@@ -219,7 +228,8 @@ class TranslationStateNotifier extends StateNotifier<TranslationState> {
 }
 
 /// Provider for translation state notifier
-final translationStateProvider = StateNotifierProvider<TranslationStateNotifier, TranslationState>((ref) {
+final translationStateProvider =
+    StateNotifierProvider<TranslationStateNotifier, TranslationState>((ref) {
   final service = ref.watch(translationServiceProvider);
   return TranslationStateNotifier(service);
 });

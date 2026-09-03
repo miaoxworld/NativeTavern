@@ -60,7 +60,9 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
             value: settings.globalGuidanceScale,
             onChanged: settings.enabled
                 ? (value) {
-                    ref.read(cfgScaleSettingsProvider.notifier).setGlobalGuidanceScale(value);
+                    ref
+                        .read(cfgScaleSettingsProvider.notifier)
+                        .setGlobalGuidanceScale(value);
                   }
                 : null,
           ),
@@ -71,7 +73,9 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
             value: settings.globalNegativePrompt,
             enabled: settings.enabled,
             onChanged: (value) {
-              ref.read(cfgScaleSettingsProvider.notifier).setGlobalNegativePrompt(value);
+              ref
+                  .read(cfgScaleSettingsProvider.notifier)
+                  .setGlobalNegativePrompt(value);
             },
           ),
           const SizedBox(height: 16),
@@ -81,7 +85,9 @@ class CFGScaleSettingsScreen extends ConsumerWidget {
             value: settings.globalPositivePrompt,
             enabled: settings.enabled,
             onChanged: (value) {
-              ref.read(cfgScaleSettingsProvider.notifier).setGlobalPositivePrompt(value);
+              ref
+                  .read(cfgScaleSettingsProvider.notifier)
+                  .setGlobalPositivePrompt(value);
             },
           ),
 
@@ -225,12 +231,36 @@ class _GuidanceScaleSlider extends StatelessWidget {
         Wrap(
           spacing: 8,
           children: [
-            _PresetChip(label: '1.0', value: 1.0, currentValue: value, onTap: onChanged),
-            _PresetChip(label: '1.5', value: 1.5, currentValue: value, onTap: onChanged),
-            _PresetChip(label: '2.0', value: 2.0, currentValue: value, onTap: onChanged),
-            _PresetChip(label: '3.0', value: 3.0, currentValue: value, onTap: onChanged),
-            _PresetChip(label: '5.0', value: 5.0, currentValue: value, onTap: onChanged),
-            _PresetChip(label: '7.0', value: 7.0, currentValue: value, onTap: onChanged),
+            _PresetChip(
+                label: '1.0',
+                value: 1.0,
+                currentValue: value,
+                onTap: onChanged),
+            _PresetChip(
+                label: '1.5',
+                value: 1.5,
+                currentValue: value,
+                onTap: onChanged),
+            _PresetChip(
+                label: '2.0',
+                value: 2.0,
+                currentValue: value,
+                onTap: onChanged),
+            _PresetChip(
+                label: '3.0',
+                value: 3.0,
+                currentValue: value,
+                onTap: onChanged),
+            _PresetChip(
+                label: '5.0',
+                value: 5.0,
+                currentValue: value,
+                onTap: onChanged),
+            _PresetChip(
+                label: '7.0',
+                value: 7.0,
+                currentValue: value,
+                onTap: onChanged),
           ],
         ),
       ],
@@ -255,7 +285,7 @@ class _PresetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = (currentValue - value).abs() < 0.01;
-    
+
     return FilterChip(
       label: Text(label),
       selected: isSelected,
@@ -353,12 +383,16 @@ class _CharacterCFGSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         SwitchListTile(
-          title: Text(AppLocalizations.of(context).useCharacterSpecificSettings),
-          subtitle: Text(AppLocalizations.of(context).overrideGlobalForCharacter),
+          title:
+              Text(AppLocalizations.of(context).useCharacterSpecificSettings),
+          subtitle:
+              Text(AppLocalizations.of(context).overrideGlobalForCharacter),
           value: charSettings.useCharacterSettings,
           onChanged: globalEnabled
               ? (value) {
-                  ref.read(cfgScaleSettingsProvider.notifier).updateCharacterSettings(
+                  ref
+                      .read(cfgScaleSettingsProvider.notifier)
+                      .updateCharacterSettings(
                         charSettings.copyWith(useCharacterSettings: value),
                       );
                 }
@@ -370,7 +404,9 @@ class _CharacterCFGSection extends ConsumerWidget {
             value: charSettings.guidanceScale ?? 1.0,
             onChanged: globalEnabled
                 ? (value) {
-                    ref.read(cfgScaleSettingsProvider.notifier).updateCharacterSettings(
+                    ref
+                        .read(cfgScaleSettingsProvider.notifier)
+                        .updateCharacterSettings(
                           charSettings.copyWith(guidanceScale: value),
                         );
                   }
@@ -383,7 +419,9 @@ class _CharacterCFGSection extends ConsumerWidget {
             value: charSettings.negativePrompt ?? '',
             enabled: globalEnabled,
             onChanged: (value) {
-              ref.read(cfgScaleSettingsProvider.notifier).updateCharacterSettings(
+              ref
+                  .read(cfgScaleSettingsProvider.notifier)
+                  .updateCharacterSettings(
                     charSettings.copyWith(negativePrompt: value),
                   );
             },
@@ -425,7 +463,9 @@ class _ChatCFGSection extends ConsumerWidget {
             TextButton(
               onPressed: globalEnabled
                   ? () {
-                      ref.read(chatCFGSettingsProvider(chatId).notifier).clearSettings();
+                      ref
+                          .read(chatCFGSettingsProvider(chatId).notifier)
+                          .clearSettings();
                     }
                   : null,
               child: Text(l10n.clear),
@@ -442,7 +482,9 @@ class _ChatCFGSection extends ConsumerWidget {
           value: chatSettings.guidanceScale ?? 1.0,
           onChanged: globalEnabled
               ? (value) {
-                  ref.read(chatCFGSettingsProvider(chatId).notifier).setGuidanceScale(value);
+                  ref
+                      .read(chatCFGSettingsProvider(chatId).notifier)
+                      .setGuidanceScale(value);
                 }
               : null,
         ),
@@ -453,7 +495,9 @@ class _ChatCFGSection extends ConsumerWidget {
           value: chatSettings.negativePrompt ?? '',
           enabled: globalEnabled,
           onChanged: (value) {
-            ref.read(chatCFGSettingsProvider(chatId).notifier).setNegativePrompt(value);
+            ref
+                .read(chatCFGSettingsProvider(chatId).notifier)
+                .setNegativePrompt(value);
           },
         ),
         const SizedBox(height: 16),
@@ -463,7 +507,9 @@ class _ChatCFGSection extends ConsumerWidget {
           value: chatSettings.positivePrompt ?? '',
           enabled: globalEnabled,
           onChanged: (value) {
-            ref.read(chatCFGSettingsProvider(chatId).notifier).setPositivePrompt(value);
+            ref
+                .read(chatCFGSettingsProvider(chatId).notifier)
+                .setPositivePrompt(value);
           },
         ),
         const SizedBox(height: 16),
@@ -482,7 +528,9 @@ class _ChatCFGSection extends ConsumerWidget {
           onChanged: globalEnabled
               ? (mode) {
                   if (mode != null) {
-                    ref.read(chatCFGSettingsProvider(chatId).notifier).setPromptCombineMode(mode);
+                    ref
+                        .read(chatCFGSettingsProvider(chatId).notifier)
+                        .setPromptCombineMode(mode);
                   }
                 }
               : null,

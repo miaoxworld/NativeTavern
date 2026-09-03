@@ -47,6 +47,7 @@ import 'package:native_tavern/presentation/screens/groups/groups_screen.dart';
 import 'package:native_tavern/presentation/screens/groups/group_detail_screen.dart';
 import 'package:native_tavern/presentation/screens/tags/tags_screen.dart';
 import 'package:native_tavern/presentation/widgets/common/app_shell.dart';
+import 'package:native_tavern/domain/services/opened_document.dart';
 
 /// Route paths
 abstract class AppRoutes {
@@ -110,6 +111,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
+    redirect: (context, state) {
+      if (OpenedDocument.isExternalDocumentUri(state.uri)) {
+        return AppRoutes.home;
+      }
+      return null;
+    },
     routes: [
       // Main shell with bottom navigation
       ShellRoute(
@@ -454,27 +461,48 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const StorageManagementScreen(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context).pageNotFound,
-              style: Theme.of(context).textTheme.headlineMedium,
+    errorBuilder: (context, state) {
+      if (OpenedDocument.isExternalDocumentUri(state.uri)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go(AppRoutes.home);
+          }
+        });
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(AppLocalizations.of(context).openingBackupFile),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(state.uri.toString()),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => context.go(AppRoutes.home),
-              child: Text(AppLocalizations.of(context).goHome),
-            ),
-          ],
+          ),
+        );
+      }
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context).pageNotFound,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(state.uri.toString()),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.go(AppRoutes.home),
+                child: Text(AppLocalizations.of(context).goHome),
+              ),
+            ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 });

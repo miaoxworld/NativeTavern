@@ -8,7 +8,8 @@ const String _globalBackgroundKey = 'global_chat_background';
 const String _characterBackgroundPrefix = 'character_background_';
 
 /// Provider for global chat background
-final globalBackgroundProvider = StateNotifierProvider<GlobalBackgroundNotifier, ChatBackground>((ref) {
+final globalBackgroundProvider =
+    StateNotifierProvider<GlobalBackgroundNotifier, ChatBackground>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return GlobalBackgroundNotifier(prefs);
 });
@@ -67,7 +68,8 @@ class GlobalBackgroundNotifier extends StateNotifier<ChatBackground> {
 }
 
 /// Provider for per-character backgrounds
-final characterBackgroundProvider = StateNotifierProvider.family<CharacterBackgroundNotifier, ChatBackground?, String>((ref, characterId) {
+final characterBackgroundProvider = StateNotifierProvider.family<
+    CharacterBackgroundNotifier, ChatBackground?, String>((ref, characterId) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return CharacterBackgroundNotifier(prefs, characterId);
 });
@@ -115,17 +117,21 @@ class CharacterBackgroundNotifier extends StateNotifier<ChatBackground?> {
 
 /// Provider that returns the effective background for a chat
 /// Priority: character-specific background > character avatar (if enabled) > global background
-final effectiveBackgroundProvider = FutureProvider.family<ChatBackground, String?>((ref, characterId) async {
+final effectiveBackgroundProvider =
+    FutureProvider.family<ChatBackground, String?>((ref, characterId) async {
   // Check if we should use character avatar as background
-  final useCharacterAvatar = ref.watch(appSettingsProvider.select((s) => s.useCharacterAvatarAsBackground));
+  final useCharacterAvatar = ref.watch(
+      appSettingsProvider.select((s) => s.useCharacterAvatarAsBackground));
   // Get global image background settings - applies to all image backgrounds
-  final enableBlur = ref.watch(appSettingsProvider.select((s) => s.enableBackgroundBlur));
-  final backgroundOpacity = ref.watch(appSettingsProvider.select((s) => s.backgroundOpacity));
+  final enableBlur =
+      ref.watch(appSettingsProvider.select((s) => s.enableBackgroundBlur));
+  final backgroundOpacity =
+      ref.watch(appSettingsProvider.select((s) => s.backgroundOpacity));
   // Get global background (for fallback and bubbleOpacity)
   final globalBg = ref.watch(globalBackgroundProvider);
-  
+
   ChatBackground effectiveBg;
-  
+
   if (characterId != null) {
     // 1. Check for character-specific background
     final characterBg = ref.watch(characterBackgroundProvider(characterId));
@@ -161,7 +167,7 @@ final effectiveBackgroundProvider = FutureProvider.family<ChatBackground, String
     // No character ID, use global background
     effectiveBg = globalBg;
   }
-  
+
   // Apply global settings to all image backgrounds
   if (effectiveBg.type == BackgroundType.image) {
     return effectiveBg.copyWith(
@@ -170,15 +176,17 @@ final effectiveBackgroundProvider = FutureProvider.family<ChatBackground, String
       blurAmount: 10.0,
     );
   }
-  
+
   return effectiveBg;
 });
 
 /// Provider for all saved character backgrounds
-final savedCharacterBackgroundsProvider = FutureProvider<Map<String, ChatBackground>>((ref) async {
+final savedCharacterBackgroundsProvider =
+    FutureProvider<Map<String, ChatBackground>>((ref) async {
   final prefs = ref.watch(sharedPreferencesProvider);
-  final keys = prefs.getKeys().where((k) => k.startsWith(_characterBackgroundPrefix));
-  
+  final keys =
+      prefs.getKeys().where((k) => k.startsWith(_characterBackgroundPrefix));
+
   final backgrounds = <String, ChatBackground>{};
   for (final key in keys) {
     final characterId = key.substring(_characterBackgroundPrefix.length);
@@ -191,6 +199,6 @@ final savedCharacterBackgroundsProvider = FutureProvider<Map<String, ChatBackgro
       }
     }
   }
-  
+
   return backgrounds;
 });

@@ -69,11 +69,15 @@ class PlatformRpgScenarioFileGateway implements RpgScenarioFileGateway {
     final result = await FilePicker.platform.saveFile(
       dialogTitle: 'Export RPG Scenario',
       fileName: '$suggestedName.$extension',
+      bytes: Uint8List.fromList(utf8.encode(content)),
       type: FileType.custom,
       allowedExtensions: [extension],
     );
     if (result == null) return null;
-    await File(result).writeAsString(content, flush: true);
+    final dest = File(result);
+    if (!await dest.exists() || await dest.length() == 0) {
+      await dest.writeAsString(content, flush: true);
+    }
     return result;
   }
 }

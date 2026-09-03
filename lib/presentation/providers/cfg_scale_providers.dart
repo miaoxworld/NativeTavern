@@ -217,7 +217,8 @@ class ChatCFGSettingsNotifier extends StateNotifier<ChatCFGSettings> {
 }
 
 /// Provider for effective CFG settings for a specific context
-final effectiveCFGSettingsProvider = Provider.family<EffectiveCFGSettings, CFGContext>((ref, context) {
+final effectiveCFGSettingsProvider =
+    Provider.family<EffectiveCFGSettings, CFGContext>((ref, context) {
   final globalSettings = ref.watch(cfgScaleSettingsProvider);
   final chatSettings = context.chatId != null
       ? ref.watch(chatCFGSettingsProvider(context.chatId))
@@ -259,7 +260,8 @@ final isCFGActiveProvider = Provider<bool>((ref) {
 });
 
 /// Provider for CFG guidance scale value (for display)
-final cfgGuidanceScaleDisplayProvider = Provider.family<String, CFGContext>((ref, context) {
+final cfgGuidanceScaleDisplayProvider =
+    Provider.family<String, CFGContext>((ref, context) {
   final effective = ref.watch(effectiveCFGSettingsProvider(context));
   return effective.guidanceScale.toStringAsFixed(2);
 });

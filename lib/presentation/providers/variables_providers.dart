@@ -7,14 +7,15 @@ final variablesServiceProvider = Provider<VariablesService>((ref) {
 });
 
 /// Provider for global variables
-final globalVariablesProvider = StateNotifierProvider<GlobalVariablesNotifier, Map<String, dynamic>>((ref) {
+final globalVariablesProvider =
+    StateNotifierProvider<GlobalVariablesNotifier, Map<String, dynamic>>((ref) {
   return GlobalVariablesNotifier(ref.watch(variablesServiceProvider));
 });
 
 /// Notifier for managing global variables state
 class GlobalVariablesNotifier extends StateNotifier<Map<String, dynamic>> {
   final VariablesService _service;
-  
+
   GlobalVariablesNotifier(this._service) : super({}) {
     _loadVariables();
   }
@@ -63,7 +64,8 @@ class GlobalVariablesNotifier extends StateNotifier<Map<String, dynamic>> {
 }
 
 /// Provider for local variables (per-chat)
-final localVariablesProvider = StateNotifierProvider.family<LocalVariablesNotifier, Map<String, dynamic>, String>((ref, chatId) {
+final localVariablesProvider = StateNotifierProvider.family<
+    LocalVariablesNotifier, Map<String, dynamic>, String>((ref, chatId) {
   return LocalVariablesNotifier(ref.watch(variablesServiceProvider), chatId);
 });
 
@@ -71,7 +73,7 @@ final localVariablesProvider = StateNotifierProvider.family<LocalVariablesNotifi
 class LocalVariablesNotifier extends StateNotifier<Map<String, dynamic>> {
   final VariablesService _service;
   final String chatId;
-  
+
   LocalVariablesNotifier(this._service, this.chatId) : super({}) {
     _loadVariables();
   }
@@ -130,9 +132,12 @@ class LocalVariablesNotifier extends StateNotifier<Map<String, dynamic>> {
 }
 
 /// Provider for combined variable info (for display)
-final allVariablesInfoProvider = Provider.family<List<VariableInfo>, String?>((ref, chatId) {
+final allVariablesInfoProvider =
+    Provider.family<List<VariableInfo>, String?>((ref, chatId) {
   final globalVars = ref.watch(globalVariablesProvider);
-  final localVars = chatId != null ? ref.watch(localVariablesProvider(chatId)) : <String, dynamic>{};
+  final localVars = chatId != null
+      ? ref.watch(localVariablesProvider(chatId))
+      : <String, dynamic>{};
 
   final result = <VariableInfo>[];
 
@@ -164,6 +169,7 @@ final allVariablesInfoProvider = Provider.family<List<VariableInfo>, String?>((r
 /// Provider for variable count
 final variableCountProvider = Provider.family<int, String?>((ref, chatId) {
   final globalCount = ref.watch(globalVariablesProvider).length;
-  final localCount = chatId != null ? ref.watch(localVariablesProvider(chatId)).length : 0;
+  final localCount =
+      chatId != null ? ref.watch(localVariablesProvider(chatId)).length : 0;
   return globalCount + localCount;
 });

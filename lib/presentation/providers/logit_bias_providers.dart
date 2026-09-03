@@ -81,8 +81,9 @@ class LogitBiasSettingsNotifier extends StateNotifier<LogitBiasSettings> {
   /// Delete a preset
   void deletePreset(String presetId) {
     final newPresets = state.presets.where((p) => p.id != presetId).toList();
-    final newActiveId = state.activePresetId == presetId ? null : state.activePresetId;
-    
+    final newActiveId =
+        state.activePresetId == presetId ? null : state.activePresetId;
+
     if (newActiveId == null) {
       state = state.copyWith(presets: newPresets, clearActivePreset: true);
     } else {
@@ -97,15 +98,17 @@ class LogitBiasSettingsNotifier extends StateNotifier<LogitBiasSettings> {
       (p) => p.id == presetId,
       orElse: () => throw Exception('Preset not found'),
     );
-    
+
     final newPreset = LogitBiasPreset.create(
       name: '${preset.name} (Copy)',
-      entries: preset.entries.map((e) => LogitBiasEntry.create(
-        text: e.text,
-        value: e.value,
-      )).toList(),
+      entries: preset.entries
+          .map((e) => LogitBiasEntry.create(
+                text: e.text,
+                value: e.value,
+              ))
+          .toList(),
     );
-    
+
     addPreset(newPreset);
   }
 
@@ -139,7 +142,8 @@ class LogitBiasSettingsNotifier extends StateNotifier<LogitBiasSettings> {
     final activePreset = state.activePreset;
     if (activePreset == null) return;
 
-    final newEntries = activePreset.entries.where((e) => e.id != entryId).toList();
+    final newEntries =
+        activePreset.entries.where((e) => e.id != entryId).toList();
     final updatedPreset = activePreset.copyWith(entries: newEntries);
     updatePreset(updatedPreset);
   }
@@ -153,7 +157,7 @@ class LogitBiasSettingsNotifier extends StateNotifier<LogitBiasSettings> {
     if (newIndex > oldIndex) newIndex--;
     final entry = newEntries.removeAt(oldIndex);
     newEntries.insert(newIndex, entry);
-    
+
     final updatedPreset = activePreset.copyWith(entries: newEntries);
     updatePreset(updatedPreset);
   }
@@ -226,7 +230,8 @@ final isLogitBiasActiveProvider = Provider<bool>((ref) {
 });
 
 /// Provider for validating an entry
-final logitBiasValidationProvider = Provider.family<LogitBiasValidationResult, LogitBiasEntry>((ref, entry) {
+final logitBiasValidationProvider =
+    Provider.family<LogitBiasValidationResult, LogitBiasEntry>((ref, entry) {
   final service = ref.watch(logitBiasServiceProvider);
   return service.validateEntry(entry);
 });

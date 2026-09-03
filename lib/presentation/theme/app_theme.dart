@@ -6,23 +6,23 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF9B59B6);
   static const Color secondaryColor = Color(0xFF3498DB);
   static const Color accentColor = Color(0xFF1ABC9C);
-  
+
   // Dark theme colors
   static const Color darkBackground = Color(0xFF1A1A2E);
   static const Color darkSurface = Color(0xFF16213E);
   static const Color darkCard = Color(0xFF202040);
   static const Color darkDivider = Color(0xFF2D2D4A);
-  
+
   // Text colors
   static const Color textPrimary = Color(0xFFE4E4E7);
   static const Color textSecondary = Color(0xFFA1A1AA);
   static const Color textMuted = Color(0xFF71717A);
-  
+
   // Chat bubble colors
   static const Color userBubble = Color(0xFF3B82F6);
   static const Color assistantBubble = Color(0xFF374151);
   static const Color systemBubble = Color(0xFF4B5563);
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -138,7 +138,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get lightTheme {
     // Light theme for users who prefer it
     return ThemeData(

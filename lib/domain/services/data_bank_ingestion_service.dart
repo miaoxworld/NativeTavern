@@ -208,7 +208,7 @@ final class PdfrxDataBankPdfTextExtractor implements DataBankPdfTextExtractor {
         pages.add(
           DataBankPdfPage(
             pageNumber: index + 1,
-            text: pageText.fullText,
+            text: pageText?.fullText ?? '',
           ),
         );
         onProgress(index + 1, totalPages);

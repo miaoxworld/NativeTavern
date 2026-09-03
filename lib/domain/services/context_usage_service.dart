@@ -88,7 +88,8 @@ class ContextUsageService {
     int promptSectionTotal = 0;
 
     for (final section in enabledSections) {
-      final sectionTokens = _calculateSectionTokens(section, character, persona);
+      final sectionTokens =
+          _calculateSectionTokens(section, character, persona);
       if (sectionTokens > 0) {
         promptSectionChildren.add(ContextComponentUsage(
           name: section.name,
@@ -118,7 +119,8 @@ class ContextUsageService {
 
     // ============ AUTHOR'S NOTE ============
     if (chat != null && chat.authorNoteEnabled && chat.authorNote.isNotEmpty) {
-      final authorNoteTokens = _tokenizerService.estimateTokenCount(chat.authorNote);
+      final authorNoteTokens =
+          _tokenizerService.estimateTokenCount(chat.authorNote);
       components.add(ContextComponentUsage(
         name: "Author's Note",
         tokenCount: authorNoteTokens,
@@ -130,7 +132,7 @@ class ContextUsageService {
     if (chat != null && chat.summaries.isNotEmpty) {
       final summaryChildren = <ContextComponentUsage>[];
       int summaryTotal = 0;
-      
+
       for (int i = 0; i < chat.summaries.length; i++) {
         final summary = chat.summaries[i];
         final tokens = _tokenizerService.estimateTokenCount(summary.content);
@@ -188,7 +190,8 @@ class ContextUsageService {
       int promptSectionTotal = 0;
 
       for (final section in enabledSections) {
-        final sectionTokens = _calculateSectionTokens(section, character, persona);
+        final sectionTokens =
+            _calculateSectionTokens(section, character, persona);
         if (sectionTokens > 0) {
           promptSectionChildren.add(ContextComponentUsage(
             name: section.name,
@@ -211,7 +214,8 @@ class ContextUsageService {
       // Fallback: estimate from character data directly
       final characterComponents = _estimateCharacterComponents(character);
       if (characterComponents.isNotEmpty) {
-        final total = characterComponents.fold<int>(0, (sum, c) => sum + c.tokenCount);
+        final total =
+            characterComponents.fold<int>(0, (sum, c) => sum + c.tokenCount);
         components.add(ContextComponentUsage(
           name: 'Character & System',
           tokenCount: total,
@@ -326,7 +330,8 @@ class ContextUsageService {
 
       case PromptSectionType.exampleMessages:
         if (character != null && character.exampleMessages.isNotEmpty) {
-          return _tokenizerService.estimateTokenCount(character.exampleMessages);
+          return _tokenizerService
+              .estimateTokenCount(character.exampleMessages);
         }
         return 0;
 
@@ -335,10 +340,12 @@ class ContextUsageService {
           return _tokenizerService.estimateTokenCount(section.content!);
         }
         if (character != null && character.postHistoryInstructions.isNotEmpty) {
-          return _tokenizerService.estimateTokenCount(character.postHistoryInstructions);
+          return _tokenizerService
+              .estimateTokenCount(character.postHistoryInstructions);
         }
         return _tokenizerService.estimateTokenCount(
-          PromptSection.getDefaultContent(PromptSectionType.postHistoryInstructions),
+          PromptSection.getDefaultContent(
+              PromptSectionType.postHistoryInstructions),
         );
 
       case PromptSectionType.nsfw:
@@ -366,7 +373,8 @@ class ContextUsageService {
   }
 
   /// Estimate character components when no section info is available
-  List<ContextComponentUsage> _estimateCharacterComponents(Character? character) {
+  List<ContextComponentUsage> _estimateCharacterComponents(
+      Character? character) {
     if (character == null) return [];
 
     final components = <ContextComponentUsage>[];
@@ -374,7 +382,8 @@ class ContextUsageService {
     if (character.systemPrompt.isNotEmpty) {
       components.add(ContextComponentUsage(
         name: 'System Prompt',
-        tokenCount: _tokenizerService.estimateTokenCount(character.systemPrompt),
+        tokenCount:
+            _tokenizerService.estimateTokenCount(character.systemPrompt),
       ));
     }
 
@@ -402,14 +411,16 @@ class ContextUsageService {
     if (character.exampleMessages.isNotEmpty) {
       components.add(ContextComponentUsage(
         name: 'Example Messages',
-        tokenCount: _tokenizerService.estimateTokenCount(character.exampleMessages),
+        tokenCount:
+            _tokenizerService.estimateTokenCount(character.exampleMessages),
       ));
     }
 
     if (character.postHistoryInstructions.isNotEmpty) {
       components.add(ContextComponentUsage(
         name: 'Post-History Instructions',
-        tokenCount: _tokenizerService.estimateTokenCount(character.postHistoryInstructions),
+        tokenCount: _tokenizerService
+            .estimateTokenCount(character.postHistoryInstructions),
       ));
     }
 
@@ -417,7 +428,8 @@ class ContextUsageService {
   }
 
   /// Calculate world info tokens with detailed breakdown
-  ContextComponentUsage _calculateWorldInfoTokens(List<WorldInfoEntry>? entries) {
+  ContextComponentUsage _calculateWorldInfoTokens(
+      List<WorldInfoEntry>? entries) {
     if (entries == null || entries.isEmpty) {
       return const ContextComponentUsage(name: 'World Info', tokenCount: 0);
     }
@@ -428,8 +440,8 @@ class ContextUsageService {
     // Group by world book if possible
     final groupedByBook = <String, List<WorldInfoEntry>>{};
     for (final entry in entries) {
-      final bookName = entry.comment.isNotEmpty 
-          ? entry.comment 
+      final bookName = entry.comment.isNotEmpty
+          ? entry.comment
           : 'Entry ${entries.indexOf(entry) + 1}';
       if (!groupedByBook.containsKey(bookName)) {
         groupedByBook[bookName] = [];
@@ -439,10 +451,10 @@ class ContextUsageService {
 
     for (final entry in entries) {
       final tokens = _tokenizerService.estimateTokenCount(entry.content);
-      final name = entry.comment.isNotEmpty 
-          ? entry.comment 
-          : (entry.keys.isNotEmpty 
-              ? entry.keys.first 
+      final name = entry.comment.isNotEmpty
+          ? entry.comment
+          : (entry.keys.isNotEmpty
+              ? entry.keys.first
               : 'Entry ${entries.indexOf(entry) + 1}');
       children.add(ContextComponentUsage(
         name: name,
@@ -460,7 +472,8 @@ class ContextUsageService {
   }
 
   /// Calculate chat history tokens with breakdown
-  ContextComponentUsage _calculateChatHistoryTokens(List<ChatMessage> messages) {
+  ContextComponentUsage _calculateChatHistoryTokens(
+      List<ChatMessage> messages) {
     if (messages.isEmpty) {
       return const ContextComponentUsage(name: 'Chat History', tokenCount: 0);
     }

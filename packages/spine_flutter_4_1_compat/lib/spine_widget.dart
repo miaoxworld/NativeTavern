@@ -67,60 +67,75 @@ class SpineWidgetController {
   bool _isPlaying = true;
   _SpineRenderObject? _renderObject;
   final void Function(SpineWidgetController controller)? onInitialized;
-  final void Function(SpineWidgetController controller)? onBeforeUpdateWorldTransforms;
-  final void Function(SpineWidgetController controller)? onAfterUpdateWorldTransforms;
-  final void Function(SpineWidgetController controller, Canvas canvas)? onBeforePaint;
-  final void Function(SpineWidgetController controller, Canvas canvas, List<RenderCommand> commands)? onAfterPaint;
+  final void Function(SpineWidgetController controller)?
+      onBeforeUpdateWorldTransforms;
+  final void Function(SpineWidgetController controller)?
+      onAfterUpdateWorldTransforms;
+  final void Function(SpineWidgetController controller, Canvas canvas)?
+      onBeforePaint;
+  final void Function(SpineWidgetController controller, Canvas canvas,
+      List<RenderCommand> commands)? onAfterPaint;
 
   /// Constructs a new [SpineWidget] controller. See the class documentation of [SpineWidgetController] for information on
   /// the optional arguments.
   SpineWidgetController(
-      {this.onInitialized, this.onBeforeUpdateWorldTransforms, this.onAfterUpdateWorldTransforms, this.onBeforePaint, this.onAfterPaint});
+      {this.onInitialized,
+      this.onBeforeUpdateWorldTransforms,
+      this.onAfterUpdateWorldTransforms,
+      this.onBeforePaint,
+      this.onAfterPaint});
 
   void _initialize(SkeletonDrawable drawable) {
-    var wasInitialized = _drawable != null;
+    final wasInitialized = _drawable != null;
     _drawable = drawable;
     if (!wasInitialized) onInitialized?.call(this);
   }
 
   /// The [Atlas] from which images to render the skeleton are sourced.
   Atlas get atlas {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!.atlas;
   }
 
   /// The setup-pose data used by the skeleton.
   SkeletonData get skeletonData {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!.skeletonData;
   }
 
   /// The mixing information used by the [AnimationState]
   AnimationStateData get animationStateData {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!.animationStateData;
   }
 
   /// The [AnimationState] used to manage animations that are being applied to the
   /// skeleton.
   AnimationState get animationState {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!.animationState;
   }
 
   /// The [Skeleton]
   Skeleton get skeleton {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!.skeleton;
   }
 
   /// The [SkeletonDrawable]
   SkeletonDrawable get drawable {
-    if (_drawable == null) throw Exception("Controller is not initialized yet.");
+    if (_drawable == null)
+      throw Exception('Controller is not initialized yet.');
     return _drawable!;
   }
 
-  void _setCoordinateTransform(double offsetX, double offsetY, double scaleX, double scaleY) {
+  void _setCoordinateTransform(
+      double offsetX, double offsetY, double scaleX, double scaleY) {
     _offsetX = offsetX;
     _offsetY = offsetY;
     _scaleX = scaleX;
@@ -135,8 +150,8 @@ class SpineWidgetController {
   /// the skeleton coordinate system. See the `ik_following.dart` example how to use this
   /// to move a bone based on user touch input.
   Offset toSkeletonCoordinates(Offset position) {
-    var x = position.dx;
-    var y = position.dy;
+    final x = position.dx;
+    final y = position.dy;
     return Offset(x / _scaleX - _offsetX, y / _scaleY - _offsetY);
   }
 
@@ -202,14 +217,15 @@ class SkinAndAnimationBounds extends BoundsProvider {
   /// the bounding box of the skeleton. If no skins are given, the default skin is used.
   /// The [stepTime], given in seconds, defines at what interval the bounds should be sampled
   /// across the entire animation.
-  SkinAndAnimationBounds({List<String>? skins, this.animation, this.stepTime = 0.1})
-      : skins = skins == null || skins.isEmpty ? ["default"] : skins;
+  SkinAndAnimationBounds(
+      {List<String>? skins, this.animation, this.stepTime = 0.1})
+      : skins = skins == null || skins.isEmpty ? ['default'] : skins;
 
   @override
   Bounds computeBounds(SkeletonDrawable drawable) {
     final data = drawable.skeletonData;
     final oldSkin = drawable.skeleton.getSkin();
-    final customSkin = Skin("custom-skin");
+    final customSkin = Skin('custom-skin');
     for (final skinName in skins) {
       final skin = data.findSkin(skinName);
       if (skin == null) continue;
@@ -218,7 +234,8 @@ class SkinAndAnimationBounds extends BoundsProvider {
     drawable.skeleton.setSkin(customSkin);
     drawable.skeleton.setToSetupPose();
 
-    final animation = this.animation != null ? data.findAnimation(this.animation!) : null;
+    final animation =
+        this.animation != null ? data.findAnimation(this.animation!) : null;
     double minX = double.infinity;
     double minY = double.infinity;
     double maxX = double.negativeInfinity;
@@ -241,7 +258,7 @@ class SkinAndAnimationBounds extends BoundsProvider {
         maxY = max(maxY, minY + bounds.height);
       }
     }
-    drawable.skeleton.setSkinByName("default");
+    drawable.skeleton.setSkinByName('default');
     drawable.animationState.clearTracks();
     if (oldSkin != null) drawable.skeleton.setSkin(oldSkin);
     drawable.skeleton.setToSetupPose();
@@ -283,7 +300,12 @@ class SpineWidget extends StatefulWidget {
   ///
   /// The widget can optionally by sized by the bounds provided by the [BoundsProvider] by passing `true` for [sizedByBounds].
   SpineWidget.fromAsset(this._atlasFile, this._skeletonFile, this._controller,
-      {AssetBundle? bundle, BoxFit? fit, Alignment? alignment, BoundsProvider? boundsProvider, bool? sizedByBounds, Key? key})
+      {AssetBundle? bundle,
+      BoxFit? fit,
+      Alignment? alignment,
+      BoundsProvider? boundsProvider,
+      bool? sizedByBounds,
+      Key? key})
       : _assetType = _AssetType.asset,
         _fit = fit ?? BoxFit.contain,
         _alignment = alignment ?? Alignment.center,
@@ -304,8 +326,13 @@ class SpineWidget extends StatefulWidget {
   /// are used.
   ///
   /// The widget can optionally by sized by the bounds provided by the [BoundsProvider] by passing `true` for [sizedByBounds].
-  const SpineWidget.fromFile(this._atlasFile, this._skeletonFile, this._controller,
-      {BoxFit? fit, Alignment? alignment, BoundsProvider? boundsProvider, bool? sizedByBounds, Key? key})
+  const SpineWidget.fromFile(
+      this._atlasFile, this._skeletonFile, this._controller,
+      {BoxFit? fit,
+      Alignment? alignment,
+      BoundsProvider? boundsProvider,
+      bool? sizedByBounds,
+      Key? key})
       : _assetType = _AssetType.file,
         _bundle = null,
         _fit = fit ?? BoxFit.contain,
@@ -326,8 +353,13 @@ class SpineWidget extends StatefulWidget {
   /// are used.
   ///
   /// The widget can optionally by sized by the bounds provided by the [BoundsProvider] by passing `true` for [sizedByBounds].
-  const SpineWidget.fromHttp(this._atlasFile, this._skeletonFile, this._controller,
-      {BoxFit? fit, Alignment? alignment, BoundsProvider? boundsProvider, bool? sizedByBounds, Key? key})
+  const SpineWidget.fromHttp(
+      this._atlasFile, this._skeletonFile, this._controller,
+      {BoxFit? fit,
+      Alignment? alignment,
+      BoundsProvider? boundsProvider,
+      bool? sizedByBounds,
+      Key? key})
       : _assetType = _AssetType.http,
         _bundle = null,
         _fit = fit ?? BoxFit.contain,
@@ -348,7 +380,11 @@ class SpineWidget extends StatefulWidget {
   ///
   /// The widget can optionally by sized by the bounds provided by the [BoundsProvider] by passing `true` for [sizedByBounds].
   const SpineWidget.fromDrawable(this._drawable, this._controller,
-      {BoxFit? fit, Alignment? alignment, BoundsProvider? boundsProvider, bool? sizedByBounds, Key? key})
+      {BoxFit? fit,
+      Alignment? alignment,
+      BoundsProvider? boundsProvider,
+      bool? sizedByBounds,
+      Key? key})
       : _assetType = _AssetType.drawable,
         _bundle = null,
         _fit = fit ?? BoxFit.contain,
@@ -373,7 +409,8 @@ class _SpineWidgetState extends State<SpineWidget> {
     if (widget._assetType == _AssetType.drawable) {
       loadDrawable(widget._drawable!);
     } else {
-      loadFromAsset(widget._bundle, widget._atlasFile!, widget._skeletonFile!, widget._assetType);
+      loadFromAsset(widget._bundle, widget._atlasFile!, widget._skeletonFile!,
+          widget._assetType);
     }
   }
 
@@ -403,7 +440,8 @@ class _SpineWidgetState extends State<SpineWidget> {
       if (widget._assetType == _AssetType.drawable) {
         loadDrawable(widget._drawable!);
       } else {
-        loadFromAsset(widget._bundle, widget._atlasFile!, widget._skeletonFile!, widget._assetType);
+        loadFromAsset(widget._bundle, widget._atlasFile!, widget._skeletonFile!,
+            widget._assetType);
       }
     }
   }
@@ -415,10 +453,12 @@ class _SpineWidgetState extends State<SpineWidget> {
     setState(() {});
   }
 
-  void loadFromAsset(AssetBundle? bundle, String atlasFile, String skeletonFile, _AssetType assetType) async {
+  void loadFromAsset(AssetBundle? bundle, String atlasFile, String skeletonFile,
+      _AssetType assetType) async {
     switch (assetType) {
       case _AssetType.asset:
-        loadDrawable(await SkeletonDrawable.fromAsset(atlasFile, skeletonFile, bundle: bundle));
+        loadDrawable(await SkeletonDrawable.fromAsset(atlasFile, skeletonFile,
+            bundle: bundle));
         break;
       case _AssetType.file:
         loadDrawable(await SkeletonDrawable.fromFile(atlasFile, skeletonFile));
@@ -427,7 +467,7 @@ class _SpineWidgetState extends State<SpineWidget> {
         loadDrawable(await SkeletonDrawable.fromHttp(atlasFile, skeletonFile));
         break;
       case _AssetType.drawable:
-        throw Exception("Drawable can not be loaded via loadFromAsset().");
+        throw Exception('Drawable can not be loaded via loadFromAsset().');
     }
   }
 
@@ -435,7 +475,12 @@ class _SpineWidgetState extends State<SpineWidget> {
   Widget build(BuildContext context) {
     if (_drawable != null) {
       return _SpineRenderObjectWidget(
-          _drawable!, widget._controller, widget._fit, widget._alignment, _computedBounds, widget._sizedByBounds);
+          _drawable!,
+          widget._controller,
+          widget._fit,
+          widget._alignment,
+          _computedBounds,
+          widget._sizedByBounds);
     } else {
       return const SizedBox();
     }
@@ -456,15 +501,18 @@ class _SpineRenderObjectWidget extends LeafRenderObjectWidget {
   final Bounds _bounds;
   final bool _sizedByBounds;
 
-  const _SpineRenderObjectWidget(this._skeletonDrawable, this._controller, this._fit, this._alignment, this._bounds, this._sizedByBounds);
+  const _SpineRenderObjectWidget(this._skeletonDrawable, this._controller,
+      this._fit, this._alignment, this._bounds, this._sizedByBounds);
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _SpineRenderObject(_skeletonDrawable, _controller, _fit, _alignment, _bounds, _sizedByBounds);
+    return _SpineRenderObject(_skeletonDrawable, _controller, _fit, _alignment,
+        _bounds, _sizedByBounds);
   }
 
   @override
-  void updateRenderObject(BuildContext context, covariant _SpineRenderObject renderObject) {
+  void updateRenderObject(
+      BuildContext context, covariant _SpineRenderObject renderObject) {
     renderObject.skeletonDrawable = _skeletonDrawable;
     renderObject.fit = _fit;
     renderObject.alignment = _alignment;
@@ -484,7 +532,8 @@ class _SpineRenderObject extends RenderBox {
   bool _sizedByBounds;
   bool _disposed = false;
 
-  _SpineRenderObject(this._skeletonDrawable, this._controller, this._fit, this._alignment, this._bounds, this._sizedByBounds);
+  _SpineRenderObject(this._skeletonDrawable, this._controller, this._fit,
+      this._alignment, this._bounds, this._sizedByBounds);
 
   set skeletonDrawable(SkeletonDrawable skeletonDrawable) {
     if (_skeletonDrawable == skeletonDrawable) return;
@@ -545,22 +594,28 @@ class _SpineRenderObject extends RenderBox {
 
   @override
   double computeMinIntrinsicWidth(double height) {
-    return _computeConstrainedSize(BoxConstraints.tightForFinite(height: height)).width;
+    return _computeConstrainedSize(
+            BoxConstraints.tightForFinite(height: height))
+        .width;
   }
 
   @override
   double computeMaxIntrinsicWidth(double height) {
-    return _computeConstrainedSize(BoxConstraints.tightForFinite(height: height)).width;
+    return _computeConstrainedSize(
+            BoxConstraints.tightForFinite(height: height))
+        .width;
   }
 
   @override
   double computeMinIntrinsicHeight(double width) {
-    return _computeConstrainedSize(BoxConstraints.tightForFinite(width: width)).height;
+    return _computeConstrainedSize(BoxConstraints.tightForFinite(width: width))
+        .height;
   }
 
   @override
   double computeMaxIntrinsicHeight(double width) {
-    return _computeConstrainedSize(BoxConstraints.tightForFinite(width: width)).height;
+    return _computeConstrainedSize(BoxConstraints.tightForFinite(width: width))
+        .height;
   }
 
   // Called when not sizedByParent, uses the intrinsic width/height for sizing, while trying to retain aspect ratio.
@@ -578,7 +633,8 @@ class _SpineRenderObject extends RenderBox {
   Size _computeConstrainedSize(BoxConstraints constraints) {
     return sizedByParent
         ? constraints.smallest
-        : constraints.constrainSizeAndAttemptToPreserveAspectRatio(Size(_bounds.width, _bounds.height));
+        : constraints.constrainSizeAndAttemptToPreserveAspectRatio(
+            Size(_bounds.width, _bounds.height));
   }
 
   @override
@@ -621,8 +677,11 @@ class _SpineRenderObject extends RenderBox {
   }
 
   void _setCanvasTransform(Canvas canvas, Offset offset) {
-    final double x = -_bounds.x - _bounds.width / 2.0 - (_alignment.x * _bounds.width / 2.0);
-    final double y = -_bounds.y - _bounds.height / 2.0 - (_alignment.y * _bounds.height / 2.0);
+    final double x =
+        -_bounds.x - _bounds.width / 2.0 - (_alignment.x * _bounds.width / 2.0);
+    final double y = -_bounds.y -
+        _bounds.height / 2.0 -
+        (_alignment.y * _bounds.height / 2.0);
     double scaleX = 1.0, scaleY = 1.0;
 
     switch (_fit) {
@@ -631,10 +690,12 @@ class _SpineRenderObject extends RenderBox {
         scaleY = size.height / _bounds.height;
         break;
       case BoxFit.contain:
-        scaleX = scaleY = min(size.width / _bounds.width, size.height / _bounds.height);
+        scaleX = scaleY =
+            min(size.width / _bounds.width, size.height / _bounds.height);
         break;
       case BoxFit.cover:
-        scaleX = scaleY = max(size.width / _bounds.width, size.height / _bounds.height);
+        scaleX = scaleY =
+            max(size.width / _bounds.width, size.height / _bounds.height);
         break;
       case BoxFit.fitHeight:
         scaleX = scaleY = size.height / _bounds.height;
@@ -646,18 +707,22 @@ class _SpineRenderObject extends RenderBox {
         scaleX = scaleY = 1.0;
         break;
       case BoxFit.scaleDown:
-        final double scale = min(size.width / _bounds.width, size.height / _bounds.height);
+        final double scale =
+            min(size.width / _bounds.width, size.height / _bounds.height);
         scaleX = scaleY = scale < 1.0 ? scale : 1.0;
         break;
     }
 
-    var offsetX = offset.dx + size.width / 2.0 + (_alignment.x * size.width / 2.0);
-    var offsetY = offset.dy + size.height / 2.0 + (_alignment.y * size.height / 2.0);
+    final offsetX =
+        offset.dx + size.width / 2.0 + (_alignment.x * size.width / 2.0);
+    final offsetY =
+        offset.dy + size.height / 2.0 + (_alignment.y * size.height / 2.0);
     canvas
       ..translate(offsetX, offsetY)
       ..scale(scaleX, scaleY)
       ..translate(x, y);
-    _controller._setCoordinateTransform(x + offsetX / scaleY, y + offsetY / scaleY, scaleX, scaleY);
+    _controller._setCoordinateTransform(
+        x + offsetX / scaleY, y + offsetY / scaleY, scaleX, scaleY);
   }
 
   @override

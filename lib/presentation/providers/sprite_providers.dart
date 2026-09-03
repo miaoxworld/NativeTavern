@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 /// Provider for emotion detection service
-final emotionDetectionServiceProvider = Provider<EmotionDetectionService>((ref) {
+final emotionDetectionServiceProvider =
+    Provider<EmotionDetectionService>((ref) {
   return EmotionDetectionService();
 });
 
@@ -18,7 +19,8 @@ final spriteServiceProvider = Provider<SpriteService>((ref) {
 });
 
 /// Provider for sprite settings
-final spriteSettingsProvider = StateNotifierProvider<SpriteSettingsNotifier, SpriteSettings>((ref) {
+final spriteSettingsProvider =
+    StateNotifierProvider<SpriteSettingsNotifier, SpriteSettings>((ref) {
   return SpriteSettingsNotifier();
 });
 
@@ -95,21 +97,25 @@ class SpriteSettingsNotifier extends StateNotifier<SpriteSettings> {
 }
 
 /// Provider for a character's sprite pack
-final spritePackProvider = FutureProvider.family<SpritePack, String>((ref, characterId) async {
+final spritePackProvider =
+    FutureProvider.family<SpritePack, String>((ref, characterId) async {
   final spriteService = ref.watch(spriteServiceProvider);
   return spriteService.loadSpritePack(characterId);
 });
 
 /// Provider for checking if a character has sprites
-final hasSpritesProvider = FutureProvider.family<bool, String>((ref, characterId) async {
+final hasSpritesProvider =
+    FutureProvider.family<bool, String>((ref, characterId) async {
   final spriteService = ref.watch(spriteServiceProvider);
   return spriteService.hasSprites(characterId);
 });
 
 /// Provider for getting sprite for a message
-final messageSpriteProvider = FutureProvider.family<Sprite?, MessageSpriteParams>((ref, params) async {
+final messageSpriteProvider =
+    FutureProvider.family<Sprite?, MessageSpriteParams>((ref, params) async {
   final spriteService = ref.watch(spriteServiceProvider);
-  return spriteService.getSpriteForMessage(params.characterId, params.messageContent);
+  return spriteService.getSpriteForMessage(
+      params.characterId, params.messageContent);
 });
 
 /// Parameters for message sprite provider
@@ -222,13 +228,15 @@ final spritePackNotifierProvider = StateNotifierProvider.family<
 });
 
 /// Provider for current emotion detected from a message
-final detectedEmotionProvider = Provider.family<SpriteEmotion, String>((ref, messageContent) {
+final detectedEmotionProvider =
+    Provider.family<SpriteEmotion, String>((ref, messageContent) {
   final emotionService = ref.watch(emotionDetectionServiceProvider);
   return emotionService.detectEmotion(messageContent);
 });
 
 /// Provider for emotion detection with confidence
-final detectedEmotionWithConfidenceProvider = Provider.family<EmotionResult, String>((ref, messageContent) {
+final detectedEmotionWithConfidenceProvider =
+    Provider.family<EmotionResult, String>((ref, messageContent) {
   final emotionService = ref.watch(emotionDetectionServiceProvider);
   return emotionService.detectEmotionWithConfidence(messageContent);
 });

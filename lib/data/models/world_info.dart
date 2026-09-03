@@ -17,8 +17,10 @@ enum WorldInfoRole {
 enum WorldInfoCharacterFilterType {
   /// No filter - entry applies to all characters
   none,
+
   /// Include only specified characters
   include,
+
   /// Exclude specified characters
   exclude,
 }
@@ -29,8 +31,10 @@ class WorldInfoCharacterFilter with _$WorldInfoCharacterFilter {
   const factory WorldInfoCharacterFilter({
     @Default(WorldInfoCharacterFilterType.none)
     WorldInfoCharacterFilterType type,
+
     /// List of character IDs to include/exclude
     @Default([]) List<String> characterIds,
+
     /// List of tag names to include/exclude
     @Default([]) List<String> tags,
   }) = _WorldInfoCharacterFilter;
@@ -47,32 +51,36 @@ class WorldInfoTimedEffects with _$WorldInfoTimedEffects {
     /// Sticky duration - entry stays active for N messages after trigger
     /// 0 = not sticky (default)
     @Default(0) int sticky,
-    
+
     /// Cooldown duration - entry cannot trigger again for N messages
     /// 0 = no cooldown (default)
     @Default(0) int cooldown,
-    
+
     /// Delay - entry only triggers after N messages since chat start
     /// 0 = no delay (default)
     @Default(0) int delay,
-    
+
     // === Runtime state (not persisted) ===
-    
+
     /// Current sticky counter (decrements each message)
     @JsonKey(includeFromJson: false, includeToJson: false)
-    @Default(0) int stickyCounter,
-    
+    @Default(0)
+    int stickyCounter,
+
     /// Current cooldown counter (decrements each message)
     @JsonKey(includeFromJson: false, includeToJson: false)
-    @Default(0) int cooldownCounter,
-    
+    @Default(0)
+    int cooldownCounter,
+
     /// Whether entry is currently active due to sticky
     @JsonKey(includeFromJson: false, includeToJson: false)
-    @Default(false) bool isSticky,
-    
+    @Default(false)
+    bool isSticky,
+
     /// Whether entry is currently on cooldown
     @JsonKey(includeFromJson: false, includeToJson: false)
-    @Default(false) bool isOnCooldown,
+    @Default(false)
+    bool isOnCooldown,
   }) = _WorldInfoTimedEffects;
 
   factory WorldInfoTimedEffects.fromJson(Map<String, dynamic> json) =>
@@ -93,29 +101,30 @@ class WorldInfo with _$WorldInfo {
     String? characterId, // If bound to a specific character
     required DateTime createdAt,
     required DateTime modifiedAt,
-    
+
     // === New fields for SillyTavern compatibility ===
-    
+
     /// Default scan depth for entries (can be overridden per entry)
     @Default(4) int defaultScanDepth,
-    
+
     /// Whether to use recursive scanning
     @Default(true) bool recursiveScanning,
-    
+
     /// Maximum recursion depth
     @Default(3) int maxRecursionDepth,
-    
+
     /// Whether entries can trigger other entries
     @Default(true) bool allowEntryCascade,
-    
+
     /// Tags for organization
     @Default([]) List<String> tags,
-    
+
     /// Creator notes (not sent to AI)
     @Default('') String creatorNotes,
   }) = _WorldInfo;
 
-  factory WorldInfo.fromJson(Map<String, dynamic> json) => _$WorldInfoFromJson(json);
+  factory WorldInfo.fromJson(Map<String, dynamic> json) =>
+      _$WorldInfoFromJson(json);
 }
 
 /// World Info Entry
@@ -145,38 +154,40 @@ class WorldInfoEntry with _$WorldInfoEntry {
     @Default(false) bool delayUntilRecursion,
     @Default(0) int scanDepth,
     @Default({}) Map<String, dynamic> extensions,
-    
+
     // === New fields for SillyTavern compatibility ===
-    
+
     /// Role for this entry's content (system, user, assistant)
     @Default(WorldInfoRole.system) WorldInfoRole role,
-    
+
     /// Timed effects (sticky, cooldown, delay)
     @Default(WorldInfoTimedEffects()) WorldInfoTimedEffects timedEffects,
-    
+
     /// Character filter - which characters this entry applies to
-    @Default(WorldInfoCharacterFilter()) WorldInfoCharacterFilter characterFilter,
-    
+    @Default(WorldInfoCharacterFilter())
+    WorldInfoCharacterFilter characterFilter,
+
     /// Group override - priority within group (higher = more priority)
     @Default(0) int groupOverride,
-    
+
     /// Whether to exclude from recursion scanning
     @Default(false) bool excludeRecursion,
-    
+
     /// Whether probability is used (if false, always triggers when matched)
     @Default(false) bool useProbability,
-    
+
     /// Vectorized content for semantic search
     String? vectorized,
-    
+
     /// Display index for UI ordering
     @Default(0) int displayIndex,
-    
+
     /// Whether entry is favorited
     @Default(false) bool isFavorite,
   }) = _WorldInfoEntry;
 
-  factory WorldInfoEntry.fromJson(Map<String, dynamic> json) => _$WorldInfoEntryFromJson(json);
+  factory WorldInfoEntry.fromJson(Map<String, dynamic> json) =>
+      _$WorldInfoEntryFromJson(json);
 }
 
 /// Extension methods for WorldInfoEntry
@@ -187,7 +198,7 @@ extension WorldInfoEntryExtension on WorldInfoEntry {
     if (probability >= 100) return true;
     return (DateTime.now().millisecondsSinceEpoch % 100) < probability;
   }
-  
+
   /// Check if entry applies to a specific character
   bool appliesToCharacter(String characterId, List<String> characterTags) {
     switch (characterFilter.type) {
@@ -202,11 +213,12 @@ extension WorldInfoEntryExtension on WorldInfoEntry {
         // Check if character ID is in the exclude list
         if (characterFilter.characterIds.contains(characterId)) return false;
         // Check if any character tag matches
-        if (characterFilter.tags.any((tag) => characterTags.contains(tag))) return false;
+        if (characterFilter.tags.any((tag) => characterTags.contains(tag)))
+          return false;
         return true;
     }
   }
-  
+
   /// Check if entry is currently available (not on cooldown, delay met)
   bool isAvailable(int messageCount) {
     // Check delay
@@ -219,30 +231,31 @@ extension WorldInfoEntryExtension on WorldInfoEntry {
     }
     return true;
   }
-  
+
   /// Check if entry is currently sticky (should be included regardless of trigger)
-  bool get isCurrentlySticky => timedEffects.isSticky && timedEffects.stickyCounter > 0;
+  bool get isCurrentlySticky =>
+      timedEffects.isSticky && timedEffects.stickyCounter > 0;
 }
 
 /// World Info insertion position
 /// Matches SillyTavern's world_info_position exactly
 enum WorldInfoPosition {
   @JsonValue(0)
-  before,         // ↑Char - Before Character Definition (also: beforeCharDefs)
+  before, // ↑Char - Before Character Definition (also: beforeCharDefs)
   @JsonValue(1)
-  after,          // ↓Char - After Character Definition (also: afterCharDefs)
+  after, // ↓Char - After Character Definition (also: afterCharDefs)
   @JsonValue(2)
-  ANTop,          // ↑AT - Before Author's Note (also: beforeAuthorNote)
+  ANTop, // ↑AT - Before Author's Note (also: beforeAuthorNote)
   @JsonValue(3)
-  ANBottom,       // ↓AT - After Author's Note (also: afterAuthorNote)
+  ANBottom, // ↓AT - After Author's Note (also: afterAuthorNote)
   @JsonValue(4)
-  atDepth,        // @D - At specific depth in chat history
+  atDepth, // @D - At specific depth in chat history
   @JsonValue(5)
-  EMTop,          // ↑EM - Before Example Messages (also: beforeExample)
+  EMTop, // ↑EM - Before Example Messages (also: beforeExample)
   @JsonValue(6)
-  EMBottom,       // ↓EM - After Example Messages (also: afterExample)
+  EMBottom, // ↓EM - After Example Messages (also: afterExample)
   @JsonValue(7)
-  outlet,         // Outlet - Named outlet for insertion
+  outlet, // Outlet - Named outlet for insertion
 }
 
 // Backwards compatibility - static getters for old names
@@ -266,7 +279,8 @@ class WorldInfoExport with _$WorldInfoExport {
     required Map<String, WorldInfoEntryExport> entries,
   }) = _WorldInfoExport;
 
-  factory WorldInfoExport.fromJson(Map<String, dynamic> json) => _$WorldInfoExportFromJson(json);
+  factory WorldInfoExport.fromJson(Map<String, dynamic> json) =>
+      _$WorldInfoExportFromJson(json);
 }
 
 @freezed
@@ -307,18 +321,20 @@ class WorldInfoEntryExport with _$WorldInfoEntryExport {
     @JsonKey(name: 'character_filter') Map<String, dynamic>? characterFilter,
   }) = _WorldInfoEntryExport;
 
-  factory WorldInfoEntryExport.fromJson(Map<String, dynamic> json) => _$WorldInfoEntryExportFromJson(json);
+  factory WorldInfoEntryExport.fromJson(Map<String, dynamic> json) =>
+      _$WorldInfoEntryExportFromJson(json);
 }
 
 /// Helper class for managing World Info timed effects state
 class WorldInfoTimedEffectsManager {
   final Map<String, WorldInfoTimedEffects> _entryStates = {};
-  
+
   /// Get current state for an entry
-  WorldInfoTimedEffects getState(String entryId, WorldInfoTimedEffects defaults) {
+  WorldInfoTimedEffects getState(
+      String entryId, WorldInfoTimedEffects defaults) {
     return _entryStates[entryId] ?? defaults;
   }
-  
+
   /// Update state after entry triggers
   void onEntryTriggered(String entryId, WorldInfoTimedEffects config) {
     final current = _entryStates[entryId] ?? config;
@@ -329,44 +345,46 @@ class WorldInfoTimedEffectsManager {
       isOnCooldown: config.cooldown > 0,
     );
   }
-  
+
   /// Update all states after a message is processed
   void onMessageProcessed() {
     for (final entryId in _entryStates.keys.toList()) {
       final state = _entryStates[entryId]!;
-      
+
       // Decrement sticky counter
-      int newStickyCounter = state.stickyCounter > 0 ? state.stickyCounter - 1 : 0;
-      bool newIsSticky = newStickyCounter > 0;
-      
+      final int newStickyCounter =
+          state.stickyCounter > 0 ? state.stickyCounter - 1 : 0;
+      final bool newIsSticky = newStickyCounter > 0;
+
       // Decrement cooldown counter
-      int newCooldownCounter = state.cooldownCounter > 0 ? state.cooldownCounter - 1 : 0;
-      bool newIsOnCooldown = newCooldownCounter > 0;
-      
+      final int newCooldownCounter =
+          state.cooldownCounter > 0 ? state.cooldownCounter - 1 : 0;
+      final bool newIsOnCooldown = newCooldownCounter > 0;
+
       _entryStates[entryId] = state.copyWith(
         stickyCounter: newStickyCounter,
         isSticky: newIsSticky,
         cooldownCounter: newCooldownCounter,
         isOnCooldown: newIsOnCooldown,
       );
-      
+
       // Remove entry from tracking if no active effects
       if (!newIsSticky && !newIsOnCooldown) {
         _entryStates.remove(entryId);
       }
     }
   }
-  
+
   /// Check if entry is currently sticky
   bool isSticky(String entryId) {
     return _entryStates[entryId]?.isSticky ?? false;
   }
-  
+
   /// Check if entry is on cooldown
   bool isOnCooldown(String entryId) {
     return _entryStates[entryId]?.isOnCooldown ?? false;
   }
-  
+
   /// Reset all states
   void reset() {
     _entryStates.clear();
@@ -406,13 +424,14 @@ WorldInfoEntryExport worldInfoEntryToExport(WorldInfoEntry entry, int uid) {
     sticky: entry.timedEffects.sticky,
     cooldown: entry.timedEffects.cooldown,
     delay: entry.timedEffects.delay,
-    characterFilter: entry.characterFilter.type != WorldInfoCharacterFilterType.none
-        ? {
-            'type': entry.characterFilter.type.name,
-            'characterIds': entry.characterFilter.characterIds,
-            'tags': entry.characterFilter.tags,
-          }
-        : null,
+    characterFilter:
+        entry.characterFilter.type != WorldInfoCharacterFilterType.none
+            ? {
+                'type': entry.characterFilter.type.name,
+                'characterIds': entry.characterFilter.characterIds,
+                'tags': entry.characterFilter.tags,
+              }
+            : null,
   );
 }
 
@@ -426,11 +445,13 @@ WorldInfoEntry worldInfoEntryFromExport(
   WorldInfoRole role = WorldInfoRole.system;
   if (export.role.isNotEmpty) {
     final roleIndex = int.tryParse(export.role);
-    if (roleIndex != null && roleIndex >= 0 && roleIndex < WorldInfoRole.values.length) {
+    if (roleIndex != null &&
+        roleIndex >= 0 &&
+        roleIndex < WorldInfoRole.values.length) {
       role = WorldInfoRole.values[roleIndex];
     }
   }
-  
+
   // Parse character filter
   WorldInfoCharacterFilter characterFilter = const WorldInfoCharacterFilter();
   if (export.characterFilter != null) {
@@ -441,11 +462,14 @@ WorldInfoEntry worldInfoEntryFromExport(
           : filterType == 'exclude'
               ? WorldInfoCharacterFilterType.exclude
               : WorldInfoCharacterFilterType.none,
-      characterIds: List<String>.from((export.characterFilter!['characterIds'] as Iterable<dynamic>?) ?? []),
-      tags: List<String>.from((export.characterFilter!['tags'] as Iterable<dynamic>?) ?? []),
+      characterIds: List<String>.from(
+          (export.characterFilter!['characterIds'] as Iterable<dynamic>?) ??
+              []),
+      tags: List<String>.from(
+          (export.characterFilter!['tags'] as Iterable<dynamic>?) ?? []),
     );
   }
-  
+
   return WorldInfoEntry(
     id: entryId,
     worldInfoId: worldInfoId,
@@ -457,7 +481,8 @@ WorldInfoEntry worldInfoEntryFromExport(
     constant: export.constant,
     selective: export.selective,
     insertionOrder: export.order,
-    position: WorldInfoPosition.values[export.position.clamp(0, WorldInfoPosition.values.length - 1)],
+    position: WorldInfoPosition
+        .values[export.position.clamp(0, WorldInfoPosition.values.length - 1)],
     depth: export.depth,
     probability: export.probability,
     useProbability: export.useProbability,

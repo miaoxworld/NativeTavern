@@ -3,13 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:native_tavern/core/utils/share_utils.dart';
+import 'package:native_tavern/presentation/widgets/export_destination_sheet.dart';
 import 'package:native_tavern/data/models/prompt_manager.dart';
 import 'package:native_tavern/presentation/providers/prompt_manager_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
 /// Screen for managing prompt section order and visibility
@@ -348,23 +346,19 @@ class PromptManagerScreen extends ConsumerWidget {
     );
 
     if (name == null || name.isEmpty || !context.mounted) return;
-    final shareOrigin = sharePositionOrigin(context);
 
     try {
       final json = ref.read(promptManagerProvider.notifier).exportToJson(name);
       final jsonString = const JsonEncoder.withIndent('  ').convert(json);
-
-      // Save to temp file and share
-      final tempDir = await getTemporaryDirectory();
       final fileName = '${name.replaceAll(RegExp(r'[^\w\s-]'), '_')}.json';
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsString(jsonString);
-
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path)],
+      await exportTextWithDestination(
+        context: context,
+        fileName: fileName,
+        content: jsonString,
         subject: 'NativeTavern Prompt Preset: $name',
-        sharePositionOrigin: shareOrigin,
-      ));
+        allowedExtensions: const ['json'],
+        mimeType: 'application/json',
+      );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

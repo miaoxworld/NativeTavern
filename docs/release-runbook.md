@@ -173,6 +173,18 @@ canonical APK URL currently used in announcements is:
 https://download.nativetavern.com/NativeTavern.apk
 ```
 
+### macOS
+
+Package the macOS release application with `./build_macos.sh`. The final artifact is packaged as `release/NativeTavern_v<version>_macOS.zip` accompanied by its `.sha256` checksum.
+Verify the zip archive integrity and checksum:
+
+```sh
+unzip -t "release/NativeTavern_v${VERSION}_macOS.zip"
+shasum -a 256 -c "release/NativeTavern_v${VERSION}_macOS.zip.sha256"
+```
+
+For local development and testing, run `./build_macos_local.sh`, which produces test artifacts under `build/local_release/`.
+
 ## 6. Publish release notes to Discord
 
 Fetch the latest announcements first:

@@ -3,13 +3,15 @@ import 'package:native_tavern/data/models/bookmark.dart';
 import 'package:native_tavern/data/repositories/bookmark_repository.dart';
 
 /// Provider for bookmarks of a specific chat
-final chatBookmarksProvider = FutureProvider.family<List<Bookmark>, String>((ref, chatId) async {
+final chatBookmarksProvider =
+    FutureProvider.family<List<Bookmark>, String>((ref, chatId) async {
   final repo = ref.watch(bookmarkRepositoryProvider);
   return repo.getBookmarksForChat(chatId);
 });
 
 /// Provider for a single bookmark
-final bookmarkProvider = FutureProvider.family<Bookmark?, String>((ref, bookmarkId) async {
+final bookmarkProvider =
+    FutureProvider.family<Bookmark?, String>((ref, bookmarkId) async {
   final repo = ref.watch(bookmarkRepositoryProvider);
   return repo.getBookmark(bookmarkId);
 });
@@ -122,7 +124,8 @@ class BookmarkNotifier extends StateNotifier<BookmarkState> {
 }
 
 /// Provider for bookmark notifier
-final bookmarkNotifierProvider = StateNotifierProvider<BookmarkNotifier, BookmarkState>((ref) {
+final bookmarkNotifierProvider =
+    StateNotifierProvider<BookmarkNotifier, BookmarkState>((ref) {
   final repo = ref.watch(bookmarkRepositoryProvider);
   return BookmarkNotifier(repo);
 });

@@ -64,7 +64,8 @@ class Bookmark {
 /// Used for branching/navigating between different chat paths
 class ChatBranch {
   final Bookmark bookmark;
-  final List<String> messageIds; // Messages up to and including the bookmark point
+  final List<String>
+      messageIds; // Messages up to and including the bookmark point
   final bool isActive;
 
   const ChatBranch({

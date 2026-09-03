@@ -14,6 +14,7 @@ class HtmlWebViewWidget extends StatefulWidget {
   final Color textColor;
   final double? fontSize;
   final VoidCallback? onLongPress;
+
   /// Unique key to force rebuild when content changes significantly
   final String? contentKey;
 
@@ -66,29 +67,32 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
     // Check if content has changed (important for swipe switching)
     final contentChanged = widget.htmlContent != oldWidget.htmlContent;
     // Check if contentKey has changed (e.g., streaming ended)
-    final keyChanged = widget.contentKey != oldWidget.contentKey && widget.contentKey != null;
-    
+    final keyChanged =
+        widget.contentKey != oldWidget.contentKey && widget.contentKey != null;
+
     if (contentChanged || keyChanged) {
-      debugPrint('🌐 didUpdateWidget: contentChanged=$contentChanged, keyChanged=$keyChanged');
-      debugPrint('🌐 Old key: ${oldWidget.contentKey}, New key: ${widget.contentKey}');
+      debugPrint(
+          '🌐 didUpdateWidget: contentChanged=$contentChanged, keyChanged=$keyChanged');
+      debugPrint(
+          '🌐 Old key: ${oldWidget.contentKey}, New key: ${widget.contentKey}');
       _reloadContent();
     }
   }
 
   /// Track if a reload is in progress to prevent multiple simultaneous reloads
   bool _isReloading = false;
-  
+
   void _reloadContent() async {
     // Prevent multiple simultaneous reloads
     if (_isReloading) {
       debugPrint('🌐 Reload already in progress, skipping');
       return;
     }
-    
+
     if (_webViewController != null && mounted) {
       _isReloading = true;
       debugPrint('🌐 Starting content reload');
-      
+
       setState(() {
         _isLoading = true;
         _heightUpdateCount = 0;
@@ -96,7 +100,7 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
         // Reset content height to prevent showing stale height
         _contentHeight = 100;
       });
-      
+
       try {
         // Reload the WebView with updated content
         await _webViewController!.loadData(
@@ -116,7 +120,8 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
         _isReloading = false;
       }
     } else {
-      debugPrint('🌐 Cannot reload: controller=${_webViewController != null}, mounted=$mounted');
+      debugPrint(
+          '🌐 Cannot reload: controller=${_webViewController != null}, mounted=$mounted');
     }
   }
 
@@ -565,7 +570,8 @@ $content
               initialSettings: InAppWebViewSettings(
                 transparentBackground: true,
                 disableHorizontalScroll: true,
-                disableVerticalScroll: true, // Disable scroll, we adjust container height
+                disableVerticalScroll:
+                    true, // Disable scroll, we adjust container height
                 supportZoom: false,
                 javaScriptEnabled: true,
                 mediaPlaybackRequiresUserGesture: false,
@@ -577,7 +583,7 @@ $content
               onWebViewCreated: (controller) {
                 debugPrint('🌐 WebView created');
                 _webViewController = controller;
-                
+
                 // Handler for content height updates
                 controller.addJavaScriptHandler(
                   handlerName: 'contentHeight',
@@ -605,7 +611,7 @@ $content
                     });
                   },
                 );
-                
+
                 // Handler for images loaded notification
                 controller.addJavaScriptHandler(
                   handlerName: 'imagesLoaded',
@@ -633,10 +639,12 @@ $content
                 }
                 // Trigger height calculation
                 await controller.evaluateJavascript(source: 'sendHeight();');
-                
+
                 // Additional height checks after load
-                Future.delayed(const Duration(milliseconds: 300), _requestHeightUpdate);
-                Future.delayed(const Duration(milliseconds: 800), _requestHeightUpdate);
+                Future.delayed(
+                    const Duration(milliseconds: 300), _requestHeightUpdate);
+                Future.delayed(
+                    const Duration(milliseconds: 800), _requestHeightUpdate);
               },
               onLoadError: (controller, url, code, message) {
                 debugPrint('🌐 WebView error: $code - $message');
@@ -675,7 +683,8 @@ $content
                         SizedBox(height: 8),
                         Text(
                           'Loading content...',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          style: TextStyle(
+                              color: AppTheme.textMuted, fontSize: 12),
                         ),
                       ],
                     ),
@@ -714,21 +723,22 @@ bool isComplexHtml(String html) {
     RegExp(r'height:\s*\d+', caseSensitive: false),
     RegExp(r'<[^>]+style="[^"]{10,}"', caseSensitive: false),
   ];
-  
+
   for (final pattern in complexPatterns) {
     if (pattern.hasMatch(html)) {
       return true;
     }
   }
-  
+
   // Check for multiple nested divs with styles (likely a complex layout)
-  final styledDivCount = RegExp(r'<div[^>]*style="[^"]*"[^>]*>', caseSensitive: false)
-      .allMatches(html)
-      .length;
+  final styledDivCount =
+      RegExp(r'<div[^>]*style="[^"]*"[^>]*>', caseSensitive: false)
+          .allMatches(html)
+          .length;
   if (styledDivCount >= 3) {
     return true;
   }
-  
+
   return false;
 }
 

@@ -309,6 +309,8 @@ class _LLMProviderTile extends ConsumerWidget {
         return 'Gemini (Google)';
       case LLMProvider.ollama:
         return 'Ollama (Local)';
+      case LLMProvider.lmStudio:
+        return 'LM Studio (Local)';
       case LLMProvider.koboldCpp:
         return 'KoboldCpp (Local)';
       case LLMProvider.deepSeek:
@@ -325,32 +327,28 @@ class _LLMProviderTile extends ConsumerWidget {
         return 'MiniMax';
       case LLMProvider.openAICompatible:
         return 'OAI Compatible';
+      case LLMProvider.xai:
+        return 'xAI (Grok)';
     }
   }
 
-  /// Check if OpenAI should be hidden based on region or language setting
-  bool _shouldHideOpenAI(BuildContext context, bool isChinaRegion) {
-    // Hide if in China region (detected via App Store/SIM)
-    if (isChinaRegion) {
-      return true;
-    }
-
-    // Also hide if app language is set to Chinese (zh)
-    final locale = Localizations.localeOf(context);
-    if (locale.languageCode == 'zh') {
-      return true;
-    }
-
-    return false;
+  /// Check if restricted providers should be hidden based on region or language setting
+  bool _shouldHideRestrictedProviders(
+      BuildContext context, bool isChinaRegion) {
+    return RegionService.hidesRestrictedAiProviders(
+      isChinaRegion: isChinaRegion,
+      languageCode: Localizations.localeOf(context).languageCode,
+    );
   }
 
   /// Get filtered list of providers based on region and language
   List<LLMProvider> _getAvailableProviders(
       BuildContext context, bool isChinaRegion) {
-    final hideOpenAI = _shouldHideOpenAI(context, isChinaRegion);
+    final hideRestricted =
+        _shouldHideRestrictedProviders(context, isChinaRegion);
     return LLMProvider.values.where((provider) {
-      // Hide OpenAI in China region or when language is Chinese
-      if (hideOpenAI && provider == LLMProvider.openai) {
+      // Hide OpenAI and xAI in China region or when language is Chinese
+      if (hideRestricted && RegionService.isRestrictedCloudProvider(provider)) {
         return false;
       }
       return true;
@@ -427,6 +425,8 @@ class _LLMProviderTile extends ConsumerWidget {
         return 'Gemini 3 Pro, Flash';
       case LLMProvider.ollama:
         return 'Local models';
+      case LLMProvider.lmStudio:
+        return 'Local OpenAI-compatible server';
       case LLMProvider.koboldCpp:
         return 'GGUF models';
       case LLMProvider.deepSeek:
@@ -443,6 +443,8 @@ class _LLMProviderTile extends ConsumerWidget {
         return 'MiniMax M2 series';
       case LLMProvider.openAICompatible:
         return 'Custom OAI-compatible API';
+      case LLMProvider.xai:
+        return 'Grok models';
     }
   }
 }
@@ -460,8 +462,7 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
   @override
   Widget build(BuildContext context) {
     final config = ref.watch(llmConfigProvider);
-    final isLocal = config.provider == LLMProvider.ollama ||
-        config.provider == LLMProvider.koboldCpp;
+    final isLocal = config.provider.isLocalServer;
 
     if (isLocal) return const SizedBox.shrink();
 
@@ -508,7 +509,9 @@ class _ApiKeyTileState extends ConsumerState<_ApiKeyTile> {
           controller: controller,
           decoration: InputDecoration(
             labelText: AppLocalizations.of(context)!.enterApiKey,
-            hintText: 'sk-...',
+            hintText: config.provider == LLMProvider.xai
+                ? AppLocalizations.of(context)!.xaiApiKeyHint
+                : AppLocalizations.of(context)!.apiKeyHint,
           ),
           obscureText: true,
           autofocus: true,
@@ -612,9 +615,13 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
 
     ref.listen<ModelFetchState>(modelFetchProvider, (previous, next) {
       if (next.status == ModelFetchStatus.success && next.models.isNotEmpty) {
+        if (config.model.trim().isEmpty) {
+          ref.read(llmConfigProvider.notifier).updateModel(next.models.first);
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            _showModelListSheet(context, ref, config, next.models);
+            final latestConfig = ref.read(llmConfigProvider);
+            _showModelListSheet(context, ref, latestConfig, next.models);
           }
         });
       } else if (next.status == ModelFetchStatus.error) {

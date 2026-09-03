@@ -40,7 +40,8 @@ class RawImageProvider extends ImageProvider<_RawImageKey> {
   });
 
   @override
-  ImageStreamCompleter loadImage(_RawImageKey key, ImageDecoderCallback decode) {
+  ImageStreamCompleter loadImage(
+      _RawImageKey key, ImageDecoderCallback decode) {
     return MultiFrameImageStreamCompleter(
       codec: _loadAsync(key),
       scale: scale ?? 1.0,
@@ -57,7 +58,7 @@ class RawImageProvider extends ImageProvider<_RawImageKey> {
   Future<ui.Codec> _loadAsync(_RawImageKey key) async {
     assert(key == image._obtainKey());
     // rgba8888 pixels
-    var buffer = await ui.ImmutableBuffer.fromUint8List(image.pixels);
+    final buffer = await ui.ImmutableBuffer.fromUint8List(image.pixels);
 
     final descriptor = ui.ImageDescriptor.raw(
       buffer,

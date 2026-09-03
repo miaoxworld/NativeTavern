@@ -61,8 +61,10 @@ class TranslationSettings {
       provider: provider ?? this.provider,
       sourceLanguage: sourceLanguage ?? this.sourceLanguage,
       targetLanguage: targetLanguage ?? this.targetLanguage,
-      autoTranslateIncoming: autoTranslateIncoming ?? this.autoTranslateIncoming,
-      autoTranslateOutgoing: autoTranslateOutgoing ?? this.autoTranslateOutgoing,
+      autoTranslateIncoming:
+          autoTranslateIncoming ?? this.autoTranslateIncoming,
+      autoTranslateOutgoing:
+          autoTranslateOutgoing ?? this.autoTranslateOutgoing,
       showOriginal: showOriginal ?? this.showOriginal,
       apiKey: apiKey ?? this.apiKey,
       apiEndpoint: apiEndpoint ?? this.apiEndpoint,
@@ -81,9 +83,12 @@ class TranslationSettings {
         'apiEndpoint': apiEndpoint,
       };
 
-  factory TranslationSettings.fromJson(Map<String, dynamic> json) => TranslationSettings(
+  factory TranslationSettings.fromJson(Map<String, dynamic> json) =>
+      TranslationSettings(
         enabled: json['enabled'] as bool? ?? false,
-        provider: TranslationProvider.fromId(json['provider'] as String? ?? 'google') ?? TranslationProvider.google,
+        provider: TranslationProvider.fromId(
+                json['provider'] as String? ?? 'google') ??
+            TranslationProvider.google,
         sourceLanguage: json['sourceLanguage'] as String? ?? 'auto',
         targetLanguage: json['targetLanguage'] as String? ?? 'en',
         autoTranslateIncoming: json['autoTranslateIncoming'] as bool? ?? false,
@@ -113,21 +118,27 @@ class TranslationLanguage {
     TranslationLanguage(code: 'fr', name: 'French', nativeName: 'Français'),
     TranslationLanguage(code: 'de', name: 'German', nativeName: 'Deutsch'),
     TranslationLanguage(code: 'it', name: 'Italian', nativeName: 'Italiano'),
-    TranslationLanguage(code: 'pt', name: 'Portuguese', nativeName: 'Português'),
+    TranslationLanguage(
+        code: 'pt', name: 'Portuguese', nativeName: 'Português'),
     TranslationLanguage(code: 'ru', name: 'Russian', nativeName: 'Русский'),
     TranslationLanguage(code: 'ja', name: 'Japanese', nativeName: '日本語'),
     TranslationLanguage(code: 'ko', name: 'Korean', nativeName: '한국어'),
-    TranslationLanguage(code: 'zh', name: 'Chinese (Simplified)', nativeName: '简体中文'),
-    TranslationLanguage(code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文'),
+    TranslationLanguage(
+        code: 'zh', name: 'Chinese (Simplified)', nativeName: '简体中文'),
+    TranslationLanguage(
+        code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文'),
     TranslationLanguage(code: 'ar', name: 'Arabic', nativeName: 'العربية'),
     TranslationLanguage(code: 'hi', name: 'Hindi', nativeName: 'हिन्दी'),
     TranslationLanguage(code: 'th', name: 'Thai', nativeName: 'ไทย'),
-    TranslationLanguage(code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt'),
+    TranslationLanguage(
+        code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt'),
     TranslationLanguage(code: 'nl', name: 'Dutch', nativeName: 'Nederlands'),
     TranslationLanguage(code: 'pl', name: 'Polish', nativeName: 'Polski'),
     TranslationLanguage(code: 'tr', name: 'Turkish', nativeName: 'Türkçe'),
-    TranslationLanguage(code: 'uk', name: 'Ukrainian', nativeName: 'Українська'),
-    TranslationLanguage(code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia'),
+    TranslationLanguage(
+        code: 'uk', name: 'Ukrainian', nativeName: 'Українська'),
+    TranslationLanguage(
+        code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia'),
     TranslationLanguage(code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu'),
     TranslationLanguage(code: 'sv', name: 'Swedish', nativeName: 'Svenska'),
     TranslationLanguage(code: 'da', name: 'Danish', nativeName: 'Dansk'),
@@ -286,7 +297,7 @@ class TranslationService {
   /// Swap source and target languages
   void swapLanguages() {
     if (_settings.sourceLanguage == 'auto') return;
-    
+
     _settings = _settings.copyWith(
       sourceLanguage: _settings.targetLanguage,
       targetLanguage: _settings.sourceLanguage,

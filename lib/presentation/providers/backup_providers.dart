@@ -9,7 +9,8 @@ final backupServiceProvider = Provider<BackupService>((ref) {
 });
 
 /// Provider for backup settings
-final backupSettingsProvider = StateNotifierProvider<BackupSettingsNotifier, BackupSettings>((ref) {
+final backupSettingsProvider =
+    StateNotifierProvider<BackupSettingsNotifier, BackupSettings>((ref) {
   return BackupSettingsNotifier();
 });
 
@@ -50,13 +51,13 @@ class BackupSettings {
   }
 
   Map<String, dynamic> toJson() => {
-    'autoBackupEnabled': autoBackupEnabled,
-    'autoBackupInterval': autoBackupInterval.name,
-    'maxChatBackups': maxChatBackups,
-    'maxFullBackups': maxFullBackups,
-    'lastAutoBackup': lastAutoBackup?.toIso8601String(),
-    'backupOnExit': backupOnExit,
-  };
+        'autoBackupEnabled': autoBackupEnabled,
+        'autoBackupInterval': autoBackupInterval.name,
+        'maxChatBackups': maxChatBackups,
+        'maxFullBackups': maxFullBackups,
+        'lastAutoBackup': lastAutoBackup?.toIso8601String(),
+        'backupOnExit': backupOnExit,
+      };
 
   factory BackupSettings.fromJson(Map<String, dynamic> json) {
     return BackupSettings(
@@ -78,7 +79,7 @@ class BackupSettings {
 /// Notifier for backup settings
 class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   static const _storageKey = 'backup_settings';
-  
+
   BackupSettingsNotifier() : super(const BackupSettings()) {
     _loadSettings();
   }
@@ -162,7 +163,8 @@ final totalBackupSizeProvider = FutureProvider<int>((ref) async {
 });
 
 /// Provider for backup operations state
-final backupOperationProvider = StateNotifierProvider<BackupOperationNotifier, BackupOperationState>((ref) {
+final backupOperationProvider =
+    StateNotifierProvider<BackupOperationNotifier, BackupOperationState>((ref) {
   return BackupOperationNotifier(ref);
 });
 
@@ -202,7 +204,7 @@ class BackupOperationState {
 /// Notifier for backup operations
 class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   final Ref _ref;
-  
+
   BackupOperationNotifier(this._ref) : super(const BackupOperationState());
 
   BackupService get _service => _ref.read(backupServiceProvider);
@@ -366,7 +368,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
 
     try {
       final settings = _ref.read(backupSettingsProvider);
-      
+
       int deleted = 0;
       deleted += await _service.cleanupOldBackups(
         maxBackups: settings.maxChatBackups,

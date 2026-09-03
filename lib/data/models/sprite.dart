@@ -56,17 +56,26 @@ class Sprite {
 /// Standard emotions for sprite expressions
 enum SpriteEmotion {
   neutral('neutral', 'Neutral', ['default', 'normal', 'calm']),
-  happy('happy', 'Happy', ['smile', 'joy', 'glad', 'pleased', 'cheerful', 'laugh', 'grin']),
-  sad('sad', 'Sad', ['unhappy', 'depressed', 'melancholy', 'sorrow', 'cry', 'tears']),
-  angry('angry', 'Angry', ['mad', 'furious', 'rage', 'annoyed', 'irritated', 'frustrated']),
-  surprised('surprised', 'Surprised', ['shock', 'amazed', 'astonished', 'startled', 'wow']),
-  scared('scared', 'Scared', ['fear', 'afraid', 'terrified', 'frightened', 'nervous', 'anxious']),
+  happy('happy', 'Happy',
+      ['smile', 'joy', 'glad', 'pleased', 'cheerful', 'laugh', 'grin']),
+  sad('sad', 'Sad',
+      ['unhappy', 'depressed', 'melancholy', 'sorrow', 'cry', 'tears']),
+  angry('angry', 'Angry',
+      ['mad', 'furious', 'rage', 'annoyed', 'irritated', 'frustrated']),
+  surprised('surprised', 'Surprised',
+      ['shock', 'amazed', 'astonished', 'startled', 'wow']),
+  scared('scared', 'Scared',
+      ['fear', 'afraid', 'terrified', 'frightened', 'nervous', 'anxious']),
   disgusted('disgusted', 'Disgusted', ['disgust', 'gross', 'revolted', 'sick']),
-  confused('confused', 'Confused', ['puzzled', 'bewildered', 'uncertain', 'unsure']),
-  embarrassed('embarrassed', 'Embarrassed', ['blush', 'shy', 'flustered', 'awkward']),
+  confused(
+      'confused', 'Confused', ['puzzled', 'bewildered', 'uncertain', 'unsure']),
+  embarrassed(
+      'embarrassed', 'Embarrassed', ['blush', 'shy', 'flustered', 'awkward']),
   excited('excited', 'Excited', ['thrilled', 'eager', 'enthusiastic', 'hyped']),
-  loving('loving', 'Loving', ['love', 'affection', 'adore', 'heart', 'romantic']),
-  thinking('thinking', 'Thinking', ['ponder', 'consider', 'contemplate', 'hmm']),
+  loving(
+      'loving', 'Loving', ['love', 'affection', 'adore', 'heart', 'romantic']),
+  thinking(
+      'thinking', 'Thinking', ['ponder', 'consider', 'contemplate', 'hmm']),
   smug('smug', 'Smug', ['confident', 'proud', 'satisfied', 'cocky']),
   tired('tired', 'Tired', ['sleepy', 'exhausted', 'weary', 'drowsy', 'yawn']),
   bored('bored', 'Bored', ['uninterested', 'dull', 'meh']),
@@ -105,9 +114,9 @@ class SpritePack {
 
   /// Get sprite for a specific emotion, falling back to default or neutral
   Sprite? getSprite(String emotion) {
-    return sprites[emotion] ?? 
-           sprites[defaultEmotion ?? 'neutral'] ?? 
-           sprites.values.firstOrNull;
+    return sprites[emotion] ??
+        sprites[defaultEmotion ?? 'neutral'] ??
+        sprites.values.firstOrNull;
   }
 
   /// Check if pack has any sprites

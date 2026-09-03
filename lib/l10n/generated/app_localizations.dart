@@ -1075,11 +1075,23 @@ abstract class AppLocalizations {
   /// **'Ollama'**
   String get ollama;
 
+  /// LM Studio local provider name
+  ///
+  /// In en, this message translates to:
+  /// **'LM Studio'**
+  String get lmStudio;
+
   /// KoboldCpp provider name
   ///
   /// In en, this message translates to:
   /// **'KoboldCpp'**
   String get koboldCpp;
+
+  /// xAI (Grok) provider name
+  ///
+  /// In en, this message translates to:
+  /// **'xAI (Grok)'**
+  String get xai;
 
   /// Local provider indicator
   ///
@@ -5965,11 +5977,17 @@ abstract class AppLocalizations {
   /// **'https://api.example.com/v1'**
   String get apiEndpointHint;
 
-  /// API key hint
+  /// API key hint for OpenAI-compatible providers
   ///
   /// In en, this message translates to:
   /// **'sk-...'**
   String get apiKeyHint;
+
+  /// API key hint for the xAI/Grok provider
+  ///
+  /// In en, this message translates to:
+  /// **'xai-...'**
+  String get xaiApiKeyHint;
 
   /// Temperature value display
   ///
@@ -6712,8 +6730,50 @@ abstract class AppLocalizations {
   /// Enable iCloud backup description
   ///
   /// In en, this message translates to:
-  /// **'Automatically sync backups to iCloud'**
+  /// **'Save backups to iCloud Drive so they appear on your other Apple devices'**
   String get enableICloudBackupDescription;
+
+  /// Toggle for automatic iCloud/Google Drive sync
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic cross-device sync'**
+  String get enableCrossDeviceSync;
+
+  /// Description of automatic cross-device backup sync
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.'**
+  String get enableCrossDeviceSyncDescription;
+
+  /// Enable Google Drive backup toggle, the Android counterpart to iCloud backup
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Google Drive Backup'**
+  String get enableGoogleDriveBackup;
+
+  /// Enable Google Drive backup description
+  ///
+  /// In en, this message translates to:
+  /// **'Save backups to Google Drive so they appear on your other Android and signed-in devices'**
+  String get enableGoogleDriveBackupDescription;
+
+  /// Button that runs an immediate cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// Shown after a successful automatic cloud sync
+  ///
+  /// In en, this message translates to:
+  /// **'Devices are in sync'**
+  String get crossDeviceSyncComplete;
+
+  /// Shown while a backup file opened from the Files app is being prepared
+  ///
+  /// In en, this message translates to:
+  /// **'Opening backup…'**
+  String get openingBackupFile;
 
   /// iCloud not available message
   ///
@@ -6850,7 +6910,7 @@ abstract class AppLocalizations {
   /// About restore modes description
   ///
   /// In en, this message translates to:
-  /// **'Replace: Overwrites all local data with backup data.\\nMerge: Keeps both, newer data wins for conflicts.\\nAdd New Only: Only adds new items, keeps all existing data.'**
+  /// **'Replace: Overwrites all local data with backup data.\nMerge: Keeps both, newer data wins for conflicts.\nAdd New Only: Only adds new items, keeps all existing data.'**
   String get aboutRestoreModesDescription;
 
   /// Sign in to Google Drive title
@@ -11592,7 +11652,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiDataSharingRecipients.
   ///
   /// In en, this message translates to:
-  /// **'Depending on your configuration: Anthropic, an OAI Compatible endpoint you configure, OpenRouter, Google Gemini, DeepSeek, Alibaba Qwen, SiliconFlow, Moonshot/Kimi, Z.AI, MiniMax, Cohere, ElevenLabs, Azure Speech, Volcengine, NovelAI, Pollinations, or another custom endpoint you enter.'**
+  /// **'Depending on your configuration: Anthropic, an OAI Compatible endpoint you configure, OpenRouter, Google Gemini, xAI (Grok), DeepSeek, Alibaba Qwen, SiliconFlow, Moonshot/Kimi, Z.AI, MiniMax, Cohere, ElevenLabs, Azure Speech, Volcengine, NovelAI, Pollinations, or another custom endpoint you enter.'**
   String get aiDataSharingRecipients;
 
   /// No description provided for @aiDataSharingControlTitle.
@@ -11636,6 +11696,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blocked; local AI endpoints remain available'**
   String get aiDataSharingLocalOnlyDescription;
+
+  /// Local and file backup section header
+  ///
+  /// In en, this message translates to:
+  /// **'Local & File Backup'**
+  String get localBackup;
+
+  /// Local backup description
+  ///
+  /// In en, this message translates to:
+  /// **'Export and import NativeTavern .ntx combined backups or .ntb data backups to your device storage or files app'**
+  String get localBackupDescription;
+
+  /// Export NTB backup button
+  ///
+  /// In en, this message translates to:
+  /// **'Export Data Backup (.ntb)'**
+  String get exportNtbBackup;
+
+  /// Export NTB backup subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Save JSON data only; media is stored separately as .ntm'**
+  String get exportNtbBackupSubtitle;
+
+  /// Export NTX combined backup button
+  ///
+  /// In en, this message translates to:
+  /// **'Export Combined Backup (.ntx)'**
+  String get exportNtxBackup;
+
+  /// Export NTX backup subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Save app data and media together in one .ntx file'**
+  String get exportNtxBackupSubtitle;
+
+  /// Import NTB backup button
+  ///
+  /// In en, this message translates to:
+  /// **'Import Backup File (.ntb)'**
+  String get importNtbBackup;
+
+  /// Import NTB backup subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Restore or merge data from a local .ntb file'**
+  String get importNtbBackupSubtitle;
+
+  /// Import NTX or NTB backup button
+  ///
+  /// In en, this message translates to:
+  /// **'Import Backup (.ntx / .ntb)'**
+  String get importNtxBackup;
+
+  /// Import NTX backup subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Restore or merge data from a combined .ntx file or a .ntb data backup'**
+  String get importNtxBackupSubtitle;
+
+  /// Save to files action button
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Files'**
+  String get exportToFiles;
+
+  /// Share backup action button
+  ///
+  /// In en, this message translates to:
+  /// **'Share Backup'**
+  String get shareBackup;
+
+  /// Export options modal title
+  ///
+  /// In en, this message translates to:
+  /// **'Export Options'**
+  String get exportOptions;
+
+  /// Select NTB file title
+  ///
+  /// In en, this message translates to:
+  /// **'Select NativeTavern Backup (.ntb)'**
+  String get selectNtbFile;
+
+  /// Select NTB file description
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the .ntb backup file and optional .ntm media file'**
+  String get selectNtbFileDescription;
+
+  /// Select NTX or NTB backup file title
+  ///
+  /// In en, this message translates to:
+  /// **'Select NativeTavern Backup'**
+  String get selectNtxFile;
+
+  /// Select NTX file description
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a .ntx combined backup, or a .ntb file with optional .ntm media'**
+  String get selectNtxFileDescription;
+
+  /// Snackbar after saving a backup through the system Files app
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to Files'**
+  String get backupSavedToFilesApp;
+
+  /// Snackbar when a backup is stored in the app Backups folder
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save to Files. Backup saved to NativeTavern/Backups.'**
+  String get backupSavedToAppFolder;
+
+  /// Snackbar after saving an export through the system Files app
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to Files'**
+  String get savedToFilesApp;
+
+  /// Explanation shown before importing a backup
+  ///
+  /// In en, this message translates to:
+  /// **'Restore or merge characters, chats, settings, and media from this backup file.'**
+  String get importBackupExplanation;
+
+  /// Status text while restoring backup
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring backup...'**
+  String get restoringBackup;
+
+  /// Status text while exporting backup
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting backup...'**
+  String get exportingBackup;
 }
 
 class _AppLocalizationsDelegate

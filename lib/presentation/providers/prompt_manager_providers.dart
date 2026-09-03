@@ -13,8 +13,7 @@ const _activePresetIdKey = 'prompt_manager_active_preset_id';
 class PromptManagerNotifier extends StateNotifier<PromptManagerConfig> {
   final SharedPreferences _prefs;
 
-  PromptManagerNotifier(this._prefs)
-      : super(_loadConfig(_prefs));
+  PromptManagerNotifier(this._prefs) : super(_loadConfig(_prefs));
 
   static PromptManagerConfig _loadConfig(SharedPreferences prefs) {
     final json = prefs.getString(_promptManagerKey);
@@ -22,7 +21,8 @@ class PromptManagerNotifier extends StateNotifier<PromptManagerConfig> {
       return PromptManagerConfig.defaultConfig();
     }
     try {
-      return PromptManagerConfig.fromJson(jsonDecode(json) as Map<String, dynamic>);
+      return PromptManagerConfig.fromJson(
+          jsonDecode(json) as Map<String, dynamic>);
     } catch (_) {
       return PromptManagerConfig.defaultConfig();
     }
@@ -51,7 +51,8 @@ class PromptManagerNotifier extends StateNotifier<PromptManagerConfig> {
   }
 
   /// Update the content of an editable section
-  Future<void> updateSectionContent(PromptSectionType type, String content) async {
+  Future<void> updateSectionContent(
+      PromptSectionType type, String content) async {
     final section = state.getSection(type);
     if (section != null && section.isEditable) {
       state = state.updateSection(section.copyWith(content: content));
@@ -70,7 +71,8 @@ class PromptManagerNotifier extends StateNotifier<PromptManagerConfig> {
     final sorted = state.sortedSections;
     if (index >= 0 && index < sorted.length) {
       final section = sorted[index];
-      state = state.updateSectionByIndex(index, section.copyWith(content: content));
+      state =
+          state.updateSectionByIndex(index, section.copyWith(content: content));
       await _saveConfig();
     }
   }
@@ -100,7 +102,8 @@ class PromptManagerNotifier extends StateNotifier<PromptManagerConfig> {
   Future<void> loadFromJson(Map<String, dynamic> json) async {
     try {
       // Try to parse as export format first
-      if (json['format'] == 'native_tavern_prompt_preset' && json['sections'] != null) {
+      if (json['format'] == 'native_tavern_prompt_preset' &&
+          json['sections'] != null) {
         final sectionsJson = json['sections'] as List<dynamic>;
         state = PromptManagerConfig(
           sections: sectionsJson
@@ -228,7 +231,8 @@ class CustomPresetsNotifier extends StateNotifier<List<PromptManagerPreset>> {
 
 /// Provider for custom presets
 final customPresetsProvider =
-    StateNotifierProvider<CustomPresetsNotifier, List<PromptManagerPreset>>((ref) {
+    StateNotifierProvider<CustomPresetsNotifier, List<PromptManagerPreset>>(
+        (ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return CustomPresetsNotifier(prefs);
 });
@@ -240,7 +244,8 @@ final allPresetsProvider = Provider<List<PromptManagerPreset>>((ref) {
 });
 
 /// Active preset ID provider
-final activePresetIdProvider = StateNotifierProvider<ActivePresetIdNotifier, String?>((ref) {
+final activePresetIdProvider =
+    StateNotifierProvider<ActivePresetIdNotifier, String?>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return ActivePresetIdNotifier(prefs);
 });
@@ -266,7 +271,7 @@ class ActivePresetIdNotifier extends StateNotifier<String?> {
 final activePresetProvider = Provider<PromptManagerPreset?>((ref) {
   final activeId = ref.watch(activePresetIdProvider);
   if (activeId == null) return null;
-  
+
   final allPresets = ref.watch(allPresetsProvider);
   try {
     return allPresets.firstWhere((p) => p.id == activeId);

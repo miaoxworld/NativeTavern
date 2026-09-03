@@ -27,7 +27,8 @@ final globalWorldInfosProvider = FutureProvider<List<WorldInfo>>((ref) async {
 });
 
 /// World infos for a specific character
-final characterWorldInfosProvider = FutureProvider.family<List<WorldInfo>, String>((ref, characterId) async {
+final characterWorldInfosProvider =
+    FutureProvider.family<List<WorldInfo>, String>((ref, characterId) async {
   final repo = ref.watch(worldInfoRepositoryProvider);
   return repo.getWorldInfosForCharacter(characterId);
 });
@@ -40,7 +41,8 @@ class WorldInfoNotifier extends StateNotifier<AsyncValue<List<WorldInfo>>> {
   final WorldInfoRepository _repository;
   final Ref _ref;
 
-  WorldInfoNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
+  WorldInfoNotifier(this._repository, this._ref)
+      : super(const AsyncValue.loading()) {
     _loadWorldInfos();
   }
 
@@ -123,7 +125,9 @@ class WorldInfoNotifier extends StateNotifier<AsyncValue<List<WorldInfo>>> {
 }
 
 /// Provider for world info notifier
-final worldInfoNotifierProvider = StateNotifierProvider<WorldInfoNotifier, AsyncValue<List<WorldInfo>>>((ref) {
+final worldInfoNotifierProvider =
+    StateNotifierProvider<WorldInfoNotifier, AsyncValue<List<WorldInfo>>>(
+        (ref) {
   final repo = ref.watch(worldInfoRepositoryProvider);
   return WorldInfoNotifier(repo, ref);
 });
@@ -145,7 +149,7 @@ class WorldInfoMatcher {
     print('=== WorldInfoMatcher.findMatchingEntries ===');
     print('World info IDs to search: $worldInfoIds');
     print('Context length: ${contextText.length}');
-    
+
     final allMatched = <WorldInfoEntry>[];
     final processedIds = <String>{};
     var currentContext = contextText;
@@ -157,14 +161,15 @@ class WorldInfoMatcher {
         currentContext,
         worldInfoIds,
       );
-      print('Repository found ${newMatches.length} matches at depth $recursionDepth');
+      print(
+          'Repository found ${newMatches.length} matches at depth $recursionDepth');
 
       // Filter out already processed entries
       final unprocessedMatches = newMatches
           .where((e) => !processedIds.contains(e.id))
           .where((e) => !e.preventRecursion || recursionDepth == 0)
           .toList();
-      
+
       print('Unprocessed matches: ${unprocessedMatches.length}');
 
       if (unprocessedMatches.isEmpty) break;
@@ -173,8 +178,9 @@ class WorldInfoMatcher {
         if (!processedIds.contains(entry.id)) {
           processedIds.add(entry.id);
           allMatched.add(entry);
-          print('  Added entry: ${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}');
-          
+          print(
+              '  Added entry: ${entry.comment.isNotEmpty ? entry.comment : entry.keys.join(", ")}');
+
           // Add entry content to context for recursive matching
           currentContext = '$currentContext\n${entry.content}';
         }
@@ -187,26 +193,33 @@ class WorldInfoMatcher {
     // An entry is constant if:
     // 1. entry.constant == true (explicitly marked as constant)
     // 2. entry.keys is empty (no keys means always included)
-    debugPrint('\n╔══════════════════════════════════════════════════════════════');
+    debugPrint(
+        '\n╔══════════════════════════════════════════════════════════════');
     debugPrint('║ 📋 CHECKING CONSTANT ENTRIES');
-    debugPrint('╠══════════════════════════════════════════════════════════════');
-    
+    debugPrint(
+        '╠══════════════════════════════════════════════════════════════');
+
     for (final worldInfoId in worldInfoIds) {
       final entries = await _repository.getEntriesForWorldInfo(worldInfoId);
       debugPrint('║ World Info ID: $worldInfoId');
       debugPrint('║ Total entries: ${entries.length}');
-      debugPrint('╠──────────────────────────────────────────────────────────────');
-      
+      debugPrint(
+          '╠──────────────────────────────────────────────────────────────');
+
       for (final entry in entries) {
         final isConstant = entry.constant || entry.keys.isEmpty;
-        final entryName = entry.comment.isNotEmpty ? entry.comment : (entry.keys.isEmpty ? "(no keys)" : entry.keys.join(", "));
-        
+        final entryName = entry.comment.isNotEmpty
+            ? entry.comment
+            : (entry.keys.isEmpty ? '(no keys)' : entry.keys.join(', '));
+
         debugPrint('║   Entry: $entryName');
         debugPrint('║     • enabled: ${entry.enabled}');
         debugPrint('║     • constant: ${entry.constant}');
-        debugPrint('║     • keys: ${entry.keys.isEmpty ? "(empty)" : entry.keys.join(", ")}');
-        debugPrint('║     • isConstant (constant OR keys.isEmpty): $isConstant');
-        
+        debugPrint(
+            '║     • keys: ${entry.keys.isEmpty ? "(empty)" : entry.keys.join(", ")}');
+        debugPrint(
+            '║     • isConstant (constant OR keys.isEmpty): $isConstant');
+
         if (isConstant && entry.enabled && !processedIds.contains(entry.id)) {
           allMatched.add(entry);
           processedIds.add(entry.id);
@@ -216,7 +229,8 @@ class WorldInfoMatcher {
         } else if (processedIds.contains(entry.id)) {
           debugPrint('║     ⏭️ SKIPPED: already processed');
         } else if (!isConstant) {
-          debugPrint('║     ℹ️ Not a constant entry, will be matched by keywords');
+          debugPrint(
+              '║     ℹ️ Not a constant entry, will be matched by keywords');
         }
       }
       debugPrint('║');
@@ -225,21 +239,24 @@ class WorldInfoMatcher {
     // Sort by insertion order
     allMatched.sort((a, b) => a.insertionOrder.compareTo(b.insertionOrder));
 
-    debugPrint('╠══════════════════════════════════════════════════════════════');
+    debugPrint(
+        '╠══════════════════════════════════════════════════════════════');
     debugPrint('║ 📊 FINAL RESULT: ${allMatched.length} matched entries');
-    debugPrint('╚══════════════════════════════════════════════════════════════\n');
-    
+    debugPrint(
+        '╚══════════════════════════════════════════════════════════════\n');
+
     return allMatched;
   }
 
   /// Group entries by their insertion position
-  Map<WorldInfoPosition, List<WorldInfoEntry>> groupByPosition(List<WorldInfoEntry> entries) {
+  Map<WorldInfoPosition, List<WorldInfoEntry>> groupByPosition(
+      List<WorldInfoEntry> entries) {
     final grouped = <WorldInfoPosition, List<WorldInfoEntry>>{};
-    
+
     for (final entry in entries) {
       grouped.putIfAbsent(entry.position, () => []).add(entry);
     }
-    
+
     return grouped;
   }
 }

@@ -73,7 +73,8 @@ void main() {
   });
 
   test('group-mates become friends and can comment on each other', () async {
-    await groups.createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
+    await groups
+        .createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
     final ava = (await characters.getCharacter('ava'))!;
     final added = await social.addGroupMates(character: ava);
     expect(added, hasLength(1));
@@ -132,7 +133,8 @@ void main() {
 
   test('a character only knows friends, the player, and related comments',
       () async {
-    await groups.createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
+    await groups
+        .createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
     final ava = (await characters.getCharacter('ava'))!;
     await social.addGroupMates(character: ava);
 
@@ -258,8 +260,10 @@ void main() {
   });
 
   test('chat knowledge only injects moments the character can see', () async {
-    await groups.createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
-    await social.addGroupMates(character: (await characters.getCharacter('ava'))!);
+    await groups
+        .createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
+    await social.addGroupMates(
+        character: (await characters.getCharacter('ava'))!);
 
     final service = MomentService(
       momentRepository: moments,
@@ -316,7 +320,8 @@ void main() {
   });
 
   test('chat stays independent until moments-in-chat is turned on', () async {
-    await groups.createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
+    await groups
+        .createGroup(name: 'Garden', characterIds: const ['ava', 'ben']);
     await social.addGroupMates(
       character: (await characters.getCharacter('ava'))!,
     );
@@ -344,7 +349,8 @@ void main() {
         enabled: () => true,
         chatEnabled: chatEnabled,
       );
-      final registry = ChatExtensionRegistry()..registerContributor(contributor);
+      final registry = ChatExtensionRegistry()
+        ..registerContributor(contributor);
       final pipeline = ChatGenerationPipeline(registry: registry);
       final session = pipeline.startSession(
         chatId: 'chat-ben',

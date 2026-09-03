@@ -376,10 +376,10 @@ class _PersonaDialog extends StatefulWidget {
 
   const _PersonaDialog({
     required this.title,
+    required this.onSave,
     this.initialName,
     this.initialDescription,
     this.initialAvatarPath,
-    required this.onSave,
   });
 
   @override

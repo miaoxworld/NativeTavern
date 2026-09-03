@@ -15,7 +15,8 @@ const _appStatsKey = 'app_statistics';
 const _chatStatsPrefix = 'chat_stats_';
 
 /// Provider for app-wide statistics
-final appStatisticsProvider = StateNotifierProvider<AppStatisticsNotifier, AppStatistics>((ref) {
+final appStatisticsProvider =
+    StateNotifierProvider<AppStatisticsNotifier, AppStatistics>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return AppStatisticsNotifier(prefs);
 });
@@ -32,12 +33,13 @@ class AppStatisticsNotifier extends StateNotifier<AppStatistics> {
     final json = _prefs.getString(_appStatsKey);
     if (json != null) {
       try {
-        state = AppStatistics.fromJson(jsonDecode(json) as Map<String, dynamic>);
+        state =
+            AppStatistics.fromJson(jsonDecode(json) as Map<String, dynamic>);
       } catch (e) {
         // Ignore parse errors, use default
       }
     }
-    
+
     // Set first used date if not set
     if (state.appFirstUsed == null) {
       state = state.copyWith(appFirstUsed: DateTime.now());
@@ -97,7 +99,9 @@ class AppStatisticsNotifier extends StateNotifier<AppStatistics> {
 }
 
 /// Provider for chat-specific statistics
-final chatStatisticsProvider = StateNotifierProviderFamily<ChatStatisticsNotifier, ChatStatistics, String>((ref, chatId) {
+final chatStatisticsProvider =
+    StateNotifierProviderFamily<ChatStatisticsNotifier, ChatStatistics, String>(
+        (ref, chatId) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return ChatStatisticsNotifier(prefs, chatId);
 });
@@ -107,7 +111,7 @@ class ChatStatisticsNotifier extends StateNotifier<ChatStatistics> {
   final SharedPreferences _prefs;
   final String _chatId;
 
-  ChatStatisticsNotifier(this._prefs, this._chatId) 
+  ChatStatisticsNotifier(this._prefs, this._chatId)
       : super(ChatStatistics(chatId: _chatId)) {
     _load();
   }
@@ -116,7 +120,8 @@ class ChatStatisticsNotifier extends StateNotifier<ChatStatistics> {
     final json = _prefs.getString('$_chatStatsPrefix$_chatId');
     if (json != null) {
       try {
-        state = ChatStatistics.fromJson(jsonDecode(json) as Map<String, dynamic>);
+        state =
+            ChatStatistics.fromJson(jsonDecode(json) as Map<String, dynamic>);
       } catch (e) {
         // Ignore parse errors, use default
       }
@@ -124,7 +129,8 @@ class ChatStatisticsNotifier extends StateNotifier<ChatStatistics> {
   }
 
   Future<void> _save() async {
-    await _prefs.setString('$_chatStatsPrefix$_chatId', jsonEncode(state.toJson()));
+    await _prefs.setString(
+        '$_chatStatsPrefix$_chatId', jsonEncode(state.toJson()));
   }
 
   /// Record a new message
@@ -132,14 +138,14 @@ class ChatStatisticsNotifier extends StateNotifier<ChatStatistics> {
     final now = DateTime.now();
     state = state.copyWith(
       totalMessages: state.totalMessages + 1,
-      userMessages: role == MessageRole.user 
-          ? state.userMessages + 1 
+      userMessages: role == MessageRole.user
+          ? state.userMessages + 1
           : state.userMessages,
-      assistantMessages: role == MessageRole.assistant 
-          ? state.assistantMessages + 1 
+      assistantMessages: role == MessageRole.assistant
+          ? state.assistantMessages + 1
           : state.assistantMessages,
-      systemMessages: role == MessageRole.system 
-          ? state.systemMessages + 1 
+      systemMessages: role == MessageRole.system
+          ? state.systemMessages + 1
           : state.systemMessages,
       firstMessageAt: state.firstMessageAt ?? now,
       lastMessageAt: now,
@@ -171,16 +177,17 @@ class ChatStatisticsNotifier extends StateNotifier<ChatStatistics> {
 }
 
 /// Provider to compute statistics from messages
-final computedChatStatisticsProvider = FutureProvider.family<ChatStatistics, String>((ref, chatId) async {
+final computedChatStatisticsProvider =
+    FutureProvider.family<ChatStatistics, String>((ref, chatId) async {
   final chatRepo = ref.watch(chatRepositoryProvider);
   final messages = await chatRepo.getMessages(chatId);
-  
+
   int userCount = 0;
   int assistantCount = 0;
   int systemCount = 0;
   DateTime? firstMessage;
   DateTime? lastMessage;
-  
+
   for (final message in messages) {
     switch (message.role) {
       case MessageRole.user:
@@ -193,7 +200,7 @@ final computedChatStatisticsProvider = FutureProvider.family<ChatStatistics, Str
         systemCount++;
         break;
     }
-    
+
     if (firstMessage == null || message.timestamp.isBefore(firstMessage)) {
       firstMessage = message.timestamp;
     }
@@ -201,10 +208,10 @@ final computedChatStatisticsProvider = FutureProvider.family<ChatStatistics, Str
       lastMessage = message.timestamp;
     }
   }
-  
+
   // Get stored stats for token/generation info
   final storedStats = ref.read(chatStatisticsProvider(chatId));
-  
+
   return ChatStatistics(
     chatId: chatId,
     totalMessages: messages.length,
@@ -225,13 +232,13 @@ final computedChatStatisticsProvider = FutureProvider.family<ChatStatistics, Str
 final statisticsSummaryProvider = Provider<StatisticsSummary>((ref) {
   final appStats = ref.watch(appStatisticsProvider);
   final charactersAsync = ref.watch(characterListProvider);
-  
+
   final characterCount = charactersAsync.when(
     data: (List<Character> chars) => chars.length,
     loading: () => 0,
     error: (_, __) => 0,
   );
-  
+
   return StatisticsSummary(
     appStats: appStats,
     characterCount: characterCount,

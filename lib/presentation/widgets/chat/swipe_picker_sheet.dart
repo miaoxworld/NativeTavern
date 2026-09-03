@@ -145,8 +145,8 @@ class _SwipePickerSheetState extends State<SwipePickerSheet> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: isCurrent
                           ? AppTheme.accentColor
@@ -179,8 +179,8 @@ class _SwipePickerSheetState extends State<SwipePickerSheet> {
                       icon: const Icon(Icons.delete_outline, size: 18),
                       color: AppTheme.textMuted,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                          minWidth: 32, minHeight: 32),
+                      constraints:
+                          const BoxConstraints(minWidth: 32, minHeight: 32),
                       onPressed: () => _confirmDelete(context, index),
                     ),
                 ],

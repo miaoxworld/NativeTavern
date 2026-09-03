@@ -86,51 +86,51 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                 return false;
               },
               child: charactersAsync.when(
-              data: (characters) {
-                final filtered = _searchQuery.isEmpty
-                    ? characters
-                    : characters
-                        .where((c) =>
-                            c.name
-                                .toLowerCase()
-                                .contains(_searchQuery.toLowerCase()) ||
-                            c.description
-                                .toLowerCase()
-                                .contains(_searchQuery.toLowerCase()))
-                        .toList();
+                data: (characters) {
+                  final filtered = _searchQuery.isEmpty
+                      ? characters
+                      : characters
+                          .where((c) =>
+                              c.name
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()) ||
+                              c.description
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()))
+                          .toList();
 
-                if (filtered.isEmpty) {
-                  return const _EmptyState();
-                }
+                  if (filtered.isEmpty) {
+                    return const _EmptyState();
+                  }
 
-                switch (_viewMode) {
-                  case CharacterViewMode.list:
-                    return _CharacterListView(characters: filtered);
-                  case CharacterViewMode.grid:
-                    return _CharacterGridView(characters: filtered);
-                  case CharacterViewMode.compactGrid:
-                    return _CharacterCompactGridView(characters: filtered);
-                }
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text('${l10n.error}: $error'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () =>
-                          ref.read(characterListProvider.notifier).refresh(),
-                      child: Text(l10n.retry),
-                    ),
-                  ],
+                  switch (_viewMode) {
+                    case CharacterViewMode.list:
+                      return _CharacterListView(characters: filtered);
+                    case CharacterViewMode.grid:
+                      return _CharacterGridView(characters: filtered);
+                    case CharacterViewMode.compactGrid:
+                      return _CharacterCompactGridView(characters: filtered);
+                  }
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('${l10n.error}: $error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () =>
+                            ref.read(characterListProvider.notifier).refresh(),
+                        child: Text(l10n.retry),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             ),
           ),
         ],

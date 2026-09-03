@@ -1,0 +1,74 @@
+# Validate that pull requests include the required template sections.
+#
+# This job never checks out the repository. It only reads
+# `github.event.pull_request.body`, so it is cheap: no Flutter, no cache,
+# no artifacts. Write access is not required; a failed check is the signal
+# to the author.
+#
+# Required headings match .github/PR_TEMPLATE/pull_request_template.md.
+
+name: Validate PR Template
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-template-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate-description:
+    name: Check PR description
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check PR description
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const minLength = 50;
+            const templatePath = '.github/PR_TEMPLATE/pull_request_template.md';
+
+            const requiredSections = [
+              '## Summary',
+              '## Type of Change',
+              '## Changes Made',
+              '## User-Facing UI & Localization Checklist',
+              '## Verification & Testing',
+            ];
+
+            const missingSections = requiredSections.filter(
+              (section) => !body.includes(section),
+            );
+            const problems = [];
+
+            if (body.trim().length < minLength) {
+              problems.push(
+                `Description is shorter than ${minLength} characters.`,
+              );
+            }
+            if (missingSections.length > 0) {
+              problems.push(
+                `Missing required sections: ${missingSections.join(', ')}.`,
+              );
+            }
+
+            if (problems.length === 0) {
+              core.info('PR description includes the required template sections.');
+              return;
+            }
+
+            const message = [
+              'PR description is incomplete. Please follow the PR template.',
+              `Template: ${templatePath}`,
+              '',
+              ...problems.map((item) => `- ${item}`),
+            ].join('\n');
+
+            core.setFailed(message);

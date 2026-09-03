@@ -22,14 +22,19 @@ class PromptSection {
   final String name;
   final bool enabled;
   final int order;
+
   /// Custom content for editable prompts
   final String? content;
+
   /// Unique identifier (for custom prompts from SillyTavern)
   final String? identifier;
+
   /// Role for the prompt (system, user, assistant)
   final String? role;
+
   /// Injection position (0 = relative, 1 = absolute)
   final int? injectionPosition;
+
   /// Injection depth (for depth-based injection)
   final int? injectionDepth;
 
@@ -78,9 +83,9 @@ class PromptSection {
   /// Check if a section type supports custom content editing
   static bool isTypeEditable(PromptSectionType type) {
     return type == PromptSectionType.systemPrompt ||
-           type == PromptSectionType.postHistoryInstructions ||
-           type == PromptSectionType.nsfw ||
-           type == PromptSectionType.custom;
+        type == PromptSectionType.postHistoryInstructions ||
+        type == PromptSectionType.nsfw ||
+        type == PromptSectionType.custom;
   }
 
   /// Get the effective content (custom content or default)
@@ -217,7 +222,8 @@ class PromptManagerConfig {
           type: PromptSectionType.systemPrompt,
           name: PromptSection.getDisplayName(PromptSectionType.systemPrompt),
           order: 0,
-          content: PromptSection.getDefaultContent(PromptSectionType.systemPrompt),
+          content:
+              PromptSection.getDefaultContent(PromptSectionType.systemPrompt),
         ),
         PromptSection(
           type: PromptSectionType.persona,
@@ -226,17 +232,20 @@ class PromptManagerConfig {
         ),
         PromptSection(
           type: PromptSectionType.characterDescription,
-          name: PromptSection.getDisplayName(PromptSectionType.characterDescription),
+          name: PromptSection.getDisplayName(
+              PromptSectionType.characterDescription),
           order: 2,
         ),
         PromptSection(
           type: PromptSectionType.characterPersonality,
-          name: PromptSection.getDisplayName(PromptSectionType.characterPersonality),
+          name: PromptSection.getDisplayName(
+              PromptSectionType.characterPersonality),
           order: 3,
         ),
         PromptSection(
           type: PromptSectionType.characterScenario,
-          name: PromptSection.getDisplayName(PromptSectionType.characterScenario),
+          name:
+              PromptSection.getDisplayName(PromptSectionType.characterScenario),
           order: 4,
         ),
         PromptSection(
@@ -266,9 +275,11 @@ class PromptManagerConfig {
         ),
         PromptSection(
           type: PromptSectionType.postHistoryInstructions,
-          name: PromptSection.getDisplayName(PromptSectionType.postHistoryInstructions),
+          name: PromptSection.getDisplayName(
+              PromptSectionType.postHistoryInstructions),
           order: 10,
-          content: PromptSection.getDefaultContent(PromptSectionType.postHistoryInstructions),
+          content: PromptSection.getDefaultContent(
+              PromptSectionType.postHistoryInstructions),
         ),
       ],
     );
@@ -335,7 +346,7 @@ class PromptManagerConfig {
     final sorted = sortedSections;
     final item = sorted.removeAt(oldIndex);
     sorted.insert(newIndex, item);
-    
+
     // Update order values
     final newSections = <PromptSection>[];
     for (var i = 0; i < sorted.length; i++) {
@@ -382,7 +393,7 @@ class PromptManagerConfig {
     // Parse custom prompts from the prompts array
     final promptsArray = json['prompts'] as List<dynamic>?;
     final customPrompts = <String, PromptSection>{};
-    
+
     if (promptsArray != null) {
       for (final prompt in promptsArray) {
         if (prompt is Map<String, dynamic>) {
@@ -392,7 +403,7 @@ class PromptManagerConfig {
           final role = prompt['role'] as String? ?? 'system';
           final injectionPosition = prompt['injection_position'] as int?;
           final injectionDepth = prompt['injection_depth'] as int?;
-          
+
           if (identifier != null) {
             // Check if this is a known identifier or a custom one
             final type = identifierMap[identifier] ?? PromptSectionType.custom;
@@ -415,7 +426,7 @@ class PromptManagerConfig {
     // Get prompt_order - prefer character_id 100001 (custom) over 100000 (default)
     final promptOrder = json['prompt_order'] as List<dynamic>?;
     List<dynamic>? orderList;
-    
+
     if (promptOrder != null) {
       // First try to find character_id 100001 (custom order with all prompts)
       for (final entry in promptOrder) {
@@ -452,7 +463,8 @@ class PromptManagerConfig {
         final identifier = item['identifier'] as String?;
         final enabled = item['enabled'] as bool? ?? true;
 
-        if (identifier == null || seenIdentifiers.contains(identifier)) continue;
+        if (identifier == null || seenIdentifiers.contains(identifier))
+          continue;
         seenIdentifiers.add(identifier);
 
         // Check if we have a custom prompt with this identifier
@@ -509,7 +521,7 @@ class PromptManagerConfig {
       PromptSectionType.worldInfoAfter,
       PromptSectionType.postHistoryInstructions,
     ];
-    
+
     for (final type in builtInTypes) {
       final hasType = sections.any((s) => s.type == type && !s.isCustom);
       if (!hasType) {
@@ -529,10 +541,12 @@ class PromptManagerConfig {
   PromptManagerConfig toggleSectionByIndex(int index) {
     final sorted = sortedSections;
     if (index < 0 || index >= sorted.length) return this;
-    
+
     final section = sorted[index];
     final newSections = sections.map((s) {
-      if (s.identifier == section.identifier && s.type == section.type && s.name == section.name) {
+      if (s.identifier == section.identifier &&
+          s.type == section.type &&
+          s.name == section.name) {
         return s.copyWith(enabled: !s.enabled);
       }
       return s;
@@ -541,13 +555,16 @@ class PromptManagerConfig {
   }
 
   /// Update a section by index
-  PromptManagerConfig updateSectionByIndex(int index, PromptSection updatedSection) {
+  PromptManagerConfig updateSectionByIndex(
+      int index, PromptSection updatedSection) {
     final sorted = sortedSections;
     if (index < 0 || index >= sorted.length) return this;
-    
+
     final oldSection = sorted[index];
     final newSections = sections.map((s) {
-      if (s.identifier == oldSection.identifier && s.type == oldSection.type && s.name == oldSection.name) {
+      if (s.identifier == oldSection.identifier &&
+          s.type == oldSection.type &&
+          s.name == oldSection.name) {
         return updatedSection;
       }
       return s;
@@ -622,7 +639,8 @@ class PromptManagerPreset {
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
-      config: PromptManagerConfig.fromJson(json['config'] as Map<String, dynamic>),
+      config:
+          PromptManagerConfig.fromJson(json['config'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isBuiltIn: json['isBuiltIn'] as bool? ?? false,
@@ -630,7 +648,8 @@ class PromptManagerPreset {
   }
 
   /// Import from export format
-  factory PromptManagerPreset.fromExportJson(Map<String, dynamic> json, String id) {
+  factory PromptManagerPreset.fromExportJson(
+      Map<String, dynamic> json, String id) {
     final sectionsJson = json['sections'] as List<dynamic>?;
     final config = sectionsJson != null && sectionsJson.isNotEmpty
         ? PromptManagerConfig(
@@ -670,49 +689,49 @@ class BuiltInPromptPresets {
     id: 'character_focused',
     name: 'Character Focused',
     description: 'Prioritizes character information',
-    config: PromptManagerConfig(
+    config: const PromptManagerConfig(
       sections: [
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterDescription,
           name: 'Character Description',
           order: 0,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterPersonality,
           name: 'Character Personality',
           order: 1,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterScenario,
           name: 'Scenario',
           order: 2,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.systemPrompt,
           name: 'System Prompt',
           order: 3,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.persona,
           name: 'User Persona',
           order: 4,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.worldInfo,
           name: 'World Info / Lorebook',
           order: 5,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.exampleMessages,
           name: 'Example Messages',
           order: 6,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.authorNote,
           name: "Author's Note",
           order: 7,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.postHistoryInstructions,
           name: 'Post-History Instructions',
           order: 8,
@@ -728,49 +747,49 @@ class BuiltInPromptPresets {
     id: 'world_info_first',
     name: 'World Info First',
     description: 'Prioritizes world building and lore',
-    config: PromptManagerConfig(
+    config: const PromptManagerConfig(
       sections: [
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.worldInfo,
           name: 'World Info / Lorebook',
           order: 0,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.systemPrompt,
           name: 'System Prompt',
           order: 1,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterDescription,
           name: 'Character Description',
           order: 2,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterPersonality,
           name: 'Character Personality',
           order: 3,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterScenario,
           name: 'Scenario',
           order: 4,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.persona,
           name: 'User Persona',
           order: 5,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.exampleMessages,
           name: 'Example Messages',
           order: 6,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.authorNote,
           name: "Author's Note",
           order: 7,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.postHistoryInstructions,
           name: 'Post-History Instructions',
           order: 8,
@@ -786,57 +805,57 @@ class BuiltInPromptPresets {
     id: 'minimal',
     name: 'Minimal',
     description: 'Only essential prompts enabled',
-    config: PromptManagerConfig(
+    config: const PromptManagerConfig(
       sections: [
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.systemPrompt,
           name: 'System Prompt',
           order: 0,
           enabled: true,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterDescription,
           name: 'Character Description',
           order: 1,
           enabled: true,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterPersonality,
           name: 'Character Personality',
           order: 2,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.characterScenario,
           name: 'Scenario',
           order: 3,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.persona,
           name: 'User Persona',
           order: 4,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.worldInfo,
           name: 'World Info / Lorebook',
           order: 5,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.exampleMessages,
           name: 'Example Messages',
           order: 6,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.authorNote,
           name: "Author's Note",
           order: 7,
           enabled: false,
         ),
-        const PromptSection(
+        PromptSection(
           type: PromptSectionType.postHistoryInstructions,
           name: 'Post-History Instructions',
           order: 8,

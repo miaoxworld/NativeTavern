@@ -18,16 +18,14 @@ class TagRepository {
 
   /// Get a tag by ID
   Future<models.Tag?> getTagById(String id) async {
-    final row = await (_db.select(_db.tags)
-          ..where((t) => t.id.equals(id)))
+    final row = await (_db.select(_db.tags)..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     return row != null ? _tagFromRow(row) : null;
   }
 
   /// Get a tag by name
   Future<models.Tag?> getTagByName(String name) async {
-    final row = await (_db.select(_db.tags)
-          ..where((t) => t.name.equals(name)))
+    final row = await (_db.select(_db.tags)..where((t) => t.name.equals(name)))
         .getSingleOrNull();
     return row != null ? _tagFromRow(row) : null;
   }
@@ -72,8 +70,7 @@ class TagRepository {
   /// Delete a tag
   Future<void> deleteTag(String tagId) async {
     // First remove all character-tag associations
-    await (_db.delete(_db.characterTags)
-          ..where((ct) => ct.tagId.equals(tagId)))
+    await (_db.delete(_db.characterTags)..where((ct) => ct.tagId.equals(tagId)))
         .go();
 
     // Then delete the tag

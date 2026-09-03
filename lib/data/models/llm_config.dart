@@ -44,7 +44,8 @@ class LLMConfig with _$LLMConfig {
     required DateTime modifiedAt,
   }) = _LLMConfig;
 
-  factory LLMConfig.fromJson(Map<String, dynamic> json) => _$LLMConfigFromJson(json);
+  factory LLMConfig.fromJson(Map<String, dynamic> json) =>
+      _$LLMConfigFromJson(json);
 }
 
 /// Generation settings / sampler parameters
@@ -64,16 +65,17 @@ class GenerationSettings with _$GenerationSettings {
     @Default([]) List<String> stopSequences,
     @Default(false) bool stream,
     int? seed,
-    
+
     // Auto-summarization settings
     @Default(true) bool autoSummarizeEnabled,
     @Default(0.8) double autoSummarizeThreshold, // Trigger at 80% of context
-    
+
     // Additional parameters for specific providers
     @Default({}) Map<String, dynamic> extra,
   }) = _GenerationSettings;
 
-  factory GenerationSettings.fromJson(Map<String, dynamic> json) => _$GenerationSettingsFromJson(json);
+  factory GenerationSettings.fromJson(Map<String, dynamic> json) =>
+      _$GenerationSettingsFromJson(json);
 }
 
 /// Local model configuration for on-device inference
@@ -95,7 +97,8 @@ class LocalModelConfig with _$LocalModelConfig {
     DateTime? downloadedAt,
   }) = _LocalModelConfig;
 
-  factory LocalModelConfig.fromJson(Map<String, dynamic> json) => _$LocalModelConfigFromJson(json);
+  factory LocalModelConfig.fromJson(Map<String, dynamic> json) =>
+      _$LocalModelConfigFromJson(json);
 }
 
 /// Prompt template for formatting messages
@@ -115,7 +118,8 @@ class PromptTemplate with _$PromptTemplate {
     @Default(false) bool wrapInNewlines,
   }) = _PromptTemplate;
 
-  factory PromptTemplate.fromJson(Map<String, dynamic> json) => _$PromptTemplateFromJson(json);
+  factory PromptTemplate.fromJson(Map<String, dynamic> json) =>
+      _$PromptTemplateFromJson(json);
 
   /// Common preset templates
   static const chatML = PromptTemplate(

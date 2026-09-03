@@ -45,9 +45,8 @@ class _DebugFloatingBallState extends State<DebugFloatingBall> {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: _isDragging
-                ? Colors.orange.shade700
-                : Colors.orange.shade600,
+            color:
+                _isDragging ? Colors.orange.shade700 : Colors.orange.shade600,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
@@ -187,7 +186,8 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade800,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Column(
               children: [
@@ -217,7 +217,9 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
                     // Auto-scroll toggle
                     IconButton(
                       icon: Icon(
-                        _autoScroll ? Icons.vertical_align_bottom : Icons.vertical_align_center,
+                        _autoScroll
+                            ? Icons.vertical_align_bottom
+                            : Icons.vertical_align_center,
                         color: _autoScroll ? Colors.orange : Colors.grey,
                       ),
                       tooltip: l10n.autoScroll,
@@ -231,7 +233,8 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
                       tooltip: l10n.copyAll,
                       onPressed: () {
                         final service = ref.read(debugLogServiceProvider);
-                        Clipboard.setData(ClipboardData(text: service.exportLogs()));
+                        Clipboard.setData(
+                            ClipboardData(text: service.exportLogs()));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(l10n.copiedToClipboard)),
                         );
@@ -239,7 +242,8 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
                     ),
                     // Clear logs
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.white70),
+                      icon: const Icon(Icons.delete_outline,
+                          color: Colors.white70),
                       tooltip: l10n.clearLogs,
                       onPressed: () {
                         ref.read(debugLogServiceProvider).clearLogs();
@@ -301,7 +305,8 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
                     decoration: InputDecoration(
                       hintText: l10n.searchLogs,
                       hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                      prefixIcon:
+                          Icon(Icons.search, color: Colors.grey.shade500),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
@@ -347,7 +352,7 @@ class _DebugLogViewerState extends ConsumerState<DebugLogViewer> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    reverse: true,  // Show newest logs at the top
+                    reverse: true, // Show newest logs at the top
                     padding: const EdgeInsets.all(8),
                     itemCount: filteredLogs.length,
                     itemBuilder: (context, index) {
@@ -442,7 +447,8 @@ class _LogEntryTile extends StatelessWidget {
                   Clipboard.setData(ClipboardData(text: log.toString()));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context).copiedToClipboard),
+                      content:
+                          Text(AppLocalizations.of(context).copiedToClipboard),
                       duration: const Duration(seconds: 1),
                     ),
                   );
@@ -508,11 +514,12 @@ class _LogEntryTile extends StatelessWidget {
 /// Inline version of the debug log viewer (doesn't require Navigator)
 class DebugLogViewerInline extends ConsumerStatefulWidget {
   final VoidCallback onClose;
-  
+
   const DebugLogViewerInline({super.key, required this.onClose});
 
   @override
-  ConsumerState<DebugLogViewerInline> createState() => _DebugLogViewerInlineState();
+  ConsumerState<DebugLogViewerInline> createState() =>
+      _DebugLogViewerInlineState();
 }
 
 class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
@@ -595,7 +602,8 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade800,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               children: [
@@ -612,7 +620,9 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
                 const Spacer(),
                 IconButton(
                   icon: Icon(
-                    _autoScroll ? Icons.vertical_align_bottom : Icons.vertical_align_center,
+                    _autoScroll
+                        ? Icons.vertical_align_bottom
+                        : Icons.vertical_align_center,
                     color: _autoScroll ? Colors.orange : Colors.grey,
                   ),
                   tooltip: l10n.autoScroll,
@@ -625,7 +635,8 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
                   tooltip: l10n.copyAll,
                   onPressed: () {
                     final service = ref.read(debugLogServiceProvider);
-                    Clipboard.setData(ClipboardData(text: service.exportLogs()));
+                    Clipboard.setData(
+                        ClipboardData(text: service.exportLogs()));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(l10n.copiedToClipboard)),
                     );
@@ -689,7 +700,8 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
                     decoration: InputDecoration(
                       hintText: l10n.searchLogs,
                       hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                      prefixIcon:
+                          Icon(Icons.search, color: Colors.grey.shade500),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
@@ -734,7 +746,7 @@ class _DebugLogViewerInlineState extends ConsumerState<DebugLogViewerInline> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    reverse: true,  // Show newest logs at the top
+                    reverse: true, // Show newest logs at the top
                     padding: const EdgeInsets.all(8),
                     itemCount: filteredLogs.length,
                     itemBuilder: (context, index) {
@@ -773,7 +785,7 @@ void showDebugLogViewer(BuildContext context) {
     );
     return;
   }
-  
+
   showModalBottomSheet(
     context: context,
     useRootNavigator: true,

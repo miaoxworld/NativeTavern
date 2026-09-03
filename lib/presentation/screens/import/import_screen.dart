@@ -20,7 +20,11 @@ import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/regex_providers.dart';
 import 'package:native_tavern/presentation/providers/external_call_audit_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:uuid/uuid.dart';
+import 'package:native_tavern/domain/services/chat_export_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:native_tavern/presentation/providers/cloud_backup_providers.dart';
+import 'package:native_tavern/presentation/router/app_router.dart';
 
 /// Import service provider
 final importServiceProvider = Provider<ImportService>((ref) {
@@ -127,7 +131,18 @@ class ImportNotifier extends StateNotifier<ImportState> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['png', 'charx', 'json', 'zip', 'skel', 'atlas'],
+        allowedExtensions: [
+          'png',
+          'charx',
+          'json',
+          'jsonl',
+          'zip',
+          'skel',
+          'atlas',
+          'ntb',
+          'ntm',
+          'ntx',
+        ],
         allowMultiple: true, // Enable batch import
       );
 
@@ -205,6 +220,36 @@ class ImportNotifier extends StateNotifier<ImportState> {
             final json = await file.readAsString();
             character = await _importService.importFromJson(json);
             break;
+          case 'jsonl':
+            final chatImport = await ChatExportService().importFromPath(path);
+            if (chatImport != null) {
+              character = Character(
+                id: const Uuid().v4(),
+                name: chatImport.characterName,
+                description:
+                    'Imported Chat History (${chatImport.messages.length} messages)',
+                personality: '',
+                firstMessage: chatImport.messages.isNotEmpty
+                    ? chatImport.messages.first.content
+                    : '',
+                scenario: '',
+                exampleMessages: '',
+                creatorNotes: 'Imported from ${path.split('/').last}',
+                systemPrompt: '',
+                postHistoryInstructions: '',
+                tags: const ['chat-history'],
+                creator: chatImport.userName,
+                version: '1.0',
+                alternateGreetings: const [],
+                extensions: {
+                  'chatImport': true,
+                  'chatImportPath': path,
+                },
+                createdAt: chatImport.createDate,
+                modifiedAt: DateTime.now(),
+              );
+            }
+            break;
           case 'zip':
             character = await _importZip(path);
             break;
@@ -213,6 +258,27 @@ class ImportNotifier extends StateNotifier<ImportState> {
             character = await _importLive2DAsCharacter(
               () => _live2dImportService.importSpineFiles([File(path)]),
             );
+            break;
+          case 'ntb':
+          case 'ntx':
+            final file = File(path);
+            final ntbChars = extension == 'ntx'
+                ? await _importService
+                    .importCharactersFromNtx(await file.readAsBytes())
+                : await _importService
+                    .importCharactersFromNtb(await file.readAsString());
+            if (ntbChars.isNotEmpty) {
+              character = ntbChars.first;
+              final baseName = p.basename(path);
+              for (int cIdx = 1; cIdx < ntbChars.length; cIdx++) {
+                results.add(ImportResult(
+                  fileName: '${ntbChars[cIdx].name} ($baseName)',
+                  filePath: path,
+                  character: ntbChars[cIdx],
+                  isProcessing: false,
+                ));
+              }
+            }
             break;
           default:
             throw Exception('Unsupported file format: $extension');
@@ -403,6 +469,11 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     // Clear previous import state when screen is opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(importStateProvider.notifier).clear();
+      final pending = ref.read(pendingImportFilePathProvider);
+      if (pending != null) {
+        ref.read(pendingImportFilePathProvider.notifier).state = null;
+        ref.read(importStateProvider.notifier).loadFiles([pending]);
+      }
     });
   }
 
@@ -410,6 +481,11 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   Widget build(BuildContext context) {
     final importState = ref.watch(importStateProvider);
     final l10n = AppLocalizations.of(context)!;
+    ref.listen<String?>(pendingImportFilePathProvider, (previous, next) {
+      if (next == null || next == previous) return;
+      ref.read(pendingImportFilePathProvider.notifier).state = null;
+      ref.read(importStateProvider.notifier).loadFiles([next]);
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -676,6 +752,14 @@ class _FilePickerViewState extends State<_FilePickerView> {
                           label:
                               Text(AppLocalizations.of(context)!.browseFiles),
                         ),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.cloudBackupSettings),
+                        icon: const Icon(Icons.backup_outlined, size: 18),
+                        label:
+                            Text(AppLocalizations.of(context)!.importNtbBackup),
+                      ),
                     ],
                   ],
                 ),

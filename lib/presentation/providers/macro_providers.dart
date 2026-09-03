@@ -12,9 +12,9 @@ final macroContextProvider = Provider<MacroContext>((ref) {
   final chatState = ref.watch(activeChatProvider);
   final personaState = ref.watch(activePersonaProvider);
   final llmConfig = ref.watch(llmConfigProvider);
-  
+
   final persona = personaState.valueOrNull;
-  
+
   return MacroContext.fromData(
     character: chatState.character,
     persona: persona,
@@ -34,7 +34,8 @@ final macroServiceProvider = Provider<MacroService>((ref) {
 });
 
 /// Extension provider to process macros with custom context
-final macroProcessorProvider = Provider.family<String Function(String), MacroContext>((ref, context) {
+final macroProcessorProvider =
+    Provider.family<String Function(String), MacroContext>((ref, context) {
   return (text) => MacroService(context).process(text);
 });
 
@@ -89,7 +90,7 @@ String processMacros(
     modelName: modelName,
     providerName: providerName,
   );
-  
+
   return MacroService(context).process(text);
 }
 
@@ -99,7 +100,7 @@ mixin MacroProcessingMixin {
   String processMacros(String text, MacroContext context) {
     return MacroService(context).process(text);
   }
-  
+
   /// Process macros in a list of chat messages (for display)
   List<Map<String, String>> processMessagesWithMacros(
     List<Map<String, String>> messages,

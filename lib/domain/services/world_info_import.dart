@@ -57,8 +57,7 @@ class WorldInfoImport {
           (_boolOf(data['enabled']) ?? true),
       constant: _boolOf(data['constant']) ?? false,
       selective: _boolOf(data['selective']) ?? false,
-      insertionOrder:
-          _intOf(data['insertionOrder'] ?? data['order']) ?? 100,
+      insertionOrder: _intOf(data['insertionOrder'] ?? data['order']) ?? 100,
       caseSensitive: _boolOf(data['caseSensitive']) ?? false,
       matchWholeWords: _boolOf(data['matchWholeWords']) ?? false,
       useGroupScoring: _boolOf(data['useGroupScoring']) ?? false,

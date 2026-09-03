@@ -6,7 +6,8 @@ import 'settings_providers.dart';
 const String _quickReplyConfigKey = 'quick_reply_config';
 
 /// Provider for quick reply configuration
-final quickReplyConfigProvider = StateNotifierProvider<QuickReplyConfigNotifier, QuickReplyConfig>((ref) {
+final quickReplyConfigProvider =
+    StateNotifierProvider<QuickReplyConfigNotifier, QuickReplyConfig>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return QuickReplyConfigNotifier(prefs);
 });
@@ -15,7 +16,8 @@ final quickReplyConfigProvider = StateNotifierProvider<QuickReplyConfigNotifier,
 class QuickReplyConfigNotifier extends StateNotifier<QuickReplyConfig> {
   final SharedPreferences _prefs;
 
-  QuickReplyConfigNotifier(this._prefs) : super(QuickReplyConfig.defaultConfig) {
+  QuickReplyConfigNotifier(this._prefs)
+      : super(QuickReplyConfig.defaultConfig) {
     _loadConfig();
   }
 

@@ -65,10 +65,27 @@ windows
 !packages/spine_flutter_4_1_compat/windows/**
 release
 .env
+.env.*
+!.env.example
+
+# Signing material and local machine config. Never commit these.
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+**/key.properties
+**/local.properties
+
 build_*
 !build_ios.sh
 !build_android.sh
+!build_macos.sh
+# Development packaging scripts used by GitHub Actions and local testers.
+!build_android_local.sh
+!build_ios_local.sh
+!build_macos_local.sh
 !tool/build_android_release.dart
+!tool/build_ios_adhoc.sh
 resize_app_store_images.py
 config
 !config/
@@ -77,3 +94,8 @@ config/*
 assets_for_discord
 scripts
 .wrangler/cache/wrangler-account.json
+
+# Backup files
+*.bak
+*.orig
+*-bak/

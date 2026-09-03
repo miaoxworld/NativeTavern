@@ -57,8 +57,7 @@ final class MomentContextContributor extends ContextContributor {
       messages: [
         {
           'role': 'system',
-          'content':
-              'Moments this character can see (friends, the player, and '
+          'content': 'Moments this character can see (friends, the player, and '
               'comments on those posts only). Do not invent strangers\' posts.\n'
               '$body',
         },

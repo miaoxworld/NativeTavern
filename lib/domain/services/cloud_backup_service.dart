@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:native_tavern/domain/services/icloud_container_service.dart';
 
 /// Cloud provider type
 enum CloudProvider { googleDrive, iCloud }
@@ -37,12 +38,26 @@ class CloudBackupOptions {
 class CloudBackupArtifacts {
   final File dataFile;
   final File? mediaFile;
+  final File? combinedFile;
   final int mediaFileCount;
 
   const CloudBackupArtifacts({
     required this.dataFile,
     this.mediaFile,
+    this.combinedFile,
     this.mediaFileCount = 0,
+  });
+}
+
+class ParsedBackupFile {
+  final Map<String, dynamic> package;
+  final List<int>? mediaBytes;
+  final bool mediaExpected;
+
+  const ParsedBackupFile({
+    required this.package,
+    this.mediaBytes,
+    this.mediaExpected = false,
   });
 }
 
@@ -182,20 +197,30 @@ class CloudBackupService {
   /// Singleton instance
   static final CloudBackupService instance = CloudBackupService._();
 
+  /// Stable filename used for automatic cross-device sync.
+  static const syncBackupFileName = 'NativeTavern_sync.ntx';
+  static const syncMetadataFileName = 'NativeTavern_sync.meta.json';
+
   CloudBackupService._({
     Future<Directory> Function()? documentsDirectoryProvider,
-  }) : _documentsDirectoryProvider =
-            documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+    ICloudContainerService? iCloudContainerService,
+  })  : _documentsDirectoryProvider =
+            documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
+        _iCloudContainer =
+            iCloudContainerService ?? const ICloudContainerService();
 
   factory CloudBackupService.forTesting({
     required Directory documentsDirectory,
+    ICloudContainerService? iCloudContainerService,
   }) {
     return CloudBackupService._(
       documentsDirectoryProvider: () async => documentsDirectory,
+      iCloudContainerService: iCloudContainerService,
     );
   }
 
   final Future<Directory> Function() _documentsDirectoryProvider;
+  final ICloudContainerService _iCloudContainer;
   String? lastMediaWarning;
 
   /// Get the cloud backups cache directory
@@ -217,6 +242,15 @@ class CloudBackupService {
     }
 
     try {
+      final nativePath = await _iCloudContainer.getContainerDocumentsPath();
+      if (nativePath != null && nativePath.isNotEmpty) {
+        final nativeDir = Directory(nativePath);
+        if (!await nativeDir.exists()) {
+          await nativeDir.create(recursive: true);
+        }
+        return nativeDir;
+      }
+
       // On iOS/macOS, iCloud container is accessible via file system
       // The ubiquity container path pattern for our app
 
@@ -405,9 +439,7 @@ class CloudBackupService {
   }) async {
     lastMediaWarning = null;
     final cacheDir = await getCloudCacheDirectory();
-    final timestamp = DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
-    final fileName =
-        'NativeTavern_cloud_backup_$timestamp.ntb'; // .ntb = NativeTavern Backup
+    final fileName = cloudBackupFileName(extension: 'ntb');
     final filePath = path.join(cacheDir.path, fileName);
     final documents = await _documentsDirectoryProvider();
     final nativeData = Directory(path.join(documents.path, 'NativeTavern'));
@@ -466,12 +498,103 @@ class CloudBackupService {
     final file = File(filePath);
     await file.writeAsString(jsonEncode(backupPackage));
 
+    File? combinedFile;
+    try {
+      combinedFile = await packageCombinedBackup(
+        dataFile: file,
+        mediaFile: mediaFile,
+        mediaFileCount: mediaFileCount,
+      );
+    } catch (error) {
+      print('CloudBackupService: Combined .ntx package failed: $error');
+    }
+
     return CloudBackupArtifacts(
       dataFile: file,
       mediaFile: mediaFile,
+      combinedFile: combinedFile,
       mediaFileCount: mediaFileCount,
     );
   }
+
+  /// Cloud-style backup file name used for local Backups and cloud copies.
+  static String cloudBackupFileName({
+    String extension = 'ntb',
+    DateTime? now,
+  }) {
+    final timestamp =
+        DateFormat('yyyy-MM-dd_HH-mm-ss').format(now ?? DateTime.now());
+    final normalized = extension.startsWith('.') ? extension : '.$extension';
+    return 'NativeTavern_cloud_backup_$timestamp$normalized';
+  }
+
+  /// `{documents}/NativeTavern/Backups`
+  Future<Directory> getAppBackupsDirectory() async {
+    final documents = await _documentsDirectoryProvider();
+    final dir = Directory(
+      path.join(documents.path, 'NativeTavern', 'Backups'),
+    );
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
+  }
+
+  /// Packs the JSON `.ntb` backup and optional `.ntm` media sidecar into one
+  /// `.ntx` zip that the system file handlers can open as a single artifact.
+  Future<File> packageCombinedBackup({
+    required File dataFile,
+    File? mediaFile,
+    int mediaFileCount = 0,
+    File? outputFile,
+  }) async {
+    final archive = Archive();
+    final dataBytes = await dataFile.readAsBytes();
+    archive.addFile(ArchiveFile('data.ntb', dataBytes.length, dataBytes));
+
+    String? mediaName;
+    if (mediaFile != null && await mediaFile.exists()) {
+      final mediaBytes = await mediaFile.readAsBytes();
+      mediaName = 'media.ntm';
+      archive.addFile(ArchiveFile(mediaName, mediaBytes.length, mediaBytes));
+    }
+
+    final manifestBytes = utf8.encode(
+      jsonEncode({
+        'version': 1,
+        'app': 'NativeTavern',
+        'format': 'ntx',
+        'createdAt': DateTime.now().toIso8601String(),
+        'dataFile': 'data.ntb',
+        if (mediaName != null) 'mediaFile': mediaName,
+        'mediaFileCount': mediaFileCount,
+      }),
+    );
+    archive.addFile(
+      ArchiveFile('manifest.json', manifestBytes.length, manifestBytes),
+    );
+
+    final encoded = ZipEncoder().encode(archive);
+
+    final target = outputFile ??
+        File(
+          path.join(
+            dataFile.parent.path,
+            '${path.basenameWithoutExtension(dataFile.path)}.ntx',
+          ),
+        );
+    await target.writeAsBytes(encoded, flush: true);
+    return target;
+  }
+
+  bool isCombinedBackupPath(String filePath) =>
+      path.extension(filePath).toLowerCase() == '.ntx';
+
+  bool isDataBackupPath(String filePath) =>
+      path.extension(filePath).toLowerCase() == '.ntb';
+
+  bool isMediaBackupPath(String filePath) =>
+      path.extension(filePath).toLowerCase() == '.ntm';
 
   Future<(File?, int)> _createMediaSidecar({
     required Map<String, dynamic> data,
@@ -906,8 +1029,17 @@ class CloudBackupService {
       final fileName = path.basename(backupFile.path);
       final targetPath = path.join(iCloudDir.path, fileName);
 
-      // Copy file to iCloud directory
-      final targetFile = await backupFile.copy(targetPath);
+      final copiedNatively = await _iCloudContainer.copyIntoContainer(
+        sourcePath: backupFile.path,
+        fileName: fileName,
+      );
+      final targetFile = File(targetPath);
+      if (!copiedNatively) {
+        if (await targetFile.exists()) {
+          await targetFile.delete();
+        }
+        await backupFile.copy(targetPath);
+      }
 
       if (mediaFile != null) {
         try {
@@ -958,7 +1090,9 @@ class CloudBackupService {
 
     try {
       await for (final entity in iCloudDir.list()) {
-        if (entity is File && entity.path.endsWith('.ntb')) {
+        if (entity is File &&
+            (isDataBackupPath(entity.path) ||
+                isCombinedBackupPath(entity.path))) {
           final stat = await entity.stat();
           final fileName = path.basename(entity.path);
 
@@ -998,39 +1132,57 @@ class CloudBackupService {
     onProgress?.call(0.0);
 
     final file = File(backup.remotePath!);
+    await _iCloudContainer.ensureDownloaded(file.path);
     if (!await file.exists()) {
       throw Exception('Backup file not found');
     }
 
-    final content = await file.readAsString();
-    var data = jsonDecode(content) as Map<String, dynamic>;
-    data = await restoreTextStateSafely(data);
     onProgress?.call(0.5);
-
-    final mediaName = _mediaFileName(data);
-    if (mediaName != null) {
-      onPartChanged?.call(CloudBackupTransferPart.media);
-      final mediaFile = File(path.join(file.parent.path, mediaName));
-      if (await mediaFile.exists()) {
-        final outcome = await restoreMediaFile(
-          backupPackage: data,
-          mediaFile: mediaFile,
-          onProgress: onMediaProgress,
-        );
-        data = outcome.backupPackage;
-        data['_mediaRestoredFiles'] = outcome.restoredFiles;
-        data['_mediaSkippedFiles'] = outcome.skippedFiles;
-        if (outcome.warning != null) {
-          data['_mediaRestoreWarning'] = outcome.warning;
-        }
-      } else {
-        data['_mediaRestoreWarning'] = 'Optional media backup was not found.';
-      }
-    }
-
+    final data = await importFromFile(
+      file,
+      onMediaProgress: onMediaProgress,
+      onPartChanged: onPartChanged,
+    );
     onProgress?.call(1.0);
-
     return data;
+  }
+
+  Future<CloudBackupInfo?> getICloudSyncBackup() async {
+    final iCloudDir = await getICloudDirectory();
+    if (iCloudDir == null) return null;
+    final file = File(path.join(iCloudDir.path, syncBackupFileName));
+    await _iCloudContainer.ensureDownloaded(file.path);
+    if (!await file.exists()) return null;
+    final stat = await file.stat();
+    return CloudBackupInfo(
+      id: syncBackupFileName.hashCode.toString(),
+      name: syncBackupFileName,
+      size: stat.size,
+      createdAt: stat.modified,
+      provider: CloudProvider.iCloud,
+      remotePath: file.path,
+    );
+  }
+
+  Future<Map<String, dynamic>?> readICloudSyncMetadata() async {
+    final iCloudDir = await getICloudDirectory();
+    if (iCloudDir == null) return null;
+    final file = File(path.join(iCloudDir.path, syncMetadataFileName));
+    await _iCloudContainer.ensureDownloaded(file.path);
+    if (!await file.exists()) return null;
+    try {
+      final decoded = jsonDecode(await file.readAsString());
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> writeICloudSyncMetadata(Map<String, dynamic> metadata) async {
+    final iCloudDir = await getICloudDirectory();
+    if (iCloudDir == null) return;
+    final file = File(path.join(iCloudDir.path, syncMetadataFileName));
+    await file.writeAsString(jsonEncode(metadata), flush: true);
   }
 
   /// Delete backup from iCloud
@@ -1042,12 +1194,21 @@ class CloudBackupService {
     final file = File(backup.remotePath!);
     if (await file.exists()) {
       try {
-        final data =
-            jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-        final mediaName = _mediaFileName(data);
-        if (mediaName != null) {
-          final mediaFile = File(path.join(file.parent.path, mediaName));
-          if (await mediaFile.exists()) await mediaFile.delete();
+        if (isDataBackupPath(file.path)) {
+          final data =
+              jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+          final mediaName = _mediaFileName(data);
+          if (mediaName != null) {
+            final mediaFile = File(path.join(file.parent.path, mediaName));
+            if (await mediaFile.exists()) await mediaFile.delete();
+          }
+          final combined = File(
+            path.join(
+              file.parent.path,
+              '${path.basenameWithoutExtension(file.path)}.ntx',
+            ),
+          );
+          if (await combined.exists()) await combined.delete();
         }
       } catch (_) {
         // Deleting the primary backup must not depend on optional metadata.
@@ -1069,31 +1230,48 @@ class CloudBackupService {
     return artifacts.dataFile;
   }
 
-  /// Import backup from file (for Google Drive)
+  /// Create local backup artifacts (.ntb and optional .ntm) for saving or sharing
+  Future<CloudBackupArtifacts> exportLocalBackupArtifacts({
+    required Map<String, dynamic> data,
+    CloudBackupOptions options = const CloudBackupOptions(),
+    void Function(CloudBackupArtifactProgress progress)? onProgress,
+  }) async {
+    return createCloudBackupArtifacts(
+      data: data,
+      provider: CloudProvider.googleDrive,
+      options: options,
+      onProgress: onProgress,
+    );
+  }
+
+  /// Import backup from file (`.ntx`, `.ntb`, and optional `.ntm`).
   Future<Map<String, dynamic>> importFromFile(
     File file, {
     File? mediaFile,
+    void Function(int processed, int total)? onMediaProgress,
+    void Function(CloudBackupTransferPart part)? onPartChanged,
   }) async {
-    final content = await file.readAsString();
-    var data = jsonDecode(content) as Map<String, dynamic>;
+    onPartChanged?.call(CloudBackupTransferPart.data);
+    final parsed = await parseBackupFile(file, mediaFile: mediaFile);
+    var data = parsed.package;
 
-    // Validate backup format
     if (data['app'] != 'NativeTavern') {
       throw Exception('Invalid backup file: not a NativeTavern backup');
     }
 
     data = await restoreTextStateSafely(data);
-    final mediaName = _mediaFileName(data);
-    if (mediaName == null) return data;
-    final resolvedMediaFile =
-        mediaFile ?? File(path.join(file.parent.path, mediaName));
-    if (!await resolvedMediaFile.exists()) {
-      data['_mediaRestoreWarning'] = 'Optional media backup was not found.';
+    if (parsed.mediaBytes == null) {
+      if (parsed.mediaExpected) {
+        data['_mediaRestoreWarning'] = 'Optional media backup was not found.';
+      }
       return data;
     }
-    final outcome = await restoreMediaFile(
+
+    onPartChanged?.call(CloudBackupTransferPart.media);
+    final outcome = await restoreMediaBytesSafely(
       backupPackage: data,
-      mediaFile: resolvedMediaFile,
+      bytes: parsed.mediaBytes!,
+      onProgress: onMediaProgress,
     );
     outcome.backupPackage['_mediaRestoredFiles'] = outcome.restoredFiles;
     outcome.backupPackage['_mediaSkippedFiles'] = outcome.skippedFiles;
@@ -1101,6 +1279,90 @@ class CloudBackupService {
       outcome.backupPackage['_mediaRestoreWarning'] = outcome.warning;
     }
     return outcome.backupPackage;
+  }
+
+  /// Reads a `.ntx`, `.ntb`, or `.ntm` backup without restoring it.
+  Future<ParsedBackupFile> parseBackupFile(
+    File file, {
+    File? mediaFile,
+  }) async {
+    if (isCombinedBackupPath(file.path)) {
+      return _parseCombinedBackup(file);
+    }
+    if (isMediaBackupPath(file.path)) {
+      throw Exception(
+        'Select a .ntx combined backup or a .ntb data backup. A .ntm media file cannot be restored on its own.',
+      );
+    }
+
+    final content = await file.readAsString();
+    final data = jsonDecode(content) as Map<String, dynamic>;
+    if (data['app'] != 'NativeTavern') {
+      throw Exception('Invalid backup file: not a NativeTavern backup');
+    }
+
+    final mediaName = _mediaFileName(data);
+    if (mediaName == null) {
+      return ParsedBackupFile(package: data);
+    }
+
+    final resolvedMediaFile =
+        mediaFile ?? File(path.join(file.parent.path, mediaName));
+    if (!await resolvedMediaFile.exists()) {
+      return ParsedBackupFile(package: data, mediaExpected: true);
+    }
+    return ParsedBackupFile(
+      package: data,
+      mediaBytes: await resolvedMediaFile.readAsBytes(),
+      mediaExpected: true,
+    );
+  }
+
+  Future<ParsedBackupFile> _parseCombinedBackup(File file) async {
+    final bytes = await file.readAsBytes();
+    final archive = ZipDecoder().decodeBytes(bytes, verify: true);
+    final archiveFiles = <String, ArchiveFile>{
+      for (final entry in archive.files)
+        if (entry.isFile) entry.name: entry,
+    };
+
+    final manifestEntry = archiveFiles['manifest.json'];
+    Map<String, dynamic> ntxManifest = const {};
+    if (manifestEntry != null) {
+      ntxManifest = jsonDecode(utf8.decode(_archiveBytes(manifestEntry)))
+          as Map<String, dynamic>;
+      if (ntxManifest['app'] != 'NativeTavern' ||
+          ntxManifest['format'] != 'ntx') {
+        throw const FormatException('Unsupported combined backup');
+      }
+    }
+
+    final dataName = ntxManifest['dataFile'] as String? ?? 'data.ntb';
+    if (path.basename(dataName) != dataName) {
+      throw const FormatException('Unsafe combined backup data path');
+    }
+    final dataEntry = archiveFiles[dataName] ?? archiveFiles['data.ntb'];
+    if (dataEntry == null) {
+      throw const FormatException('Combined backup is missing data.ntb');
+    }
+    final package = jsonDecode(utf8.decode(_archiveBytes(dataEntry)))
+        as Map<String, dynamic>;
+    if (package['app'] != 'NativeTavern') {
+      throw Exception('Invalid backup file: not a NativeTavern backup');
+    }
+
+    final mediaName = ntxManifest['mediaFile'] as String? ??
+        _mediaFileName(package) ??
+        'media.ntm';
+    if (path.basename(mediaName) != mediaName) {
+      throw const FormatException('Unsafe combined backup media path');
+    }
+    final mediaEntry = archiveFiles[mediaName] ?? archiveFiles['media.ntm'];
+    return ParsedBackupFile(
+      package: package,
+      mediaBytes: mediaEntry == null ? null : _archiveBytes(mediaEntry),
+      mediaExpected: mediaEntry != null || _mediaFileName(package) != null,
+    );
   }
 
   String? _mediaFileName(Map<String, dynamic> backupPackage) {

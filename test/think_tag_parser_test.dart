@@ -20,8 +20,7 @@ import 'package:native_tavern/domain/services/llm_service.dart';
 void main() {
   group('ThinkTagParser streaming', () {
     test('single chunk with think block', () {
-      final (content, reasoning) =
-          run(['<think>step 1</think>Hello world']);
+      final (content, reasoning) = run(['<think>step 1</think>Hello world']);
       expect(reasoning, 'step 1');
       expect(content, 'Hello world');
     });
@@ -59,8 +58,7 @@ void main() {
     });
 
     test('thinking variant', () {
-      final (content, reasoning) =
-          run(['<thinking>a</thinking>b']);
+      final (content, reasoning) = run(['<thinking>a</thinking>b']);
       expect(reasoning, 'a');
       expect(content, 'b');
     });

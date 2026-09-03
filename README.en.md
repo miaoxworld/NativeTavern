@@ -376,6 +376,10 @@ native_tavern/
 
 **Overall Completion: ~99%** of core SillyTavern features
 
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.en.md](CONTRIBUTING.en.md) for detailed guidelines on developer onboarding via `./setup.sh`, coding and localization standards, local build scripts, and pull request workflows.
+
 ## License
 
 AGPL-3.0 - See [LICENSE](LICENSE) for details.

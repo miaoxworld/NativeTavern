@@ -242,7 +242,7 @@ class GoogleDriveService {
 
     try {
       // Search for existing folder
-      final query =
+      const query =
           "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final response = await _driveApi!.files.list(
         q: query,
@@ -284,7 +284,7 @@ class GoogleDriveService {
       if (folderId == null) return [];
 
       final query =
-          "'$folderId' in parents and trashed=false and name contains '.ntb'";
+          "'$folderId' in parents and trashed=false and (name contains '.ntb' or name contains '.ntx')";
       final response = await _driveApi!.files.list(
         q: query,
         spaces: 'drive',
@@ -429,6 +429,152 @@ class GoogleDriveService {
       uploadMedia: drive.Media(Stream.value(bytes), bytes.length),
       $fields: 'id, name, size, createdTime, modifiedTime',
     );
+  }
+
+  /// Creates or replaces a file with a stable name, used for automatic sync.
+  Future<GoogleDriveBackupInfo?> upsertNamedFile({
+    required String fileName,
+    required File source,
+    String mimeType = 'application/x-nativetavern-package',
+  }) async {
+    if (_driveApi == null) return null;
+    try {
+      final folderId = await _getOrCreateBackupFolder();
+      if (folderId == null) return null;
+      final existing = await _findFileId(folderId, fileName);
+      final bytes = await source.readAsBytes();
+      final media = drive.Media(Stream.value(bytes), bytes.length);
+      late drive.File uploaded;
+      if (existing != null) {
+        uploaded = await _driveApi!.files.update(
+          drive.File()..name = fileName,
+          existing,
+          uploadMedia: media,
+          $fields: 'id, name, size, createdTime, modifiedTime',
+        );
+      } else {
+        uploaded = await _uploadBytes(
+          folderId: folderId,
+          fileName: fileName,
+          mimeType: mimeType,
+          bytes: bytes,
+        );
+      }
+      return GoogleDriveBackupInfo.fromDriveFile(uploaded);
+    } catch (error) {
+      debugPrint('GoogleDriveService: Upsert named file error: $error');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> readNamedJson(String fileName) async {
+    if (_driveApi == null) return null;
+    try {
+      final folderId = await _getOrCreateBackupFolder();
+      if (folderId == null) return null;
+      final id = await _findFileId(folderId, fileName);
+      if (id == null) return null;
+      final response = await _driveApi!.files.get(
+        id,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+      final bytes = <int>[];
+      await for (final chunk in response.stream) {
+        bytes.addAll(chunk);
+      }
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+    } catch (error) {
+      debugPrint('GoogleDriveService: Read named JSON error: $error');
+    }
+    return null;
+  }
+
+  Future<bool> upsertNamedJson(
+    String fileName,
+    Map<String, dynamic> data,
+  ) async {
+    if (_driveApi == null) return false;
+    try {
+      final folderId = await _getOrCreateBackupFolder();
+      if (folderId == null) return false;
+      final bytes = utf8.encode(jsonEncode(data));
+      final existing = await _findFileId(folderId, fileName);
+      final media = drive.Media(Stream.value(bytes), bytes.length);
+      if (existing != null) {
+        await _driveApi!.files.update(
+          drive.File()..name = fileName,
+          existing,
+          uploadMedia: media,
+        );
+      } else {
+        await _uploadBytes(
+          folderId: folderId,
+          fileName: fileName,
+          mimeType: 'application/json',
+          bytes: bytes,
+        );
+      }
+      return true;
+    } catch (error) {
+      debugPrint('GoogleDriveService: Upsert named JSON error: $error');
+      return false;
+    }
+  }
+
+  Future<GoogleDriveBackupInfo?> findNamedFile(String fileName) async {
+    if (_driveApi == null) return null;
+    try {
+      final folderId = await _getOrCreateBackupFolder();
+      if (folderId == null) return null;
+      final id = await _findFileId(folderId, fileName);
+      if (id == null) return null;
+      final file = await _driveApi!.files.get(
+        id,
+        $fields: 'id, name, size, createdTime, modifiedTime',
+      ) as drive.File;
+      return GoogleDriveBackupInfo.fromDriveFile(file);
+    } catch (error) {
+      debugPrint('GoogleDriveService: Find named file error: $error');
+      return null;
+    }
+  }
+
+  Future<String?> _findFileId(String folderId, String fileName) async {
+    if (fileName.contains("'")) return null;
+    final response = await _driveApi!.files.list(
+      q: "'$folderId' in parents and trashed=false and name='$fileName'",
+      spaces: 'drive',
+      $fields: 'files(id, name)',
+    );
+    final files = response.files;
+    if (files == null || files.isEmpty) return null;
+    return files.first.id;
+  }
+
+  /// Downloads a Drive file to a local path so `.ntx` zip backups can be parsed.
+  Future<File?> downloadToFile({
+    required String fileId,
+    required File destination,
+  }) async {
+    if (_driveApi == null) return null;
+    try {
+      final response = await _driveApi!.files.get(
+        fileId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+      final bytes = <int>[];
+      await for (final chunk in response.stream) {
+        bytes.addAll(chunk);
+      }
+      await destination.parent.create(recursive: true);
+      await destination.writeAsBytes(bytes, flush: true);
+      return destination;
+    } catch (error) {
+      debugPrint('GoogleDriveService: Download to file error: $error');
+      return null;
+    }
   }
 
   /// Download backup from Google Drive

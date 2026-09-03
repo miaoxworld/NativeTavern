@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Create an Issue
+    url: https://github.com/miaoxworld/NativeTavern/issues
+    about: Report bugs, suggest features, and request help with NativeTavern.
+  - name: Community Discord
+    url: https://discord.gg/URQvW2FvZa
+    about: Join the community and chat with other users.
+  - name: GitHub Repository
+    url: https://github.com/miaoxworld/NativeTavern
+    about: View the source code and contribute to NativeTavern.
+  - name: The NativeTavern Site
+    url: https://www.nativetavern.com
+    about: View the official NativeTavern website.

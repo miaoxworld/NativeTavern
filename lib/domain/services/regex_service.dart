@@ -5,7 +5,7 @@ import 'package:native_tavern/data/models/regex_script.dart';
 class RegexService {
   /// Singleton instance
   static final RegexService instance = RegexService._();
-  
+
   RegexService._();
 
   /// LRU cache for compiled regex patterns
@@ -32,7 +32,7 @@ class RegexService {
       if (_regexCache.length >= _maxCacheSize) {
         _regexCache.remove(_regexCache.keys.first);
       }
-      
+
       _regexCache[regexString] = regex;
       return regex;
     } catch (e) {
@@ -49,12 +49,12 @@ class RegexService {
       if (lastSlash > 0) {
         final pattern = regexString.substring(1, lastSlash);
         final flags = regexString.substring(lastSlash + 1);
-        
-        bool caseSensitive = !flags.contains('i');
-        bool multiLine = flags.contains('m');
-        bool dotAll = flags.contains('s');
-        bool unicode = flags.contains('u');
-        
+
+        final bool caseSensitive = !flags.contains('i');
+        final bool multiLine = flags.contains('m');
+        final bool dotAll = flags.contains('s');
+        final bool unicode = flags.contains('u');
+
         return RegExp(
           pattern,
           caseSensitive: caseSensitive,
@@ -64,7 +64,7 @@ class RegexService {
         );
       }
     }
-    
+
     // Plain pattern without delimiters
     return RegExp(regexString);
   }
@@ -90,7 +90,8 @@ class RegexService {
     if (script.substituteRegex == SubstituteRegex.raw) {
       regexString = _substituteMacros(regexString, characterName, userName);
     } else if (script.substituteRegex == SubstituteRegex.escaped) {
-      regexString = _substituteMacrosEscaped(regexString, characterName, userName);
+      regexString =
+          _substituteMacrosEscaped(regexString, characterName, userName);
     }
 
     final regex = getRegex(regexString);
@@ -102,17 +103,19 @@ class RegexService {
     try {
       return input.replaceAllMapped(regex, (match) {
         String replacement = script.replaceString;
-        
+
         // Replace {{match}} with $0
-        replacement = replacement.replaceAll(RegExp(r'\{\{match\}\}', caseSensitive: false), match.group(0) ?? '');
-        
+        replacement = replacement.replaceAll(
+            RegExp(r'\{\{match\}\}', caseSensitive: false),
+            match.group(0) ?? '');
+
         // Replace numbered capture groups ($1, $2, etc.)
         for (int i = 0; i <= match.groupCount; i++) {
           final group = match.group(i) ?? '';
           final filteredGroup = _filterString(group, script.trimStrings);
           replacement = replacement.replaceAll('\$$i', filteredGroup);
         }
-        
+
         // Replace named capture groups ($<name>)
         // Note: Named groups require RegExpMatch, which is available when using RegExp
         final namedGroupPattern = RegExp(r'\$<([^>]+)>');
@@ -120,7 +123,7 @@ class RegexService {
           final groupName = m.group(1);
           if (groupName != null && match is RegExpMatch) {
             try {
-              final regExpMatch = match as RegExpMatch;
+              final regExpMatch = match;
               final groupValue = regExpMatch.namedGroup(groupName) ?? '';
               return _filterString(groupValue, script.trimStrings);
             } catch (_) {
@@ -129,10 +132,10 @@ class RegexService {
           }
           return '';
         });
-        
+
         // Substitute macros in the replacement
         replacement = _substituteMacros(replacement, characterName, userName);
-        
+
         return replacement;
       });
     } catch (e) {
@@ -171,17 +174,23 @@ class RegexService {
       // Check markdown/prompt only flags
       if (script.markdownOnly && !isMarkdown) continue;
       if (script.promptOnly && !isPrompt) continue;
-      if (!script.markdownOnly && !script.promptOnly && (isMarkdown || isPrompt)) continue;
+      if (!script.markdownOnly &&
+          !script.promptOnly &&
+          (isMarkdown || isPrompt)) continue;
 
       // Check edit flag
       if (isEdit && !script.runOnEdit) continue;
 
       // Check depth constraints
       if (depth != null) {
-        if (script.minDepth != null && script.minDepth! >= -1 && depth < script.minDepth!) {
+        if (script.minDepth != null &&
+            script.minDepth! >= -1 &&
+            depth < script.minDepth!) {
           continue;
         }
-        if (script.maxDepth != null && script.maxDepth! >= 0 && depth > script.maxDepth!) {
+        if (script.maxDepth != null &&
+            script.maxDepth! >= 0 &&
+            depth > script.maxDepth!) {
           continue;
         }
       }
@@ -201,7 +210,7 @@ class RegexService {
   /// Filter a string by removing trim strings
   String _filterString(String input, List<String> trimStrings) {
     if (trimStrings.isEmpty) return input;
-    
+
     String result = input;
     for (final trim in trimStrings) {
       result = result.replaceAll(trim, '');
@@ -210,23 +219,27 @@ class RegexService {
   }
 
   /// Substitute macros in a string (raw)
-  String _substituteMacros(String input, String? characterName, String? userName) {
+  String _substituteMacros(
+      String input, String? characterName, String? userName) {
     String result = input;
-    
+
     if (characterName != null) {
-      result = result.replaceAll(RegExp(r'\{\{char\}\}', caseSensitive: false), characterName);
+      result = result.replaceAll(
+          RegExp(r'\{\{char\}\}', caseSensitive: false), characterName);
     }
     if (userName != null) {
-      result = result.replaceAll(RegExp(r'\{\{user\}\}', caseSensitive: false), userName);
+      result = result.replaceAll(
+          RegExp(r'\{\{user\}\}', caseSensitive: false), userName);
     }
-    
+
     return result;
   }
 
   /// Substitute macros in a string with regex escaping
-  String _substituteMacrosEscaped(String input, String? characterName, String? userName) {
+  String _substituteMacrosEscaped(
+      String input, String? characterName, String? userName) {
     String result = input;
-    
+
     if (characterName != null) {
       result = result.replaceAll(
         RegExp(r'\{\{char\}\}', caseSensitive: false),
@@ -239,7 +252,7 @@ class RegexService {
         _escapeRegex(userName),
       );
     }
-    
+
     return result;
   }
 
@@ -250,20 +263,28 @@ class RegexService {
       (match) {
         final char = match.group(0)!;
         switch (char) {
-          case '\n': return r'\n';
-          case '\r': return r'\r';
-          case '\t': return r'\t';
-          case '\v': return r'\v';
-          case '\f': return r'\f';
-          case '\x00': return r'\0';
-          default: return '\\$char';
+          case '\n':
+            return r'\n';
+          case '\r':
+            return r'\r';
+          case '\t':
+            return r'\t';
+          case '\v':
+            return r'\v';
+          case '\f':
+            return r'\f';
+          case '\x00':
+            return r'\0';
+          default:
+            return '\\$char';
         }
       },
     );
   }
 
   /// Test a regex pattern against a test string
-  RegexTestResult testRegex(String pattern, String testString, String replacement) {
+  RegexTestResult testRegex(
+      String pattern, String testString, String replacement) {
     try {
       final regex = getRegex(pattern);
       if (regex == null) {
@@ -278,7 +299,8 @@ class RegexService {
       final matches = regex.allMatches(testString).toList();
       final result = testString.replaceAllMapped(regex, (match) {
         String rep = replacement;
-        rep = rep.replaceAll(RegExp(r'\{\{match\}\}', caseSensitive: false), match.group(0) ?? '');
+        rep = rep.replaceAll(RegExp(r'\{\{match\}\}', caseSensitive: false),
+            match.group(0) ?? '');
         for (int i = 0; i <= match.groupCount; i++) {
           rep = rep.replaceAll('\$$i', match.group(i) ?? '');
         }
@@ -287,12 +309,14 @@ class RegexService {
 
       return RegexTestResult(
         success: true,
-        matches: matches.map((m) => RegexMatch(
-          fullMatch: m.group(0) ?? '',
-          start: m.start,
-          end: m.end,
-          groups: List.generate(m.groupCount + 1, (i) => m.group(i)),
-        )).toList(),
+        matches: matches
+            .map((m) => RegexMatch(
+                  fullMatch: m.group(0) ?? '',
+                  start: m.start,
+                  end: m.end,
+                  groups: List.generate(m.groupCount + 1, (i) => m.group(i)),
+                ))
+            .toList(),
         result: result,
       );
     } catch (e) {

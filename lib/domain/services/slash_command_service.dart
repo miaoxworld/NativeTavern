@@ -188,7 +188,7 @@ class SlashCommandService {
   /// Parse a message to check if it's a slash command
   SlashCommandResult parse(String input) {
     final trimmed = input.trim();
-    
+
     // Check if it starts with /
     if (!trimmed.startsWith('/')) {
       return SlashCommandResult.notACommand();
@@ -205,9 +205,11 @@ class SlashCommandService {
 
     // Find matching command
     for (final command in SlashCommands.all) {
-      if (command.name == commandName || command.aliases.contains(commandName)) {
+      if (command.name == commandName ||
+          command.aliases.contains(commandName)) {
         // Check if argument is required
-        if (command.requiresArgument && (argument == null || argument.isEmpty)) {
+        if (command.requiresArgument &&
+            (argument == null || argument.isEmpty)) {
           return SlashCommandResult.error(
             'Command /${command.name} requires an argument.\nUsage: ${command.usage}',
           );
@@ -216,13 +218,14 @@ class SlashCommandService {
       }
     }
 
-    return SlashCommandResult.error('Unknown command: /$commandName\nType /help for available commands.');
+    return SlashCommandResult.error(
+        'Unknown command: /$commandName\nType /help for available commands.');
   }
 
   /// Get command suggestions based on partial input
   List<SlashCommand> getSuggestions(String input) {
     final trimmed = input.trim().toLowerCase();
-    
+
     if (!trimmed.startsWith('/')) {
       return [];
     }
@@ -244,37 +247,39 @@ class SlashCommandService {
     final buffer = StringBuffer();
     buffer.writeln('Available Commands:');
     buffer.writeln();
-    
+
     for (final command in SlashCommands.all) {
       buffer.writeln('/${command.name}');
       buffer.writeln('  ${command.description}');
       if (command.aliases.isNotEmpty) {
-        buffer.writeln('  Aliases: ${command.aliases.map((a) => '/$a').join(', ')}');
+        buffer.writeln(
+            '  Aliases: ${command.aliases.map((a) => '/$a').join(', ')}');
       }
       buffer.writeln('  Usage: ${command.usage}');
       buffer.writeln();
     }
-    
+
     return buffer.toString();
   }
 
   /// Get help text for a specific command
   String getCommandHelp(String commandName) {
     final name = commandName.toLowerCase();
-    
+
     for (final command in SlashCommands.all) {
       if (command.name == name || command.aliases.contains(name)) {
         final buffer = StringBuffer();
         buffer.writeln('/${command.name}');
         buffer.writeln(command.description);
         if (command.aliases.isNotEmpty) {
-          buffer.writeln('Aliases: ${command.aliases.map((a) => '/$a').join(', ')}');
+          buffer.writeln(
+              'Aliases: ${command.aliases.map((a) => '/$a').join(', ')}');
         }
         buffer.writeln('Usage: ${command.usage}');
         return buffer.toString();
       }
     }
-    
+
     return 'Unknown command: $commandName';
   }
 }

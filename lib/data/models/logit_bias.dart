@@ -73,7 +73,8 @@ class LogitBiasEntry {
   int get hashCode => Object.hash(id, text, value, enabled);
 
   @override
-  String toString() => 'LogitBiasEntry(id: $id, text: $text, value: $value, enabled: $enabled)';
+  String toString() =>
+      'LogitBiasEntry(id: $id, text: $text, value: $value, enabled: $enabled)';
 }
 
 /// Represents a preset of logit bias entries
@@ -159,7 +160,8 @@ class LogitBiasPreset {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'LogitBiasPreset(id: $id, name: $name, entries: ${entries.length})';
+  String toString() =>
+      'LogitBiasPreset(id: $id, name: $name, entries: ${entries.length})';
 }
 
 /// Settings for logit bias feature
@@ -201,7 +203,8 @@ class LogitBiasSettings {
   }) {
     return LogitBiasSettings(
       enabled: enabled ?? this.enabled,
-      activePresetId: clearActivePreset ? null : (activePresetId ?? this.activePresetId),
+      activePresetId:
+          clearActivePreset ? null : (activePresetId ?? this.activePresetId),
       presets: presets ?? this.presets,
     );
   }
@@ -234,8 +237,10 @@ class LogitBiasSettings {
 enum LogitBiasInputFormat {
   /// Normal text - will be tokenized with leading space
   text,
+
   /// Verbatim text in {braces} - tokenized exactly as written
   verbatim,
+
   /// Raw token IDs in [brackets] - JSON array of integers
   tokenIds,
 }

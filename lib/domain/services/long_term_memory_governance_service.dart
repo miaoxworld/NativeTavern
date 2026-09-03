@@ -619,8 +619,7 @@ bool isMemoryLlmConfigured(LLMConfig config) {
   if (config.provider != LLMProvider.koboldCpp && config.model.trim().isEmpty) {
     return false;
   }
-  final keyOptional = config.provider == LLMProvider.ollama ||
-      config.provider == LLMProvider.koboldCpp ||
+  final keyOptional = config.provider.isLocalServer ||
       config.provider == LLMProvider.openAICompatible;
   return keyOptional || config.apiKey.trim().isNotEmpty;
 }

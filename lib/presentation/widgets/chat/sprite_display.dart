@@ -22,10 +22,10 @@ class SpriteDisplay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(spriteSettingsProvider);
-    
+
     // Don't show if disabled
     if (!settings.enabled) return const SizedBox.shrink();
-    
+
     // Don't show during streaming if setting is off
     if (isStreaming && !settings.showDuringStreaming) {
       return const SizedBox.shrink();
@@ -96,7 +96,7 @@ class _SpriteImageState extends State<_SpriteImage>
   @override
   void didUpdateWidget(_SpriteImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Animate when sprite changes
     if (widget.sprite.imagePath != _previousSpritePath &&
         widget.settings.animateTransitions) {
@@ -115,7 +115,7 @@ class _SpriteImageState extends State<_SpriteImage>
   @override
   Widget build(BuildContext context) {
     final file = File(widget.sprite.imagePath);
-    
+
     Widget imageWidget = Image.file(
       file,
       width: widget.settings.size,
@@ -211,7 +211,7 @@ class FloatingSpriteDisplay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(spriteSettingsProvider);
-    
+
     if (!settings.enabled) return const SizedBox.shrink();
     if (isStreaming && !settings.showDuringStreaming) {
       return const SizedBox.shrink();
@@ -227,7 +227,7 @@ class FloatingSpriteDisplay extends ConsumerWidget {
     return spriteAsync.when(
       data: (sprite) {
         if (sprite == null) return const SizedBox.shrink();
-        
+
         return Positioned(
           left: settings.position == SpritePosition.floatingLeft ||
                   settings.position == SpritePosition.left
@@ -267,7 +267,7 @@ class CompactSpriteDisplay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(spriteSettingsProvider);
-    
+
     if (!settings.enabled) return const SizedBox.shrink();
 
     final spriteAsync = ref.watch(
@@ -280,7 +280,7 @@ class CompactSpriteDisplay extends ConsumerWidget {
     return spriteAsync.when(
       data: (sprite) {
         if (sprite == null) return const SizedBox.shrink();
-        
+
         final file = File(sprite.imagePath);
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -323,7 +323,7 @@ class SpritePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final file = File(sprite.imagePath);
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -448,7 +448,7 @@ class SpriteGrid extends ConsumerWidget {
         }
 
         final sprites = pack.sprites.values.toList();
-        
+
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

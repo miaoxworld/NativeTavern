@@ -146,7 +146,8 @@ class ChatBackground {
         orElse: () => BackgroundType.none,
       ),
       color: json['color'] as String?,
-      gradientColors: (json['gradientColors'] as List<dynamic>?)?.cast<String>(),
+      gradientColors:
+          (json['gradientColors'] as List<dynamic>?)?.cast<String>(),
       gradientAngle: (json['gradientAngle'] as num?)?.toDouble(),
       imagePath: json['imagePath'] as String?,
       imageUrl: json['imageUrl'] as String?,
@@ -160,7 +161,8 @@ class ChatBackground {
   String toJsonString() => jsonEncode(toJson());
 
   factory ChatBackground.fromJsonString(String jsonString) {
-    return ChatBackground.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+    return ChatBackground.fromJson(
+        jsonDecode(jsonString) as Map<String, dynamic>);
   }
 
   @override

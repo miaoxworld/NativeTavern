@@ -30,8 +30,7 @@ class BookmarkRepository {
 
   /// Get bookmark by ID
   Future<Bookmark?> getBookmark(String id) async {
-    final row = await (_db.select(_db.bookmarks)
-          ..where((t) => t.id.equals(id)))
+    final row = await (_db.select(_db.bookmarks)..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     return row != null ? _bookmarkFromRow(row) : null;
   }
@@ -74,9 +73,9 @@ class BookmarkRepository {
   Future<Bookmark> updateBookmark(Bookmark bookmark) async {
     await (_db.update(_db.bookmarks)..where((t) => t.id.equals(bookmark.id)))
         .write(BookmarksCompanion(
-          name: Value(bookmark.name),
-          description: Value(bookmark.description),
-        ));
+      name: Value(bookmark.name),
+      description: Value(bookmark.description),
+    ));
     return bookmark;
   }
 
@@ -87,7 +86,8 @@ class BookmarkRepository {
 
   /// Delete all bookmarks for a chat
   Future<void> deleteBookmarksForChat(String chatId) async {
-    await (_db.delete(_db.bookmarks)..where((t) => t.chatId.equals(chatId))).go();
+    await (_db.delete(_db.bookmarks)..where((t) => t.chatId.equals(chatId)))
+        .go();
   }
 
   /// Get bookmark count for a chat

@@ -40,8 +40,7 @@ class VectorStorageService {
             VectorCollection.fromJson(item as Map<String, dynamic>);
         _collections[collection.id] = collection;
       }
-      debugPrint(
-          'VectorStorage: loaded ${_collections.length} collections');
+      debugPrint('VectorStorage: loaded ${_collections.length} collections');
     } catch (e) {
       debugPrint('VectorStorage: failed to load collections: $e');
     }
@@ -125,8 +124,11 @@ class VectorStorageService {
       final doc = addDocument(
         collectionId: collectionId,
         content: contents[i],
-        embedding: embeddings != null && i < embeddings.length ? embeddings[i] : null,
-        metadata: metadataList != null && i < metadataList.length ? metadataList[i] : null,
+        embedding:
+            embeddings != null && i < embeddings.length ? embeddings[i] : null,
+        metadata: metadataList != null && i < metadataList.length
+            ? metadataList[i]
+            : null,
       );
       documents.add(doc);
     }
@@ -138,11 +140,11 @@ class VectorStorageService {
     final collection = _collections[collectionId];
     if (collection == null) return;
 
-    final updatedDocuments = collection.documents
-        .where((d) => d.id != documentId)
-        .toList();
+    final updatedDocuments =
+        collection.documents.where((d) => d.id != documentId).toList();
 
-    _collections[collectionId] = collection.copyWith(documents: updatedDocuments);
+    _collections[collectionId] =
+        collection.copyWith(documents: updatedDocuments);
     persist();
   }
 
@@ -162,7 +164,8 @@ class VectorStorageService {
       return d;
     }).toList();
 
-    _collections[collectionId] = collection.copyWith(documents: updatedDocuments);
+    _collections[collectionId] =
+        collection.copyWith(documents: updatedDocuments);
     persist();
   }
 
@@ -248,12 +251,13 @@ class VectorStorageService {
     // Simple sentence splitting
     final sentencePattern = RegExp(r'[.!?]+\s+');
     final sentences = text.split(sentencePattern);
-    
+
     final chunks = <String>[];
     var currentChunk = StringBuffer();
 
     for (final sentence in sentences) {
-      if (currentChunk.length + sentence.length > maxChunkSize && currentChunk.isNotEmpty) {
+      if (currentChunk.length + sentence.length > maxChunkSize &&
+          currentChunk.isNotEmpty) {
         chunks.add(currentChunk.toString().trim());
         currentChunk = StringBuffer();
       }
@@ -282,10 +286,10 @@ class VectorStorageService {
     int? maxLength,
   }) {
     final buffer = StringBuffer();
-    
+
     for (int i = 0; i < results.length; i++) {
       if (i > 0) buffer.write(separator);
-      
+
       final content = results[i].document.content;
       if (maxLength != null && buffer.length + content.length > maxLength) {
         // Truncate if exceeding max length
@@ -296,7 +300,7 @@ class VectorStorageService {
         }
         break;
       }
-      
+
       buffer.write(content);
     }
 
@@ -415,5 +419,6 @@ class CollectionStatistics {
     return embeddedCount / documentCount;
   }
 
-  String get embeddingCoveragePercent => '${(embeddingCoverage * 100).toStringAsFixed(1)}%';
+  String get embeddingCoveragePercent =>
+      '${(embeddingCoverage * 100).toStringAsFixed(1)}%';
 }

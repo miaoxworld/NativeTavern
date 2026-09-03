@@ -165,9 +165,15 @@ if [[ "$CHECK_ONLY" == 'true' ]]; then
   exit 0
 fi
 
+if [[ -f .env ]]; then
+  set -a
+  source .env
+  set +a
+fi
+
 PROJECT_TEAM_ID="$(read_project_team_id)"
-TEAM_ID="${TEAM_ID:-$PROJECT_TEAM_ID}"
-[[ -n "$TEAM_ID" ]] || fail "Set TEAM_ID or configure DEVELOPMENT_TEAM in Xcode"
+TEAM_ID="${TEAM_ID:-${APPLE_DEVELOP_ID:-$PROJECT_TEAM_ID}}"
+[[ -n "$TEAM_ID" ]] || fail "Set TEAM_ID, APPLE_DEVELOP_ID in .env, or configure DEVELOPMENT_TEAM in Xcode"
 
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nativetavern-ios-release.XXXXXX")"
 cleanup() {
@@ -186,6 +192,9 @@ printf 'Team: %s\n' "$TEAM_ID"
 
 flutter clean
 flutter pub get
+
+echo "=== Generating Launcher Icons ==="
+dart run flutter_launcher_icons
 
 pushd ios >/dev/null
 if [[ "$POD_REPO_UPDATE" == 'true' ]]; then

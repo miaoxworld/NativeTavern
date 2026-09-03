@@ -13,6 +13,8 @@ import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/character_avatar_image.dart';
 import 'package:native_tavern/presentation/widgets/common/group_avatar.dart';
+import 'package:native_tavern/domain/services/chat_export_service.dart';
+import 'package:native_tavern/presentation/widgets/chat/chat_import_dialog.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
 
 /// Home screen showing recent chats
@@ -59,6 +61,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ref.invalidate(_groupPresentationProvider);
   }
 
+  Future<void> _importChat() async {
+    final exportService = ChatExportService();
+    final result = await exportService.importFromFile();
+    if (result == null || !mounted) return;
+
+    final createdChat = await ChatImportResolutionDialog.show(
+      context,
+      importResult: result,
+    );
+
+    if (createdChat != null && mounted) {
+      ref.invalidate(pagedChatsProvider);
+      ref.invalidate(allChatsProvider);
+      if (!mounted) return;
+      context.push('/chat/${createdChat.id}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -67,6 +87,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: l10n.importChat,
+            onPressed: _importChat,
+          ),
           IconButton(
             icon: const Icon(Icons.groups),
             tooltip: l10n.groupChats,
@@ -79,7 +104,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-      body: const _ChatListView(),
+      body: _ChatListView(onImportChat: _importChat),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.characters),
         icon: const Icon(Icons.add),
@@ -90,7 +115,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 }
 
 class _ChatListView extends ConsumerWidget {
-  const _ChatListView();
+  final VoidCallback onImportChat;
+  const _ChatListView({required this.onImportChat});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -140,10 +166,22 @@ class _ChatListView extends ConsumerWidget {
                       ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => context.push(AppRoutes.characters),
-                  icon: const Icon(Icons.people),
-                  label: Text(l10n.browseCharacters),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => context.push(AppRoutes.characters),
+                      icon: const Icon(Icons.people),
+                      label: Text(l10n.browseCharacters),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: onImportChat,
+                      icon: const Icon(Icons.file_upload_outlined),
+                      label: Text(l10n.importChat),
+                    ),
+                  ],
                 ),
               ],
             ),

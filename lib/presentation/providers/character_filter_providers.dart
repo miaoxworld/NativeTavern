@@ -17,7 +17,8 @@ enum CharacterSortOption {
 class CharacterFilterState {
   final String searchQuery;
   final Set<String> selectedTagIds; // Tag IDs from the Tags table
-  final List<String> selectedLegacyTags; // Legacy string tags from character.tags
+  final List<String>
+      selectedLegacyTags; // Legacy string tags from character.tags
   final bool showFavoritesOnly;
   final CharacterSortOption sortOption;
 
@@ -121,12 +122,12 @@ final characterFilterProvider =
 final allLegacyTagsProvider = FutureProvider<List<String>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final characters = await repo.getAllCharacters();
-  
+
   final tagSet = <String>{};
   for (final character in characters) {
     tagSet.addAll(character.tags);
   }
-  
+
   final tags = tagSet.toList()..sort();
   return tags;
 });
@@ -135,13 +136,12 @@ final allLegacyTagsProvider = FutureProvider<List<String>>((ref) async {
 final allCombinedTagsProvider = FutureProvider<List<dynamic>>((ref) async {
   final newTags = await ref.watch(allTagsProvider.future);
   final legacyTags = await ref.watch(allLegacyTagsProvider.future);
-  
+
   // Return new tags first, then legacy tags that aren't covered by new tags
   final newTagNames = newTags.map((t) => t.name.toLowerCase()).toSet();
-  final uniqueLegacyTags = legacyTags.where(
-    (t) => !newTagNames.contains(t.toLowerCase())
-  ).toList();
-  
+  final uniqueLegacyTags =
+      legacyTags.where((t) => !newTagNames.contains(t.toLowerCase())).toList();
+
   return [...newTags, ...uniqueLegacyTags];
 });
 
@@ -150,9 +150,9 @@ final filteredCharactersProvider = FutureProvider<List<Character>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final filterState = ref.watch(characterFilterProvider);
   final tagRepo = ref.watch(tagRepositoryProvider);
-  
+
   var characters = await repo.getAllCharacters();
-  
+
   // Apply search filter
   if (filterState.searchQuery.isNotEmpty) {
     final query = filterState.searchQuery.toLowerCase();
@@ -163,34 +163,38 @@ final filteredCharactersProvider = FutureProvider<List<Character>>((ref) async {
           c.creator.toLowerCase().contains(query);
     }).toList();
   }
-  
+
   // Apply new tag filter (from Tags table)
   if (filterState.selectedTagIds.isNotEmpty) {
     final tagIds = filterState.selectedTagIds.toList();
     final characterIdsWithTags = await tagRepo.getCharactersWithAllTags(tagIds);
     final characterIdSet = characterIdsWithTags.toSet();
-    characters = characters.where((c) => characterIdSet.contains(c.id)).toList();
+    characters =
+        characters.where((c) => characterIdSet.contains(c.id)).toList();
   }
-  
+
   // Apply legacy tag filter (from character.tags field)
   if (filterState.selectedLegacyTags.isNotEmpty) {
     characters = characters.where((c) {
-      return filterState.selectedLegacyTags.every((tag) => c.tags.contains(tag));
+      return filterState.selectedLegacyTags
+          .every((tag) => c.tags.contains(tag));
     }).toList();
   }
-  
+
   // Apply favorites filter
   if (filterState.showFavoritesOnly) {
     characters = characters.where((c) => c.isFavorite).toList();
   }
-  
+
   // Apply sorting
   switch (filterState.sortOption) {
     case CharacterSortOption.nameAsc:
-      characters.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      characters
+          .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       break;
     case CharacterSortOption.nameDesc:
-      characters.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+      characters
+          .sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
       break;
     case CharacterSortOption.createdAtDesc:
       characters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -205,7 +209,7 @@ final filteredCharactersProvider = FutureProvider<List<Character>>((ref) async {
       characters.sort((a, b) => a.modifiedAt.compareTo(b.modifiedAt));
       break;
   }
-  
+
   return characters;
 });
 
@@ -220,14 +224,14 @@ final favoriteCharactersProvider = FutureProvider<List<Character>>((ref) async {
 final tagCountsProvider = FutureProvider<Map<String, int>>((ref) async {
   final repo = ref.watch(characterRepositoryProvider);
   final characters = await repo.getAllCharacters();
-  
+
   final counts = <String, int>{};
   for (final character in characters) {
     for (final tag in character.tags) {
       counts[tag] = (counts[tag] ?? 0) + 1;
     }
   }
-  
+
   return counts;
 });
 

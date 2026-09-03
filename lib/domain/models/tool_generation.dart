@@ -43,11 +43,11 @@ final class ToolLoopLimits {
   }
 
   Map<String, dynamic> toJson() => {
-    'maxToolRounds': maxToolRounds,
-    'maxCalls': maxCalls,
-    'maxElapsedSeconds': maxElapsed.inSeconds,
-    'maxTokenBudget': maxTokenBudget,
-  };
+        'maxToolRounds': maxToolRounds,
+        'maxCalls': maxCalls,
+        'maxElapsedSeconds': maxElapsed.inSeconds,
+        'maxTokenBudget': maxTokenBudget,
+      };
 
   factory ToolLoopLimits.fromJson(Map<String, dynamic> json) {
     final value = ToolLoopLimits(
@@ -67,10 +67,10 @@ final class ToolCallingSettings {
     Iterable<String> enabledBuiltInTools = const [],
     this.limits = const ToolLoopLimits(),
   }) : enabledBuiltInTools = Set<String>.unmodifiable(
-         enabledBuiltInTools
-             .map((name) => name.trim())
-             .where((name) => name.isNotEmpty),
-       ) {
+          enabledBuiltInTools
+              .map((name) => name.trim())
+              .where((name) => name.isNotEmpty),
+        ) {
     limits.validate();
   }
 
@@ -91,11 +91,11 @@ final class ToolCallingSettings {
   }
 
   Map<String, dynamic> toJson() => {
-    'version': 1,
-    'enabled': enabled,
-    'enabledBuiltInTools': enabledBuiltInTools.toList()..sort(),
-    'limits': limits.toJson(),
-  };
+        'version': 1,
+        'enabled': enabled,
+        'enabledBuiltInTools': enabledBuiltInTools.toList()..sort(),
+        'limits': limits.toJson(),
+      };
 
   factory ToolCallingSettings.fromJson(Map<String, dynamic> json) {
     return ToolCallingSettings(
