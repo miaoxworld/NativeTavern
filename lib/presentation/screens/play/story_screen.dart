@@ -6,6 +6,9 @@ import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/data/repositories/chat_repository.dart';
 import 'package:native_tavern/domain/services/story_play_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/presentation/providers/memory_providers.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/providers/story_providers.dart';
 import 'package:native_tavern/presentation/providers/story_timeline_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
@@ -177,6 +180,7 @@ class _StoryRoot extends ConsumerWidget {
     final rootItem = items
         .where((item) => item.chatId == item.effectiveRootChatId)
         .firstOrNull;
+    final rootChatId = rootItem?.chatId ?? items.first.effectiveRootChatId;
     final title =
         rootItem?.chatTitle ?? items.first.chatTitle ?? items.first.title;
     return Column(
@@ -186,6 +190,16 @@ class _StoryRoot extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+            ),
+            IconButton(
+              tooltip: l10n.storyRename,
+              onPressed: () => _renameStoryDialog(
+                context,
+                ref,
+                rootChatId: rootChatId,
+                currentTitle: title,
+              ),
+              icon: const Icon(Icons.edit_outlined),
             ),
             if (branches.length >= 2)
               IconButton(
@@ -205,6 +219,118 @@ class _StoryRoot extends ConsumerWidget {
           if (index < branchEntries.length - 1) const SizedBox(height: 12),
         ],
       ],
+    );
+  }
+
+  Future<void> _renameStoryDialog(
+    BuildContext context,
+    WidgetRef ref, {
+    required String rootChatId,
+    required String currentTitle,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(text: currentTitle);
+    var isGenerating = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.storyRenameTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.storyRename,
+                  hintText: l10n.storyTitleHint,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: isGenerating
+                    ? null
+                    : () async {
+                        setState(() => isGenerating = true);
+                        try {
+                          final config = ref.read(llmConfigProvider);
+                          final generated = await ref
+                              .read(storyPlayServiceProvider)
+                              .generateStoryTitle(
+                                rootChatId: rootChatId,
+                                config: config,
+                              );
+                          if (generated.isNotEmpty) {
+                            controller.text = generated;
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
+                        } finally {
+                          if (dialogContext.mounted) {
+                            setState(() => isGenerating = false);
+                          }
+                        }
+                      },
+                icon: isGenerating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome),
+                label: Text(
+                  isGenerating
+                      ? l10n.storyGeneratingTitle
+                      : l10n.storyGenerateTitle,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newTitle = controller.text.trim();
+                if (newTitle.isNotEmpty && newTitle != currentTitle) {
+                  try {
+                    await ref
+                        .read(storyPlayServiceProvider)
+                        .renameStory(rootChatId: rootChatId, newTitle: newTitle);
+                    ref.read(storyRevisionProvider.notifier).state++;
+                    ref.invalidate(allChatsProvider);
+                    ref.read(memoryInboxProvider.notifier).refresh();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.storyTitleUpdated)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                }
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

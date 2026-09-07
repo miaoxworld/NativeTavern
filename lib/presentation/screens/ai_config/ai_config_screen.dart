@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/instruct_template.dart';
+import '../../../data/models/vector_storage.dart';
 import '../../../domain/services/llm_service.dart';
 import '../../../domain/services/region_service.dart';
 import '../../providers/ai_preset_providers.dart';
 import '../../providers/instruct_providers.dart';
 import '../../providers/settings_providers.dart';
+import '../../providers/vector_storage_providers.dart';
 import '../../router/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
@@ -27,11 +29,11 @@ class AIConfigScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.aiConfiguration),
+        title: Text(AppLocalizations.of(context).aiConfiguration),
         actions: [
           IconButton(
             icon: const Icon(Icons.file_download),
-            tooltip: AppLocalizations.of(context)!.importPreset,
+            tooltip: AppLocalizations.of(context).importPreset,
             onPressed: () => context.push(AppRoutes.aiPresets),
           ),
         ],
@@ -149,6 +151,13 @@ class AIConfigScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.advancedSettings),
           ),
+
+          const Divider(height: 32),
+          _buildSectionHeader(
+            context,
+            AppLocalizations.of(context)!.memoryAndConversationalStorage,
+          ),
+          const _MemoryAndStorageSection(),
 
           const SizedBox(height: 32),
         ],
@@ -1372,8 +1381,8 @@ class _PromptCacheTile extends ConsumerWidget {
 
     return SwitchListTile(
       secondary: const Icon(Icons.savings_outlined),
-      title: Text(AppLocalizations.of(context)!.promptCaching),
-      subtitle: Text(AppLocalizations.of(context)!.promptCachingDescription),
+      title: Text(AppLocalizations.of(context).promptCaching),
+      subtitle: Text(AppLocalizations.of(context).promptCachingDescription),
       value: config.promptCacheEnabled,
       onChanged: (value) {
         ref.read(llmConfigProvider.notifier).updatePromptCacheEnabled(value);
@@ -1606,3 +1615,154 @@ class _ModelSelectionSheetState extends State<_ModelSelectionSheet> {
     );
   }
 }
+
+class _MemoryAndStorageSection extends ConsumerWidget {
+  const _MemoryAndStorageSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final llmConfig = ref.watch(llmConfigProvider);
+    final appSettings = ref.watch(appSettingsProvider);
+    final vectorSettings = ref.watch(vectorStorageSettingsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(
+            l10n.memoryAndConversationalStorageSubtitle,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textMuted,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // 1. Auto-Summarization for Long Chats
+        SwitchListTile(
+          secondary: const Icon(Icons.compress),
+          title: Text(l10n.autoSummarize),
+          subtitle: Text(l10n.autoSummarizeDescription),
+          value: llmConfig.autoSummarizeEnabled,
+          onChanged: (value) {
+            ref
+                .read(llmConfigProvider.notifier)
+                .updateAutoSummarizeEnabled(value);
+          },
+        ),
+        if (llmConfig.autoSummarizeEnabled)
+          ListTile(
+            leading: const Icon(Icons.percent),
+            title: Text(l10n.autoSummarizeThreshold),
+            subtitle: Text(l10n.autoSummarizeThresholdDescription),
+            trailing: SizedBox(
+              width: 150,
+              child: Slider(
+                value: llmConfig.autoSummarizeThreshold,
+                min: 0.5,
+                max: 0.95,
+                divisions: 9,
+                label:
+                    '${(llmConfig.autoSummarizeThreshold * 100).toStringAsFixed(0)}%',
+                onChanged: (val) {
+                  ref
+                      .read(llmConfigProvider.notifier)
+                      .updateAutoSummarizeThreshold(val);
+                },
+              ),
+            ),
+          ),
+
+        // 2. Long-Term Episodic Memory
+        SwitchListTile(
+          secondary: const Icon(Icons.psychology_outlined),
+          title: Text(l10n.memoryUseInChat),
+          subtitle: Text(l10n.memoryInboxSubtitle),
+          value: appSettings.memoryContextEnabled,
+          onChanged: (value) {
+            ref.read(appSettingsProvider.notifier).updateMemoryContext(value);
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.auto_awesome_outlined),
+          title: Text(l10n.memoryAutomaticExtraction),
+          subtitle: Text(l10n.memoryAutomaticExtractionSubtitle),
+          value: appSettings.memoryAutoExtractionEnabled,
+          onChanged: (value) {
+            ref
+                .read(appSettingsProvider.notifier)
+                .updateMemoryAutoExtraction(value);
+          },
+        ),
+        if (appSettings.memoryContextEnabled) ...[
+          ListTile(
+            leading: const Icon(Icons.data_usage_outlined),
+            title: Text(l10n.memoryContextBudget),
+            trailing: DropdownButton<int>(
+              value: appSettings.memoryContextTokenBudget,
+              items: [256, 512, 1024, 2048]
+                  .map(
+                    (tokens) => DropdownMenuItem(
+                      value: tokens,
+                      child: Text(l10n.memoryTokensCount(tokens)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .updateMemoryContextTokenBudget(value);
+                }
+              },
+            ),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.hub_outlined),
+            title: Text(l10n.memorySemanticReranking),
+            subtitle: Text(l10n.memoryConfiguredEmbeddingProvider),
+            value: appSettings.memorySemanticSearchEnabled,
+            onChanged: (value) {
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .updateMemorySemanticSearch(value);
+            },
+          ),
+        ],
+        ListTile(
+          leading: const Icon(Icons.inbox_outlined),
+          title: Text(l10n.memoryInbox),
+          subtitle: Text(l10n.memoryInboxSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push(AppRoutes.memoryInbox),
+        ),
+
+        // 3. Vector Storage / RAG
+        SwitchListTile(
+          secondary: const Icon(Icons.storage_outlined),
+          title: Text(l10n.enableRag),
+          subtitle: Text(l10n.retrievalAugmentedGeneration),
+          value: vectorSettings.enabled,
+          onChanged: (value) {
+            ref
+                .read(vectorStorageSettingsProvider.notifier)
+                .setEnabled(value);
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.folder_special_outlined),
+          title: Text(l10n.vectorStorageRag),
+          subtitle: Text(vectorSettings.enabled
+              ? '${vectorSettings.embeddingProvider.displayName} (${vectorSettings.topK} results)'
+              : l10n.disabled),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push(AppRoutes.vectorStorageSettings),
+        ),
+      ],
+    );
+  }
+}
+

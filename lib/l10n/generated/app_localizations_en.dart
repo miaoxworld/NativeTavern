@@ -6739,4 +6739,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncCollectionApiKeys => 'Encrypted API keys';
+
+  @override
+  String get memoryAndConversationalStorage =>
+      'Memory & Conversational Storage';
+
+  @override
+  String get memoryAndConversationalStorageSubtitle =>
+      'Manage rolling chat summarization, long-term facts, and vector retrieval for long chat sessions';
+
+  @override
+  String get memoryAndConversationalStorageDescription =>
+      'Settings for context preservation and memory management in long chat sessions';
+
+  @override
+  String get storyRename => 'Rename story';
+
+  @override
+  String get storyRenameTitle => 'Rename Story';
+
+  @override
+  String get storyGenerateTitle => 'Generate Title';
+
+  @override
+  String get storyGeneratingTitle => 'Generating title...';
+
+  @override
+  String get storyTitleUpdated => 'Story title updated';
+
+  @override
+  String get storyTitleHint => 'Enter story title';
+
+  @override
+  String get renameChat => 'Rename Chat';
+
+  @override
+  String get renameChatTitle => 'Rename Chat';
+
+  @override
+  String get autoNameChats => 'Auto-Name All';
+
+  @override
+  String get autoNamingChats => 'Auto-naming chats...';
+
+  @override
+  String get autoNameSuccess => 'Chats renamed successfully';
+
+  @override
+  String get chatTitleHint => 'Enter chat title';
+
+  @override
+  String get chatRenamed => 'Chat renamed';
 }

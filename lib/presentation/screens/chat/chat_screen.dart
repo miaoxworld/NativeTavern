@@ -29,6 +29,7 @@ import 'package:native_tavern/presentation/providers/background_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_extension_providers.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
+import 'package:native_tavern/presentation/providers/memory_providers.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
 import 'package:native_tavern/presentation/providers/quick_reply_providers.dart';
 import 'package:native_tavern/presentation/providers/rpg_chat_providers.dart';
@@ -1192,39 +1193,71 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ?.isNotEmpty ==
         true;
 
+    final customChatTitle = chatState.chat?.title;
+    final entityName = chatState.group?.name ?? chatState.character?.name;
+    final defaultTitle = entityName != null && entityName.isNotEmpty
+        ? l10n.chatWithName(entityName)
+        : '';
+    final hasCustomTitle = customChatTitle != null &&
+        customChatTitle.isNotEmpty &&
+        customChatTitle != entityName &&
+        customChatTitle != defaultTitle;
+
     return AppBar(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            chatState.group?.name ?? chatState.character?.name ?? l10n.chat,
+            hasCustomTitle ? customChatTitle : (entityName ?? l10n.chat),
             style: const TextStyle(fontSize: 16),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          // Model selector - tap to change model
-          GestureDetector(
-            onTap: () => _showModelSelector(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  llmConfig.model.isEmpty ? l10n.selectModel : llmConfig.model,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: chatState.isGenerating
-                        ? AppTheme.textMuted
-                        : AppTheme.accentColor,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (hasCustomTitle && entityName != null && entityName.isNotEmpty) ...[
+                Flexible(
+                  child: Text(
+                    entityName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textMuted,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.expand_more,
-                  size: 14,
-                  color: chatState.isGenerating
-                      ? AppTheme.textMuted
-                      : AppTheme.accentColor,
-                ),
+                const Text(' • ',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               ],
-            ),
+              // Model selector - tap to change model
+              GestureDetector(
+                onTap: () => _showModelSelector(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      llmConfig.model.isEmpty ? l10n.selectModel : llmConfig.model,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: chatState.isGenerating
+                            ? AppTheme.textMuted
+                            : AppTheme.accentColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.expand_more,
+                      size: 14,
+                      color: chatState.isGenerating
+                          ? AppTheme.textMuted
+                          : AppTheme.accentColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1292,6 +1325,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         AdaptivePopupMenuButton<String>(
           itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'rename',
+              child: ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: Text(l10n.renameChat),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
             PopupMenuItem(
               value: chatState.isGroupChat ? 'group' : 'character',
               child: ListTile(
@@ -1464,6 +1505,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
           onSelected: (value) async {
             switch (value) {
+              case 'rename':
+                final chat = chatState.chat;
+                if (chat != null) {
+                  _showRenameChatDialog(context, chat);
+                }
+                break;
               case 'character':
                 final characterId = chatState.character?.id;
                 if (characterId != null) {
@@ -1544,6 +1591,122 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => MemoryContextUsageSheet(chatId: widget.chatId),
+    );
+  }
+
+  Future<void> _showRenameChatDialog(
+    BuildContext context,
+    Chat chat,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(text: chat.title);
+    var isGenerating = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.renameChatTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.renameChat,
+                  hintText: l10n.chatTitleHint,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: isGenerating
+                    ? null
+                    : () async {
+                        setState(() => isGenerating = true);
+                        try {
+                          final config = ref.read(llmConfigProvider);
+                          final generated = await ref
+                              .read(chatNamingServiceProvider)
+                              .generateChatTitle(
+                                chatId: chat.id,
+                                config: config,
+                              );
+                          if (generated.isNotEmpty) {
+                            controller.text = generated;
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
+                        } finally {
+                          if (dialogContext.mounted) {
+                            setState(() => isGenerating = false);
+                          }
+                        }
+                      },
+                icon: isGenerating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome),
+                label: Text(
+                  isGenerating
+                      ? l10n.storyGeneratingTitle
+                      : l10n.storyGenerateTitle,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newTitle = controller.text.trim();
+                if (newTitle.isNotEmpty && newTitle != chat.title) {
+                  try {
+                    await ref
+                        .read(chatNamingServiceProvider)
+                        .renameChat(chatId: chat.id, newTitle: newTitle);
+                    await ref
+                        .read(activeChatProvider.notifier)
+                        .loadChat(chat.id);
+                    if (chat.characterId.isNotEmpty) {
+                      ref.invalidate(characterChatsProvider(chat.characterId));
+                    }
+                    ref.invalidate(pagedChatsProvider);
+                    ref.invalidate(allChatsProvider);
+                    ref.read(memoryInboxProvider.notifier).refresh();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.chatRenamed)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                }
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

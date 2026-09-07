@@ -6486,6 +6486,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get syncCollectionApiKeys => '加密的 API 密钥';
+
+  @override
+  String get memoryAndConversationalStorage => '记忆与会话存储';
+
+  @override
+  String get memoryAndConversationalStorageSubtitle => '管理长对话的滚动摘要、长期事实记忆与向量检索';
+
+  @override
+  String get memoryAndConversationalStorageDescription => '长会话上下文保持与存储设置';
+
+  @override
+  String get storyRename => '重命名故事';
+
+  @override
+  String get storyRenameTitle => '重命名故事';
+
+  @override
+  String get storyGenerateTitle => '生成标题';
+
+  @override
+  String get storyGeneratingTitle => '正在生成标题...';
+
+  @override
+  String get storyTitleUpdated => '故事标题已更新';
+
+  @override
+  String get storyTitleHint => '输入故事标题';
+
+  @override
+  String get renameChat => '重命名对话';
+
+  @override
+  String get renameChatTitle => '重命名对话';
+
+  @override
+  String get autoNameChats => '自动命名全部';
+
+  @override
+  String get autoNamingChats => '正在自动命名对话...';
+
+  @override
+  String get autoNameSuccess => '对话命名成功';
+
+  @override
+  String get chatTitleHint => '输入对话标题';
+
+  @override
+  String get chatRenamed => '对话已重命名';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -12972,4 +13020,52 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get syncCollectionApiKeys => '加密的 API 金鑰';
+
+  @override
+  String get memoryAndConversationalStorage => '記憶與對話儲存';
+
+  @override
+  String get memoryAndConversationalStorageSubtitle => '管理長對話的滾動摘要、長期事實記憶與向量檢索';
+
+  @override
+  String get memoryAndConversationalStorageDescription => '長對話上下文保持與儲存設定';
+
+  @override
+  String get storyRename => '重命名故事';
+
+  @override
+  String get storyRenameTitle => '重命名故事';
+
+  @override
+  String get storyGenerateTitle => '生成標題';
+
+  @override
+  String get storyGeneratingTitle => '正在生成標題...';
+
+  @override
+  String get storyTitleUpdated => '故事標題已更新';
+
+  @override
+  String get storyTitleHint => '輸入故事標題';
+
+  @override
+  String get renameChat => '重命名對話';
+
+  @override
+  String get renameChatTitle => '重命名對話';
+
+  @override
+  String get autoNameChats => '自動命名全部';
+
+  @override
+  String get autoNamingChats => '正在自動命名對話...';
+
+  @override
+  String get autoNameSuccess => '對話命名成功';
+
+  @override
+  String get chatTitleHint => '輸入對話標題';
+
+  @override
+  String get chatRenamed => '對話已重命名';
 }

@@ -11972,6 +11972,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Encrypted API keys'**
   String get syncCollectionApiKeys;
+
+  /// Section header for memory and conversational storage in AI configuration
+  ///
+  /// In en, this message translates to:
+  /// **'Memory & Conversational Storage'**
+  String get memoryAndConversationalStorage;
+
+  /// Subtitle describing memory and conversational storage section
+  ///
+  /// In en, this message translates to:
+  /// **'Manage rolling chat summarization, long-term facts, and vector retrieval for long chat sessions'**
+  String get memoryAndConversationalStorageSubtitle;
+
+  /// Description of memory and conversational storage features
+  ///
+  /// In en, this message translates to:
+  /// **'Settings for context preservation and memory management in long chat sessions'**
+  String get memoryAndConversationalStorageDescription;
+
+  /// Tooltip for renaming a story
+  ///
+  /// In en, this message translates to:
+  /// **'Rename story'**
+  String get storyRename;
+
+  /// Title of the story rename dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Story'**
+  String get storyRenameTitle;
+
+  /// Button to generate a story title with AI
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Title'**
+  String get storyGenerateTitle;
+
+  /// Loading indicator text while AI generates a story title
+  ///
+  /// In en, this message translates to:
+  /// **'Generating title...'**
+  String get storyGeneratingTitle;
+
+  /// Snackbar notification after successfully updating story title
+  ///
+  /// In en, this message translates to:
+  /// **'Story title updated'**
+  String get storyTitleUpdated;
+
+  /// Placeholder text for story title input field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter story title'**
+  String get storyTitleHint;
+
+  /// Button or menu action to rename a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Chat'**
+  String get renameChat;
+
+  /// Dialog title for renaming a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Chat'**
+  String get renameChatTitle;
+
+  /// Button to auto-generate titles for all chats with a bot
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Name All'**
+  String get autoNameChats;
+
+  /// Progress message while auto-naming chats
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-naming chats...'**
+  String get autoNamingChats;
+
+  /// Success notification after auto-naming chats
+  ///
+  /// In en, this message translates to:
+  /// **'Chats renamed successfully'**
+  String get autoNameSuccess;
+
+  /// Placeholder text for chat title input field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter chat title'**
+  String get chatTitleHint;
+
+  /// Snackbar notification after successfully renaming a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Chat renamed'**
+  String get chatRenamed;
 }
 
 class _AppLocalizationsDelegate

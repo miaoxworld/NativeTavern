@@ -7111,5 +7111,69 @@
   "syncCollectionApiKeys": "Encrypted API keys",
   "@syncCollectionApiKeys": {
     "description": "Conflict category for API keys"
+  },
+  "memoryAndConversationalStorage": "Memory & Conversational Storage",
+  "@memoryAndConversationalStorage": {
+    "description": "Section header for memory and conversational storage in AI configuration"
+  },
+  "memoryAndConversationalStorageSubtitle": "Manage rolling chat summarization, long-term facts, and vector retrieval for long chat sessions",
+  "@memoryAndConversationalStorageSubtitle": {
+    "description": "Subtitle describing memory and conversational storage section"
+  },
+  "memoryAndConversationalStorageDescription": "Settings for context preservation and memory management in long chat sessions",
+  "@memoryAndConversationalStorageDescription": {
+    "description": "Description of memory and conversational storage features"
+  },
+  "storyRename": "Rename story",
+  "@storyRename": {
+    "description": "Tooltip for renaming a story"
+  },
+  "storyRenameTitle": "Rename Story",
+  "@storyRenameTitle": {
+    "description": "Title of the story rename dialog"
+  },
+  "storyGenerateTitle": "Generate Title",
+  "@storyGenerateTitle": {
+    "description": "Button to generate a story title with AI"
+  },
+  "storyGeneratingTitle": "Generating title...",
+  "@storyGeneratingTitle": {
+    "description": "Loading indicator text while AI generates a story title"
+  },
+  "storyTitleUpdated": "Story title updated",
+  "@storyTitleUpdated": {
+    "description": "Snackbar notification after successfully updating story title"
+  },
+  "storyTitleHint": "Enter story title",
+  "@storyTitleHint": {
+    "description": "Placeholder text for story title input field"
+  },
+  "renameChat": "Rename Chat",
+  "@renameChat": {
+    "description": "Button or menu action to rename a chat"
+  },
+  "renameChatTitle": "Rename Chat",
+  "@renameChatTitle": {
+    "description": "Dialog title for renaming a chat"
+  },
+  "autoNameChats": "Auto-Name All",
+  "@autoNameChats": {
+    "description": "Button to auto-generate titles for all chats with a bot"
+  },
+  "autoNamingChats": "Auto-naming chats...",
+  "@autoNamingChats": {
+    "description": "Progress message while auto-naming chats"
+  },
+  "autoNameSuccess": "Chats renamed successfully",
+  "@autoNameSuccess": {
+    "description": "Success notification after auto-naming chats"
+  },
+  "chatTitleHint": "Enter chat title",
+  "@chatTitleHint": {
+    "description": "Placeholder text for chat title input field"
+  },
+  "chatRenamed": "Chat renamed",
+  "@chatRenamed": {
+    "description": "Snackbar notification after successfully renaming a chat"
   }
 }

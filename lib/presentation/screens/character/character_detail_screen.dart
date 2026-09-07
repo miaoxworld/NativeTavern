@@ -6,11 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:native_tavern/data/models/character.dart';
+import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/data/repositories/character_repository.dart';
+import 'package:native_tavern/data/repositories/chat_repository.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/presentation/providers/memory_providers.dart';
 import 'package:native_tavern/presentation/providers/moment_providers.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/character_avatar_image.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
@@ -1039,6 +1043,12 @@ class _CharacterChatList extends ConsumerWidget {
                     icon: const Icon(Icons.file_upload_outlined, size: 18),
                     label: Text(l10n.importChat),
                   ),
+                  if (chats.valueOrNull?.isNotEmpty == true)
+                    TextButton.icon(
+                      onPressed: () => _autoNameAll(context, ref, characterId),
+                      icon: const Icon(Icons.auto_awesome, size: 18),
+                      label: Text(l10n.autoNameChats),
+                    ),
                   TextButton.icon(
                     onPressed: onStartChat,
                     icon: const Icon(Icons.add, size: 18),
@@ -1082,7 +1092,52 @@ class _CharacterChatList extends ConsumerWidget {
                           _formatChatTime(chat.updatedAt),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, size: 20),
+                          onSelected: (action) {
+                            switch (action) {
+                              case 'rename':
+                                _showRenameDialog(context, ref, chat);
+                                break;
+                              case 'auto_name':
+                                _autoNameSingle(context, ref, chat);
+                                break;
+                              case 'delete':
+                                _showDeleteConfirmation(context, ref, chat);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'rename',
+                              child: ListTile(
+                                leading: const Icon(Icons.edit_outlined),
+                                title: Text(l10n.renameChat),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'auto_name',
+                              child: ListTile(
+                                leading: const Icon(Icons.auto_awesome),
+                                title: Text(l10n.storyGenerateTitle),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: ListTile(
+                                leading: const Icon(Icons.delete_outline,
+                                    color: Colors.red),
+                                title: Text(
+                                  l10n.deleteChat,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
                         onTap: () => context.push('/chat/${chat.id}'),
                       ),
                   ],
@@ -1093,6 +1148,227 @@ class _CharacterChatList extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Chat chat,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deleteChat),
+        content: Text(l10n.deleteChatConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await ref.read(chatRepositoryProvider).deleteChat(chat.id);
+              ref.invalidate(characterChatsProvider(characterId));
+              ref.invalidate(pagedChatsProvider);
+              ref.invalidate(allChatsProvider);
+              ref.read(memoryInboxProvider.notifier).refresh();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.chatDeleted)),
+                );
+              }
+            },
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRenameDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Chat chat,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(text: chat.title);
+    var isGenerating = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.renameChatTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.renameChat,
+                  hintText: l10n.chatTitleHint,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: isGenerating
+                    ? null
+                    : () async {
+                        setState(() => isGenerating = true);
+                        try {
+                          final config = ref.read(llmConfigProvider);
+                          final generated = await ref
+                              .read(chatNamingServiceProvider)
+                              .generateChatTitle(
+                                chatId: chat.id,
+                                config: config,
+                              );
+                          if (generated.isNotEmpty) {
+                            controller.text = generated;
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
+                        } finally {
+                          if (dialogContext.mounted) {
+                            setState(() => isGenerating = false);
+                          }
+                        }
+                      },
+                icon: isGenerating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome),
+                label: Text(
+                  isGenerating
+                      ? l10n.storyGeneratingTitle
+                      : l10n.storyGenerateTitle,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newTitle = controller.text.trim();
+                if (newTitle.isNotEmpty && newTitle != chat.title) {
+                  try {
+                    await ref
+                        .read(chatNamingServiceProvider)
+                        .renameChat(chatId: chat.id, newTitle: newTitle);
+                    ref.invalidate(characterChatsProvider(characterId));
+                    ref.invalidate(pagedChatsProvider);
+                    ref.invalidate(allChatsProvider);
+                    ref.read(memoryInboxProvider.notifier).refresh();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.chatRenamed)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                }
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _autoNameSingle(
+    BuildContext context,
+    WidgetRef ref,
+    Chat chat,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final config = ref.read(llmConfigProvider);
+      final generated = await ref
+          .read(chatNamingServiceProvider)
+          .generateChatTitle(chatId: chat.id, config: config);
+      if (generated.isNotEmpty && generated != chat.title) {
+        await ref
+            .read(chatNamingServiceProvider)
+            .renameChat(chatId: chat.id, newTitle: generated);
+        ref.invalidate(characterChatsProvider(characterId));
+        ref.invalidate(pagedChatsProvider);
+        ref.invalidate(allChatsProvider);
+        ref.read(memoryInboxProvider.notifier).refresh();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.chatRenamed)),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
+  Future<void> _autoNameAll(
+    BuildContext context,
+    WidgetRef ref,
+    String characterId,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final config = ref.read(llmConfigProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.autoNamingChats)),
+        );
+      }
+      await ref
+          .read(chatNamingServiceProvider)
+          .autoNameChatsForCharacter(
+            characterId: characterId,
+            config: config,
+          );
+      ref.invalidate(characterChatsProvider(characterId));
+      ref.invalidate(pagedChatsProvider);
+      ref.invalidate(allChatsProvider);
+      ref.read(memoryInboxProvider.notifier).refresh();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.autoNameSuccess)),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 
   String _formatChatTime(DateTime time) {

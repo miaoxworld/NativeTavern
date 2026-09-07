@@ -9,6 +9,8 @@ import 'package:native_tavern/data/repositories/chat_repository.dart';
 import 'package:native_tavern/data/repositories/group_repository.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/presentation/providers/memory_providers.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/character_avatar_image.dart';
@@ -255,13 +257,52 @@ class _ChatListTile extends ConsumerWidget {
             ? groupPresentationAsync.when(
                 loading: () => Text(l10n.loading),
                 error: (_, __) => Text(chat.title),
-                data: (presentation) =>
-                    Text(presentation?.group.name ?? chat.title),
+                data: (presentation) {
+                  final groupName = presentation?.group.name ?? chat.title;
+                  final hasCustomTitle =
+                      chat.title.isNotEmpty && chat.title != groupName;
+                  return Text(
+                    hasCustomTitle ? chat.title : groupName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
               )
             : characterAsync.when(
                 loading: () => Text(l10n.loading),
                 error: (_, __) => Text(chat.title),
-                data: (character) => Text(character?.name ?? chat.title),
+                data: (character) {
+                  final charName = character?.name ?? '';
+                  final defaultTitle = charName.isNotEmpty
+                      ? l10n.chatWithName(charName)
+                      : '';
+                  final hasCustomTitle = chat.title.isNotEmpty &&
+                      chat.title != charName &&
+                      chat.title != defaultTitle;
+                  return Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          hasCustomTitle
+                              ? chat.title
+                              : (charName.isNotEmpty ? charName : chat.title),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (hasCustomTitle && charName.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '($charName)',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textMuted,
+                                  ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
         subtitle: lastMessageAsync.when(
           loading: () => const Text('...'),
@@ -287,10 +328,20 @@ class _ChatListTile extends ConsumerWidget {
               onSelected: (value) => _handleMenuAction(context, ref, value),
               itemBuilder: (context) => [
                 PopupMenuItem(
+                  value: 'rename',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_outlined, size: 20),
+                      const SizedBox(width: 8),
+                      Text(l10n.renameChat),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      const Icon(Icons.delete, color: Colors.red),
+                      const Icon(Icons.delete, color: Colors.red, size: 20),
                       const SizedBox(width: 8),
                       Text(l10n.delete,
                           style: const TextStyle(color: Colors.red)),
@@ -354,10 +405,123 @@ class _ChatListTile extends ConsumerWidget {
 
   void _handleMenuAction(BuildContext context, WidgetRef ref, String action) {
     switch (action) {
+      case 'rename':
+        _showRenameDialog(context, ref);
+        break;
       case 'delete':
         _showDeleteConfirmation(context, ref);
         break;
     }
+  }
+
+  Future<void> _showRenameDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(text: chat.title);
+    var isGenerating = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.renameChatTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.renameChat,
+                  hintText: l10n.chatTitleHint,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: isGenerating
+                    ? null
+                    : () async {
+                        setState(() => isGenerating = true);
+                        try {
+                          final config = ref.read(llmConfigProvider);
+                          final generated = await ref
+                              .read(chatNamingServiceProvider)
+                              .generateChatTitle(
+                                chatId: chat.id,
+                                config: config,
+                              );
+                          if (generated.isNotEmpty) {
+                            controller.text = generated;
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
+                        } finally {
+                          if (dialogContext.mounted) {
+                            setState(() => isGenerating = false);
+                          }
+                        }
+                      },
+                icon: isGenerating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome),
+                label: Text(
+                  isGenerating
+                      ? l10n.storyGeneratingTitle
+                      : l10n.storyGenerateTitle,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final newTitle = controller.text.trim();
+                if (newTitle.isNotEmpty && newTitle != chat.title) {
+                  try {
+                    await ref
+                        .read(chatNamingServiceProvider)
+                        .renameChat(chatId: chat.id, newTitle: newTitle);
+                    ref.invalidate(allChatsProvider);
+                    ref.invalidate(pagedChatsProvider);
+                    if (chat.characterId.isNotEmpty) {
+                      ref.invalidate(characterChatsProvider(chat.characterId));
+                    }
+                    ref.read(memoryInboxProvider.notifier).refresh();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.chatRenamed)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                }
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
@@ -378,6 +542,11 @@ class _ChatListTile extends ConsumerWidget {
               Navigator.pop(dialogContext);
               await ref.read(chatRepositoryProvider).deleteChat(chat.id);
               ref.invalidate(allChatsProvider);
+              ref.invalidate(pagedChatsProvider);
+              if (chat.characterId.isNotEmpty) {
+                ref.invalidate(characterChatsProvider(chat.characterId));
+              }
+              ref.read(memoryInboxProvider.notifier).refresh();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.chatDeleted)),

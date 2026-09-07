@@ -1979,5 +1979,21 @@
   "syncCollectionMoments": "动态",
   "syncCollectionStory": "故事内容",
   "syncCollectionSettings": "设置与人设",
-  "syncCollectionApiKeys": "加密的 API 密钥"
+  "syncCollectionApiKeys": "加密的 API 密钥",
+  "memoryAndConversationalStorage": "记忆与会话存储",
+  "memoryAndConversationalStorageSubtitle": "管理长对话的滚动摘要、长期事实记忆与向量检索",
+  "memoryAndConversationalStorageDescription": "长会话上下文保持与存储设置",
+  "storyRename": "重命名故事",
+  "storyRenameTitle": "重命名故事",
+  "storyGenerateTitle": "生成标题",
+  "storyGeneratingTitle": "正在生成标题...",
+  "storyTitleUpdated": "故事标题已更新",
+  "storyTitleHint": "输入故事标题",
+  "renameChat": "重命名对话",
+  "renameChatTitle": "重命名对话",
+  "autoNameChats": "自动命名全部",
+  "autoNamingChats": "正在自动命名对话...",
+  "autoNameSuccess": "对话命名成功",
+  "chatTitleHint": "输入对话标题",
+  "chatRenamed": "对话已重命名"
 }
