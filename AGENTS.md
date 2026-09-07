@@ -13,6 +13,7 @@ Before making code modifications on a fresh checkout:
 ```
 
 `setup.sh` handles:
+
 1. Verifying toolchains (`git`, `flutter >=3.44.9`, `dart`).
 2. Initializing `.env` from `.env.example` if not already present.
 3. Setting execute permissions on project scripts (`chmod +x build_*.sh setup.sh`).
@@ -67,15 +68,18 @@ For fast day-to-day local testing and non-store device sideloading:
 
 ---
 
-## 4. User-Facing UI & Localization
+## 4. User-Facing UI, Localization & Bilingual Sync (English <-> Chinese)
 
-When creating or modifying any user-facing UI:
+NativeTavern is co-maintained by native Chinese and English speakers. When creating or modifying UI, localization strings, or documentation:
 
-1. Never hardcode user-visible strings in widgets or screens; always access localized strings through `AppLocalizations.of(context)!` (or `l10n`).
-2. Add new translation keys and descriptions to `lib/l10n/app_en.arb` (including proper metadata `@key` blocks with descriptions and placeholder definitions).
-3. Propagate corresponding translation entries across all target language `.arb` files in `lib/l10n/` (e.g., `app_zh.arb`, `app_zh_TW.arb`, `app_ja.arb`, `app_de.arb`, `app_fr.arb`, `app_es.arb`, etc.).
-4. Run `flutter gen-l10n` to regenerate the localization classes in `lib/l10n/generated/`.
-5. Keep related provider sources, consent lists (such as `aiDataSharingRecipients`), and UI settings tiles properly synchronized with any added/changed features.
+1. **Zero Hardcoded Strings**: Never hardcode user-visible strings in widgets or screens; always access localized strings through `AppLocalizations.of(context)!` (or `l10n`).
+2. **Bidirectional English <-> Chinese Translation**:
+   - When strings are added or updated in English (`lib/l10n/app_en.arb`), immediately translate and add matching entries to Chinese (`app_zh.arb`, `app_zh_TW.arb`), and propagate to other locales.
+   - When strings are added or updated in Chinese (`lib/l10n/app_zh.arb`), immediately translate and add matching entries to English (`app_en.arb`) with complete `@key` metadata.
+3. **Documentation Parity**:
+   - Maintain parity between paired documents: `README.md` (ZH) <--> `README.en.md` (EN), and `CONTRIBUTING.md` (ZH) <--> `CONTRIBUTING.en.md` (EN). Any update to one must be applied to the other.
+4. **Regeneration**: Run `flutter gen-l10n` to regenerate localization classes in `lib/l10n/generated/`.
+5. **Consistency**: Keep related provider sources, consent lists (such as `aiDataSharingRecipients`), and UI settings tiles properly synchronized with any added/changed features.
 
 ---
 
@@ -84,11 +88,14 @@ When creating or modifying any user-facing UI:
 Detailed architectural rules, skills, and technical specifications are maintained locally under `.agents/`:
 
 ### Rules (`.agents/rules/`)
+
+- [bilingual_sync.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/rules/bilingual_sync.md): Mandatory bidirectional English <-> Chinese translation for strings, ARB files, and documentation.
 - [architecture.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/rules/architecture.md): Clean Architecture (Data, Domain, Presentation), Riverpod 2.x, Drift SQLite, and GoRouter conventions.
 - [coding_standards.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/rules/coding_standards.md): Dart 3 patterns, zero hardcoded user strings, ARB localization, theming.
 - [release_and_security.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/rules/release_and_security.md): Release script execution rules, secrets discipline, checksum verification.
 
 ### Skills (`.agents/skills/`)
+
 - [nativetavern-architecture](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/skills/nativetavern-architecture/SKILL.md): Subsystems, repositories, services, and provider layout.
 - [sillytavern-formats](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/skills/sillytavern-formats/SKILL.md): Character Card Spec V2/V3, `.ntb`, `.ntx`, `.ntm`, `.jsonl`, and lorebooks.
 - [native-runtimes](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/skills/native-runtimes/SKILL.md): Live2D Cubism Core 6.0.1, Spine 4.1 FFI, and Rust native core.
@@ -97,6 +104,7 @@ Detailed architectural rules, skills, and technical specifications are maintaine
 - [macos-build-and-test](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/skills/macos-build-and-test/SKILL.md): macOS build, packaging, entitlements, and integration tests.
 
 ### Reference Documentation (`.agents/docs/`)
+
 - [project_overview.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/docs/project_overview.md): Technical architecture and dependency stack.
 - [sillytavern_card_spec.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/docs/sillytavern_card_spec.md): Character Card V2 & V3 specification details.
 - [backup_and_sync_spec.md](file:///Users/themoddersden/Developer/Projects/App-Dev/NativeTavern-xAI-Fix/.agents/docs/backup_and_sync_spec.md): Backup formats, iCloud, and Google Drive sync protocols.
