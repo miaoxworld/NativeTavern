@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:native_tavern/domain/services/backup_password_service.dart';
 import 'package:native_tavern/domain/services/icloud_container_service.dart';
 
 /// Cloud provider type
@@ -212,27 +213,33 @@ class CloudBackupService {
   /// Stable filename used for automatic cross-device sync.
   static const syncBackupFileName = 'NativeTavern_sync.ntx';
   static const syncMetadataFileName = 'NativeTavern_sync.meta.json';
+  static const syncVaultKeyFileName = 'NativeTavern_sync.vault.json';
 
   CloudBackupService._({
     Future<Directory> Function()? documentsDirectoryProvider,
     ICloudContainerService? iCloudContainerService,
+    BackupPasswordService? backupPasswordService,
   })  : _documentsDirectoryProvider =
             documentsDirectoryProvider ?? getApplicationDocumentsDirectory,
         _iCloudContainer =
-            iCloudContainerService ?? const ICloudContainerService();
+            iCloudContainerService ?? const ICloudContainerService(),
+        _backupPassword = backupPasswordService ?? BackupPasswordService();
 
   factory CloudBackupService.forTesting({
     required Directory documentsDirectory,
     ICloudContainerService? iCloudContainerService,
+    BackupPasswordService? backupPasswordService,
   }) {
     return CloudBackupService._(
       documentsDirectoryProvider: () async => documentsDirectory,
       iCloudContainerService: iCloudContainerService,
+      backupPasswordService: backupPasswordService,
     );
   }
 
   final Future<Directory> Function() _documentsDirectoryProvider;
   final ICloudContainerService _iCloudContainer;
+  final BackupPasswordService _backupPassword;
   String? lastMediaWarning;
 
   /// Get the cloud backups cache directory
@@ -452,6 +459,7 @@ class CloudBackupService {
     required CloudProvider provider,
     CloudBackupOptions options = const CloudBackupOptions(),
     Map<String, dynamic>? ntxVault,
+    String? password,
     void Function(CloudBackupArtifactProgress progress)? onProgress,
   }) async {
     lastMediaWarning = null;
@@ -522,6 +530,7 @@ class CloudBackupService {
         dataFile: file,
         mediaFile: mediaFile,
         mediaFileCount: mediaFileCount,
+        password: password,
       );
     } catch (error) {
       print('CloudBackupService: Combined .ntx package failed: $error');
@@ -565,6 +574,7 @@ class CloudBackupService {
     File? mediaFile,
     int mediaFileCount = 0,
     File? outputFile,
+    String? password,
   }) async {
     final archive = Archive();
     final dataBytes = await dataFile.readAsBytes();
@@ -602,7 +612,30 @@ class CloudBackupService {
           ),
         );
     await target.writeAsBytes(encoded, flush: true);
+    final trimmed = password?.trim();
+    if (trimmed != null && trimmed.isNotEmpty) {
+      final protected = await _backupPassword.protectZip(
+        zipBytes: encoded,
+        password: trimmed,
+      );
+      await target.writeAsBytes(protected, flush: true);
+    }
     return target;
+  }
+
+  Future<bool> isPasswordProtectedBackup(File file) async {
+    if (!isCombinedBackupPath(file.path) || !await file.exists()) {
+      return false;
+    }
+    try {
+      final archive = ZipDecoder().decodeBytes(
+        await file.readAsBytes(),
+        verify: true,
+      );
+      return BackupPasswordService.isProtectedArchive(archive);
+    } catch (_) {
+      return false;
+    }
   }
 
   bool isCombinedBackupPath(String filePath) =>
@@ -1265,6 +1298,7 @@ class CloudBackupService {
     required Map<String, dynamic> data,
     CloudBackupOptions options = const CloudBackupOptions(),
     Map<String, dynamic>? ntxVault,
+    String? password,
     void Function(CloudBackupArtifactProgress progress)? onProgress,
   }) async {
     return createCloudBackupArtifacts(
@@ -1272,6 +1306,7 @@ class CloudBackupService {
       provider: CloudProvider.googleDrive,
       options: options,
       ntxVault: ntxVault,
+      password: password,
       onProgress: onProgress,
     );
   }
@@ -1281,6 +1316,7 @@ class CloudBackupService {
   Future<Map<String, dynamic>> importFromFile(
     File file, {
     File? mediaFile,
+    String? password,
     void Function(int processed, int total)? onMediaProgress,
     void Function(CloudBackupTransferPart part)? onPartChanged,
   }) async {
@@ -1290,7 +1326,11 @@ class CloudBackupService {
       );
     }
     onPartChanged?.call(CloudBackupTransferPart.data);
-    final parsed = await parseBackupFile(file, mediaFile: mediaFile);
+    final parsed = await parseBackupFile(
+      file,
+      mediaFile: mediaFile,
+      password: password,
+    );
     var data = parsed.package;
 
     if (data['app'] != 'NativeTavern') {
@@ -1323,9 +1363,10 @@ class CloudBackupService {
   Future<ParsedBackupFile> parseBackupFile(
     File file, {
     File? mediaFile,
+    String? password,
   }) async {
     if (isCombinedBackupPath(file.path)) {
-      return _parseCombinedBackup(file);
+      return _parseCombinedBackup(file, password: password);
     }
     if (isMediaBackupPath(file.path)) {
       throw Exception(
@@ -1356,9 +1397,24 @@ class CloudBackupService {
     );
   }
 
-  Future<ParsedBackupFile> _parseCombinedBackup(File file) async {
-    final bytes = await file.readAsBytes();
-    final archive = ZipDecoder().decodeBytes(bytes, verify: true);
+  Future<ParsedBackupFile> _parseCombinedBackup(
+    File file, {
+    String? password,
+  }) async {
+    var bytes = await file.readAsBytes();
+    var archive = ZipDecoder().decodeBytes(bytes, verify: true);
+    if (BackupPasswordService.isProtectedArchive(archive)) {
+      final trimmed = password?.trim();
+      if (trimmed == null || trimmed.isEmpty) {
+        throw const BackupPasswordRequiredException();
+      }
+      bytes = await _backupPassword.unlockArchive(
+        archive: archive,
+        password: trimmed,
+      );
+      archive = ZipDecoder().decodeBytes(bytes, verify: true);
+    }
+
     final archiveFiles = <String, ArchiveFile>{
       for (final entry in archive.files)
         if (entry.isFile) entry.name: entry,
