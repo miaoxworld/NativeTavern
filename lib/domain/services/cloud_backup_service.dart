@@ -26,6 +26,18 @@ class CloudBackupOptions {
 
   const CloudBackupOptions({this.mediaCategories = const {}});
 
+  /// Full media set used for automatic iCloud sync so chats, moments, lore,
+  /// story art, and character assets travel with the snapshot.
+  static const iCloudSync = CloudBackupOptions(
+    mediaCategories: {
+      CloudMediaCategory.characterImages,
+      CloudMediaCategory.worldInfoImages,
+      CloudMediaCategory.conversationImages,
+      CloudMediaCategory.backgrounds,
+      CloudMediaCategory.live2d,
+    },
+  );
+
   bool includes(CloudMediaCategory category) =>
       mediaCategories.contains(category);
 
@@ -371,6 +383,9 @@ class CloudBackupService {
       return false;
     }
 
+    if (await _iCloudContainer.isAvailable()) {
+      return true;
+    }
     final dir = await getICloudDirectory();
     return dir != null;
   }
@@ -403,14 +418,15 @@ class CloudBackupService {
         result['isSystemICloud'] = false;
         if (systemICloudExists) {
           result['message'] =
-              'Using app container iCloud path (will sync to iCloud)';
+              'Using the private NativeTavern iCloud container (not shown in Files)';
         } else {
           result['message'] =
-              'Warning: iCloud Drive may not be enabled in System Settings. Backup is saved locally but may not sync to cloud.';
+              'Warning: iCloud may not be enabled in System Settings. The snapshot is saved locally but may not sync.';
         }
       } else {
         result['isSystemICloud'] = true;
-        result['message'] = 'Using system iCloud Drive (syncs to cloud)';
+        result['message'] =
+            'Using Apple iCloud (private container, hidden from Files)';
       }
     }
 
@@ -435,6 +451,7 @@ class CloudBackupService {
     required Map<String, dynamic> data,
     required CloudProvider provider,
     CloudBackupOptions options = const CloudBackupOptions(),
+    Map<String, dynamic>? ntxVault,
     void Function(CloudBackupArtifactProgress progress)? onProgress,
   }) async {
     lastMediaWarning = null;
@@ -493,6 +510,7 @@ class CloudBackupService {
           'fileCount': mediaFileCount,
           ...options.toJson(),
         },
+      if (ntxVault != null) 'ntxVault': ntxVault,
     };
 
     final file = File(filePath);
@@ -1147,6 +1165,18 @@ class CloudBackupService {
     return data;
   }
 
+  Future<bool> syncFileHasConflicts() async {
+    final remote = await getICloudSyncBackup();
+    if (remote?.remotePath == null) return false;
+    return _iCloudContainer.hasUnresolvedConflicts(remote!.remotePath!);
+  }
+
+  Future<void> keepCurrentSyncVersion() async {
+    final remote = await getICloudSyncBackup();
+    if (remote?.remotePath == null) return;
+    await _iCloudContainer.keepCurrentVersion(remote!.remotePath!);
+  }
+
   Future<CloudBackupInfo?> getICloudSyncBackup() async {
     final iCloudDir = await getICloudDirectory();
     if (iCloudDir == null) return null;
@@ -1234,23 +1264,31 @@ class CloudBackupService {
   Future<CloudBackupArtifacts> exportLocalBackupArtifacts({
     required Map<String, dynamic> data,
     CloudBackupOptions options = const CloudBackupOptions(),
+    Map<String, dynamic>? ntxVault,
     void Function(CloudBackupArtifactProgress progress)? onProgress,
   }) async {
     return createCloudBackupArtifacts(
       data: data,
       provider: CloudProvider.googleDrive,
       options: options,
+      ntxVault: ntxVault,
       onProgress: onProgress,
     );
   }
 
-  /// Import backup from file (`.ntx`, `.ntb`, and optional `.ntm`).
+  /// Import a combined `.ntx` backup. Legacy `.ntb` / `.ntm` files must be
+  /// converted with [LegacyNtxConverter] first.
   Future<Map<String, dynamic>> importFromFile(
     File file, {
     File? mediaFile,
     void Function(int processed, int total)? onMediaProgress,
     void Function(CloudBackupTransferPart part)? onPartChanged,
   }) async {
+    if (isDataBackupPath(file.path) || isMediaBackupPath(file.path)) {
+      throw Exception(
+        'Legacy .ntb/.ntm backups cannot be imported directly. Convert them to .ntx first.',
+      );
+    }
     onPartChanged?.call(CloudBackupTransferPart.data);
     final parsed = await parseBackupFile(file, mediaFile: mediaFile);
     var data = parsed.package;

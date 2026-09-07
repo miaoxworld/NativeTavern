@@ -269,7 +269,7 @@ void main() {
     );
   });
 
-  test('legacy v2 JSON backup remains importable', () async {
+  test('legacy v2 JSON backup converts to ntx before import', () async {
     final legacy = File(p.join(documents.path, 'legacy.ntb'));
     await legacy.writeAsString(jsonEncode({
       'version': 2,
@@ -283,8 +283,13 @@ void main() {
     final service = CloudBackupService.forTesting(
       documentsDirectory: documents,
     );
+    expect(
+      () => service.importFromFile(legacy),
+      throwsA(isA<Exception>()),
+    );
 
-    final imported = await service.importFromFile(legacy);
+    final converted = await service.packageCombinedBackup(dataFile: legacy);
+    final imported = await service.importFromFile(converted);
 
     expect(
         ((imported['data'] as Map)['characters'] as Map), contains('legacy'));
@@ -334,10 +339,12 @@ void main() {
       documentsDirectory: targetDocuments,
     );
 
-    final imported = await targetService.importFromFile(
-      selectedData,
+    final converted = await targetService.packageCombinedBackup(
+      dataFile: selectedData,
       mediaFile: selectedMedia,
+      mediaFileCount: 1,
     );
+    final imported = await targetService.importFromFile(converted);
 
     final restoredAvatar = File(
       p.join(targetDocuments.path, 'NativeTavern', 'avatars', 'card.png'),
@@ -454,7 +461,7 @@ void main() {
     );
   });
 
-  test('legacy .ntb remains importable alongside .ntx', () async {
+  test('legacy .ntb is recognized but ntx is the sync format', () async {
     final service = CloudBackupService.forTesting(
       documentsDirectory: documents,
     );

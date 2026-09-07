@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:native_tavern/data/database/database.dart';
+import 'package:native_tavern/domain/services/backup_import_selection.dart';
 import 'package:native_tavern/domain/services/database_backup_v15_adapter.dart';
 
 /// Service for exporting and importing database data for backup purposes
@@ -84,11 +85,57 @@ class DatabaseBackupService {
     return null;
   }
 
+  /// True when any synced table was written after [since].
+  Future<bool> hasLocalEditsSince(DateTime since) async {
+    Future<bool> newer(DateTime? value) async =>
+        value != null && value.isAfter(since);
+
+    final chat = await (_db.select(_db.chats)
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(chat?.updatedAt)) return true;
+
+    final character = await (_db.select(_db.characters)
+          ..orderBy([(t) => OrderingTerm.desc(t.modifiedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(character?.modifiedAt)) return true;
+
+    final message = await (_db.select(_db.messages)
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(message?.timestamp)) return true;
+
+    final lorebook = await (_db.select(_db.worldInfos)
+          ..orderBy([(t) => OrderingTerm.desc(t.modifiedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(lorebook?.modifiedAt)) return true;
+
+    final story = await (_db.select(_db.storyChapters)
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(story?.updatedAt)) return true;
+
+    final moment = await (_db.select(_db.momentPosts)
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(moment?.updatedAt)) return true;
+
+    return false;
+  }
+
   /// Import data from a backup, with support for different restore modes
   Future<ImportResult> importData({
     required Map<String, dynamic> data,
     required ImportMode mode,
+    BackupImportSelection selection = BackupImportSelection.all,
   }) async {
+    data = selection.filterData(data);
     final result = ImportResult();
 
     // Log backup data structure
