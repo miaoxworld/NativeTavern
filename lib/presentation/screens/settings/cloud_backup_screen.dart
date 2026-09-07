@@ -11,6 +11,7 @@ import 'package:native_tavern/domain/services/google_drive_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/cloud_backup_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
+import 'package:native_tavern/presentation/widgets/backup_password_dialog.dart';
 
 /// Screen for cloud backup settings (Google Drive & iCloud)
 class CloudBackupScreen extends ConsumerWidget {
@@ -207,6 +208,12 @@ class CloudBackupScreen extends ConsumerWidget {
                   context: context,
                   title: l10n.localBackup,
                   children: [
+                    ListTile(
+                      leading: const Icon(Icons.lock_outline,
+                          color: AppTheme.accentColor),
+                      title: Text(l10n.backupPasswordTitle),
+                      subtitle: Text(l10n.localBackupPasswordHint),
+                    ),
                     ListTile(
                       leading: const Icon(Icons.folder_zip_outlined,
                           color: AppTheme.accentColor),
@@ -898,6 +905,7 @@ class CloudBackupScreen extends ConsumerWidget {
                 fileId: backup.id,
                 mode: mode,
                 localData: localData,
+                requestPassword: backupPasswordPromptFor(context),
                 restoreCallback: (data, restoreMode) async {
                   // Actually restore data to database
                   final importMode = _convertToImportMode(restoreMode);
@@ -963,13 +971,19 @@ class CloudBackupScreen extends ConsumerWidget {
     bool combined = true,
   }) async {
     final l10n = AppLocalizations.of(context);
+    final protection = await showBackupPasswordProtectDialog(context);
+    if (protection == null || !context.mounted) return;
     final db = ref.read(databaseProvider);
     final dbBackupService = DatabaseBackupService(db);
     final localData = await dbBackupService.exportAllData();
 
     final result = await ref
         .read(cloudBackupOperationProvider.notifier)
-        .exportBackupToFile(data: localData, combined: combined);
+        .exportBackupToFile(
+          data: localData,
+          combined: combined,
+          password: protection.password,
+        );
 
     if (result != null && result.succeeded && context.mounted) {
       final message = result.savedToFilesApp
@@ -987,6 +1001,8 @@ class CloudBackupScreen extends ConsumerWidget {
     bool combined = true,
   }) async {
     final l10n = AppLocalizations.of(context);
+    final protection = await showBackupPasswordProtectDialog(context);
+    if (protection == null || !context.mounted) return;
     final origin = sharePositionOrigin(context);
     final db = ref.read(databaseProvider);
     final dbBackupService = DatabaseBackupService(db);
@@ -997,6 +1013,7 @@ class CloudBackupScreen extends ConsumerWidget {
               data: localData,
               sharePositionOrigin: origin,
               combined: combined,
+              password: protection.password,
             );
 
     if (success && context.mounted) {
@@ -1127,6 +1144,7 @@ class CloudBackupScreen extends ConsumerWidget {
                 filePath: filePath,
                 mode: mode,
                 localData: localData,
+                requestPassword: backupPasswordPromptFor(context),
                 restoreCallback: (data, restoreMode) async {
                   final importMode = _convertToImportMode(restoreMode);
                   final actualData =
@@ -1184,6 +1202,7 @@ class CloudBackupScreen extends ConsumerWidget {
               .importFromFile(
                 mode: mode,
                 localData: localData,
+                requestPassword: backupPasswordPromptFor(context),
                 restoreCallback: (data, restoreMode) async {
                   final importMode = _convertToImportMode(restoreMode);
                   final actualData =

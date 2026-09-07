@@ -6442,7 +6442,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get apiKeysEncryptedSyncDescription =>
-      '提供商密钥会加密并通过 iCloud 钥匙串同步，其他 Apple 设备无需重新配置即可连接。备份中不会出现明文密钥。';
+      '提供商密钥会加密。Apple 设备通过 iCloud 钥匙串同步包装密钥；Android 设备通过本应用的私有 Google Drive 应用数据同步，其他已登录设备无需重新配置即可连接。备份中不会出现明文密钥。';
 
   @override
   String get iCloudSyncConflictTitle => 'iCloud 数据冲突';
@@ -6450,6 +6450,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get iCloudSyncConflictBody =>
       '此设备与另一台设备在上次同步后都更改了数据。请选择保留哪些内容。应用前会先保存本地 .ntx 快照。';
+
+  @override
+  String get googleDriveSyncConflictTitle => 'Google Drive 数据冲突';
+
+  @override
+  String get googleDriveSyncConflictBody =>
+      '此 Android 设备与另一台已登录设备在上次 Google Drive 同步后都更改了数据。请选择保留哪些内容。应用前会先保存本地 .ntx 快照。';
 
   @override
   String get keepThisDevice => '保留此设备';
@@ -6534,6 +6541,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatRenamed => '对话已重命名';
+
+  @override
+  String get backupPasswordTitle => '要为此备份设置密码吗？';
+
+  @override
+  String get backupPasswordWarning => '如果忘记此密码，将无法导入该备份。NativeTavern 无法帮你找回密码。';
+
+  @override
+  String get backupPasswordField => '密码';
+
+  @override
+  String get backupPasswordConfirmField => '确认密码';
+
+  @override
+  String get backupPasswordMismatch => '两次输入的密码不一致。';
+
+  @override
+  String backupPasswordTooShort(int count) {
+    return '请至少使用 $count 个字符。';
+  }
+
+  @override
+  String get backupPasswordSkip => '不设置密码，继续';
+
+  @override
+  String get backupPasswordProtect => '加密并继续';
+
+  @override
+  String get backupPasswordUnlockTitle => '此备份已加密';
+
+  @override
+  String get backupPasswordUnlockBody => '请输入创建此备份时设置的密码。如果已忘记，将无法导入该备份。';
+
+  @override
+  String get backupPasswordUnlockAction => '解锁';
+
+  @override
+  String get backupPasswordIncorrect => '密码不正确。';
+
+  @override
+  String get localBackupPasswordHint =>
+      '可选。保存或分享 .ntx 文件时可设置密码。已登录设备上的 iCloud 与 Google Drive 自动同步不会要求此密码。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -12976,7 +13025,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get apiKeysEncryptedSyncDescription =>
-      '供應商金鑰會加密並透過 iCloud 鑰匙圈同步，其他 Apple 裝置無需重新設定即可連線。備份中不會出現明文金鑰。';
+      '供應商金鑰會加密。Apple 裝置透過 iCloud 鑰匙圈同步包裝金鑰；Android 裝置透過本應用程式的私有 Google Drive 應用程式資料同步，其他已登入裝置無需重新設定即可連線。備份中不會出現明文金鑰。';
 
   @override
   String get iCloudSyncConflictTitle => 'iCloud 資料衝突';
@@ -12984,6 +13033,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String get iCloudSyncConflictBody =>
       '此裝置與另一部裝置在上次同步後都變更了資料。請選擇要保留的內容。套用前會先儲存本機 .ntx 快照。';
+
+  @override
+  String get googleDriveSyncConflictTitle => 'Google Drive 資料衝突';
+
+  @override
+  String get googleDriveSyncConflictBody =>
+      '此 Android 裝置與另一部已登入裝置在上次 Google Drive 同步後都變更了資料。請選擇要保留的內容。套用前會先儲存本機 .ntx 快照。';
 
   @override
   String get keepThisDevice => '保留此裝置';
@@ -13068,4 +13124,46 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatRenamed => '對話已重命名';
+
+  @override
+  String get backupPasswordTitle => '要為此備份設定密碼嗎？';
+
+  @override
+  String get backupPasswordWarning => '如果忘記此密碼，將無法匯入該備份。NativeTavern 無法幫你找回密碼。';
+
+  @override
+  String get backupPasswordField => '密碼';
+
+  @override
+  String get backupPasswordConfirmField => '確認密碼';
+
+  @override
+  String get backupPasswordMismatch => '兩次輸入的密碼不一致。';
+
+  @override
+  String backupPasswordTooShort(int count) {
+    return '請至少使用 $count 個字元。';
+  }
+
+  @override
+  String get backupPasswordSkip => '不設定密碼，繼續';
+
+  @override
+  String get backupPasswordProtect => '加密並繼續';
+
+  @override
+  String get backupPasswordUnlockTitle => '此備份已加密';
+
+  @override
+  String get backupPasswordUnlockBody => '請輸入建立此備份時設定的密碼。如果已忘記，將無法匯入該備份。';
+
+  @override
+  String get backupPasswordUnlockAction => '解鎖';
+
+  @override
+  String get backupPasswordIncorrect => '密碼不正確。';
+
+  @override
+  String get localBackupPasswordHint =>
+      '選用。儲存或分享 .ntx 檔時可設定密碼。已登入裝置上的 iCloud 與 Google Drive 自動同步不會要求此密碼。';
 }

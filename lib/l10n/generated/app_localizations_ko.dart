@@ -6676,7 +6676,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get apiKeysEncryptedSyncDescription =>
-      'Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.';
+      'Provider keys are encrypted. Apple devices sync the wrapping key through iCloud Keychain; Android devices sync it through this app\'s private Google Drive App Data so other signed-in devices can connect without repeating setup. Keys are never stored as plaintext in backups.';
 
   @override
   String get iCloudSyncConflictTitle => 'iCloud data conflict';
@@ -6684,6 +6684,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get iCloudSyncConflictBody =>
       'This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.';
+
+  @override
+  String get googleDriveSyncConflictTitle => 'Google Drive data conflict';
+
+  @override
+  String get googleDriveSyncConflictBody =>
+      'This Android device and another signed-in device both changed data since the last Google Drive sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.';
 
   @override
   String get keepThisDevice => 'Keep this device';
@@ -6772,4 +6779,48 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get chatRenamed => 'Chat renamed';
+
+  @override
+  String get backupPasswordTitle => 'Protect this backup with a password?';
+
+  @override
+  String get backupPasswordWarning =>
+      'If you forget this password, you will not be able to import this backup. NativeTavern cannot recover it.';
+
+  @override
+  String get backupPasswordField => 'Password';
+
+  @override
+  String get backupPasswordConfirmField => 'Confirm password';
+
+  @override
+  String get backupPasswordMismatch => 'The passwords do not match.';
+
+  @override
+  String backupPasswordTooShort(int count) {
+    return 'Use at least $count characters.';
+  }
+
+  @override
+  String get backupPasswordSkip => 'Continue without password';
+
+  @override
+  String get backupPasswordProtect => 'Protect and continue';
+
+  @override
+  String get backupPasswordUnlockTitle => 'This backup is password-protected';
+
+  @override
+  String get backupPasswordUnlockBody =>
+      'Enter the password used when this backup was created. If you have forgotten it, the backup cannot be imported.';
+
+  @override
+  String get backupPasswordUnlockAction => 'Unlock';
+
+  @override
+  String get backupPasswordIncorrect => 'That password is incorrect.';
+
+  @override
+  String get localBackupPasswordHint =>
+      'Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.';
 }

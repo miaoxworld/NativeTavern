@@ -89,15 +89,24 @@ class _ICloudConflictDialogState extends ConsumerState<ICloudConflictDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDrive = widget.conflict.provider == CloudProvider.googleDrive;
     return AlertDialog(
-      title: Text(l10n.iCloudSyncConflictTitle),
+      title: Text(
+        isDrive
+            ? l10n.googleDriveSyncConflictTitle
+            : l10n.iCloudSyncConflictTitle,
+      ),
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.iCloudSyncConflictBody),
+              Text(
+                isDrive
+                    ? l10n.googleDriveSyncConflictBody
+                    : l10n.iCloudSyncConflictBody,
+              ),
               if (widget.conflict.localSnapshotPath != null) ...[
                 const SizedBox(height: 8),
                 Text(

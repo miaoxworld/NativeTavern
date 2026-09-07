@@ -11886,7 +11886,7 @@ abstract class AppLocalizations {
   /// Settings tile subtitle for encrypted key sync
   ///
   /// In en, this message translates to:
-  /// **'Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.'**
+  /// **'Provider keys are encrypted. Apple devices sync the wrapping key through iCloud Keychain; Android devices sync it through this app\'s private Google Drive App Data so other signed-in devices can connect without repeating setup. Keys are never stored as plaintext in backups.'**
   String get apiKeysEncryptedSyncDescription;
 
   /// Title of the iCloud conflict resolution dialog
@@ -11900,6 +11900,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.'**
   String get iCloudSyncConflictBody;
+
+  /// Title of the Google Drive conflict resolution dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive data conflict'**
+  String get googleDriveSyncConflictTitle;
+
+  /// Body of the Google Drive conflict resolution dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This Android device and another signed-in device both changed data since the last Google Drive sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.'**
+  String get googleDriveSyncConflictBody;
 
   /// Conflict option that keeps local data
   ///
@@ -12068,6 +12080,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chat renamed'**
   String get chatRenamed;
+
+  /// Title of the optional backup password dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Protect this backup with a password?'**
+  String get backupPasswordTitle;
+
+  /// Warning that a forgotten backup password cannot be recovered
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget this password, you will not be able to import this backup. NativeTavern cannot recover it.'**
+  String get backupPasswordWarning;
+
+  /// Label for the backup password field
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get backupPasswordField;
+
+  /// Label for the backup password confirmation field
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get backupPasswordConfirmField;
+
+  /// Error when the two backup password fields differ
+  ///
+  /// In en, this message translates to:
+  /// **'The passwords do not match.'**
+  String get backupPasswordMismatch;
+
+  /// Error when the backup password is too short
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least {count} characters.'**
+  String backupPasswordTooShort(int count);
+
+  /// Button that exports a backup without password protection
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without password'**
+  String get backupPasswordSkip;
+
+  /// Button that exports a backup with a password
+  ///
+  /// In en, this message translates to:
+  /// **'Protect and continue'**
+  String get backupPasswordProtect;
+
+  /// Title of the dialog that unlocks a password-protected backup
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is password-protected'**
+  String get backupPasswordUnlockTitle;
+
+  /// Body of the dialog that unlocks a password-protected backup
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password used when this backup was created. If you have forgotten it, the backup cannot be imported.'**
+  String get backupPasswordUnlockBody;
+
+  /// Button that submits the backup password
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get backupPasswordUnlockAction;
+
+  /// Error when the backup password does not decrypt the file
+  ///
+  /// In en, this message translates to:
+  /// **'That password is incorrect.'**
+  String get backupPasswordIncorrect;
+
+  /// Settings explanation for optional local backup passwords
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.'**
+  String get localBackupPasswordHint;
 }
 
 class _AppLocalizationsDelegate

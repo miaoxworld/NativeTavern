@@ -7052,7 +7052,7 @@
   "@apiKeysEncryptedSync": {
     "description": "Settings tile title for encrypted key sync"
   },
-  "apiKeysEncryptedSyncDescription": "Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.",
+  "apiKeysEncryptedSyncDescription": "Provider keys are encrypted. Apple devices sync the wrapping key through iCloud Keychain; Android devices sync it through this app's private Google Drive App Data so other signed-in devices can connect without repeating setup. Keys are never stored as plaintext in backups.",
   "@apiKeysEncryptedSyncDescription": {
     "description": "Settings tile subtitle for encrypted key sync"
   },
@@ -7063,6 +7063,14 @@
   "iCloudSyncConflictBody": "This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.",
   "@iCloudSyncConflictBody": {
     "description": "Body of the iCloud conflict resolution dialog"
+  },
+  "googleDriveSyncConflictTitle": "Google Drive data conflict",
+  "@googleDriveSyncConflictTitle": {
+    "description": "Title of the Google Drive conflict resolution dialog"
+  },
+  "googleDriveSyncConflictBody": "This Android device and another signed-in device both changed data since the last Google Drive sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.",
+  "@googleDriveSyncConflictBody": {
+    "description": "Body of the Google Drive conflict resolution dialog"
   },
   "keepThisDevice": "Keep this device",
   "@keepThisDevice": {
@@ -7175,5 +7183,63 @@
   "chatRenamed": "Chat renamed",
   "@chatRenamed": {
     "description": "Snackbar notification after successfully renaming a chat"
+  },
+  "backupPasswordTitle": "Protect this backup with a password?",
+  "@backupPasswordTitle": {
+    "description": "Title of the optional backup password dialog"
+  },
+  "backupPasswordWarning": "If you forget this password, you will not be able to import this backup. NativeTavern cannot recover it.",
+  "@backupPasswordWarning": {
+    "description": "Warning that a forgotten backup password cannot be recovered"
+  },
+  "backupPasswordField": "Password",
+  "@backupPasswordField": {
+    "description": "Label for the backup password field"
+  },
+  "backupPasswordConfirmField": "Confirm password",
+  "@backupPasswordConfirmField": {
+    "description": "Label for the backup password confirmation field"
+  },
+  "backupPasswordMismatch": "The passwords do not match.",
+  "@backupPasswordMismatch": {
+    "description": "Error when the two backup password fields differ"
+  },
+  "backupPasswordTooShort": "Use at least {count} characters.",
+  "@backupPasswordTooShort": {
+    "description": "Error when the backup password is too short",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "backupPasswordSkip": "Continue without password",
+  "@backupPasswordSkip": {
+    "description": "Button that exports a backup without password protection"
+  },
+  "backupPasswordProtect": "Protect and continue",
+  "@backupPasswordProtect": {
+    "description": "Button that exports a backup with a password"
+  },
+  "backupPasswordUnlockTitle": "This backup is password-protected",
+  "@backupPasswordUnlockTitle": {
+    "description": "Title of the dialog that unlocks a password-protected backup"
+  },
+  "backupPasswordUnlockBody": "Enter the password used when this backup was created. If you have forgotten it, the backup cannot be imported.",
+  "@backupPasswordUnlockBody": {
+    "description": "Body of the dialog that unlocks a password-protected backup"
+  },
+  "backupPasswordUnlockAction": "Unlock",
+  "@backupPasswordUnlockAction": {
+    "description": "Button that submits the backup password"
+  },
+  "backupPasswordIncorrect": "That password is incorrect.",
+  "@backupPasswordIncorrect": {
+    "description": "Error when the backup password does not decrypt the file"
+  },
+  "localBackupPasswordHint": "Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.",
+  "@localBackupPasswordHint": {
+    "description": "Settings explanation for optional local backup passwords"
   }
 }
