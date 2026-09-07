@@ -242,6 +242,34 @@ class CloudBackupService {
   final BackupPasswordService _backupPassword;
   String? lastMediaWarning;
 
+  /// Drops leftover timestamped backup temps, keeping the current sync snapshot.
+  Future<void> pruneCloudCache(
+    Directory cacheDir, {
+    DateTime? now,
+    Duration maxAge = const Duration(hours: 24),
+  }) async {
+    if (!await cacheDir.exists()) return;
+    final cutoff = (now ?? DateTime.now().toUtc()).subtract(maxAge);
+    try {
+      await for (final entity in cacheDir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = path.basename(entity.path);
+        if (name == syncBackupFileName || name == syncMetadataFileName) {
+          continue;
+        }
+        try {
+          final modified = (await entity.stat()).modified.toUtc();
+          if (modified.isAfter(cutoff)) continue;
+          await entity.delete();
+        } catch (_) {
+          // A locked temp file must not block backup creation.
+        }
+      }
+    } catch (_) {
+      // Cache pruning is best-effort.
+    }
+  }
+
   /// Get the cloud backups cache directory
   Future<Directory> getCloudCacheDirectory() async {
     final appDir = await _documentsDirectoryProvider();
@@ -464,6 +492,7 @@ class CloudBackupService {
   }) async {
     lastMediaWarning = null;
     final cacheDir = await getCloudCacheDirectory();
+    await pruneCloudCache(cacheDir);
     final fileName = cloudBackupFileName(extension: 'ntb');
     final filePath = path.join(cacheDir.path, fileName);
     final documents = await _documentsDirectoryProvider();

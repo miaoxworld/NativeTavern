@@ -480,6 +480,30 @@ void main() {
       'NativeTavern_sync.meta.json',
     );
   });
+
+  test('pruneCloudCache deletes old temps and keeps the sync snapshot', () async {
+    final service = CloudBackupService.forTesting(
+      documentsDirectory: documents,
+    );
+    final cache = Directory(p.join(documents.path, 'NativeTavern', 'cloud_cache'))
+      ..createSync(recursive: true);
+    final now = DateTime.utc(2100, 1, 2);
+    final stale = File(p.join(cache.path, 'NativeTavern_cloud_backup_old.ntx'))
+      ..writeAsBytesSync([1, 2, 3]);
+    stale.setLastModifiedSync(now.subtract(const Duration(days: 2)));
+    final sync = File(p.join(cache.path, CloudBackupService.syncBackupFileName))
+      ..writeAsBytesSync([4, 5, 6]);
+    sync.setLastModifiedSync(now.subtract(const Duration(days: 2)));
+    final fresh = File(p.join(cache.path, 'NativeTavern_cloud_backup_new.ntx'))
+      ..writeAsBytesSync([7, 8, 9]);
+    fresh.setLastModifiedSync(now);
+
+    await service.pruneCloudCache(cache, now: now);
+
+    expect(stale.existsSync(), isFalse);
+    expect(sync.existsSync(), isTrue);
+    expect(fresh.existsSync(), isTrue);
+  });
 }
 
 Set<String> _archiveNames(List<int> bytes) {

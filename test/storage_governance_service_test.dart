@@ -132,9 +132,15 @@ void main() {
       'unrelated',
       old,
     );
-    final expiredCache = await _oldFile(
-      path.join(cacheRoot.path, 'nested', 'expired.cache'),
+    final expiredCacheDir = Directory(path.join(cacheRoot.path, 'nested'));
+    await _oldFile(
+      path.join(expiredCacheDir.path, 'expired.cache'),
       'expired-cache',
+      old,
+    );
+    await _oldFile(
+      path.join(expiredCacheDir.path, 'another.cache'),
+      'another-cache',
       old,
     );
     await _oldFile(
@@ -167,7 +173,11 @@ void main() {
     expect(candidatePaths, contains(interruptedDeletion.path));
     expect(candidatePaths, contains(managedAudio.path));
     expect(candidatePaths, contains(temporaryAudio.path));
-    expect(candidatePaths, contains(expiredCache.path));
+    expect(candidatePaths, contains(path.normalize(expiredCacheDir.path)));
+    expect(
+      candidatePaths.where((value) => value.endsWith('.cache')),
+      isEmpty,
+    );
     expect(
       candidatePaths,
       isNot(contains(path.join(dataRoot.path, 'avatars', 'kept.png'))),
@@ -286,6 +296,34 @@ void main() {
       ),
     );
     expect(expiredCache.existsSync(), isTrue);
+  });
+
+  test('nested plugin caches collapse to one expired transient candidate',
+      () async {
+    final old = now.subtract(const Duration(days: 2));
+    final pluginCache = Directory(
+      path.join(cacheRoot.path, 'libCachedImageData'),
+    );
+    for (var index = 0; index < 40; index++) {
+      await _oldFile(
+        path.join(pluginCache.path, 'shard', '$index.img'),
+        'cache-$index',
+        old,
+      );
+    }
+
+    final snapshot = await service.scan();
+    final cacheCandidates = snapshot.cleanupCandidates
+        .where((candidate) => candidate.category == StorageCategory.cache)
+        .toList();
+
+    expect(cacheCandidates, hasLength(1));
+    expect(cacheCandidates.single.path, path.normalize(pluginCache.path));
+    expect(cacheCandidates.single.fileCount, 40);
+    expect(
+      cacheCandidates.single.reason,
+      StorageCleanupReason.expiredTransientData,
+    );
   });
 
   test('overlapping temporary and cache roots count each file once', () async {

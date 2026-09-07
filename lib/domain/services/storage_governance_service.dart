@@ -442,11 +442,9 @@ final class StorageGovernanceService implements StorageGovernanceOperations {
         candidatePaths,
         unreadablePaths,
       );
-      await _collectStaleFiles(
+      await _collectStaleCacheEntries(
         cacheRoot,
-        StorageCategory.cache,
         now,
-        orphanGracePeriod,
         candidates,
         candidatePaths,
         unreadablePaths,
@@ -802,6 +800,55 @@ final class StorageGovernanceService implements StorageGovernanceOperations {
           candidatePaths,
           unreadablePaths,
         );
+      }
+    } on FileSystemException {
+      unreadablePaths.add(path.normalize(root.path));
+    }
+  }
+
+  /// Cache trees (plugin image caches, backup temps) can contain thousands of
+  /// files. List only immediate children so Storage management stays usable.
+  Future<void> _collectStaleCacheEntries(
+    Directory root,
+    DateTime now,
+    List<StorageCleanupCandidate> candidates,
+    Set<String> candidatePaths,
+    List<String> unreadablePaths,
+  ) async {
+    if (!await root.exists()) return;
+    try {
+      await for (final entity in root.list(followLinks: false)) {
+        if (_isStagingDirectory(entity.path) ||
+            _isInsideStagingDirectory(root.path, entity.path)) {
+          continue;
+        }
+        final type = await FileSystemEntity.type(
+          entity.path,
+          followLinks: false,
+        );
+        if (type == FileSystemEntityType.directory) {
+          await _addDirectoryCandidate(
+            Directory(entity.path),
+            StorageCategory.cache,
+            now,
+            orphanGracePeriod,
+            StorageCleanupReason.expiredTransientData,
+            candidates,
+            candidatePaths,
+            unreadablePaths,
+          );
+        } else if (type == FileSystemEntityType.file) {
+          await _addFileCandidate(
+            File(entity.path),
+            StorageCategory.cache,
+            now,
+            orphanGracePeriod,
+            StorageCleanupReason.expiredTransientData,
+            candidates,
+            candidatePaths,
+            unreadablePaths,
+          );
+        }
       }
     } on FileSystemException {
       unreadablePaths.add(path.normalize(root.path));
