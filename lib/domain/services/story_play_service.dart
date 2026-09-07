@@ -4,6 +4,8 @@ import 'package:native_tavern/data/models/chat.dart';
 import 'package:native_tavern/data/models/story/story_chapter.dart';
 import 'package:native_tavern/data/repositories/chat_repository.dart';
 import 'package:native_tavern/domain/repositories/story_repository.dart';
+import 'package:native_tavern/domain/services/llm_service.dart';
+import 'package:native_tavern/domain/services/story_service.dart';
 import 'package:uuid/uuid.dart';
 
 const storyRootChatIdKey = 'storyRootChatId';
@@ -72,14 +74,94 @@ final class StoryPlayService {
   StoryPlayService({
     required ChatRepository chatRepository,
     required StoryRepository storyRepository,
+    StoryLlmTransport? transport,
     String Function()? createId,
   })  : _chats = chatRepository,
         _stories = storyRepository,
+        _transport = transport,
         _createId = createId ?? const Uuid().v4;
 
   final ChatRepository _chats;
   final StoryRepository _stories;
+  final StoryLlmTransport? _transport;
   final String Function() _createId;
+
+  Future<Chat> renameStory({
+    required String rootChatId,
+    required String newTitle,
+  }) async {
+    final cleanTitle = newTitle.trim();
+    if (cleanTitle.isEmpty) {
+      throw ArgumentError.value(newTitle, 'newTitle', 'Title must not be empty');
+    }
+    final chat = await _chats.getChat(rootChatId);
+    if (chat == null) {
+      throw StateError('Story root chat not found: $rootChatId');
+    }
+    final updated = chat.copyWith(title: cleanTitle);
+    await _chats.updateChat(updated);
+    return updated;
+  }
+
+  Future<String> generateStoryTitle({
+    required String rootChatId,
+    required LLMConfig config,
+  }) async {
+    final transport = _transport;
+    if (transport == null) {
+      throw StateError('LLM transport is not configured for story title generation.');
+    }
+    final chapters = await _stories.listByChatId(rootChatId);
+    final chat = await _chats.getChat(rootChatId);
+    final contextBuffer = StringBuffer();
+    if (chat != null && chat.title.trim().isNotEmpty) {
+      contextBuffer.writeln('Current Story Title: ${chat.title.trim()}');
+    }
+    if (chapters.isNotEmpty) {
+      contextBuffer.writeln('Story Chapters:');
+      for (final ch in chapters.take(6)) {
+        contextBuffer.writeln('- ${ch.title}: ${ch.summary}');
+      }
+    } else {
+      final messages = await _chats.getMessages(rootChatId);
+      final recent = messages.reversed.take(8).toList().reversed;
+      contextBuffer.writeln('Recent Conversation:');
+      for (final msg in recent) {
+        final content = msg.content.length > 120
+            ? '${msg.content.substring(0, 120)}...'
+            : msg.content;
+        contextBuffer.writeln('${msg.role.name}: $content');
+      }
+    }
+
+    final prompt = [
+      {
+        'role': 'system',
+        'content':
+            'You are a creative author. Generate a short, compelling story title (2 to 6 words) based on the story overview provided. Return ONLY the title in plain text, without quotes, punctuation at the end, or explanations.',
+      },
+      {
+        'role': 'user',
+        'content': 'Here is the story overview:\n$contextBuffer\n\nGenerate title:',
+      },
+    ];
+
+    final response = await transport(
+      prompt,
+      config.copyWith(
+        streamEnabled: false,
+        temperature: 0.7,
+        maxTokens: 32,
+      ),
+    );
+
+    var title = response.trim();
+    title = title.replaceAll(RegExp(r'^["`*_#]+|["`*_#.,:;!?]+$'), '').trim();
+    if (title.isEmpty) {
+      title = chat?.title ?? 'Untitled Story';
+    }
+    return title;
+  }
 
   Future<List<StoryLine>> listLines() async {
     final chats = await _chats.getAllChats();

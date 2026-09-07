@@ -6,6 +6,7 @@ import 'package:native_tavern/data/models/long_term_memory.dart';
 import 'package:native_tavern/data/models/story/story_chapter.dart';
 import 'package:native_tavern/data/repositories/chat_repository.dart';
 import 'package:native_tavern/data/repositories/drift_story_repository.dart';
+import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/repositories/story_repository.dart';
 import 'package:native_tavern/domain/services/story_play_service.dart';
 import 'package:native_tavern/domain/services/story_memory_scope_service.dart';
@@ -315,6 +316,40 @@ void main() {
       persisted.narrative.keyEvents,
       ['The compass points beneath the old station.'],
     );
+  });
+
+  test('renameStory updates the root chat title', () async {
+    await _createChat(chats, 'root');
+    final updated = await play.renameStory(
+      rootChatId: 'root',
+      newTitle: 'The New Chronicles',
+    );
+
+    expect(updated.title, 'The New Chronicles');
+    final fetched = await chats.getChat('root');
+    expect(fetched?.title, 'The New Chronicles');
+  });
+
+  test('generateStoryTitle generates and sanitizes title via transport', () async {
+    await _createChat(chats, 'root');
+    await _addMessages(chats, 'root', 2);
+    final playWithLlm = StoryPlayService(
+      chatRepository: chats,
+      storyRepository: stories,
+      createId: () => 'test-id',
+      transport: (messages, config) async => '"A Tale of Mystery"',
+    );
+
+    final title = await playWithLlm.generateStoryTitle(
+      rootChatId: 'root',
+      config: const LLMConfig(
+        provider: LLMProvider.openAICompatible,
+        model: 'test-model',
+        apiKey: 'test-key',
+        apiUrl: 'http://localhost',
+      ),
+    );
+    expect(title, 'A Tale of Mystery');
   });
 }
 

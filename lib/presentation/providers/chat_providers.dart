@@ -25,6 +25,7 @@ import 'package:native_tavern/domain/services/macro_service.dart';
 import 'package:native_tavern/domain/services/chat_summarization_service.dart';
 import 'package:native_tavern/domain/services/chat_generation_pipeline.dart';
 import 'package:native_tavern/domain/services/chat_export_service.dart';
+import 'package:native_tavern/domain/services/chat_naming_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/chat_extension_providers.dart';
 import 'package:native_tavern/presentation/providers/data_bank_providers.dart';
@@ -3788,4 +3789,16 @@ class PagedChatsNotifier extends AutoDisposeAsyncNotifier<List<Chat>> {
 final recentChatsProvider = FutureProvider<List<Chat>>((ref) async {
   final repo = ref.watch(chatRepositoryProvider);
   return repo.getRecentChats(limit: 10);
+});
+
+/// Chat naming service provider
+final chatNamingServiceProvider = Provider<ChatNamingService>((ref) {
+  final chatRepo = ref.watch(chatRepositoryProvider);
+  final characterRepo = ref.watch(characterRepositoryProvider);
+  final llmService = ref.watch(llmServiceProvider);
+  return ChatNamingService(
+    chatRepository: chatRepo,
+    characterRepository: characterRepo,
+    transport: llmService.generate,
+  );
 });

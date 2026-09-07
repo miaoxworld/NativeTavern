@@ -44,6 +44,7 @@ final storyPlayServiceProvider = Provider<StoryPlayService>((ref) {
   return StoryPlayService(
     chatRepository: ref.watch(chatRepositoryProvider),
     storyRepository: ref.watch(storyRepositoryProvider),
+    transport: ref.watch(llmServiceProvider).generate,
   );
 });
 
