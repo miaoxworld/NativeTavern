@@ -20,6 +20,14 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
   String? _selectedChatId;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(memoryInboxProvider.notifier).refresh();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final inbox = ref.watch(memoryInboxProvider);
@@ -240,6 +248,10 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
         ),
       );
     }
+    final chatTitles = <String, String>{
+      for (final chat in inbox.recentChats)
+        chat.id: chat.title.trim().isEmpty ? chat.id : chat.title,
+    };
     return ListView.separated(
       key: Key('memory-${_view.name}-list'),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
@@ -247,8 +259,10 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final memory = memories[index];
+        final sourceChatId = memory.source.sourceChatId ?? memory.scope.chatId;
         return _MemoryItem(
           memory: memory,
+          chatTitle: sourceChatId != null ? chatTitles[sourceChatId] : null,
           assessment: inbox.conflicts[memory.id],
           selected: inbox.selectedIds.contains(memory.id),
           selectable: _view == MemoryInboxView.candidates,
@@ -495,6 +509,7 @@ class _MemoryItem extends StatelessWidget {
     required this.onIgnore,
     required this.onLock,
     required this.onSource,
+    this.chatTitle,
   });
 
   final LongTermMemory memory;
@@ -507,6 +522,7 @@ class _MemoryItem extends StatelessWidget {
   final VoidCallback? onIgnore;
   final VoidCallback? onLock;
   final VoidCallback? onSource;
+  final String? chatTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -591,6 +607,47 @@ class _MemoryItem extends StatelessWidget {
                     _memoryScopeLabel(l10n, memory.scope.kind),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (chatTitle != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 11,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
+                          const SizedBox(width: 4),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 160),
+                            child: Text(
+                              chatTitle!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Text(
                     l10n.memoryImportancePercent(
                       (memory.importance * 100).round(),

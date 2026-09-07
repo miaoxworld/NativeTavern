@@ -141,7 +141,7 @@ final class MemoryInboxController extends StateNotifier<MemoryInboxState> {
         _repository.findByStates(
           const {MemoryState.superseded, MemoryState.forgotten},
         ),
-        _chatRepository.getRecentChats(limit: 20),
+        _chatRepository.getRecentChats(limit: 100),
       ]);
       final candidates = results[0] as List<LongTermMemory>;
       final conflicts = <String, MemoryConflictAssessment>{};
