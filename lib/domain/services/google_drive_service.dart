@@ -76,8 +76,17 @@ class GoogleDriveService {
   static String get webClientId =>
       _configuredWebClientId ?? _defaultWebClientId;
 
-  /// Folder name in Google Drive for backups
+  /// Folder name in Google Drive for user-visible manual backups.
   static const _backupFolderName = 'NativeTavern Backups';
+
+  /// Hidden App Data space used for automatic cross-device sync.
+  static const _appDataSpace = 'appDataFolder';
+
+  static const _driveScopes = [
+    'email',
+    drive.DriveApi.driveFileScope,
+    drive.DriveApi.driveAppdataScope,
+  ];
 
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
@@ -91,35 +100,23 @@ class GoogleDriveService {
     if (Platform.isIOS) {
       // iOS uses iOS client ID, configured in Info.plist
       _googleSignIn = GoogleSignIn(
-        scopes: [
-          'email',
-          drive.DriveApi.driveFileScope,
-        ],
+        scopes: _driveScopes,
       );
     } else if (Platform.isMacOS) {
       // macOS also uses iOS type OAuth client ID (Apple platforms share the same type)
       // The iOS client ID must be configured with the app's Bundle ID
       _googleSignIn = GoogleSignIn(
         clientId: _iosClientId,
-        scopes: [
-          'email',
-          drive.DriveApi.driveFileScope,
-        ],
+        scopes: _driveScopes,
       );
     } else if (Platform.isAndroid) {
       _googleSignIn = GoogleSignIn(
         serverClientId: webClientId,
-        scopes: [
-          'email',
-          drive.DriveApi.driveFileScope,
-        ],
+        scopes: _driveScopes,
       );
     } else {
       _googleSignIn = GoogleSignIn(
-        scopes: [
-          'email',
-          drive.DriveApi.driveFileScope,
-        ],
+        scopes: _driveScopes,
       );
     }
 
@@ -436,12 +433,11 @@ class GoogleDriveService {
     required String fileName,
     required File source,
     String mimeType = 'application/x-nativetavern-package',
+    bool appData = false,
   }) async {
     if (_driveApi == null) return null;
     try {
-      final folderId = await _getOrCreateBackupFolder();
-      if (folderId == null) return null;
-      final existing = await _findFileId(folderId, fileName);
+      final existing = await _findNamedFileId(fileName, appData: appData);
       final bytes = await source.readAsBytes();
       final media = drive.Media(Stream.value(bytes), bytes.length);
       late drive.File uploaded;
@@ -452,7 +448,15 @@ class GoogleDriveService {
           uploadMedia: media,
           $fields: 'id, name, size, createdTime, modifiedTime',
         );
+      } else if (appData) {
+        uploaded = await _uploadAppDataBytes(
+          fileName: fileName,
+          mimeType: mimeType,
+          bytes: bytes,
+        );
       } else {
+        final folderId = await _getOrCreateBackupFolder();
+        if (folderId == null) return null;
         uploaded = await _uploadBytes(
           folderId: folderId,
           fileName: fileName,
@@ -467,12 +471,13 @@ class GoogleDriveService {
     }
   }
 
-  Future<Map<String, dynamic>?> readNamedJson(String fileName) async {
+  Future<Map<String, dynamic>?> readNamedJson(
+    String fileName, {
+    bool appData = false,
+  }) async {
     if (_driveApi == null) return null;
     try {
-      final folderId = await _getOrCreateBackupFolder();
-      if (folderId == null) return null;
-      final id = await _findFileId(folderId, fileName);
+      final id = await _findNamedFileId(fileName, appData: appData);
       if (id == null) return null;
       final response = await _driveApi!.files.get(
         id,
@@ -493,14 +498,13 @@ class GoogleDriveService {
 
   Future<bool> upsertNamedJson(
     String fileName,
-    Map<String, dynamic> data,
-  ) async {
+    Map<String, dynamic> data, {
+    bool appData = false,
+  }) async {
     if (_driveApi == null) return false;
     try {
-      final folderId = await _getOrCreateBackupFolder();
-      if (folderId == null) return false;
       final bytes = utf8.encode(jsonEncode(data));
-      final existing = await _findFileId(folderId, fileName);
+      final existing = await _findNamedFileId(fileName, appData: appData);
       final media = drive.Media(Stream.value(bytes), bytes.length);
       if (existing != null) {
         await _driveApi!.files.update(
@@ -508,7 +512,15 @@ class GoogleDriveService {
           existing,
           uploadMedia: media,
         );
+      } else if (appData) {
+        await _uploadAppDataBytes(
+          fileName: fileName,
+          mimeType: 'application/json',
+          bytes: bytes,
+        );
       } else {
+        final folderId = await _getOrCreateBackupFolder();
+        if (folderId == null) return false;
         await _uploadBytes(
           folderId: folderId,
           fileName: fileName,
@@ -523,12 +535,13 @@ class GoogleDriveService {
     }
   }
 
-  Future<GoogleDriveBackupInfo?> findNamedFile(String fileName) async {
+  Future<GoogleDriveBackupInfo?> findNamedFile(
+    String fileName, {
+    bool appData = false,
+  }) async {
     if (_driveApi == null) return null;
     try {
-      final folderId = await _getOrCreateBackupFolder();
-      if (folderId == null) return null;
-      final id = await _findFileId(folderId, fileName);
+      final id = await _findNamedFileId(fileName, appData: appData);
       if (id == null) return null;
       final file = await _driveApi!.files.get(
         id,
@@ -541,8 +554,39 @@ class GoogleDriveService {
     }
   }
 
-  Future<String?> _findFileId(String folderId, String fileName) async {
+  Future<drive.File> _uploadAppDataBytes({
+    required String fileName,
+    required String mimeType,
+    required List<int> bytes,
+  }) {
+    final metadata = drive.File()
+      ..name = fileName
+      ..parents = [_appDataSpace]
+      ..mimeType = mimeType;
+    return _driveApi!.files.create(
+      metadata,
+      uploadMedia: drive.Media(Stream.value(bytes), bytes.length),
+      $fields: 'id, name, size, createdTime, modifiedTime',
+    );
+  }
+
+  Future<String?> _findNamedFileId(
+    String fileName, {
+    required bool appData,
+  }) async {
     if (fileName.contains("'")) return null;
+    if (appData) {
+      final response = await _driveApi!.files.list(
+        q: "name='$fileName' and trashed=false",
+        spaces: _appDataSpace,
+        $fields: 'files(id, name)',
+      );
+      final files = response.files;
+      if (files == null || files.isEmpty) return null;
+      return files.first.id;
+    }
+    final folderId = await _getOrCreateBackupFolder();
+    if (folderId == null) return null;
     final response = await _driveApi!.files.list(
       q: "'$folderId' in parents and trashed=false and name='$fileName'",
       spaces: 'drive',

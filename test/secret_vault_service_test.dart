@@ -33,6 +33,12 @@ void main() {
 
     expect(await vault.unseal(sealed, wrapKey: otherKey), isNull);
   });
+
+  test('exportWrapKey returns the configured wrapping key', () async {
+    final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
+    final vault = SecretVaultService(wrapKeyLoader: () async => wrapKey);
+    expect(await vault.exportWrapKey(), wrapKey);
+  });
 }
 
 String jsonish(Map<String, dynamic> value) => value.toString();

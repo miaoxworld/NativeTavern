@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:native_tavern/core/services/initialization_service.dart';
 import 'package:native_tavern/domain/services/backup_import_selection.dart';
+import 'package:native_tavern/domain/services/backup_password_service.dart';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
 import 'package:native_tavern/domain/services/database_backup_service.dart';
 import 'package:native_tavern/domain/services/file_export_service.dart';
@@ -22,6 +24,11 @@ final pendingBackupImportPathProvider = StateProvider<String?>((ref) => null);
 /// Concurrent iCloud edit waiting for the user to choose what stays.
 final pendingICloudConflictProvider =
     StateProvider<ICloudSyncConflict?>((ref) => null);
+
+/// Prompt for a password-protected `.ntx`. Return null to cancel.
+typedef BackupPasswordPrompt = Future<String?> Function({
+  required bool incorrect,
+});
 
 /// Path of a non-backup file opened from the system for character/chat import.
 final pendingImportFilePathProvider = StateProvider<String?>((ref) => null);
@@ -237,6 +244,9 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
       iCloudEnabled: value && (Platform.isIOS || Platform.isMacOS)
           ? true
           : state.iCloudEnabled,
+      googleDriveEnabled: value && Platform.isAndroid
+          ? true
+          : state.googleDriveEnabled,
     );
     _saveSettings();
   }
@@ -611,21 +621,65 @@ class CloudBackupOperationNotifier
 
   Future<void> _applyVault(
     Map<String, dynamic> package,
-    BackupImportSelection selection,
-  ) async {
+    BackupImportSelection selection, {
+    Uint8List? wrapKey,
+  }) async {
     if (!selection.secrets) return;
     try {
-      await SecretVaultService(
+      final vault = SecretVaultService(
         database: _ref.read(databaseProvider),
-      ).applyVault(package['ntxVault']);
+      );
+      if (wrapKey != null) {
+        await vault.importWrapKey(wrapKey);
+      }
+      await vault.applyVault(package['ntxVault']);
     } catch (e) {
       debugPrint('[CloudBackup] vault apply failed: $e');
+    }
+  }
+
+  Future<Uint8List?> _googleDriveWrapKey() async {
+    try {
+      final remote = await _googleDriveService.readNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+        appData: true,
+      );
+      final encoded = remote?['wrapKey'];
+      if (encoded is! String || encoded.isEmpty) return null;
+      final bytes = Uint8List.fromList(base64Decode(encoded));
+      if (bytes.length != 32) return null;
+      await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).importWrapKey(bytes);
+      return bytes;
+    } catch (e) {
+      debugPrint('[CloudBackup] drive wrap key read failed: $e');
+      return null;
+    }
+  }
+
+  Future<void> _uploadGoogleDriveWrapKey() async {
+    try {
+      final wrapKey = await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).exportWrapKey();
+      await _googleDriveService.upsertNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+        {
+          'alg': 'A256GCM',
+          'wrapKey': base64Encode(wrapKey),
+        },
+        appData: true,
+      );
+    } catch (e) {
+      debugPrint('[CloudBackup] drive wrap key upload failed: $e');
     }
   }
 
   Future<CloudBackupArtifacts> _createLocalArtifacts({
     required Map<String, dynamic> data,
     CloudBackupOptions? options,
+    String? password,
   }) async {
     final opts =
         options ?? _ref.read(cloudBackupSettingsProvider).backupOptions;
@@ -633,6 +687,7 @@ class CloudBackupOperationNotifier
       data: data,
       options: opts,
       ntxVault: await _currentVault(),
+      password: password,
       onProgress: (progress) {
         final progressValue = switch (progress.stage) {
           CloudBackupArtifactStage.scanningMedia => 0.15,
@@ -667,12 +722,37 @@ class CloudBackupOperationNotifier
     );
   }
 
+  Future<Map<String, dynamic>?> _importBackupPackage(
+    File file, {
+    File? mediaFile,
+    BackupPasswordPrompt? requestPassword,
+  }) async {
+    if (!await _service.isPasswordProtectedBackup(file)) {
+      return _service.importFromFile(file, mediaFile: mediaFile);
+    }
+    var incorrect = false;
+    while (true) {
+      final password = await requestPassword?.call(incorrect: incorrect);
+      if (password == null) return null;
+      try {
+        return await _service.importFromFile(
+          file,
+          mediaFile: mediaFile,
+          password: password,
+        );
+      } on BackupPasswordInvalidException {
+        incorrect = true;
+      }
+    }
+  }
+
   /// Export a combined `.ntx` backup to a user-chosen folder. Falls back to
   /// `NativeTavern/Backups` only when that chosen-folder save cannot complete.
   Future<FileExportOutcome?> exportBackupToFile({
     required Map<String, dynamic> data,
     CloudBackupOptions? options,
     bool combined = true,
+    String? password,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -685,6 +765,7 @@ class CloudBackupOperationNotifier
       final artifacts = await _createLocalArtifacts(
         data: data,
         options: options,
+        password: password,
       );
       final source =
           combined ? await _combinedBackupFile(artifacts) : artifacts.dataFile;
@@ -750,6 +831,7 @@ class CloudBackupOperationNotifier
     CloudBackupOptions? options,
     Rect? sharePositionOrigin,
     bool combined = true,
+    String? password,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -762,6 +844,7 @@ class CloudBackupOperationNotifier
       final artifacts = await _createLocalArtifacts(
         data: data,
         options: options,
+        password: password,
       );
       final combinedFile =
           combined ? await _combinedBackupFile(artifacts) : artifacts.dataFile;
@@ -827,6 +910,7 @@ class CloudBackupOperationNotifier
     required Map<String, dynamic> localData,
     required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
         restoreCallback,
+    BackupPasswordPrompt? requestPassword,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -856,10 +940,20 @@ class CloudBackupOperationNotifier
         progress: 0.3,
       );
 
-      final backupData = await _service.importFromFile(
+      final backupData = await _importBackupPackage(
         file,
         mediaFile: mediaFile,
+        requestPassword: requestPassword,
       );
+      if (backupData == null) {
+        state = state.copyWith(
+          isLoading: false,
+          currentOperation: null,
+          progress: null,
+          status: CloudBackupStatus.idle,
+        );
+        return null;
+      }
 
       state = state.copyWith(
         currentOperation: 'Restoring data...',
@@ -913,6 +1007,7 @@ class CloudBackupOperationNotifier
     required Map<String, dynamic> localData,
     required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
         restoreCallback,
+    BackupPasswordPrompt? requestPassword,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -955,7 +1050,19 @@ class CloudBackupOperationNotifier
         progress: 0.3,
       );
 
-      final backupData = await _service.importFromFile(file);
+      final backupData = await _importBackupPackage(
+        file,
+        requestPassword: requestPassword,
+      );
+      if (backupData == null) {
+        state = state.copyWith(
+          isLoading: false,
+          currentOperation: null,
+          progress: null,
+          status: CloudBackupStatus.idle,
+        );
+        return null;
+      }
 
       state = state.copyWith(
         currentOperation: 'Restoring data...',
@@ -1179,6 +1286,7 @@ class CloudBackupOperationNotifier
     required Map<String, dynamic> localData,
     required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
         restoreCallback,
+    BackupPasswordPrompt? requestPassword,
   }) async {
     state = const CloudBackupOperationState(
       isLoading: true,
@@ -1208,7 +1316,19 @@ class CloudBackupOperationNotifier
         if (downloaded == null) {
           throw Exception('Failed to download backup');
         }
-        backupData = await _service.importFromFile(downloaded);
+        backupData = await _importBackupPackage(
+          downloaded,
+          requestPassword: requestPassword,
+        );
+        if (backupData == null) {
+          state = state.copyWith(
+            isLoading: false,
+            currentOperation: null,
+            progress: null,
+            status: CloudBackupStatus.idle,
+          );
+          return null;
+        }
       } else {
         backupData = await _googleDriveService.downloadBackup(
           fileId: fileId,
@@ -1436,7 +1556,15 @@ class CloudBackupOperationNotifier
     };
     if (resolution != ICloudConflictResolution.keepLocal &&
         selection.importsAnything) {
-      final package = Map<String, dynamic>.from(conflict.remotePackage);
+      var package = Map<String, dynamic>.from(conflict.remotePackage);
+      final remotePath = conflict.remote.remotePath;
+      if (remotePath != null && await File(remotePath).exists()) {
+        try {
+          package = await _service.importFromFile(File(remotePath));
+        } catch (e) {
+          debugPrint('[CloudBackup] conflict import from path failed: $e');
+        }
+      }
       if (package['data'] is Map) {
         package['data'] = selection.filterData(
           Map<String, dynamic>.from(package['data'] as Map),
@@ -1445,9 +1573,15 @@ class CloudBackupOperationNotifier
       await restoreCallback(package, mode);
       await _applyVault(package, selection);
     }
-    await _service.keepCurrentSyncVersion();
+    if (conflict.provider == CloudProvider.iCloud) {
+      await _service.keepCurrentSyncVersion();
+    }
     if (resolution != ICloudConflictResolution.keepRemote) {
       await pushAutoSync(loadData: loadData);
+    } else if (conflict.provider == CloudProvider.googleDrive) {
+      _ref
+          .read(cloudBackupSettingsProvider.notifier)
+          .updateLastGoogleDriveSync();
     } else {
       _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
     }
@@ -1557,11 +1691,14 @@ class CloudBackupOperationNotifier
         await _googleDriveService.upsertNamedFile(
           fileName: CloudBackupService.syncBackupFileName,
           source: snapshot,
+          appData: true,
         );
         await _googleDriveService.upsertNamedJson(
           CloudBackupService.syncMetadataFileName,
           _syncMetadata(deviceId),
+          appData: true,
         );
+        await _uploadGoogleDriveWrapKey();
         _ref
             .read(cloudBackupSettingsProvider.notifier)
             .updateLastGoogleDriveSync();
@@ -1651,11 +1788,19 @@ class CloudBackupOperationNotifier
     final settings = _ref.read(cloudBackupSettingsProvider);
     final deviceId = await _deviceId();
     final metadata = await _googleDriveService.readNamedJson(
-      CloudBackupService.syncMetadataFileName,
-    );
+          CloudBackupService.syncMetadataFileName,
+          appData: true,
+        ) ??
+        await _googleDriveService.readNamedJson(
+          CloudBackupService.syncMetadataFileName,
+        );
     final remote = await _googleDriveService.findNamedFile(
-      CloudBackupService.syncBackupFileName,
-    );
+          CloudBackupService.syncBackupFileName,
+          appData: true,
+        ) ??
+        await _googleDriveService.findNamedFile(
+          CloudBackupService.syncBackupFileName,
+        );
     final remoteUpdatedAt = metadata?['updatedAt'] != null
         ? DateTime.tryParse(metadata!['updatedAt'] as String)?.toUtc()
         : remote?.modifiedAt?.toUtc() ?? remote?.createdAt.toUtc();
@@ -1665,6 +1810,42 @@ class CloudBackupOperationNotifier
       remoteDeviceId: metadata?['deviceId'] as String?,
       localDeviceId: deviceId,
     );
+    final lastSync = settings.lastGoogleDriveSync?.toUtc();
+    final localHasEdits = lastSync == null
+        ? false
+        : await DatabaseBackupService(_ref.read(databaseProvider))
+            .hasLocalEditsSince(lastSync);
+    if (remote != null && shouldPull && localHasEdits) {
+      final cacheDir = await _service.getCloudCacheDirectory();
+      final downloaded = await _googleDriveService.downloadToFile(
+        fileId: remote.id,
+        destination: File(
+          path.join(cacheDir.path, CloudBackupService.syncBackupFileName),
+        ),
+      );
+      if (downloaded != null) {
+        await _googleDriveWrapKey();
+        final remotePackage = await _service.parseBackupFile(downloaded);
+        final snapshotPath = await _writeConflictSnapshot(await loadData());
+        _ref.read(pendingICloudConflictProvider.notifier).state =
+            ICloudSyncConflict(
+          provider: CloudProvider.googleDrive,
+          remote: CloudBackupInfo(
+            id: remote.id,
+            name: remote.name,
+            size: remote.size,
+            createdAt: remote.modifiedAt ?? remote.createdAt,
+            provider: CloudProvider.googleDrive,
+            remotePath: downloaded.path,
+          ),
+          remotePackage: remotePackage.package,
+          remoteUpdatedAt: remoteUpdatedAt ?? DateTime.now().toUtc(),
+          localHasEdits: localHasEdits,
+          localSnapshotPath: snapshotPath,
+        );
+      }
+      return;
+    }
     if (shouldPull && remote != null) {
       final cacheDir = await _service.getCloudCacheDirectory();
       final downloaded = await _googleDriveService.downloadToFile(
@@ -1674,6 +1855,7 @@ class CloudBackupOperationNotifier
         ),
       );
       if (downloaded != null) {
+        await _googleDriveWrapKey();
         final localData = await loadData();
         await importFromPath(
           filePath: downloaded.path,
@@ -1695,11 +1877,14 @@ class CloudBackupOperationNotifier
       await _googleDriveService.upsertNamedFile(
         fileName: CloudBackupService.syncBackupFileName,
         source: snapshot,
+        appData: true,
       );
       await _googleDriveService.upsertNamedJson(
         CloudBackupService.syncMetadataFileName,
         _syncMetadata(deviceId),
+        appData: true,
       );
+      await _uploadGoogleDriveWrapKey();
       _ref
           .read(cloudBackupSettingsProvider.notifier)
           .updateLastGoogleDriveSync();

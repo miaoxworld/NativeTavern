@@ -8,11 +8,11 @@ import 'package:native_tavern/data/database/database.dart';
 import 'package:native_tavern/domain/repositories/mcp_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Encrypts API keys and tokens for iCloud Keychain-backed cross-device sync.
+/// Encrypts API keys and tokens for cross-device cloud sync.
 ///
 /// Plaintext credentials never enter `.ntx` JSON. The wrapping key lives in
-/// iCloud Keychain (`synchronizable: true`) so every Apple device signed into
-/// the same iCloud account can decrypt the vault without extra provider setup.
+/// iCloud Keychain on Apple devices and in this app's private Google Drive
+/// App Data on Android so a second signed-in device can decrypt the vault.
 class SecretVaultService {
   static const vaultPackageKey = 'ntxVault';
   static const _wrapKeyStorageKey = 'native_tavern.icloud.vault.wrap.v1';
@@ -33,6 +33,9 @@ class SecretVaultService {
               mOptions: MacOsOptions(
                 synchronizable: true,
                 accessibility: KeychainAccessibility.first_unlock,
+              ),
+              aOptions: AndroidOptions(
+                encryptedSharedPreferences: true,
               ),
             ),
         _mcpCredentials = mcpCredentials,
@@ -207,6 +210,20 @@ class SecretVaultService {
         await mcpRepo.writeToken(serverId, value);
       }
     }
+  }
+
+  /// Returns the wrapping key, creating one if this device has never synced.
+  Future<Uint8List> exportWrapKey() => _loadOrCreateWrapKey();
+
+  /// Adopts a wrapping key from another device on the same cloud account.
+  Future<void> importWrapKey(Uint8List bytes) async {
+    if (bytes.length != 32) {
+      throw ArgumentError.value(bytes.length, 'bytes.length', 'Expected 32');
+    }
+    await _storage.write(
+      key: _wrapKeyStorageKey,
+      value: base64Encode(bytes),
+    );
   }
 
   Future<Uint8List> _loadOrCreateWrapKey() async {

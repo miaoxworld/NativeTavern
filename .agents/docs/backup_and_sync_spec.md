@@ -31,6 +31,7 @@ NativeTavern supports comprehensive data portability and synchronization across 
     - `media/sprites/`: Emotion sprite image collections.
     - `media/audio/`: Voice recordings or custom audio.
 - **Purpose**: All-in-one export for backing up or migrating to a new device without missing images.
+- **Optional password**: Local save/share can wrap the `.ntx` zip in AES-256-GCM (`payload.bin`) with a PBKDF2-HMAC-SHA256 key. The password is never stored. Forgetting it makes that file unimportable. Automatic iCloud and Google Drive sync is not password-gated.
 
 ### `.ntm` (NativeTavern Media Package, legacy)
 - **Status**: No longer imported or exported on its own. Merge with a `.ntb` into `.ntx` using the converter.
@@ -57,5 +58,11 @@ NativeTavern supports comprehensive data portability and synchronization across 
   - Concurrent edits open a conflict dialog: keep this device, keep the other device, merge (newer wins), or choose collections. A local `.ntx` snapshot is written before applying the other device.
 
 ### Google Drive
-- Authenticated via Google Sign-In with Google Drive AppData or drive.file OAuth scopes (`googleapis` package).
-- Backups are stored in the app's hidden application data folder or selected user folder.
+- Authenticated via Google Sign-In with `drive.appdata` (automatic sync) and `drive.file` (manual backups) OAuth scopes (`googleapis` package).
+- **Automatic sync**: Hidden Google Drive App Data files (`NativeTavern_sync.ntx`, metadata, and vault wrap key). Same Google account on a second Android device sees the same App Data. Not shown in the user's Drive folders.
+- **Manual backups**: Visible `NativeTavern Backups` folder created with `drive.file`.
+- **Payload**: Combined `.ntx` snapshot including chats, characters, lorebooks, moments, story chapters, media, and an encrypted `ntxVault` of API keys.
+- **API keys**: AES-256-GCM vault. The wrapping key is stored in this app's private Drive App Data so a second Android device signed into the same Google account can decrypt keys. Plaintext keys never appear in JSON backups.
+- **Sync Behavior**:
+  - Pull on launch/resume and push when the app is backgrounded, matching iCloud.
+  - Concurrent edits open the same conflict dialog as iCloud: keep this device, keep the other device, merge (newer wins), or choose collections. A local `.ntx` snapshot is written first.
