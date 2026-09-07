@@ -8,7 +8,8 @@ NativeTavern supports comprehensive data portability and synchronization across 
 
 ## 1. File Formats
 
-### `.ntb` (NativeTavern Backup)
+### `.ntb` (NativeTavern Backup, legacy)
+- **Status**: No longer imported or exported by the app. Convert to `.ntx` with the in-app converter (`LegacyNtxConverter`).
 - **Format**: UTF-8 JSON document containing the complete relational database state.
 - **Structure**:
   - `version`: Backup format schema version.
@@ -31,9 +32,10 @@ NativeTavern supports comprehensive data portability and synchronization across 
     - `media/audio/`: Voice recordings or custom audio.
 - **Purpose**: All-in-one export for backing up or migrating to a new device without missing images.
 
-### `.ntm` (NativeTavern Media Package)
+### `.ntm` (NativeTavern Media Package, legacy)
+- **Status**: No longer imported or exported on its own. Merge with a `.ntb` into `.ntx` using the converter.
 - **Format**: ZIP archive bundle containing only the `media/` directory.
-- **Purpose**: Companion to a separately exported `.ntb` file when splitting data and media.
+- **Purpose**: Historical companion to a separately exported `.ntb` file.
 
 ### `.jsonl` (Chat Transcript Export)
 - **Format**: Line-delimited JSON.
@@ -43,14 +45,16 @@ NativeTavern supports comprehensive data portability and synchronization across 
 
 ## 2. Cloud Synchronization
 
-### Apple iCloud Drive
+### Apple iCloud (private Cloud Documents, not the Files app)
 - **Container Identifier**: Configured via `NSUbiquitousContainers` in `Info.plist` (default: `iCloud.com.miaomiaoxworld.nativetavern`).
+- **Visibility**: `NSUbiquitousContainerIsDocumentScopePublic` is `false`. Automatic sync lives in the container `Library/Application Support/NativeTavern/sync/` folder so it is not shown in the iOS Files app.
 - **Storage Path**:
-  - **iOS**: Retrieved via `FileManager.default.url(forUbiquityContainerIdentifier: nil)`.
-  - **macOS**: `~/Library/Mobile Documents/iCloud~com~miaomiaoxworld~nativetavern/Documents/`.
+  - **iOS / macOS**: Retrieved via `FileManager.default.url(forUbiquityContainerIdentifier:)` then `Library/Application Support/NativeTavern/sync`.
+- **Payload**: Combined `.ntx` snapshot (`NativeTavern_sync.ntx`) including chats, messages, lorebooks, moments, story chapters, media, and an encrypted `ntxVault` of API keys.
+- **API keys**: AES-256-GCM vault. The wrapping key is stored in iCloud Keychain (`synchronizable`) so a second Apple device can decrypt keys without repeating provider setup. Plaintext keys never appear in JSON backups.
 - **Sync Behavior**:
-  - Background bidirectional delta synchronization handled by iOS/macOS CloudKit/Ubiquitous daemon.
-  - Conflict resolution selects the newest modification timestamp with automatic snapshotting.
+  - Background bidirectional sync handled by the iOS/macOS ubiquity daemon.
+  - Concurrent edits open a conflict dialog: keep this device, keep the other device, merge (newer wins), or choose collections. A local `.ntx` snapshot is written before applying the other device.
 
 ### Google Drive
 - Authenticated via Google Sign-In with Google Drive AppData or drive.file OAuth scopes (`googleapis` package).
