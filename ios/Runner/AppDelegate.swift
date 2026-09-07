@@ -315,8 +315,10 @@ import StoreKit
 
   private func handleICloudCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
+    case "isAvailable":
+      result(FileManager.default.ubiquityIdentityToken != nil && iCloudSyncURL() != nil)
     case "getContainerPath":
-      result(iCloudDocumentsPath())
+      result(iCloudSyncURL()?.path)
     case "ensureDownloaded":
       let args = call.arguments as? [String: Any]
       let path = args?["path"] as? String
@@ -326,28 +328,54 @@ import StoreKit
       let sourcePath = args?["sourcePath"] as? String
       let fileName = args?["fileName"] as? String
       result(copyToICloud(sourcePath: sourcePath, fileName: fileName))
+    case "hasConflicts":
+      let args = call.arguments as? [String: Any]
+      let path = args?["path"] as? String
+      result(hasICloudConflicts(path))
+    case "keepCurrentVersion":
+      let args = call.arguments as? [String: Any]
+      let path = args?["path"] as? String
+      result(keepCurrentICloudVersion(path))
     default:
       result(FlutterMethodNotImplemented)
     }
   }
 
-  private func iCloudDocumentsURL() -> URL? {
+  /// Private ubiquity Library path — not shown in the Files app.
+  private func iCloudSyncURL() -> URL? {
     guard let container = FileManager.default.url(
       forUbiquityContainerIdentifier: Self.iCloudContainerId
-    ) else {
-      return FileManager.default.url(forUbiquityContainerIdentifier: nil)
-        .map { $0.appendingPathComponent("Documents") }
+    ) ?? FileManager.default.url(forUbiquityContainerIdentifier: nil) else {
+      return nil
     }
-    let documents = container.appendingPathComponent("Documents")
+    let sync = container
+      .appendingPathComponent("Library")
+      .appendingPathComponent("Application Support")
+      .appendingPathComponent("NativeTavern")
+      .appendingPathComponent("sync")
     try? FileManager.default.createDirectory(
-      at: documents,
+      at: sync,
       withIntermediateDirectories: true
     )
-    return documents
+    migrateLegacyICloudDocuments(from: container, to: sync)
+    return sync
   }
 
-  private func iCloudDocumentsPath() -> String? {
-    iCloudDocumentsURL()?.path
+  private func migrateLegacyICloudDocuments(from container: URL, to sync: URL) {
+    let documents = container.appendingPathComponent("Documents")
+    let names = [
+      "NativeTavern_sync.ntx",
+      "NativeTavern_sync.meta.json",
+    ]
+    for name in names {
+      let source = documents.appendingPathComponent(name)
+      let destination = sync.appendingPathComponent(name)
+      guard FileManager.default.fileExists(atPath: source.path),
+            !FileManager.default.fileExists(atPath: destination.path) else {
+        continue
+      }
+      try? FileManager.default.copyItem(at: source, to: destination)
+    }
   }
 
   private func ensureICloudFileDownloaded(_ path: String?) -> Bool {
@@ -362,7 +390,7 @@ import StoreKit
   }
 
   private func copyToICloud(sourcePath: String?, fileName: String?) -> Bool {
-    guard let sourcePath, let fileName, let destinationDir = iCloudDocumentsURL() else {
+    guard let sourcePath, let fileName, let destinationDir = iCloudSyncURL() else {
       return false
     }
     let source = URL(fileURLWithPath: sourcePath)
@@ -386,5 +414,26 @@ import StoreKit
       }
     }
     return copied && coordinationError == nil
+  }
+
+  private func hasICloudConflicts(_ path: String?) -> Bool {
+    guard let path, !path.isEmpty else { return false }
+    let url = URL(fileURLWithPath: path)
+    let versions = NSFileVersion.unresolvedConflictVersionsOfItem(at: url) ?? []
+    return !versions.isEmpty
+  }
+
+  private func keepCurrentICloudVersion(_ path: String?) -> Bool {
+    guard let path, !path.isEmpty else { return false }
+    let url = URL(fileURLWithPath: path)
+    do {
+      try NSFileVersion.removeOtherVersionsOfItem(at: url)
+      NSFileVersion.unresolvedConflictVersionsOfItem(at: url)?.forEach { version in
+        version.isResolved = true
+      }
+      return true
+    } catch {
+      return false
+    }
   }
 }

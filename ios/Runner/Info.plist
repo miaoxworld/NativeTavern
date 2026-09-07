@@ -185,7 +185,7 @@
 		<key>iCloud.com.miaomiaoxworld.nativetavern</key>
 		<dict>
 			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
-			<true/>
+			<false/>
 			<key>NSUbiquitousContainerName</key>
 			<string>NativeTavern</string>
 			<key>NSUbiquitousContainerSupportedFolderLevels</key>
