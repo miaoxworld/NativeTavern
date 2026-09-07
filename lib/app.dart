@@ -11,6 +11,7 @@ import 'package:native_tavern/domain/services/debug_log_service.dart';
 import 'package:native_tavern/presentation/widgets/debug_log_overlay.dart';
 import 'package:native_tavern/presentation/widgets/cloud_sync_listener.dart';
 import 'package:native_tavern/presentation/widgets/file_open_listener.dart';
+import 'package:native_tavern/presentation/widgets/icloud_conflict_dialog.dart';
 import 'package:native_tavern/presentation/widgets/privacy/ai_data_sharing_consent_gate.dart';
 
 /// Global navigator key for showing dialogs from anywhere
@@ -73,10 +74,12 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
       builder: (context, child) {
         return FileOpenListener(
           child: CloudSyncListener(
-            child: AiDataSharingConsentGate(
-              child: DebugLogOverlayWrapper(
-                enabled: settings.enableDebugLog,
-                child: child ?? const SizedBox.shrink(),
+            child: ICloudConflictGate(
+              child: AiDataSharingConsentGate(
+                child: DebugLogOverlayWrapper(
+                  enabled: settings.enableDebugLog,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),

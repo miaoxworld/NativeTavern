@@ -5041,7 +5041,7 @@
   "@enableICloudBackup": {
     "description": "Enable iCloud backup toggle"
   },
-  "enableICloudBackupDescription": "Save backups to iCloud Drive so they appear on your other Apple devices",
+  "enableICloudBackupDescription": "Save encrypted NativeTavern snapshots to Apple iCloud. Sync is automatic and is not stored in the Files app.",
   "@enableICloudBackupDescription": {
     "description": "Enable iCloud backup description"
   },
@@ -5049,7 +5049,7 @@
   "@enableCrossDeviceSync": {
     "description": "Toggle for automatic iCloud/Google Drive sync"
   },
-  "enableCrossDeviceSyncDescription": "Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.",
+  "enableCrossDeviceSyncDescription": "Keep chats, characters, lorebooks, moments, story artifacts, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.",
   "@enableCrossDeviceSyncDescription": {
     "description": "Description of automatic cross-device backup sync"
   },
@@ -6926,7 +6926,7 @@
   "@localBackup": {
     "description": "Local and file backup section header"
   },
-  "localBackupDescription": "Export and import NativeTavern .ntx combined backups or .ntb data backups to your device storage or files app",
+  "localBackupDescription": "Export and import NativeTavern .ntx backups. Legacy .ntb/.ntm files can be converted to .ntx first.",
   "@localBackupDescription": {
     "description": "Local backup description"
   },
@@ -6954,11 +6954,11 @@
   "@importNtbBackupSubtitle": {
     "description": "Import NTB backup subtitle"
   },
-  "importNtxBackup": "Import Backup (.ntx / .ntb)",
+  "importNtxBackup": "Import Backup (.ntx)",
   "@importNtxBackup": {
-    "description": "Import NTX or NTB backup button"
+    "description": "Import NTX backup button"
   },
-  "importNtxBackupSubtitle": "Restore or merge data from a combined .ntx file or a .ntb data backup",
+  "importNtxBackupSubtitle": "Restore or merge data from a combined .ntx backup",
   "@importNtxBackupSubtitle": {
     "description": "Import NTX backup subtitle"
   },
@@ -6986,7 +6986,7 @@
   "@selectNtxFile": {
     "description": "Select NTX or NTB backup file title"
   },
-  "selectNtxFileDescription": "Pick a .ntx combined backup, or a .ntb file with optional .ntm media",
+  "selectNtxFileDescription": "Pick a .ntx combined backup",
   "@selectNtxFileDescription": {
     "description": "Select NTX file description"
   },
@@ -7013,5 +7013,103 @@
   "exportingBackup": "Exporting backup...",
   "@exportingBackup": {
     "description": "Status text while exporting backup"
+  },
+  "convertLegacyBackup": "Convert legacy backup (.ntb / .ntm)",
+  "@convertLegacyBackup": {
+    "description": "Title for converting NTB/NTM files into NTX"
+  },
+  "convertLegacyBackupSubtitle": "Merge a .ntb data file and optional .ntm media file into one .ntx backup. Direct .ntb/.ntm import is no longer supported.",
+  "@convertLegacyBackupSubtitle": {
+    "description": "Subtitle for legacy backup conversion"
+  },
+  "convertLegacyBackupAction": "Convert",
+  "@convertLegacyBackupAction": {
+    "description": "Button that converts a legacy backup"
+  },
+  "convertLegacyBackupSuccess": "Converted to {fileName}. Import the .ntx backup to restore.",
+  "@convertLegacyBackupSuccess": {
+    "description": "Snackbar after converting a legacy backup",
+    "placeholders": {
+      "fileName": {
+        "type": "String",
+        "example": "backup.ntx"
+      }
+    }
+  },
+  "legacyBackupNeedsNtb": "Select a .ntb data file to convert. A .ntm file cannot be converted alone.",
+  "@legacyBackupNeedsNtb": {
+    "description": "Error when converting without an NTB file"
+  },
+  "legacyBackupConvertFailed": "Could not convert the legacy backup.",
+  "@legacyBackupConvertFailed": {
+    "description": "Error snackbar when conversion fails"
+  },
+  "legacyBackupOpenedDescription": "This is a legacy .ntb/.ntm backup. Convert it to .ntx first, then import the .ntx file.",
+  "@legacyBackupOpenedDescription": {
+    "description": "Dialog body when a legacy backup is opened"
+  },
+  "apiKeysEncryptedSync": "Encrypted API keys",
+  "@apiKeysEncryptedSync": {
+    "description": "Settings tile title for encrypted key sync"
+  },
+  "apiKeysEncryptedSyncDescription": "Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.",
+  "@apiKeysEncryptedSyncDescription": {
+    "description": "Settings tile subtitle for encrypted key sync"
+  },
+  "iCloudSyncConflictTitle": "iCloud data conflict",
+  "@iCloudSyncConflictTitle": {
+    "description": "Title of the iCloud conflict resolution dialog"
+  },
+  "iCloudSyncConflictBody": "This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.",
+  "@iCloudSyncConflictBody": {
+    "description": "Body of the iCloud conflict resolution dialog"
+  },
+  "keepThisDevice": "Keep this device",
+  "@keepThisDevice": {
+    "description": "Conflict option that keeps local data"
+  },
+  "keepOtherDevice": "Keep the other device",
+  "@keepOtherDevice": {
+    "description": "Conflict option that keeps remote iCloud data"
+  },
+  "mergeKeepBoth": "Merge (keep both, newer wins)",
+  "@mergeKeepBoth": {
+    "description": "Conflict option that merges local and remote data"
+  },
+  "choosePerCategory": "Choose per category",
+  "@choosePerCategory": {
+    "description": "Conflict option that lets the user pick collections"
+  },
+  "conflictSnapshotSaved": "A local snapshot was saved before applying the other device.",
+  "@conflictSnapshotSaved": {
+    "description": "Note that a conflict snapshot was written"
+  },
+  "syncCollectionChats": "Character chat sessions",
+  "@syncCollectionChats": {
+    "description": "Conflict category for chats and messages"
+  },
+  "syncCollectionCharacters": "Characters",
+  "@syncCollectionCharacters": {
+    "description": "Conflict category for characters"
+  },
+  "syncCollectionLorebooks": "Lorebooks",
+  "@syncCollectionLorebooks": {
+    "description": "Conflict category for world info"
+  },
+  "syncCollectionMoments": "Moments",
+  "@syncCollectionMoments": {
+    "description": "Conflict category for moments"
+  },
+  "syncCollectionStory": "Story artifacts",
+  "@syncCollectionStory": {
+    "description": "Conflict category for story chapters"
+  },
+  "syncCollectionSettings": "Settings and personas",
+  "@syncCollectionSettings": {
+    "description": "Conflict category for settings"
+  },
+  "syncCollectionApiKeys": "Encrypted API keys",
+  "@syncCollectionApiKeys": {
+    "description": "Conflict category for API keys"
   }
 }

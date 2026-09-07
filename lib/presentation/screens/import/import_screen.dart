@@ -758,7 +758,7 @@ class _FilePickerViewState extends State<_FilePickerView> {
                             context.push(AppRoutes.cloudBackupSettings),
                         icon: const Icon(Icons.backup_outlined, size: 18),
                         label:
-                            Text(AppLocalizations.of(context)!.importNtbBackup),
+                            Text(AppLocalizations.of(context)!.importNtxBackup),
                       ),
                     ],
                   ],

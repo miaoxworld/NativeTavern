@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/domain/services/legacy_ntx_converter.dart';
 import 'package:native_tavern/core/services/initialization_service.dart';
 import 'package:native_tavern/core/utils/share_utils.dart';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
@@ -91,6 +93,12 @@ class CloudBackupScreen extends ConsumerWidget {
                           color: AppTheme.accentColor),
                       title: Text(l10n.cloudBackupDescription),
                       subtitle: Text(l10n.cloudBackupSubtitle),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.lock_outline,
+                          color: AppTheme.accentColor),
+                      title: Text(l10n.apiKeysEncryptedSync),
+                      subtitle: Text(l10n.apiKeysEncryptedSyncDescription),
                     ),
                     SwitchListTile(
                       secondary: const Icon(Icons.sync),
@@ -229,35 +237,6 @@ class CloudBackupScreen extends ConsumerWidget {
                       ),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.description_outlined,
-                          color: AppTheme.accentColor),
-                      title: Text(l10n.exportNtbBackup),
-                      subtitle: Text(l10n.exportNtbBackupSubtitle),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.save_alt),
-                            tooltip: l10n.exportToFiles,
-                            onPressed: () => _exportBackupToFile(
-                              context,
-                              ref,
-                              combined: false,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.share),
-                            tooltip: l10n.shareBackup,
-                            onPressed: () => _shareBackup(
-                              context,
-                              ref,
-                              combined: false,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ListTile(
                       leading: const Icon(Icons.file_open_outlined,
                           color: Colors.teal),
                       title: Text(l10n.importNtxBackup),
@@ -266,6 +245,17 @@ class CloudBackupScreen extends ConsumerWidget {
                         icon: const Icon(Icons.file_open, size: 18),
                         label: Text(l10n.import_action),
                         onPressed: () => _importFromFile(context, ref),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.transform,
+                          color: AppTheme.accentColor),
+                      title: Text(l10n.convertLegacyBackup),
+                      subtitle: Text(l10n.convertLegacyBackupSubtitle),
+                      trailing: ElevatedButton.icon(
+                        icon: const Icon(Icons.sync_alt, size: 18),
+                        label: Text(l10n.convertLegacyBackupAction),
+                        onPressed: () => _convertLegacyBackup(context, ref),
                       ),
                     ),
                   ],
@@ -1016,6 +1006,49 @@ class CloudBackupScreen extends ConsumerWidget {
     }
   }
 
+  void _convertLegacyBackup(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['ntb', 'ntm'],
+      allowMultiple: true,
+      dialogTitle: l10n.convertLegacyBackup,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final ntb = result.files.cast<PlatformFile?>().firstWhere(
+          (file) => file?.name.toLowerCase().endsWith('.ntb') == true,
+          orElse: () => null,
+        );
+    final ntm = result.files.cast<PlatformFile?>().firstWhere(
+          (file) => file?.name.toLowerCase().endsWith('.ntm') == true,
+          orElse: () => null,
+        );
+    if (ntb?.path == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.legacyBackupNeedsNtb)),
+        );
+      }
+      return;
+    }
+    final converted = await ref
+        .read(cloudBackupOperationProvider.notifier)
+        .convertLegacyBackup(
+          dataPath: ntb!.path!,
+          mediaPath: ntm?.path,
+        );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          converted == null
+              ? l10n.legacyBackupConvertFailed
+              : l10n.convertLegacyBackupSuccess(converted.path.split('/').last),
+        ),
+      ),
+    );
+  }
+
   void _importFromOpenedPath(
     BuildContext context,
     WidgetRef ref,
@@ -1023,6 +1056,51 @@ class CloudBackupScreen extends ConsumerWidget {
   ) {
     ref.read(pendingBackupImportPathProvider.notifier).state = null;
     final l10n = AppLocalizations.of(context);
+    if (LegacyNtxConverter.isLegacyBackupPath(filePath)) {
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.convertLegacyBackup),
+          content: Text(l10n.legacyBackupOpenedDescription),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                final isMedia = filePath.toLowerCase().endsWith('.ntm');
+                final dataPath = isMedia
+                    ? '${filePath.substring(0, filePath.length - 4)}.ntb'
+                    : filePath;
+                final mediaPath = isMedia ? filePath : null;
+                final converted = await ref
+                    .read(cloudBackupOperationProvider.notifier)
+                    .convertLegacyBackup(
+                      dataPath: dataPath,
+                      mediaPath: mediaPath,
+                    );
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      converted == null
+                          ? l10n.legacyBackupConvertFailed
+                          : l10n.convertLegacyBackupSuccess(
+                              converted.path.split('/').last,
+                            ),
+                    ),
+                  ),
+                );
+              },
+              child: Text(l10n.convertLegacyBackupAction),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     final settings = ref.read(cloudBackupSettingsProvider);
 
     showDialog<void>(
@@ -1088,7 +1166,7 @@ class CloudBackupScreen extends ConsumerWidget {
       builder: (context) => _RestoreDialog(
         backup: CloudBackupInfo(
           id: 'local_file',
-          name: l10n.importNtbBackup,
+          name: l10n.importNtxBackup,
           size: 0,
           createdAt: DateTime.now(),
           provider: CloudProvider.googleDrive,

@@ -6730,7 +6730,7 @@ abstract class AppLocalizations {
   /// Enable iCloud backup description
   ///
   /// In en, this message translates to:
-  /// **'Save backups to iCloud Drive so they appear on your other Apple devices'**
+  /// **'Save encrypted NativeTavern snapshots to Apple iCloud. Sync is automatic and is not stored in the Files app.'**
   String get enableICloudBackupDescription;
 
   /// Toggle for automatic iCloud/Google Drive sync
@@ -6742,7 +6742,7 @@ abstract class AppLocalizations {
   /// Description of automatic cross-device backup sync
   ///
   /// In en, this message translates to:
-  /// **'Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.'**
+  /// **'Keep chats, characters, lorebooks, moments, story artifacts, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.'**
   String get enableCrossDeviceSyncDescription;
 
   /// Enable Google Drive backup toggle, the Android counterpart to iCloud backup
@@ -11706,7 +11706,7 @@ abstract class AppLocalizations {
   /// Local backup description
   ///
   /// In en, this message translates to:
-  /// **'Export and import NativeTavern .ntx combined backups or .ntb data backups to your device storage or files app'**
+  /// **'Export and import NativeTavern .ntx backups. Legacy .ntb/.ntm files can be converted to .ntx first.'**
   String get localBackupDescription;
 
   /// Export NTB backup button
@@ -11745,16 +11745,16 @@ abstract class AppLocalizations {
   /// **'Restore or merge data from a local .ntb file'**
   String get importNtbBackupSubtitle;
 
-  /// Import NTX or NTB backup button
+  /// Import NTX backup button
   ///
   /// In en, this message translates to:
-  /// **'Import Backup (.ntx / .ntb)'**
+  /// **'Import Backup (.ntx)'**
   String get importNtxBackup;
 
   /// Import NTX backup subtitle
   ///
   /// In en, this message translates to:
-  /// **'Restore or merge data from a combined .ntx file or a .ntb data backup'**
+  /// **'Restore or merge data from a combined .ntx backup'**
   String get importNtxBackupSubtitle;
 
   /// Save to files action button
@@ -11796,7 +11796,7 @@ abstract class AppLocalizations {
   /// Select NTX file description
   ///
   /// In en, this message translates to:
-  /// **'Pick a .ntx combined backup, or a .ntb file with optional .ntm media'**
+  /// **'Pick a .ntx combined backup'**
   String get selectNtxFileDescription;
 
   /// Snackbar after saving a backup through the system Files app
@@ -11834,6 +11834,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exporting backup...'**
   String get exportingBackup;
+
+  /// Title for converting NTB/NTM files into NTX
+  ///
+  /// In en, this message translates to:
+  /// **'Convert legacy backup (.ntb / .ntm)'**
+  String get convertLegacyBackup;
+
+  /// Subtitle for legacy backup conversion
+  ///
+  /// In en, this message translates to:
+  /// **'Merge a .ntb data file and optional .ntm media file into one .ntx backup. Direct .ntb/.ntm import is no longer supported.'**
+  String get convertLegacyBackupSubtitle;
+
+  /// Button that converts a legacy backup
+  ///
+  /// In en, this message translates to:
+  /// **'Convert'**
+  String get convertLegacyBackupAction;
+
+  /// Snackbar after converting a legacy backup
+  ///
+  /// In en, this message translates to:
+  /// **'Converted to {fileName}. Import the .ntx backup to restore.'**
+  String convertLegacyBackupSuccess(String fileName);
+
+  /// Error when converting without an NTB file
+  ///
+  /// In en, this message translates to:
+  /// **'Select a .ntb data file to convert. A .ntm file cannot be converted alone.'**
+  String get legacyBackupNeedsNtb;
+
+  /// Error snackbar when conversion fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not convert the legacy backup.'**
+  String get legacyBackupConvertFailed;
+
+  /// Dialog body when a legacy backup is opened
+  ///
+  /// In en, this message translates to:
+  /// **'This is a legacy .ntb/.ntm backup. Convert it to .ntx first, then import the .ntx file.'**
+  String get legacyBackupOpenedDescription;
+
+  /// Settings tile title for encrypted key sync
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted API keys'**
+  String get apiKeysEncryptedSync;
+
+  /// Settings tile subtitle for encrypted key sync
+  ///
+  /// In en, this message translates to:
+  /// **'Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.'**
+  String get apiKeysEncryptedSyncDescription;
+
+  /// Title of the iCloud conflict resolution dialog
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud data conflict'**
+  String get iCloudSyncConflictTitle;
+
+  /// Body of the iCloud conflict resolution dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.'**
+  String get iCloudSyncConflictBody;
+
+  /// Conflict option that keeps local data
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this device'**
+  String get keepThisDevice;
+
+  /// Conflict option that keeps remote iCloud data
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the other device'**
+  String get keepOtherDevice;
+
+  /// Conflict option that merges local and remote data
+  ///
+  /// In en, this message translates to:
+  /// **'Merge (keep both, newer wins)'**
+  String get mergeKeepBoth;
+
+  /// Conflict option that lets the user pick collections
+  ///
+  /// In en, this message translates to:
+  /// **'Choose per category'**
+  String get choosePerCategory;
+
+  /// Note that a conflict snapshot was written
+  ///
+  /// In en, this message translates to:
+  /// **'A local snapshot was saved before applying the other device.'**
+  String get conflictSnapshotSaved;
+
+  /// Conflict category for chats and messages
+  ///
+  /// In en, this message translates to:
+  /// **'Character chat sessions'**
+  String get syncCollectionChats;
+
+  /// Conflict category for characters
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get syncCollectionCharacters;
+
+  /// Conflict category for world info
+  ///
+  /// In en, this message translates to:
+  /// **'Lorebooks'**
+  String get syncCollectionLorebooks;
+
+  /// Conflict category for moments
+  ///
+  /// In en, this message translates to:
+  /// **'Moments'**
+  String get syncCollectionMoments;
+
+  /// Conflict category for story chapters
+  ///
+  /// In en, this message translates to:
+  /// **'Story artifacts'**
+  String get syncCollectionStory;
+
+  /// Conflict category for settings
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and personas'**
+  String get syncCollectionSettings;
+
+  /// Conflict category for API keys
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted API keys'**
+  String get syncCollectionApiKeys;
 }
 
 class _AppLocalizationsDelegate

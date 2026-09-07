@@ -6,12 +6,22 @@ import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:native_tavern/core/services/initialization_service.dart';
+import 'package:native_tavern/domain/services/backup_import_selection.dart';
 import 'package:native_tavern/domain/services/cloud_backup_service.dart';
+import 'package:native_tavern/domain/services/database_backup_service.dart';
 import 'package:native_tavern/domain/services/file_export_service.dart';
 import 'package:native_tavern/domain/services/google_drive_service.dart';
+import 'package:native_tavern/domain/services/icloud_sync_conflict.dart';
+import 'package:native_tavern/domain/services/legacy_ntx_converter.dart';
+import 'package:native_tavern/domain/services/secret_vault_service.dart';
 
 /// Path of a backup file opened from the system Files app / share sheet.
 final pendingBackupImportPathProvider = StateProvider<String?>((ref) => null);
+
+/// Concurrent iCloud edit waiting for the user to choose what stays.
+final pendingICloudConflictProvider =
+    StateProvider<ICloudSyncConflict?>((ref) => null);
 
 /// Path of a non-backup file opened from the system for character/chat import.
 final pendingImportFilePathProvider = StateProvider<String?>((ref) => null);
@@ -222,7 +232,12 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
   }
 
   void setAutoSyncEnabled(bool value) {
-    state = state.copyWith(autoSyncEnabled: value);
+    state = state.copyWith(
+      autoSyncEnabled: value,
+      iCloudEnabled: value && (Platform.isIOS || Platform.isMacOS)
+          ? true
+          : state.iCloudEnabled,
+    );
     _saveSettings();
   }
 
@@ -390,13 +405,14 @@ class CloudBackupOperationNotifier
     try {
       final data = await loadData();
       // Create backup file
-      final settings = _ref.read(cloudBackupSettingsProvider);
       final artifacts = await _service.createCloudBackupArtifacts(
         data: data,
         provider: CloudProvider.iCloud,
-        options: settings.backupOptions,
+        options: CloudBackupOptions.iCloudSync,
+        ntxVault: await _currentVault(),
         onProgress: _handleArtifactProgress,
       );
+      final snapshot = await _combinedBackupFile(artifacts);
 
       state = state.copyWith(
         stage: CloudBackupOperationStage.uploadingData,
@@ -407,8 +423,7 @@ class CloudBackupOperationNotifier
 
       // Upload to iCloud
       final backup = await _service.uploadToICloud(
-        backupFile: artifacts.dataFile,
-        mediaFile: artifacts.mediaFile,
+        backupFile: snapshot,
         onPartChanged: (part) {
           state = state.copyWith(
             stage: part == CloudBackupTransferPart.data
@@ -512,6 +527,7 @@ class CloudBackupOperationNotifier
 
       // Apply restored data
       await restoreCallback(backupData, mode);
+      await _applyVault(backupData, BackupImportSelection.all);
 
       state = state.copyWith(
         isLoading: false,
@@ -582,6 +598,31 @@ class CloudBackupOperationNotifier
 
   FileExportService get _fileExport => fileExportService;
 
+  Future<Map<String, dynamic>?> _currentVault() async {
+    try {
+      return await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).sealCurrentSecrets();
+    } catch (e) {
+      debugPrint('[CloudBackup] vault seal failed: $e');
+      return null;
+    }
+  }
+
+  Future<void> _applyVault(
+    Map<String, dynamic> package,
+    BackupImportSelection selection,
+  ) async {
+    if (!selection.secrets) return;
+    try {
+      await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).applyVault(package['ntxVault']);
+    } catch (e) {
+      debugPrint('[CloudBackup] vault apply failed: $e');
+    }
+  }
+
   Future<CloudBackupArtifacts> _createLocalArtifacts({
     required Map<String, dynamic> data,
     CloudBackupOptions? options,
@@ -591,6 +632,7 @@ class CloudBackupOperationNotifier
     return _service.exportLocalBackupArtifacts(
       data: data,
       options: opts,
+      ntxVault: await _currentVault(),
       onProgress: (progress) {
         final progressValue = switch (progress.stage) {
           CloudBackupArtifactStage.scanningMedia => 0.15,
@@ -799,15 +841,12 @@ class CloudBackupOperationNotifier
         throw Exception('Backup file does not exist: $filePath');
       }
 
-      File? mediaFile = mediaPath != null ? File(mediaPath) : null;
-      if (!_service.isCombinedBackupPath(filePath) &&
-          (mediaFile == null || !await mediaFile.exists())) {
-        final ntmCandidate = '${path.withoutExtension(filePath)}.ntm';
-        final candidateFile = File(ntmCandidate);
-        if (await candidateFile.exists()) {
-          mediaFile = candidateFile;
-        }
+      if (!_service.isCombinedBackupPath(filePath)) {
+        throw Exception(
+          'Legacy .ntb/.ntm backups cannot be imported directly. Convert them to .ntx first.',
+        );
       }
+      File? mediaFile = mediaPath != null ? File(mediaPath) : null;
 
       state = state.copyWith(
         currentOperation:
@@ -834,6 +873,7 @@ class CloudBackupOperationNotifier
       );
 
       await restoreCallback(backupData, mode);
+      await _applyVault(backupData, BackupImportSelection.all);
 
       state = state.copyWith(
         isLoading: false,
@@ -884,10 +924,9 @@ class CloudBackupOperationNotifier
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: const ['ntx', 'ntb', 'ntm'],
-        allowMultiple: true,
-        dialogTitle:
-            'Select a .ntx combined backup, or a .ntb file with its matching .ntm media file',
+        allowedExtensions: const ['ntx'],
+        allowMultiple: false,
+        dialogTitle: 'Select a NativeTavern .ntx backup',
       );
 
       if (result == null || result.files.isEmpty) {
@@ -899,53 +938,24 @@ class CloudBackupOperationNotifier
         return null;
       }
 
-      final combinedFiles = result.files
-          .where((selected) => selected.name.toLowerCase().endsWith('.ntx'))
-          .toList();
-      final dataFiles = result.files
-          .where((selected) => selected.name.toLowerCase().endsWith('.ntb'))
-          .toList();
-
-      late final File file;
-      File? selectedMediaFile;
-      if (combinedFiles.length == 1 && dataFiles.isEmpty) {
-        final filePath = combinedFiles.single.path;
-        if (filePath == null) {
-          throw Exception('The selected backup file is not locally accessible');
-        }
-        file = File(filePath);
-      } else if (dataFiles.length == 1 && combinedFiles.isEmpty) {
-        final dataSelection = dataFiles.single;
-        final filePath = dataSelection.path;
-        if (filePath == null) {
-          throw Exception('The selected backup file is not locally accessible');
-        }
-        file = File(filePath);
-        final expectedMediaName =
-            '${path.withoutExtension(dataSelection.name)}.ntm';
-        final mediaSelection = result.files.cast<PlatformFile?>().firstWhere(
-              (candidate) => candidate?.name == expectedMediaName,
-              orElse: () => null,
-            );
-        selectedMediaFile =
-            mediaSelection?.path == null ? null : File(mediaSelection!.path!);
-      } else {
+      final selected = result.files.single;
+      final filePath = selected.path;
+      if (filePath == null) {
+        throw Exception('The selected backup file is not locally accessible');
+      }
+      if (!filePath.toLowerCase().endsWith('.ntx')) {
         throw Exception(
-          'Select exactly one NativeTavern .ntx combined backup, or one .ntb data backup',
+          'Legacy .ntb/.ntm backups cannot be imported directly. Convert them to .ntx first.',
         );
       }
+      final file = File(filePath);
 
       state = state.copyWith(
-        currentOperation: selectedMediaFile == null
-            ? 'Reading data backup...'
-            : 'Reading data and restoring media...',
+        currentOperation: 'Reading .ntx backup...',
         progress: 0.3,
       );
 
-      final backupData = await _service.importFromFile(
-        file,
-        mediaFile: selectedMediaFile,
-      );
+      final backupData = await _service.importFromFile(file);
 
       state = state.copyWith(
         currentOperation: 'Restoring data...',
@@ -961,6 +971,7 @@ class CloudBackupOperationNotifier
 
       // Apply restored data
       await restoreCallback(backupData, mode);
+      await _applyVault(backupData, BackupImportSelection.all);
 
       state = state.copyWith(
         isLoading: false,
@@ -1270,6 +1281,7 @@ class CloudBackupOperationNotifier
 
       // Apply restored data
       await restoreCallback(backupData, mode);
+      await _applyVault(backupData, BackupImportSelection.all);
 
       state = state.copyWith(
         isLoading: false,
@@ -1351,6 +1363,94 @@ class CloudBackupOperationNotifier
       await prefs.setString(_deviceIdKey, id);
     }
     return id;
+  }
+
+  Future<String> _writeConflictSnapshot(Map<String, dynamic> data) async {
+    final artifacts = await _service.createCloudBackupArtifacts(
+      data: data,
+      provider: CloudProvider.iCloud,
+      options: CloudBackupOptions.iCloudSync,
+      ntxVault: await _currentVault(),
+    );
+    final ntx = await _combinedBackupFile(artifacts);
+    final dir = await _service.getAppBackupsDirectory();
+    final dest = File(
+      path.join(
+        dir.path,
+        'NativeTavern_conflict_local_${DateTime.now().millisecondsSinceEpoch}.ntx',
+      ),
+    );
+    await ntx.copy(dest.path);
+    return dest.path;
+  }
+
+  Future<File?> convertLegacyBackup({
+    required String dataPath,
+    String? mediaPath,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      currentOperation: 'Converting legacy backup to .ntx...',
+      status: CloudBackupStatus.uploading,
+      error: null,
+    );
+    try {
+      final converted =
+          await LegacyNtxConverter(cloudBackupService: _service).convert(
+        dataFile: File(dataPath),
+        mediaFile: mediaPath == null ? null : File(mediaPath),
+      );
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        status: CloudBackupStatus.success,
+      );
+      return converted;
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] convertLegacyBackup error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+      state = state.copyWith(
+        isLoading: false,
+        currentOperation: null,
+        error: e.toString(),
+        status: CloudBackupStatus.error,
+      );
+      return null;
+    }
+  }
+
+  Future<void> resolveICloudConflict({
+    required ICloudSyncConflict conflict,
+    required ICloudConflictResolution resolution,
+    required Future<Map<String, dynamic>> Function() loadData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+    BackupImportSelection selection = BackupImportSelection.all,
+  }) async {
+    _ref.read(pendingICloudConflictProvider.notifier).state = null;
+    final mode = switch (resolution) {
+      ICloudConflictResolution.keepRemote => RestoreMode.replace,
+      ICloudConflictResolution.merge => RestoreMode.merge,
+      ICloudConflictResolution.chooseCollections => RestoreMode.merge,
+      ICloudConflictResolution.keepLocal => RestoreMode.addNewOnly,
+    };
+    if (resolution != ICloudConflictResolution.keepLocal &&
+        selection.importsAnything) {
+      final package = Map<String, dynamic>.from(conflict.remotePackage);
+      if (package['data'] is Map) {
+        package['data'] = selection.filterData(
+          Map<String, dynamic>.from(package['data'] as Map),
+        );
+      }
+      await restoreCallback(package, mode);
+      await _applyVault(package, selection);
+    }
+    await _service.keepCurrentSyncVersion();
+    if (resolution != ICloudConflictResolution.keepRemote) {
+      await pushAutoSync(loadData: loadData);
+    } else {
+      _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
+    }
   }
 
   Future<File> _namedSyncSnapshot(CloudBackupArtifacts artifacts) async {
@@ -1441,7 +1541,8 @@ class CloudBackupOperationNotifier
         provider: settings.iCloudEnabled
             ? CloudProvider.iCloud
             : CloudProvider.googleDrive,
-        options: settings.backupOptions,
+        options: CloudBackupOptions.iCloudSync,
+        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       final deviceId = await _deviceId();
@@ -1496,6 +1597,26 @@ class CloudBackupOperationNotifier
       remoteDeviceId: metadata?['deviceId'] as String?,
       localDeviceId: deviceId,
     );
+    final lastSync = settings.lastICloudSync?.toUtc();
+    final localHasEdits = lastSync == null
+        ? false
+        : await DatabaseBackupService(_ref.read(databaseProvider))
+            .hasLocalEditsSince(lastSync);
+    final fileConflicts = await _service.syncFileHasConflicts();
+    if (remote != null && ((shouldPull && localHasEdits) || fileConflicts)) {
+      final remotePackage = await _service.downloadFromICloud(backup: remote);
+      final snapshotPath = await _writeConflictSnapshot(await loadData());
+      _ref.read(pendingICloudConflictProvider.notifier).state =
+          ICloudSyncConflict(
+        remote: remote,
+        remotePackage: remotePackage,
+        remoteUpdatedAt: remoteUpdatedAt ?? DateTime.now().toUtc(),
+        localHasEdits: localHasEdits,
+        hasFileVersions: fileConflicts,
+        localSnapshotPath: snapshotPath,
+      );
+      return;
+    }
     if (shouldPull && remote != null) {
       final localData = await loadData();
       await downloadFromICloud(
@@ -1510,7 +1631,8 @@ class CloudBackupOperationNotifier
       final artifacts = await _service.createCloudBackupArtifacts(
         data: data,
         provider: CloudProvider.iCloud,
-        options: settings.backupOptions,
+        options: CloudBackupOptions.iCloudSync,
+        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       await _service.uploadToICloud(backupFile: snapshot);
@@ -1566,7 +1688,8 @@ class CloudBackupOperationNotifier
       final artifacts = await _service.createCloudBackupArtifacts(
         data: data,
         provider: CloudProvider.googleDrive,
-        options: settings.backupOptions,
+        options: CloudBackupOptions.iCloudSync,
+        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       await _googleDriveService.upsertNamedFile(

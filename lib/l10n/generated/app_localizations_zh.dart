@@ -3575,14 +3575,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enableICloudBackupDescription =>
-      '将备份保存到 iCloud 云盘，以便在其他 Apple 设备上使用';
+      '将加密的 NativeTavern 快照保存到 Apple iCloud。同步是自动的，不会出现在“文件”应用中。';
 
   @override
   String get enableCrossDeviceSync => '自动跨设备同步';
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      '在 Apple 设备上通过 iCloud、在 Android 及其他已登录设备上通过 Google Drive 自动保持数据最新。应用进入后台时上传，下次启动或回到前台时下载。';
+      '在设备之间同步聊天、角色、世界书、动态、故事内容和加密 API 密钥。Apple 设备使用私有 iCloud 同步。出现冲突时可选择保留内容。';
 
   @override
   String get enableGoogleDriveBackup => '启用 Google Drive 备份';
@@ -6347,7 +6347,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get localBackupDescription =>
-      '将 NativeTavern .ntx 合并备份或 .ntb 数据备份导出或导入到设备存储或文件管理器';
+      '导出和导入 NativeTavern .ntx 备份。旧版 .ntb/.ntm 文件可先转换为 .ntx。';
 
   @override
   String get exportNtbBackup => '导出数据备份 (.ntb)';
@@ -6368,10 +6368,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importNtbBackupSubtitle => '从本地 .ntb 文件恢复或合并数据';
 
   @override
-  String get importNtxBackup => '导入备份 (.ntx / .ntb)';
+  String get importNtxBackup => '导入备份（.ntx）';
 
   @override
-  String get importNtxBackupSubtitle => '从合并的 .ntx 文件或 .ntb 数据备份恢复或合并数据';
+  String get importNtxBackupSubtitle => '从合并的 .ntx 备份恢复或合并数据';
 
   @override
   String get exportToFiles => '保存到文件';
@@ -6392,7 +6392,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectNtxFile => '选择 NativeTavern 备份';
 
   @override
-  String get selectNtxFileDescription => '选择 .ntx 合并备份，或带可选 .ntm 媒体的 .ntb 文件';
+  String get selectNtxFileDescription => '选择 .ntx 合并备份';
 
   @override
   String get backupSavedToFilesApp => '备份已保存到文件';
@@ -6411,6 +6411,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get exportingBackup => '正在导出备份...';
+
+  @override
+  String get convertLegacyBackup => '转换旧版备份（.ntb / .ntm）';
+
+  @override
+  String get convertLegacyBackupSubtitle =>
+      '将 .ntb 数据文件和可选的 .ntm 媒体文件合并为 .ntx。不再支持直接导入 .ntb/.ntm。';
+
+  @override
+  String get convertLegacyBackupAction => '转换';
+
+  @override
+  String convertLegacyBackupSuccess(String fileName) {
+    return '已转换为 $fileName。请导入该 .ntx 备份以恢复。';
+  }
+
+  @override
+  String get legacyBackupNeedsNtb => '请选择 .ntb 数据文件。无法单独转换 .ntm 文件。';
+
+  @override
+  String get legacyBackupConvertFailed => '无法转换旧版备份。';
+
+  @override
+  String get legacyBackupOpenedDescription =>
+      '这是旧版 .ntb/.ntm 备份。请先转换为 .ntx，再导入 .ntx 文件。';
+
+  @override
+  String get apiKeysEncryptedSync => '加密的 API 密钥';
+
+  @override
+  String get apiKeysEncryptedSyncDescription =>
+      '提供商密钥会加密并通过 iCloud 钥匙串同步，其他 Apple 设备无需重新配置即可连接。备份中不会出现明文密钥。';
+
+  @override
+  String get iCloudSyncConflictTitle => 'iCloud 数据冲突';
+
+  @override
+  String get iCloudSyncConflictBody =>
+      '此设备与另一台设备在上次同步后都更改了数据。请选择保留哪些内容。应用前会先保存本地 .ntx 快照。';
+
+  @override
+  String get keepThisDevice => '保留此设备';
+
+  @override
+  String get keepOtherDevice => '保留另一台设备';
+
+  @override
+  String get mergeKeepBoth => '合并（保留双方，较新者优先）';
+
+  @override
+  String get choosePerCategory => '按类别选择';
+
+  @override
+  String get conflictSnapshotSaved => '在应用另一台设备的数据前已保存本地快照。';
+
+  @override
+  String get syncCollectionChats => '角色聊天会话';
+
+  @override
+  String get syncCollectionCharacters => '角色';
+
+  @override
+  String get syncCollectionLorebooks => '世界书';
+
+  @override
+  String get syncCollectionMoments => '动态';
+
+  @override
+  String get syncCollectionStory => '故事内容';
+
+  @override
+  String get syncCollectionSettings => '设置与人设';
+
+  @override
+  String get syncCollectionApiKeys => '加密的 API 密钥';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -9984,14 +10059,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get enableICloudBackupDescription =>
-      '將備份儲存到 iCloud 雲碟，以便在其他 Apple 裝置上使用';
+      '將加密的 NativeTavern 快照儲存到 Apple iCloud。同步是自動的，不會出現在「檔案」App。';
 
   @override
   String get enableCrossDeviceSync => '自動跨裝置同步';
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      '在 Apple 裝置上透過 iCloud、在 Android 及其他已登入裝置上透過 Google 雲端硬碟自動保持資料最新。應用程式進入背景時上傳，下次啟動或回到前景時下載。';
+      '在裝置之間同步聊天、角色、世界書、動態、故事內容與加密 API 金鑰。Apple 裝置使用私有 iCloud 同步。發生衝突時可選擇保留內容。';
 
   @override
   String get enableGoogleDriveBackup => '啟用 Google 雲端硬碟備份';
@@ -12757,7 +12832,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get localBackupDescription =>
-      '將 NativeTavern .ntx 合併備份或 .ntb 資料備份匯出或匯入至裝置儲存空間或檔案管理器';
+      '匯出與匯入 NativeTavern .ntx 備份。舊版 .ntb/.ntm 檔可先轉換為 .ntx。';
 
   @override
   String get exportNtbBackup => '匯出資料備份 (.ntb)';
@@ -12778,10 +12853,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get importNtbBackupSubtitle => '從本機 .ntb 檔案還原或合併資料';
 
   @override
-  String get importNtxBackup => '匯入備份 (.ntx / .ntb)';
+  String get importNtxBackup => '匯入備份（.ntx）';
 
   @override
-  String get importNtxBackupSubtitle => '從合併的 .ntx 檔案或 .ntb 資料備份還原或合併資料';
+  String get importNtxBackupSubtitle => '從合併的 .ntx 備份還原或合併資料';
 
   @override
   String get exportToFiles => '儲存到檔案';
@@ -12802,7 +12877,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get selectNtxFile => '選擇 NativeTavern 備份';
 
   @override
-  String get selectNtxFileDescription => '選擇 .ntx 合併備份，或含可選 .ntm 媒體的 .ntb 檔案';
+  String get selectNtxFileDescription => '選擇 .ntx 合併備份';
 
   @override
   String get backupSavedToFilesApp => '備份已儲存到檔案';
@@ -12822,4 +12897,79 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get exportingBackup => '正在匯出備份...';
+
+  @override
+  String get convertLegacyBackup => '轉換舊版備份（.ntb / .ntm）';
+
+  @override
+  String get convertLegacyBackupSubtitle =>
+      '將 .ntb 資料檔與選用的 .ntm 媒體檔合併為 .ntx。不再支援直接匯入 .ntb/.ntm。';
+
+  @override
+  String get convertLegacyBackupAction => '轉換';
+
+  @override
+  String convertLegacyBackupSuccess(String fileName) {
+    return '已轉換為 $fileName。請匯入該 .ntx 備份以還原。';
+  }
+
+  @override
+  String get legacyBackupNeedsNtb => '請選擇 .ntb 資料檔。無法單獨轉換 .ntm 檔。';
+
+  @override
+  String get legacyBackupConvertFailed => '無法轉換舊版備份。';
+
+  @override
+  String get legacyBackupOpenedDescription =>
+      '這是舊版 .ntb/.ntm 備份。請先轉換為 .ntx，再匯入 .ntx 檔。';
+
+  @override
+  String get apiKeysEncryptedSync => '加密的 API 金鑰';
+
+  @override
+  String get apiKeysEncryptedSyncDescription =>
+      '供應商金鑰會加密並透過 iCloud 鑰匙圈同步，其他 Apple 裝置無需重新設定即可連線。備份中不會出現明文金鑰。';
+
+  @override
+  String get iCloudSyncConflictTitle => 'iCloud 資料衝突';
+
+  @override
+  String get iCloudSyncConflictBody =>
+      '此裝置與另一部裝置在上次同步後都變更了資料。請選擇要保留的內容。套用前會先儲存本機 .ntx 快照。';
+
+  @override
+  String get keepThisDevice => '保留此裝置';
+
+  @override
+  String get keepOtherDevice => '保留另一部裝置';
+
+  @override
+  String get mergeKeepBoth => '合併（保留雙方，較新者優先）';
+
+  @override
+  String get choosePerCategory => '依類別選擇';
+
+  @override
+  String get conflictSnapshotSaved => '在套用另一部裝置的資料前已儲存本機快照。';
+
+  @override
+  String get syncCollectionChats => '角色聊天工作階段';
+
+  @override
+  String get syncCollectionCharacters => '角色';
+
+  @override
+  String get syncCollectionLorebooks => '世界書';
+
+  @override
+  String get syncCollectionMoments => '動態';
+
+  @override
+  String get syncCollectionStory => '故事內容';
+
+  @override
+  String get syncCollectionSettings => '設定與人設';
+
+  @override
+  String get syncCollectionApiKeys => '加密的 API 金鑰';
 }

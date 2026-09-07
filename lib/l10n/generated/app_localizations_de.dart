@@ -3672,14 +3672,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enableICloudBackupDescription =>
-      'Save backups to iCloud Drive so they appear on your other Apple devices';
+      'Save encrypted NativeTavern snapshots to Apple iCloud. Sync is automatic and is not stored in the Files app.';
 
   @override
   String get enableCrossDeviceSync => 'Automatic cross-device sync';
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      'Keep this device updated with iCloud on Apple devices and Google Drive on Android and other signed-in devices. Changes upload when the app is backgrounded and download on the next launch or resume.';
+      'Keep chats, characters, lorebooks, moments, story artifacts, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.';
 
   @override
   String get enableGoogleDriveBackup => 'Enable Google Drive Backup';
@@ -6591,7 +6591,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get localBackupDescription =>
-      'NativeTavern .ntx-Kombibackups oder .ntb-Datenbackups exportieren und importieren';
+      'Export and import NativeTavern .ntx backups. Legacy .ntb/.ntm files can be converted to .ntx first.';
 
   @override
   String get exportNtbBackup => 'Daten-Backup exportieren (.ntb)';
@@ -6615,11 +6615,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Daten aus lokaler .ntb Datei wiederherstellen oder zusammenführen';
 
   @override
-  String get importNtxBackup => 'Backup importieren (.ntx / .ntb)';
+  String get importNtxBackup => 'Import Backup (.ntx)';
 
   @override
   String get importNtxBackupSubtitle =>
-      'Daten aus einer kombinierten .ntx-Datei oder einem .ntb-Datenbackup wiederherstellen oder zusammenführen';
+      'Restore or merge data from a combined .ntx backup';
 
   @override
   String get exportToFiles => 'In Dateien speichern';
@@ -6641,8 +6641,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get selectNtxFile => 'NativeTavern Backup auswählen';
 
   @override
-  String get selectNtxFileDescription =>
-      'Wählen Sie ein .ntx-Kombibackup oder eine .ntb-Datei mit optionaler .ntm-Mediendatei';
+  String get selectNtxFileDescription => 'Pick a .ntx combined backup';
 
   @override
   String get backupSavedToFilesApp => 'Backup in Dateien gespeichert';
@@ -6663,4 +6662,82 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get exportingBackup => 'Backup wird exportiert...';
+
+  @override
+  String get convertLegacyBackup => 'Convert legacy backup (.ntb / .ntm)';
+
+  @override
+  String get convertLegacyBackupSubtitle =>
+      'Merge a .ntb data file and optional .ntm media file into one .ntx backup. Direct .ntb/.ntm import is no longer supported.';
+
+  @override
+  String get convertLegacyBackupAction => 'Convert';
+
+  @override
+  String convertLegacyBackupSuccess(String fileName) {
+    return 'Converted to $fileName. Import the .ntx backup to restore.';
+  }
+
+  @override
+  String get legacyBackupNeedsNtb =>
+      'Select a .ntb data file to convert. A .ntm file cannot be converted alone.';
+
+  @override
+  String get legacyBackupConvertFailed =>
+      'Could not convert the legacy backup.';
+
+  @override
+  String get legacyBackupOpenedDescription =>
+      'This is a legacy .ntb/.ntm backup. Convert it to .ntx first, then import the .ntx file.';
+
+  @override
+  String get apiKeysEncryptedSync => 'Encrypted API keys';
+
+  @override
+  String get apiKeysEncryptedSyncDescription =>
+      'Provider keys are encrypted and synced through iCloud Keychain so other Apple devices can connect without repeating setup. Keys are never stored as plaintext in backups.';
+
+  @override
+  String get iCloudSyncConflictTitle => 'iCloud data conflict';
+
+  @override
+  String get iCloudSyncConflictBody =>
+      'This device and another device both changed data since the last sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.';
+
+  @override
+  String get keepThisDevice => 'Keep this device';
+
+  @override
+  String get keepOtherDevice => 'Keep the other device';
+
+  @override
+  String get mergeKeepBoth => 'Merge (keep both, newer wins)';
+
+  @override
+  String get choosePerCategory => 'Choose per category';
+
+  @override
+  String get conflictSnapshotSaved =>
+      'A local snapshot was saved before applying the other device.';
+
+  @override
+  String get syncCollectionChats => 'Character chat sessions';
+
+  @override
+  String get syncCollectionCharacters => 'Characters';
+
+  @override
+  String get syncCollectionLorebooks => 'Lorebooks';
+
+  @override
+  String get syncCollectionMoments => 'Moments';
+
+  @override
+  String get syncCollectionStory => 'Story artifacts';
+
+  @override
+  String get syncCollectionSettings => 'Settings and personas';
+
+  @override
+  String get syncCollectionApiKeys => 'Encrypted API keys';
 }
