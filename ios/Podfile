@@ -58,6 +58,14 @@ post_install do |installer|
         config.build_settings['OTHER_SWIFT_FLAGS'] ||= ['$(inherited)']
         config.build_settings['OTHER_SWIFT_FLAGS'] << '-no-verify-emitted-module-interface'
       end
+
+      # permission_handler iOS macro definitions
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_MICROPHONE=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_SPEECH_RECOGNIZER=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_PHOTOS=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_CAMERA=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_LOCATION=1'
     end
   end
 

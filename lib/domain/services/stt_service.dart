@@ -289,8 +289,16 @@ class PlatformSTTPermissionGateway implements STTPermissionGateway {
   const PlatformSTTPermissionGateway();
 
   @override
-  Future<STTPermissionState> check() async =>
-      _map(await Permission.microphone.status);
+  Future<STTPermissionState> check() async {
+    final micState = _map(await Permission.microphone.status);
+    if (micState != STTPermissionState.granted) {
+      return micState;
+    }
+    if (Platform.isIOS || Platform.isMacOS) {
+      return _map(await Permission.speech.status);
+    }
+    return STTPermissionState.granted;
+  }
 
   @override
   Future<STTPermissionState> request() async {
