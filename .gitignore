@@ -99,3 +99,6 @@ scripts
 *.bak
 *.orig
 *-bak/
+
+# Stitch design files:
+.stitch/
