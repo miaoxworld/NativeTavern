@@ -1,0 +1,140 @@
+# Pull Request labels for actions/labeler@v7.
+# Workflow: .github/workflows/pr-auto-labeler.yml
+#
+# Path labels are applied when any matching file changes. Branch labels are
+# applied from the head branch name. Labels that do not already exist are
+# created when the workflow has issues: write.
+
+# Cap noisy tree-wide PRs; branch labels are not counted.
+changed-files-labels-limit: 8
+
+# --- Area: tooling & docs ---
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - '.github/workflows/**'
+          - 'tool/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+          - '.agents/docs/**'
+
+agents:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.agents/**'
+          - 'AGENTS.md'
+          - 'Agents.md'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pubspec.yaml'
+          - 'pubspec.lock'
+          - 'ios/Podfile'
+          - 'ios/Podfile.lock'
+          - 'macos/Podfile'
+          - 'macos/Podfile.lock'
+
+# --- Area: platforms ---
+
+ios:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'ios/**'
+          - 'build_ios.sh'
+          - 'build_ios_local.sh'
+          - 'tool/build_ios_adhoc.sh'
+          - 'tool/ci_build_ios_debug.sh'
+
+android:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'android/**'
+          - 'build_android.sh'
+          - 'build_android_local.sh'
+          - 'tool/build_android_release.dart'
+
+macos:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'macos/**'
+          - 'build_macos.sh'
+          - 'build_macos_local.sh'
+
+native:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packages/**'
+          - 'native/**'
+          - 'rust/**'
+
+# --- Area: app ---
+
+localization:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/l10n/**'
+
+ui:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/presentation/**'
+          - 'lib/app.dart'
+
+backup:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*backup*'
+          - '**/*icloud*'
+          - '**/*google_drive*'
+          - '**/*secret_vault*'
+          - '**/*ntx*'
+          - '.agents/docs/backup_and_sync_spec.md'
+
+chat:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/presentation/screens/chat/**'
+          - 'lib/presentation/widgets/chat/**'
+          - 'lib/domain/services/chat_*.dart'
+          - 'lib/data/repositories/chat_repository.dart'
+          - 'lib/data/models/chat.dart'
+          - 'lib/data/models/message.dart'
+
+live2d:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*live2d*'
+          - '**/*spine*'
+          - 'packages/native_tavern_live2d*/**'
+          - 'packages/spine_flutter*/**'
+          - '.agents/docs/live2d_and_spine.md'
+
+mcp:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*mcp*'
+          - 'lib/domain/services/tool_calling/**'
+          - 'lib/domain/models/tool_calling.dart'
+          - 'lib/domain/models/mcp.dart'
+          - '.agents/docs/tool_calling_and_mcp.md'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'test/**'
+          - 'integration_test/**'
+
+# --- Branch names ---
+
+enhancement:
+  - head-branch: ['^feat', '^feature']
+
+bug:
+  - head-branch: ['^fix', '^bug']

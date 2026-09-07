@@ -31,7 +31,25 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            const body = context.payload.pull_request.body || '';
+            const pr = context.payload.pull_request;
+            const user = pr?.user;
+            const author = (user?.login || context.actor || '').toLowerCase();
+            const authorType = user?.type || context.payload.sender?.type;
+
+            const isBot =
+              authorType === 'Bot' ||
+              author.endsWith('[bot]') ||
+              author.includes('[bot]') ||
+              /^(dependabot|cursor|grok|gemini|copilot|github-actions|coderabbit)/i.test(author);
+
+            if (isBot) {
+              core.info(
+                `Skipping PR template check for bot author: ${user?.login || author} (type: ${authorType || 'unknown'})`
+              );
+              return;
+            }
+
+            const body = pr?.body || '';
             const minLength = 50;
             const templatePath = '.github/PR_TEMPLATE/pull_request_template.md';
 
