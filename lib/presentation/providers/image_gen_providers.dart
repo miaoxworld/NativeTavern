@@ -86,6 +86,11 @@ class ImageGenSettingsNotifier extends StateNotifier<ImageGenSettings> {
     _saveSettings();
   }
 
+  void setAuthHeader({String? name, String? value}) {
+    state = state.withAuthHeader(name: name, value: value);
+    _saveSettings();
+  }
+
   void setDefaultWidth(int width) {
     state = state.copyWith(defaultWidth: width.clamp(256, 2048));
     _saveSettings();
@@ -159,6 +164,29 @@ class ImageGenSettingsNotifier extends StateNotifier<ImageGenSettings> {
 
   void setOpenaiQuality(String quality) {
     state = state.copyWith(openaiQuality: quality);
+    _saveSettings();
+  }
+
+  void setCustomDimensions(int width, int height) {
+    state = state.copyWith(
+      defaultWidth: width.clamp(64, 4096),
+      defaultHeight: height.clamp(64, 4096),
+    );
+    _saveSettings();
+  }
+
+  void setPositivePromptExtension(String? extension) {
+    state = state.copyWith(positivePromptExtension: extension);
+    _saveSettings();
+  }
+
+  void setNegativePromptExtension(String? extension) {
+    state = state.copyWith(negativePromptExtension: extension);
+    _saveSettings();
+  }
+
+  void setIncludeChatAndTagContext(bool value) {
+    state = state.copyWith(includeChatAndTagContext: value);
     _saveSettings();
   }
 

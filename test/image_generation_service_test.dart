@@ -69,4 +69,33 @@ void main() {
       expect(settings.effectiveEndpoint, 'http://localhost:7860');
     });
   });
+
+  group('ImageGenSettings auth headers', () {
+    test('serializes and deserializes authHeaderNames and authHeaderValues', () {
+      final settings = const ImageGenSettings(
+        provider: ImageGenProvider.automatic1111,
+      ).withAuthHeader(name: 'X-Custom-Auth', value: 'secret-token');
+
+      expect(settings.authHeaderName, 'X-Custom-Auth');
+      expect(settings.authHeaderValue, 'secret-token');
+
+      final json = settings.toJson();
+      final loaded = ImageGenSettings.fromJson(json);
+
+      expect(loaded.authHeaderNames['automatic1111'], 'X-Custom-Auth');
+      expect(loaded.authHeaderValues['automatic1111'], 'secret-token');
+      expect(loaded.authHeaderName, 'X-Custom-Auth');
+      expect(loaded.authHeaderValue, 'secret-token');
+    });
+
+    test('withAuthHeader clears values when empty or null', () {
+      final settings = const ImageGenSettings(
+        provider: ImageGenProvider.comfyui,
+      ).withAuthHeader(name: 'Authorization', value: 'Bearer abc')
+       .withAuthHeader(name: '', value: null);
+
+      expect(settings.authHeaderName, isNull);
+      expect(settings.authHeaderValue, isNull);
+    });
+  });
 }

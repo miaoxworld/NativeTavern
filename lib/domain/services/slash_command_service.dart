@@ -158,10 +158,10 @@ class SlashCommands {
   static const imagine = SlashCommand(
     name: 'imagine',
     description: 'Generate an image from a prompt',
-    aliases: ['sd'],
+    aliases: ['sd', 'image'],
     usage:
         '/imagine <prompt> [--width N] [--height N] [--steps N] [--cfg N] [--seed N]',
-    requiresArgument: true,
+    requiresArgument: false,
   );
 
   static const List<SlashCommand> all = [

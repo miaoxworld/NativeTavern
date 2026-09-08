@@ -53,4 +53,48 @@ void main() {
     expect(request.width, 768);
     expect(request.height, 1024);
   });
+
+  test('compose messages includes character, chat, and lorebook tags', () {
+    final messages = composer.composeMessages(
+      sceneText: 'Walking down the ancient corridor',
+      characterName: 'Mira',
+      characterTags: ['mage', 'silver hair'],
+      chatTags: ['dungeon', 'candlelight'],
+      lorebookTags: ['forgotten kingdom'],
+      positiveExtension: 'masterpiece, 8k resolution',
+    );
+
+    expect(messages, hasLength(2));
+    final content = messages.last['content'] as String;
+    expect(content, contains('Character Tags: mage, silver hair'));
+    expect(content, contains('Chat / Scene Tags: dungeon, candlelight'));
+    expect(content, contains('World / Lore Tags: forgotten kingdom'));
+    expect(content, contains('Style / Positive Modifiers: masterpiece, 8k resolution'));
+  });
+
+  test('combinePrompt combines base and extension cleanly', () {
+    expect(
+      ImagePromptComposer.combinePrompt('portrait of Mira', 'cinematic lighting, 8k'),
+      'portrait of Mira, cinematic lighting, 8k',
+    );
+    expect(
+      ImagePromptComposer.combinePrompt('portrait of Mira', ''),
+      'portrait of Mira',
+    );
+  });
+
+  test('/image alias parses correctly like /imagine', () {
+    final parsed = SlashCommandService().parse('/image castle on a hill --ar 16:9');
+    expect(parsed.command, SlashCommands.imagine);
+    expect(parsed.argument, 'castle on a hill --ar 16:9');
+
+    final request = ImageGenerationService().parseImagineCommand(
+      '/image castle on a hill --ar 16:9',
+      positiveExtension: 'sharp focus',
+    );
+    expect(request, isNotNull);
+    expect(request!.prompt, 'castle on a hill, sharp focus');
+    expect(request.width, 1024);
+    expect(request.height, 576);
+  });
 }

@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'package:native_tavern/data/models/world_info.dart';
 import 'package:native_tavern/data/repositories/world_info_repository.dart';
 import 'package:native_tavern/domain/models/built_in_tool.dart';
@@ -432,7 +436,9 @@ final class GenerateImageToolExecutor extends BuiltInToolExecutor {
   BuiltInToolDescriptor get descriptor => BuiltInToolDescriptor(
         definition: ToolDefinition(
           name: toolName,
-          description: 'Generate an image with the configured image provider.',
+          description:
+              'Generate an image with the configured image provider. '
+              'Incorporate active character, lorebook, and chat scene tags into the prompt for rich visual fidelity.',
           inputSchema: const {
             'type': 'object',
             'additionalProperties': false,
@@ -566,11 +572,35 @@ final class GenerateImageToolExecutor extends BuiltInToolExecutor {
         'The image provider returned no image.',
       );
     }
+
+    final savedPaths = <String>[];
+    try {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory(p.join(appDocDir.path, 'chat_images'));
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+      for (final imageBytes in result.images) {
+        final imageId = const Uuid().v4();
+        final fileName = '$imageId.${result.format}';
+        final filePath = p.join(imagesDir.path, fileName);
+        await File(filePath).writeAsBytes(imageBytes);
+        savedPaths.add(filePath);
+      }
+    } catch (_) {
+      // Non-fatal if local persistence fails
+    }
+
     return {
       'generated': true,
       'image_count': result.images.length + result.imageUrls.length,
       'embedded_image_count': result.images.length,
       'remote_image_count': result.imageUrls.length,
+      if (savedPaths.isNotEmpty) 'saved_file_paths': savedPaths,
+      if (savedPaths.isNotEmpty)
+        'markdown_image': savedPaths
+            .map((path) => '![generated image](file://$path)')
+            .join('\n'),
       'total_bytes': result.images.fold<int>(
         0,
         (total, image) => total + image.length,

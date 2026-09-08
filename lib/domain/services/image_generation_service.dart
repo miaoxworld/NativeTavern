@@ -174,6 +174,8 @@ class ImageGenSettings {
   final Map<String, String> apiKeys; // provider.id -> apiKey
   final Map<String, String> apiEndpoints; // provider.id -> endpoint
   final Map<String, String> models; // provider.id -> model
+  final Map<String, String> authHeaderNames; // provider.id -> custom header name
+  final Map<String, String> authHeaderValues; // provider.id -> custom header value
 
   // Shared defaults
   final int defaultWidth;
@@ -195,12 +197,19 @@ class ImageGenSettings {
   final String openaiStyle; // vivid or natural
   final String openaiQuality; // standard or hd
 
+  // Prompt extensions
+  final String? positivePromptExtension;
+  final String? negativePromptExtension;
+  final bool includeChatAndTagContext;
+
   const ImageGenSettings({
     this.enabled = false,
     this.provider = ImageGenProvider.openai,
     this.apiKeys = const {},
     this.apiEndpoints = const {},
     this.models = const {},
+    this.authHeaderNames = const {},
+    this.authHeaderValues = const {},
     this.defaultWidth = 1024,
     this.defaultHeight = 1024,
     this.defaultSteps = 20,
@@ -217,12 +226,18 @@ class ImageGenSettings {
     // OpenAI
     this.openaiStyle = 'vivid',
     this.openaiQuality = 'standard',
+    // Extensions
+    this.positivePromptExtension,
+    this.negativePromptExtension,
+    this.includeChatAndTagContext = true,
   });
 
   // Convenience getters for current provider's config
   String? get apiKey => apiKeys[provider.id];
   String? get apiEndpoint => apiEndpoints[provider.id];
   String get model => models[provider.id] ?? provider.defaultModel;
+  String? get authHeaderName => authHeaderNames[provider.id];
+  String? get authHeaderValue => authHeaderValues[provider.id];
 
   /// Get the effective API endpoint for current provider
   String get effectiveEndpoint {
@@ -265,6 +280,8 @@ class ImageGenSettings {
     Map<String, String>? apiKeys,
     Map<String, String>? apiEndpoints,
     Map<String, String>? models,
+    Map<String, String>? authHeaderNames,
+    Map<String, String>? authHeaderValues,
     int? defaultWidth,
     int? defaultHeight,
     int? defaultSteps,
@@ -279,6 +296,9 @@ class ImageGenSettings {
     bool? novelaiVarietyBoost,
     String? openaiStyle,
     String? openaiQuality,
+    String? positivePromptExtension,
+    String? negativePromptExtension,
+    bool? includeChatAndTagContext,
   }) {
     return ImageGenSettings(
       enabled: enabled ?? this.enabled,
@@ -286,6 +306,8 @@ class ImageGenSettings {
       apiKeys: apiKeys ?? this.apiKeys,
       apiEndpoints: apiEndpoints ?? this.apiEndpoints,
       models: models ?? this.models,
+      authHeaderNames: authHeaderNames ?? this.authHeaderNames,
+      authHeaderValues: authHeaderValues ?? this.authHeaderValues,
       defaultWidth: defaultWidth ?? this.defaultWidth,
       defaultHeight: defaultHeight ?? this.defaultHeight,
       defaultSteps: defaultSteps ?? this.defaultSteps,
@@ -301,6 +323,12 @@ class ImageGenSettings {
       novelaiVarietyBoost: novelaiVarietyBoost ?? this.novelaiVarietyBoost,
       openaiStyle: openaiStyle ?? this.openaiStyle,
       openaiQuality: openaiQuality ?? this.openaiQuality,
+      positivePromptExtension:
+          positivePromptExtension ?? this.positivePromptExtension,
+      negativePromptExtension:
+          negativePromptExtension ?? this.negativePromptExtension,
+      includeChatAndTagContext:
+          includeChatAndTagContext ?? this.includeChatAndTagContext,
     );
   }
 
@@ -333,12 +361,31 @@ class ImageGenSettings {
     return copyWith(models: newModels);
   }
 
+  /// Helper to update auth header for current provider
+  ImageGenSettings withAuthHeader({String? name, String? value}) {
+    final newNames = Map<String, String>.from(authHeaderNames);
+    final newValues = Map<String, String>.from(authHeaderValues);
+    if (name != null && name.trim().isNotEmpty) {
+      newNames[provider.id] = name.trim();
+    } else {
+      newNames.remove(provider.id);
+    }
+    if (value != null && value.trim().isNotEmpty) {
+      newValues[provider.id] = value.trim();
+    } else {
+      newValues.remove(provider.id);
+    }
+    return copyWith(authHeaderNames: newNames, authHeaderValues: newValues);
+  }
+
   Map<String, dynamic> toJson() => {
         'enabled': enabled,
         'provider': provider.id,
         'apiKeys': apiKeys,
         'apiEndpoints': apiEndpoints,
         'models': models,
+        'authHeaderNames': authHeaderNames,
+        'authHeaderValues': authHeaderValues,
         'defaultWidth': defaultWidth,
         'defaultHeight': defaultHeight,
         'defaultSteps': defaultSteps,
@@ -353,6 +400,9 @@ class ImageGenSettings {
         'novelaiVarietyBoost': novelaiVarietyBoost,
         'openaiStyle': openaiStyle,
         'openaiQuality': openaiQuality,
+        'positivePromptExtension': positivePromptExtension,
+        'negativePromptExtension': negativePromptExtension,
+        'includeChatAndTagContext': includeChatAndTagContext,
       };
 
   factory ImageGenSettings.fromJson(Map<String, dynamic> json) {
@@ -360,6 +410,8 @@ class ImageGenSettings {
     Map<String, String> apiKeys = {};
     Map<String, String> apiEndpoints = {};
     Map<String, String> models = {};
+    Map<String, String> authHeaderNames = {};
+    Map<String, String> authHeaderValues = {};
 
     if (json['apiKeys'] is Map) {
       apiKeys = Map<String, String>.from(json['apiKeys'] as Map);
@@ -385,6 +437,15 @@ class ImageGenSettings {
       models[provider] = json['model'] as String;
     }
 
+    if (json['authHeaderNames'] is Map) {
+      authHeaderNames =
+          Map<String, String>.from(json['authHeaderNames'] as Map);
+    }
+    if (json['authHeaderValues'] is Map) {
+      authHeaderValues =
+          Map<String, String>.from(json['authHeaderValues'] as Map);
+    }
+
     return ImageGenSettings(
       enabled: json['enabled'] as bool? ?? false,
       provider:
@@ -393,6 +454,8 @@ class ImageGenSettings {
       apiKeys: apiKeys,
       apiEndpoints: apiEndpoints,
       models: models,
+      authHeaderNames: authHeaderNames,
+      authHeaderValues: authHeaderValues,
       defaultWidth: json['defaultWidth'] as int? ?? 1024,
       defaultHeight: json['defaultHeight'] as int? ?? 1024,
       defaultSteps: json['defaultSteps'] as int? ?? 20,
@@ -407,6 +470,10 @@ class ImageGenSettings {
       novelaiVarietyBoost: json['novelaiVarietyBoost'] as bool? ?? false,
       openaiStyle: json['openaiStyle'] as String? ?? 'vivid',
       openaiQuality: json['openaiQuality'] as String? ?? 'standard',
+      positivePromptExtension: json['positivePromptExtension'] as String?,
+      negativePromptExtension: json['negativePromptExtension'] as String?,
+      includeChatAndTagContext:
+          json['includeChatAndTagContext'] as bool? ?? true,
     );
   }
 }
@@ -547,6 +614,16 @@ class ImageAspectRatio {
     ImageAspectRatio(name: 'SD Portrait', width: 512, height: 768),
     ImageAspectRatio(name: 'SD Landscape', width: 768, height: 512),
   ];
+
+  static ImageAspectRatio custom(int width, int height) =>
+      ImageAspectRatio(name: 'Custom ($width × $height)', width: width, height: height);
+
+  static ImageAspectRatio getMatchingPreset(int width, int height) {
+    return presets.firstWhere(
+      (p) => p.width == width && p.height == height,
+      orElse: () => custom(width, height),
+    );
+  }
 }
 
 /// Image Generation Service
@@ -717,11 +794,27 @@ class ImageGenerationService {
     return models.isEmpty ? _settings.provider.defaultModels : models;
   }
 
+  /// Build optional custom HTTP auth headers (used by Automatic1111, ComfyUI, etc.)
+  Map<String, String> _buildProviderAuthHeaders() {
+    final headers = <String, String>{};
+    final value = _settings.authHeaderValue?.trim();
+    if (value != null && value.isNotEmpty) {
+      final configuredName = _settings.authHeaderName?.trim();
+      final headerName = (configuredName != null && configuredName.isNotEmpty)
+          ? configuredName
+          : 'Authorization';
+      headers[headerName] = value;
+    }
+    return headers;
+  }
+
   /// Fetch available models from Automatic1111 WebUI
   Future<List<String>> _fetchAutomatic1111Models() async {
     final endpoint = _settings.effectiveEndpoint;
+    final headers = _buildProviderAuthHeaders();
     final response = await _dio.get<List<dynamic>>(
       '$endpoint/sdapi/v1/sd-models',
+      options: headers.isNotEmpty ? Options(headers: headers) : null,
     );
 
     if (response.statusCode != 200 || response.data == null) {
@@ -738,8 +831,10 @@ class ImageGenerationService {
   /// Fetch available checkpoints from ComfyUI
   Future<List<String>> _fetchComfyUIModels() async {
     final endpoint = _settings.effectiveEndpoint;
+    final headers = _buildProviderAuthHeaders();
     final response = await _dio.get<Map<String, dynamic>>(
       '$endpoint/object_info/CheckpointLoaderSimple',
+      options: headers.isNotEmpty ? Options(headers: headers) : null,
     );
 
     if (response.statusCode != 200 || response.data == null) {
@@ -1526,6 +1621,7 @@ class ImageGenerationService {
       cancelToken: cancelToken,
       options: Options(headers: {
         'Content-Type': 'application/json',
+        ..._buildProviderAuthHeaders(),
       }),
       data: requestBody,
     );
@@ -1686,12 +1782,22 @@ class ImageGenerationService {
       'bad proportions, extra limbs, mutated hands, poorly drawn face, '
       'watermark, text, signature';
 
-  /// Parse /imagine command
-  ImageGenRequest? parseImagineCommand(String command) {
+  /// Parse /imagine or /image command
+  ImageGenRequest? parseImagineCommand(
+    String command, {
+    String? positiveExtension,
+    String? negativeExtension,
+  }) {
     // Format: /imagine <prompt> [--width N] [--height N] [--steps N] [--cfg N] [--seed N]
-    if (!command.startsWith('/imagine ')) return null;
+    // Or: /image <prompt> ...
+    final trimmed = command.trim();
+    final isImagine = trimmed.startsWith('/imagine');
+    final isImage = trimmed.startsWith('/image');
+    if (!isImagine && !isImage) return null;
 
-    var prompt = command.substring(9).trim();
+    final prefix = isImagine ? '/imagine' : '/image';
+    var prompt = trimmed.substring(prefix.length).trim();
+
     int width = _settings.defaultWidth;
     int height = _settings.defaultHeight;
     int steps = _settings.defaultSteps;
@@ -1709,6 +1815,18 @@ class ImageGenerationService {
     if (heightMatch != null) {
       height = int.parse(heightMatch.group(1)!);
       prompt = prompt.replaceFirst(heightMatch.group(0)!, '').trim();
+    }
+
+    // Parse aspect ratio (--ar 16:9, 1:1, etc.)
+    final arMatch = RegExp(r'--ar\s+([\d:]+)').firstMatch(prompt);
+    if (arMatch != null) {
+      final ratio = arMatch.group(1)!;
+      final dims = _parseAspectRatio(ratio);
+      if (dims != null) {
+        width = dims.$1;
+        height = dims.$2;
+      }
+      prompt = prompt.replaceFirst(arMatch.group(0)!, '').trim();
     }
 
     final stepsMatch = RegExp(r'--steps\s+(\d+)').firstMatch(prompt);
@@ -1731,9 +1849,23 @@ class ImageGenerationService {
 
     if (prompt.isEmpty) return null;
 
+    final posExt = positiveExtension ?? _settings.positivePromptExtension;
+    var effectivePrompt = prompt;
+    if (posExt != null && posExt.trim().isNotEmpty) {
+      effectivePrompt = '$effectivePrompt, ${posExt.trim()}';
+    }
+
+    final negExt = negativeExtension ?? _settings.negativePromptExtension;
+    final effectiveNegative = negExt != null && negExt.trim().isNotEmpty
+        ? (_settings.defaultNegativePrompt != null &&
+                _settings.defaultNegativePrompt!.trim().isNotEmpty
+            ? '${_settings.defaultNegativePrompt!.trim()}, ${negExt.trim()}'
+            : negExt.trim())
+        : _settings.defaultNegativePrompt;
+
     return ImageGenRequest(
-      prompt: prompt,
-      negativePrompt: _settings.defaultNegativePrompt,
+      prompt: effectivePrompt,
+      negativePrompt: effectiveNegative,
       width: width,
       height: height,
       steps: steps,
@@ -1741,6 +1873,27 @@ class ImageGenerationService {
       sampler: _settings.defaultSampler,
       seed: seed,
     );
+  }
+
+  (int, int)? _parseAspectRatio(String ratio) {
+    switch (ratio) {
+      case '1:1':
+        return (1024, 1024);
+      case '16:9':
+        return (1024, 576);
+      case '9:16':
+        return (576, 1024);
+      case '4:3':
+        return (1024, 768);
+      case '3:4':
+        return (768, 1024);
+      case '3:2':
+        return (1216, 832);
+      case '2:3':
+        return (832, 1216);
+      default:
+        return null;
+    }
   }
 
   void dispose() {
