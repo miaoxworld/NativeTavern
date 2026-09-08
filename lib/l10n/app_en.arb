@@ -5069,6 +5069,30 @@
   "@crossDeviceSyncComplete": {
     "description": "Shown after a successful automatic cloud sync"
   },
+  "cloudSyncScheduleTitle": "Sync schedule",
+  "@cloudSyncScheduleTitle": {
+    "description": "Title for automatic cloud sync frequency"
+  },
+  "cloudSyncScheduleDescription": "Opening or returning to the app always syncs. While the app is open, you can also sync on a timer. On iPhone and iPad, iOS may refresh iCloud files in the background when the system allows it. That does not need extra permissions.",
+  "@cloudSyncScheduleDescription": {
+    "description": "Explains launch/resume sync plus optional while-open intervals and opportunistic iOS background refresh"
+  },
+  "cloudSyncScheduleOnOpen": "On open and resume",
+  "@cloudSyncScheduleOnOpen": {
+    "description": "Sync only when the app is opened or returned to"
+  },
+  "cloudSyncScheduleEvery15Minutes": "Every 15 minutes while open",
+  "@cloudSyncScheduleEvery15Minutes": {
+    "description": "Sync every 15 minutes while the app is in the foreground"
+  },
+  "cloudSyncScheduleEvery30Minutes": "Every 30 minutes while open",
+  "@cloudSyncScheduleEvery30Minutes": {
+    "description": "Sync every 30 minutes while the app is in the foreground"
+  },
+  "cloudSyncScheduleHourly": "Every hour while open",
+  "@cloudSyncScheduleHourly": {
+    "description": "Sync every hour while the app is in the foreground"
+  },
   "openingBackupFile": "Opening backup…",
   "@openingBackupFile": {
     "description": "Shown while a backup file opened from the Files app is being prepared"

@@ -3598,6 +3598,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get crossDeviceSyncComplete => '设备已同步';
 
   @override
+  String get cloudSyncScheduleTitle => '同步频率';
+
+  @override
+  String get cloudSyncScheduleDescription =>
+      '打开或回到应用时总会同步。应用在前台时还可以按时间间隔同步。在 iPhone 和 iPad 上，系统允许时 iOS 也可能在后台刷新 iCloud 文件，无需额外权限。';
+
+  @override
+  String get cloudSyncScheduleOnOpen => '打开和回到应用时';
+
+  @override
+  String get cloudSyncScheduleEvery15Minutes => '打开时每 15 分钟';
+
+  @override
+  String get cloudSyncScheduleEvery30Minutes => '打开时每 30 分钟';
+
+  @override
+  String get cloudSyncScheduleHourly => '打开时每小时';
+
+  @override
   String get openingBackupFile => '正在打开备份…';
 
   @override
@@ -10255,6 +10274,25 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get crossDeviceSyncComplete => '裝置已同步';
+
+  @override
+  String get cloudSyncScheduleTitle => '同步頻率';
+
+  @override
+  String get cloudSyncScheduleDescription =>
+      '開啟或回到 App 時一定會同步。App 在前景時也可以依時間間隔同步。在 iPhone 和 iPad 上，系統允許時 iOS 也可能在背景重新整理 iCloud 檔案，不需要額外權限。';
+
+  @override
+  String get cloudSyncScheduleOnOpen => '開啟與回到 App 時';
+
+  @override
+  String get cloudSyncScheduleEvery15Minutes => '開啟時每 15 分鐘';
+
+  @override
+  String get cloudSyncScheduleEvery30Minutes => '開啟時每 30 分鐘';
+
+  @override
+  String get cloudSyncScheduleHourly => '開啟時每小時';
 
   @override
   String get openingBackupFile => '正在開啟備份…';

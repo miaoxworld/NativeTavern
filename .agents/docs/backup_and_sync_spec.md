@@ -54,7 +54,9 @@ NativeTavern supports comprehensive data portability and synchronization across 
 - **Payload**: Combined `.ntx` snapshot (`NativeTavern_sync.ntx`) including chats, messages, lorebooks, moments, story chapters, media, and an encrypted `ntxVault` of API keys.
 - **API keys**: AES-256-GCM vault. The wrapping key is stored in iCloud Keychain (`synchronizable`) so a second Apple device can decrypt keys without repeating provider setup. Plaintext keys never appear in JSON backups.
 - **Sync Behavior**:
-  - Background bidirectional sync handled by the iOS/macOS ubiquity daemon.
+  - The app pulls then merges on cold start and when returning from the background, then pushes the merged snapshot. Pause/background only pushes after this device has successfully discovered the remote iCloud file, so a second device cannot overwrite the first.
+  - Native iOS/macOS code uses `NSMetadataQueryUbiquitousDataScope` to find `NativeTavern_sync.ntx` before it is materialized locally, then waits until `NSURLUbiquitousItemDownloadingStatusCurrent`.
+  - While the app is open, the user can choose On open/resume, every 15 minutes, every 30 minutes, or hourly. iOS may also run `BGAppRefresh` to prefetch ubiquity files; that is opportunistic and does not need extra privacy permissions.
   - Concurrent edits open a conflict dialog: keep this device, keep the other device, merge (newer wins), or choose collections. A local `.ntx` snapshot is written before applying the other device.
 
 ### Google Drive

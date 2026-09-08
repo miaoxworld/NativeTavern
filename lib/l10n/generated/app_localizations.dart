@@ -6769,6 +6769,42 @@ abstract class AppLocalizations {
   /// **'Devices are in sync'**
   String get crossDeviceSyncComplete;
 
+  /// Title for automatic cloud sync frequency
+  ///
+  /// In en, this message translates to:
+  /// **'Sync schedule'**
+  String get cloudSyncScheduleTitle;
+
+  /// Explains launch/resume sync plus optional while-open intervals and opportunistic iOS background refresh
+  ///
+  /// In en, this message translates to:
+  /// **'Opening or returning to the app always syncs. While the app is open, you can also sync on a timer. On iPhone and iPad, iOS may refresh iCloud files in the background when the system allows it. That does not need extra permissions.'**
+  String get cloudSyncScheduleDescription;
+
+  /// Sync only when the app is opened or returned to
+  ///
+  /// In en, this message translates to:
+  /// **'On open and resume'**
+  String get cloudSyncScheduleOnOpen;
+
+  /// Sync every 15 minutes while the app is in the foreground
+  ///
+  /// In en, this message translates to:
+  /// **'Every 15 minutes while open'**
+  String get cloudSyncScheduleEvery15Minutes;
+
+  /// Sync every 30 minutes while the app is in the foreground
+  ///
+  /// In en, this message translates to:
+  /// **'Every 30 minutes while open'**
+  String get cloudSyncScheduleEvery30Minutes;
+
+  /// Sync every hour while the app is in the foreground
+  ///
+  /// In en, this message translates to:
+  /// **'Every hour while open'**
+  String get cloudSyncScheduleHourly;
+
   /// Shown while a backup file opened from the Files app is being prepared
   ///
   /// In en, this message translates to:

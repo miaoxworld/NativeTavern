@@ -3690,6 +3690,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get crossDeviceSyncComplete => 'Devices are in sync';
 
   @override
+  String get cloudSyncScheduleTitle => 'Sync schedule';
+
+  @override
+  String get cloudSyncScheduleDescription =>
+      'Opening or returning to the app always syncs. While the app is open, you can also sync on a timer. On iPhone and iPad, iOS may refresh iCloud files in the background when the system allows it. That does not need extra permissions.';
+
+  @override
+  String get cloudSyncScheduleOnOpen => 'On open and resume';
+
+  @override
+  String get cloudSyncScheduleEvery15Minutes => 'Every 15 minutes while open';
+
+  @override
+  String get cloudSyncScheduleEvery30Minutes => 'Every 30 minutes while open';
+
+  @override
+  String get cloudSyncScheduleHourly => 'Every hour while open';
+
+  @override
   String get openingBackupFile => 'Opening backup…';
 
   @override

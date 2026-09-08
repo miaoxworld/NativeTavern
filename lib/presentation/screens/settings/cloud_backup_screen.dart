@@ -122,6 +122,50 @@ class CloudBackupScreen extends ConsumerWidget {
                         }
                       },
                     ),
+                    if (settings.autoSyncEnabled)
+                      ListTile(
+                        leading: const Icon(Icons.schedule,
+                            color: AppTheme.accentColor),
+                        title: Text(l10n.cloudSyncScheduleTitle),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.cloudSyncScheduleDescription),
+                            DropdownButton<CloudSyncSchedule>(
+                              isExpanded: true,
+                              value: settings.syncSchedule,
+                              onChanged: (value) {
+                                if (value == null) return;
+                                ref
+                                    .read(cloudBackupSettingsProvider.notifier)
+                                    .setSyncSchedule(value);
+                              },
+                              items: [
+                                DropdownMenuItem(
+                                  value: CloudSyncSchedule.onOpen,
+                                  child: Text(l10n.cloudSyncScheduleOnOpen),
+                                ),
+                                DropdownMenuItem(
+                                  value: CloudSyncSchedule.every15Minutes,
+                                  child: Text(
+                                    l10n.cloudSyncScheduleEvery15Minutes,
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: CloudSyncSchedule.every30Minutes,
+                                  child: Text(
+                                    l10n.cloudSyncScheduleEvery30Minutes,
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: CloudSyncSchedule.hourly,
+                                  child: Text(l10n.cloudSyncScheduleHourly),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ListTile(
                       leading: const Icon(Icons.sync_alt,
                           color: AppTheme.accentColor),
