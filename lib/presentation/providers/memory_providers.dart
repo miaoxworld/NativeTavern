@@ -318,6 +318,21 @@ final class MemoryInboxController extends StateNotifier<MemoryInboxState> {
     state = state.copyWith(selectedIds: const {});
   }
 
+  Future<void> delete(String id) async {
+    await _repository.delete(id);
+    final selected = {...state.selectedIds}..remove(id);
+    state = state.copyWith(selectedIds: selected);
+    await refresh();
+  }
+
+  Future<void> deleteSelected() async {
+    for (final id in state.selectedIds) {
+      await _repository.delete(id);
+    }
+    state = state.copyWith(selectedIds: const {});
+    await refresh();
+  }
+
   Future<MemoryScope> _scopeForChat(Chat chat) async {
     if (chat.groupId != null) return MemoryScope.group(chat.groupId!);
     final personas = await _personaRepository.getAllPersonas();

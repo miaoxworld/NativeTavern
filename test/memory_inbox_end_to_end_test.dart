@@ -208,6 +208,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('deleting memory individual and batch works', (tester) async {
+    final memoryRepository = DriftLongTermMemoryRepository(database);
+    await memoryRepository.createAll([
+      _candidate('del-1', 'Delete single', 'del:1'),
+      _candidate('del-2', 'Delete batch', 'del:2'),
+    ]);
+
+    await _pumpInbox(tester, database, chatRepository, preferences, llmService);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete single'), findsOneWidget);
+    expect(find.text('Delete batch'), findsOneWidget);
+
+    // Delete single memory
+    await tester.ensureVisible(find.byKey(const Key('memory-delete-del-1')));
+    await tester.tap(find.byKey(const Key('memory-delete-del-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete memory'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+
+    expect(await memoryRepository.getById('del-1'), isNull);
+    expect(find.text('Delete single'), findsNothing);
+
+    // Batch delete del-2
+    await tester.ensureVisible(find.byKey(const Key('memory-select-del-2')));
+    await tester.tap(find.byKey(const Key('memory-select-del-2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('memory-batch-delete')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('memory-batch-delete')));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete selected'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+
+    expect(await memoryRepository.getById('del-2'), isNull);
+    expect(find.text('Delete batch'), findsNothing);
+  });
+
   testWidgets('invalid extraction retries and an in-flight request cancels',
       (tester) async {
     await _pumpInbox(tester, database, chatRepository, preferences, llmService);
