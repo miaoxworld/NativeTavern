@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import StoreKit
+import BackgroundTasks
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -12,6 +13,7 @@ import StoreKit
       initialFilePath = copyIncomingFile(url)
     }
 
+    registerICloudPrefetchTask()
     _ = prepareBackupVisibility()
 
     var filteredOptions = launchOptions
@@ -81,6 +83,9 @@ import StoreKit
 
   private var fileOpenChannel: FlutterMethodChannel?
   private var initialFilePath: String?
+  private var iCloudQuery: NSMetadataQuery?
+  private var iCloudQueryObserver: NSObjectProtocol?
+  private var iCloudQueryTimeout: DispatchWorkItem?
 
   override func application(
     _ app: UIApplication,
@@ -313,6 +318,10 @@ import StoreKit
     return "iCloud.com.miaomiaoxworld.nativetavern"
   }
 
+  private static var iCloudPrefetchTaskId: String {
+    (Bundle.main.bundleIdentifier ?? "com.miaomiaoxworld.nativetavern") + ".icloud-prefetch"
+  }
+
   private func handleICloudCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "isAvailable":
@@ -320,9 +329,21 @@ import StoreKit
     case "getContainerPath":
       result(iCloudSyncURL()?.path)
     case "ensureDownloaded":
-      let args = call.arguments as? [String: Any]
-      let path = args?["path"] as? String
-      result(ensureICloudFileDownloaded(path))
+      let path = (call.arguments as? [String: Any])?["path"] as? String
+      DispatchQueue.global(qos: .userInitiated).async {
+        let ok = self.waitUntilICloudFileDownloaded(path)
+        DispatchQueue.main.async { result(ok) }
+      }
+    case "querySyncFiles":
+      queryICloudSyncFiles { payload in
+        result(payload)
+      }
+    case "prefetchSyncFiles":
+      scheduleICloudPrefetch()
+      DispatchQueue.global(qos: .utility).async {
+        self.prefetchICloudSyncFiles()
+        DispatchQueue.main.async { result(true) }
+      }
     case "copyFile":
       let args = call.arguments as? [String: Any]
       let sourcePath = args?["sourcePath"] as? String
@@ -378,15 +399,203 @@ import StoreKit
     }
   }
 
-  private func ensureICloudFileDownloaded(_ path: String?) -> Bool {
+  private static let iCloudSyncFileNames = [
+    "NativeTavern_sync.ntx",
+    "NativeTavern_sync.meta.json",
+  ]
+
+  private func registerICloudPrefetchTask() {
+    BGTaskScheduler.shared.register(
+      forTaskWithIdentifier: Self.iCloudPrefetchTaskId,
+      using: nil
+    ) { [weak self] task in
+      self?.handleICloudPrefetch(task as! BGAppRefreshTask)
+    }
+    scheduleICloudPrefetch()
+  }
+
+  private func scheduleICloudPrefetch() {
+    let request = BGAppRefreshTaskRequest(identifier: Self.iCloudPrefetchTaskId)
+    request.earliestBeginDate = Date(timeIntervalSinceNow: 30 * 60)
+    try? BGTaskScheduler.shared.submit(request)
+  }
+
+  private func handleICloudPrefetch(_ task: BGAppRefreshTask) {
+    scheduleICloudPrefetch()
+    var finished = false
+    task.expirationHandler = {
+      guard !finished else { return }
+      finished = true
+      task.setTaskCompleted(success: false)
+    }
+    DispatchQueue.global(qos: .utility).async {
+      self.prefetchICloudSyncFiles()
+      DispatchQueue.main.async {
+        guard !finished else { return }
+        finished = true
+        task.setTaskCompleted(success: true)
+      }
+    }
+  }
+
+  @discardableResult
+  private func prefetchICloudSyncFiles() -> Bool {
+    guard let sync = iCloudSyncURL() else { return false }
+    for name in Self.iCloudSyncFileNames {
+      let url = sync.appendingPathComponent(name)
+      try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+    }
+    return true
+  }
+
+  private func queryICloudSyncFiles(completion: @escaping ([String: Any]) -> Void) {
+    guard let sync = iCloudSyncURL() else {
+      completion(["completed": false, "files": []])
+      return
+    }
+    prefetchICloudSyncFiles()
+
+    DispatchQueue.main.async {
+      self.iCloudQuery?.stop()
+      if let observer = self.iCloudQueryObserver {
+        NotificationCenter.default.removeObserver(observer)
+      }
+      self.iCloudQueryTimeout?.cancel()
+
+      let query = NSMetadataQuery()
+      query.searchScopes = [NSMetadataQueryUbiquitousDataScope]
+      query.predicate = NSPredicate(
+        format: "(%K == %@) OR (%K == %@)",
+        NSMetadataItemFSNameKey, "NativeTavern_sync.ntx",
+        NSMetadataItemFSNameKey, "NativeTavern_sync.meta.json"
+      )
+      self.iCloudQuery = query
+
+      var finished = false
+      let finish: (Bool) -> Void = { completed in
+        guard !finished else { return }
+        finished = true
+        query.stop()
+        if let observer = self.iCloudQueryObserver {
+          NotificationCenter.default.removeObserver(observer)
+          self.iCloudQueryObserver = nil
+        }
+        self.iCloudQueryTimeout?.cancel()
+        self.iCloudQueryTimeout = nil
+
+        var files: [[String: Any]] = []
+        query.enumerateResults { item, _, _ in
+          guard let metadata = item as? NSMetadataItem,
+                let url = metadata.value(forAttribute: NSMetadataItemURLKey) as? URL else {
+            return
+          }
+          files.append([
+            "name": url.lastPathComponent,
+            "path": url.path,
+            "downloaded": self.isICloudDownloadCurrent(url),
+          ])
+        }
+        for name in Self.iCloudSyncFileNames {
+          let url = sync.appendingPathComponent(name)
+          if FileManager.default.fileExists(atPath: url.path),
+             !files.contains(where: { ($0["path"] as? String) == url.path }) {
+            files.append([
+              "name": name,
+              "path": url.path,
+              "downloaded": self.isICloudDownloadCurrent(url),
+            ])
+          }
+        }
+        completion([
+          "completed": completed,
+          "directory": sync.path,
+          "files": files,
+        ])
+      }
+
+      self.iCloudQueryObserver = NotificationCenter.default.addObserver(
+        forName: .NSMetadataQueryDidFinishGathering,
+        object: query,
+        queue: .main
+      ) { _ in
+        finish(true)
+      }
+
+      let timeout = DispatchWorkItem { finish(false) }
+      self.iCloudQueryTimeout = timeout
+      DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: timeout)
+
+      if !query.start() {
+        finish(false)
+      }
+    }
+  }
+
+  private func isICloudDownloadCurrent(_ url: URL) -> Bool {
+    let values = try? url.resourceValues(forKeys: [
+      .ubiquitousItemDownloadingStatusKey,
+      .isUbiquitousItemKey,
+    ])
+    if values?.isUbiquitousItem == false {
+      return FileManager.default.fileExists(atPath: url.path)
+    }
+    return values?.ubiquitousItemDownloadingStatus == .current
+  }
+
+  private func waitUntilICloudFileDownloaded(_ path: String?) -> Bool {
     guard let path, !path.isEmpty else { return false }
     let url = URL(fileURLWithPath: path)
     do {
       try FileManager.default.startDownloadingUbiquitousItem(at: url)
-      return FileManager.default.fileExists(atPath: path)
     } catch {
-      return FileManager.default.fileExists(atPath: path)
+      return fileHasBytes(url)
     }
+
+    let keys: Set<URLResourceKey> = [
+      .ubiquitousItemDownloadingStatusKey,
+      .ubiquitousItemIsDownloadingKey,
+      .ubiquitousItemDownloadingErrorKey,
+      .isUbiquitousItemKey,
+    ]
+    let initial = try? url.resourceValues(forKeys: keys)
+    if initial?.isUbiquitousItem != true && !FileManager.default.fileExists(atPath: url.path) {
+      return false
+    }
+
+    let deadline = Date().addingTimeInterval(60)
+    while Date() < deadline {
+      if isICloudDownloadCurrent(url) {
+        return coordinateRead(url)
+      }
+      if let values = try? url.resourceValues(forKeys: keys),
+         values.ubiquitousItemDownloadingError != nil,
+         fileHasBytes(url) {
+        return coordinateRead(url)
+      }
+      Thread.sleep(forTimeInterval: 0.25)
+    }
+    return fileHasBytes(url) && coordinateRead(url)
+  }
+
+  private func fileHasBytes(_ url: URL) -> Bool {
+    guard FileManager.default.fileExists(atPath: url.path) else { return false }
+    let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
+    return size > 0
+  }
+
+  @discardableResult
+  private func coordinateRead(_ url: URL) -> Bool {
+    let coordinator = NSFileCoordinator()
+    var coordinationError: NSError?
+    var ok = false
+    coordinator.coordinate(
+      readingItemAt: url,
+      options: .withoutChanges,
+      error: &coordinationError
+    ) { readURL in
+      ok = FileManager.default.fileExists(atPath: readURL.path)
+    }
+    return ok && coordinationError == nil
   }
 
   private func copyToICloud(sourcePath: String?, fileName: String?) -> Bool {

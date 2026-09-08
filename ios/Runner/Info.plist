@@ -182,7 +182,7 @@
 	<false/>
 	<key>NSUbiquitousContainers</key>
 	<dict>
-		<key>iCloud.com.miaomiaoxworld.nativetavern</key>
+		<key>iCloud.studio.monsterspawned.nativetavern</key>
 		<dict>
 			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
 			<false/>
@@ -192,6 +192,14 @@
 			<string>Any</string>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).icloud-prefetch</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
