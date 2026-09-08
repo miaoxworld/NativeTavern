@@ -66,12 +66,14 @@ class WorldInfoNotifier extends StateNotifier<AsyncValue<List<WorldInfo>>> {
     String? description,
     bool isGlobal = false,
     String? characterId,
+    List<String> tags = const [],
   }) async {
     final worldInfo = await _repository.createWorldInfo(
       name: name,
       description: description,
       isGlobal: isGlobal,
       characterId: characterId,
+      tags: tags,
     );
     await _loadWorldInfos();
     return worldInfo;

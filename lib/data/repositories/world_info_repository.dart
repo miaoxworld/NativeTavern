@@ -108,9 +108,15 @@ class WorldInfoRepository {
     bool? useGroupScoring,
     int? recursionDepth,
     Map<String, dynamic>? extensions,
+    List<String> tags = const [],
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
+
+    final ext = Map<String, dynamic>.from(extensions ?? {});
+    if (tags.isNotEmpty) {
+      ext['tags'] = tags;
+    }
 
     final companion = WorldInfosCompanion(
       id: Value(id),
@@ -124,7 +130,7 @@ class WorldInfoRepository {
       matchWholeWords: Value(matchWholeWords),
       useGroupScoring: Value(useGroupScoring),
       recursionDepth: Value(recursionDepth),
-      extensionsJson: Value(extensions != null ? jsonEncode(extensions) : '{}'),
+      extensionsJson: Value(jsonEncode(ext)),
       createdAt: Value(now),
       modifiedAt: Value(now),
     );
@@ -139,6 +145,7 @@ class WorldInfoRepository {
       enabled: true,
       isGlobal: isGlobal,
       characterId: characterId,
+      tags: tags,
       createdAt: now,
       modifiedAt: now,
     );
@@ -148,6 +155,18 @@ class WorldInfoRepository {
   Future<models.WorldInfo> updateWorldInfo(models.WorldInfo worldInfo) async {
     final now = DateTime.now();
 
+    final existingRow = await (_db.select(_db.worldInfos)
+          ..where((t) => t.id.equals(worldInfo.id)))
+        .getSingleOrNull();
+    Map<String, dynamic> extensions = {};
+    if (existingRow != null) {
+      try {
+        extensions =
+            jsonDecode(existingRow.extensionsJson) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    extensions['tags'] = worldInfo.tags;
+
     await (_db.update(_db.worldInfos)..where((t) => t.id.equals(worldInfo.id)))
         .write(
       WorldInfosCompanion(
@@ -156,11 +175,22 @@ class WorldInfoRepository {
         enabled: Value(worldInfo.enabled),
         isGlobal: Value(worldInfo.isGlobal),
         characterId: Value(worldInfo.characterId),
+        extensionsJson: Value(jsonEncode(extensions)),
         modifiedAt: Value(now),
       ),
     );
 
     return worldInfo.copyWith(modifiedAt: now);
+  }
+
+  /// Set tags for a world info book
+  Future<models.WorldInfo?> setTagsForWorldInfo(
+    String id,
+    List<String> tags,
+  ) async {
+    final worldInfo = await getWorldInfoById(id);
+    if (worldInfo == null) return null;
+    return await updateWorldInfo(worldInfo.copyWith(tags: tags));
   }
 
   /// Delete world info
@@ -423,6 +453,14 @@ class WorldInfoRepository {
 
   models.WorldInfo _worldInfoFromRow(
       db.WorldInfo row, List<models.WorldInfoEntry> entries) {
+    List<String> tags = const [];
+    try {
+      final ext = jsonDecode(row.extensionsJson) as Map<String, dynamic>;
+      if (ext['tags'] is List) {
+        tags = (ext['tags'] as List).cast<String>();
+      }
+    } catch (_) {}
+
     return models.WorldInfo(
       id: row.id,
       name: row.name,
@@ -431,6 +469,7 @@ class WorldInfoRepository {
       enabled: row.enabled,
       isGlobal: row.isGlobal,
       characterId: row.characterId,
+      tags: tags,
       createdAt: row.createdAt,
       modifiedAt: row.modifiedAt,
     );

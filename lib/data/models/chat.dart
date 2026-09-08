@@ -78,6 +78,13 @@ class Chat {
   /// Defaults to off so existing character-card play stays unchanged.
   bool get momentsInChat => settings['momentsInChat'] == true;
 
+  /// Tags for this chat session
+  List<String> get tags =>
+      (settings['tags'] as List<dynamic>?)?.cast<String>() ?? const [];
+
+  /// Copy with updated tags
+  Chat withTags(List<String> tags) => withSetting('tags', tags);
+
   /// Copy with an updated settings entry
   Chat withSetting(String key, dynamic value) {
     final updated = Map<String, dynamic>.from(settings);

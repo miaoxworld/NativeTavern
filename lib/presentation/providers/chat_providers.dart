@@ -2975,6 +2975,14 @@ class ActiveChatNotifier extends StateNotifier<ActiveChatState> {
     state = state.copyWith(chat: updatedChat);
   }
 
+  /// Update tags associated with this chat
+  Future<void> updateChatTags(List<String> tags) async {
+    if (state.chat == null) return;
+    final updatedChat = state.chat!.withTags(tags);
+    await _chatRepository.updateChat(updatedChat);
+    state = state.copyWith(chat: updatedChat);
+  }
+
   /// Update Author's Note depth
   Future<bool> updateAuthorNoteDepth(String chatId, int depth) {
     return _updateChatById(
