@@ -16,6 +16,15 @@ class ImageGenerationDialog extends ConsumerStatefulWidget {
   /// Optional character name for context
   final String? characterName;
 
+  /// Optional character tags for image prompt context
+  final List<String> characterTags;
+
+  /// Optional chat tags for image prompt context
+  final List<String> chatTags;
+
+  /// Optional lorebook tags for image prompt context
+  final List<String> lorebookTags;
+
   /// The generation mode
   final ImageGenMode mode;
 
@@ -26,6 +35,9 @@ class ImageGenerationDialog extends ConsumerStatefulWidget {
     super.key,
     required this.basePrompt,
     this.characterName,
+    this.characterTags = const [],
+    this.chatTags = const [],
+    this.lorebookTags = const [],
     this.mode = ImageGenMode.free,
     this.autoCompose = false,
   });
@@ -39,6 +51,9 @@ class ImageGenerationDialog extends ConsumerStatefulWidget {
     BuildContext context, {
     required String basePrompt,
     String? characterName,
+    List<String> characterTags = const [],
+    List<String> chatTags = const [],
+    List<String> lorebookTags = const [],
     ImageGenMode mode = ImageGenMode.free,
     bool autoCompose = false,
   }) {
@@ -48,6 +63,9 @@ class ImageGenerationDialog extends ConsumerStatefulWidget {
       builder: (context) => ImageGenerationDialog(
         basePrompt: basePrompt,
         characterName: characterName,
+        characterTags: characterTags,
+        chatTags: chatTags,
+        lorebookTags: lorebookTags,
         mode: mode,
         autoCompose: autoCompose,
       ),
@@ -68,10 +86,20 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
   @override
   void initState() {
     super.initState();
-    _promptController = TextEditingController(text: _buildInitialPrompt());
-    _negativePromptController = TextEditingController(
-      text: ref.read(imageGenSettingsProvider).defaultNegativePrompt ?? '',
-    );
+    final settings = ref.read(imageGenSettingsProvider);
+    _promptController =
+        TextEditingController(text: _buildInitialPrompt(settings));
+
+    var initialNeg = settings.defaultNegativePrompt ?? '';
+    if (settings.negativePromptExtension != null &&
+        settings.negativePromptExtension!.trim().isNotEmpty) {
+      initialNeg = ImagePromptComposer.combinePrompt(
+        initialNeg,
+        settings.negativePromptExtension!,
+      );
+    }
+    _negativePromptController = TextEditingController(text: initialNeg);
+
     if (widget.autoCompose) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fillPromptWithAi();
@@ -86,21 +114,50 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
     super.dispose();
   }
 
-  String _buildInitialPrompt() {
+  String _buildInitialPrompt(ImageGenSettings settings) {
     final basePrompt = widget.basePrompt.trim();
 
+    String prompt;
     switch (widget.mode) {
       case ImageGenMode.character:
-        return 'full body portrait, ${widget.characterName ?? "character"}, $basePrompt';
+        prompt =
+            'full body portrait, ${widget.characterName ?? "character"}, $basePrompt';
       case ImageGenMode.face:
-        return 'close up portrait, ${widget.characterName ?? "character"}, $basePrompt';
+        prompt =
+            'close up portrait, ${widget.characterName ?? "character"}, $basePrompt';
       case ImageGenMode.background:
-        return 'background, scene, $basePrompt';
+        prompt = 'background, scene, $basePrompt';
       case ImageGenMode.lastMessage:
       case ImageGenMode.scenario:
       case ImageGenMode.free:
-        return basePrompt;
+        prompt = basePrompt;
     }
+
+    if (settings.includeChatAndTagContext) {
+      final allTags = <String>{
+        ...widget.characterTags
+            .map((t) => t.trim())
+            .where((t) => t.isNotEmpty),
+        ...widget.chatTags.map((t) => t.trim()).where((t) => t.isNotEmpty),
+        ...widget.lorebookTags
+            .map((t) => t.trim())
+            .where((t) => t.isNotEmpty),
+      };
+      if (allTags.isNotEmpty && !prompt.contains(allTags.first)) {
+        prompt =
+            ImagePromptComposer.combinePrompt(prompt, allTags.join(', '));
+      }
+    }
+
+    if (settings.positivePromptExtension != null &&
+        settings.positivePromptExtension!.trim().isNotEmpty) {
+      prompt = ImagePromptComposer.combinePrompt(
+        prompt,
+        settings.positivePromptExtension!,
+      );
+    }
+
+    return prompt;
   }
 
   @override
@@ -155,16 +212,53 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
                         ),
                       ),
                     ),
-                    Text(
-                      '${settings.defaultWidth}x${settings.defaultHeight}',
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 12,
+                    InkWell(
+                      onTap: _isGenerating
+                          ? null
+                          : () => _showDimensionsDialog(context, settings),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${settings.defaultWidth}x${settings.defaultHeight}',
+                              style: const TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.tune,
+                                size: 12, color: AppTheme.primaryColor),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+              if (settings.includeChatAndTagContext &&
+                  (widget.characterTags.isNotEmpty ||
+                      widget.chatTags.isNotEmpty ||
+                      widget.lorebookTags.isNotEmpty)) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    ...widget.characterTags.map((t) =>
+                        _buildTagChip(t, Icons.person, Colors.lightBlueAccent)),
+                    ...widget.chatTags.map((t) => _buildTagChip(
+                        t, Icons.chat_bubble_outline, Colors.purpleAccent)),
+                    ...widget.lorebookTags.map(
+                        (t) => _buildTagChip(t, Icons.book, Colors.amberAccent)),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
 
               // Model selector
@@ -355,6 +449,85 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
     );
   }
 
+  Widget _buildTagChip(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDimensionsDialog(BuildContext context, ImageGenSettings settings) {
+    final widthController =
+        TextEditingController(text: settings.defaultWidth.toString());
+    final heightController =
+        TextEditingController(text: settings.defaultHeight.toString());
+    final l10n = AppLocalizations.of(context);
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.darkCard,
+        title: Text(l10n.customDimensions),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: widthController,
+              decoration: InputDecoration(
+                labelText: l10n.customWidth,
+                helperText: '64 - 4096 (e.g. 512, 768, 1024)',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: heightController,
+              decoration: InputDecoration(
+                labelText: l10n.customHeight,
+                helperText: '64 - 4096 (e.g. 512, 768, 1024)',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final w =
+                  int.tryParse(widthController.text) ?? settings.defaultWidth;
+              final h =
+                  int.tryParse(heightController.text) ?? settings.defaultHeight;
+              ref
+                  .read(imageGenSettingsProvider.notifier)
+                  .setCustomDimensions(w, h);
+              Navigator.pop(context);
+            },
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _fillPromptWithAi() async {
     final l10n = AppLocalizations.of(context);
     final config = ref.read(llmConfigProvider);
@@ -369,6 +542,7 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
     });
 
     try {
+      final settings = ref.read(imageGenSettingsProvider);
       final sceneText = widget.basePrompt.trim().isEmpty
           ? _promptController.text
           : widget.basePrompt;
@@ -376,6 +550,16 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
             _composer.composeMessages(
               sceneText: sceneText,
               characterName: widget.characterName,
+              characterTags: settings.includeChatAndTagContext
+                  ? widget.characterTags
+                  : const [],
+              chatTags: settings.includeChatAndTagContext
+                  ? widget.chatTags
+                  : const [],
+              lorebookTags: settings.includeChatAndTagContext
+                  ? widget.lorebookTags
+                  : const [],
+              positiveExtension: settings.positivePromptExtension,
             ),
             config,
           );
@@ -385,13 +569,33 @@ class _ImageGenerationDialogState extends ConsumerState<ImageGenerationDialog> {
           ? _composer.fallbackPrompt(
               sceneText: sceneText,
               characterName: widget.characterName,
+              characterTags: settings.includeChatAndTagContext
+                  ? widget.characterTags
+                  : const [],
+              chatTags: settings.includeChatAndTagContext
+                  ? widget.chatTags
+                  : const [],
+              lorebookTags: settings.includeChatAndTagContext
+                  ? widget.lorebookTags
+                  : const [],
+              positiveExtension: settings.positivePromptExtension,
             )
           : prompt;
     } catch (error) {
       if (!mounted) return;
+      final settings = ref.read(imageGenSettingsProvider);
       _promptController.text = _composer.fallbackPrompt(
         sceneText: widget.basePrompt,
         characterName: widget.characterName,
+        characterTags: settings.includeChatAndTagContext
+            ? widget.characterTags
+            : const [],
+        chatTags:
+            settings.includeChatAndTagContext ? widget.chatTags : const [],
+        lorebookTags: settings.includeChatAndTagContext
+            ? widget.lorebookTags
+            : const [],
+        positiveExtension: settings.positivePromptExtension,
       );
       setState(() => _error = error.toString());
     } finally {

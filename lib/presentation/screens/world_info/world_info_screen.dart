@@ -155,12 +155,13 @@ class WorldInfoScreen extends ConsumerWidget {
       builder: (context) => _WorldInfoDialog(
         ref: ref,
         title: AppLocalizations.of(context)!.createLorebook,
-        onSave: (name, description, isGlobal, characterId) async {
+        onSave: (name, description, tags, isGlobal, characterId) async {
           _log(
-              'Creating world info: name=$name, isGlobal=$isGlobal, characterId=$characterId');
+              'Creating world info: name=$name, tags=$tags, isGlobal=$isGlobal, characterId=$characterId');
           await ref.read(worldInfoNotifierProvider.notifier).createWorldInfo(
                 name: name,
                 description: description,
+                tags: tags,
                 isGlobal: isGlobal,
                 characterId: characterId,
               );
@@ -178,15 +179,17 @@ class WorldInfoScreen extends ConsumerWidget {
         title: AppLocalizations.of(context)!.editGroup,
         initialName: worldInfo.name,
         initialDescription: worldInfo.description,
+        initialTags: worldInfo.tags,
         initialIsGlobal: worldInfo.isGlobal,
         initialCharacterId: worldInfo.characterId,
-        onSave: (name, description, isGlobal, characterId) async {
+        onSave: (name, description, tags, isGlobal, characterId) async {
           _log(
-              'Updating world info: name=$name, isGlobal=$isGlobal, characterId=$characterId');
+              'Updating world info: name=$name, tags=$tags, isGlobal=$isGlobal, characterId=$characterId');
           await ref.read(worldInfoNotifierProvider.notifier).updateWorldInfo(
                 worldInfo.copyWith(
                   name: name,
                   description: description,
+                  tags: tags,
                   isGlobal: isGlobal,
                   characterId: characterId,
                 ),
@@ -443,6 +446,35 @@ class _WorldInfoCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                    if (worldInfo.tags.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 2,
+                        children: worldInfo.tags
+                            .take(4)
+                            .map(
+                              (tag) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -533,18 +565,24 @@ class _WorldInfoDialog extends StatefulWidget {
   final String title;
   final String? initialName;
   final String? initialDescription;
+  final List<String>? initialTags;
   final bool initialIsGlobal;
   final String? initialCharacterId;
   final WidgetRef ref;
   final Future<void> Function(
-          String name, String? description, bool isGlobal, String? characterId)
-      onSave;
+    String name,
+    String? description,
+    List<String> tags,
+    bool isGlobal,
+    String? characterId,
+  ) onSave;
 
   const _WorldInfoDialog({
     required this.ref,
     required this.title,
     this.initialName,
     this.initialDescription,
+    this.initialTags,
     this.initialIsGlobal = true,
     this.initialCharacterId,
     required this.onSave,
@@ -564,6 +602,7 @@ enum _WorldInfoScope {
 class _WorldInfoDialogState extends State<_WorldInfoDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  late TextEditingController _tagsController;
   late _WorldInfoScope _scope;
   String? _selectedCharacterId;
   bool _isSaving = false;
@@ -574,6 +613,8 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
     _nameController = TextEditingController(text: widget.initialName ?? '');
     _descriptionController =
         TextEditingController(text: widget.initialDescription ?? '');
+    _tagsController =
+        TextEditingController(text: widget.initialTags?.join(', ') ?? '');
 
     // Determine initial scope
     if (widget.initialIsGlobal) {
@@ -590,6 +631,7 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _tagsController.dispose();
     super.dispose();
   }
 
@@ -625,6 +667,16 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
                 border: const OutlineInputBorder(),
               ),
               maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _tagsController,
+              decoration: InputDecoration(
+                labelText: l10n.lorebookTags,
+                hintText: l10n.tagsCommaSeparatedHint,
+                helperText: l10n.tagsCommaSeparatedHint,
+                border: const OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -768,11 +820,19 @@ class _WorldInfoDialogState extends State<_WorldInfoDialog> {
       _log(
           'Saving world info: name=$name, scope=$_scope, isGlobal=$isGlobal, characterId=$characterId');
 
+      final rawTags = _tagsController.text;
+      final tags = rawTags
+          .split(',')
+          .map((t) => t.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+
       await widget.onSave(
         name,
         _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),
+        tags,
         isGlobal,
         characterId,
       );

@@ -633,7 +633,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         break;
 
       case 'imagine':
-        await _handleImagineCommand(argument);
+      case 'image':
+        if (argument == null || argument.trim().isEmpty) {
+          await _openImagineFromInput(chatState);
+        } else {
+          await _handleImagineCommand(argument);
+        }
         break;
 
       case 'delswipe':
@@ -859,7 +864,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// "Start Reply With" dialog: assistant prefill for this chat
   void _showStartReplyWithDialog() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final chat = ref.read(activeChatProvider).chat;
     final controller = TextEditingController(text: chat?.startReplyWith ?? '');
 
@@ -913,7 +918,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Chat lorebooks: multi-select world books active only in this chat
   void _showChatLorebooksDialog() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     showDialog<void>(
       context: context,
@@ -974,6 +979,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showChatTagsDialog() {
+    final l10n = AppLocalizations.of(context);
+    final chat = ref.read(activeChatProvider).chat;
+    if (chat == null) return;
+    final controller = TextEditingController(text: chat.tags.join(', '));
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.chatTags),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.tagsCommaSeparatedHint,
+            helperText: l10n.tagsCommaSeparatedHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final raw = controller.text;
+              final tags = raw
+                  .split(',')
+                  .map((t) => t.trim())
+                  .where((t) => t.isNotEmpty)
+                  .toList();
+              ref.read(activeChatProvider.notifier).updateChatTags(tags);
+              Navigator.pop(dialogContext);
+            },
+            child: Text(l10n.save),
+          ),
+        ],
       ),
     );
   }
@@ -1448,6 +1494,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
             PopupMenuItem(
+              value: 'chat_tags',
+              child: ListTile(
+                leading: Icon(
+                  Icons.label_outline,
+                  color: (chatState.chat?.tags.isNotEmpty ?? false)
+                      ? AppTheme.accentColor
+                      : null,
+                ),
+                title: Text(l10n.chatTags),
+                subtitle: (chatState.chat?.tags.isNotEmpty ?? false)
+                    ? Text(
+                        chatState.chat!.tags.join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12),
+                      )
+                    : null,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            PopupMenuItem(
               value: 'bookmarks',
               child: ListTile(
                 leading: const Icon(
@@ -1547,6 +1614,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 break;
               case 'chat_lorebooks':
                 _showChatLorebooksDialog();
+                break;
+              case 'chat_tags':
+                _showChatTagsDialog();
                 break;
               case 'bookmarks':
                 _showBookmarksDialog(context);
@@ -2243,6 +2313,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  Future<List<String>> _collectActiveLorebookTags() async {
+    try {
+      final chat = ref.read(activeChatProvider).chat;
+      final linkedIds = chat?.linkedWorldInfoIds ?? const <String>[];
+      final activeIds = ref.read(activeWorldInfoIdsProvider);
+      final all = await ref.read(allWorldInfosProvider.future);
+      final tags = <String>{};
+      for (final wi in all) {
+        if (wi.isGlobal ||
+            linkedIds.contains(wi.id) ||
+            activeIds.contains(wi.id)) {
+          tags.addAll(wi.tags);
+        }
+      }
+      return tags.toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
   Future<void> _openImagineFromInput(ActiveChatState chatState) async {
     final typed = _messageController.text.trim();
     final lastAssistant =
@@ -2250,10 +2340,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               (message) => message?.role == MessageRole.assistant,
               orElse: () => null,
             );
+    final lorebookTags = await _collectActiveLorebookTags();
     final result = await ImageGenerationDialog.show(
       context,
       basePrompt: typed.isNotEmpty ? typed : (lastAssistant?.content ?? ''),
       characterName: chatState.character?.name,
+      characterTags: chatState.character?.tags ?? const [],
+      chatTags: chatState.chat?.tags ?? const [],
+      lorebookTags: lorebookTags,
       mode: ImageGenMode.free,
       autoCompose: typed.isEmpty,
     );
@@ -2282,10 +2376,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatMessage message,
     Character? character,
   ) async {
+    final chatState = ref.read(activeChatProvider);
+    final lorebookTags = await _collectActiveLorebookTags();
     final result = await ImageGenerationDialog.show(
       context,
       basePrompt: message.content,
       characterName: character?.name,
+      characterTags: character?.tags ?? const [],
+      chatTags: chatState.chat?.tags ?? const [],
+      lorebookTags: lorebookTags,
       mode: message.role == MessageRole.assistant
           ? ImageGenMode.lastMessage
           : ImageGenMode.free,
@@ -3942,7 +4041,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                   Icons.auto_awesome,
                   color: AppTheme.primaryColor,
                 ),
-                title: Text(l10n.generateImagesUsingAi),
+                title: Text(l10n.generateImage),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onGenerateImage!();

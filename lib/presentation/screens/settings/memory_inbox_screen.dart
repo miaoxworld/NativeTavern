@@ -221,6 +221,16 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
                           inbox.selectedIds.length < 2 ? null : _mergeSelected,
                       icon: const Icon(Icons.merge),
                     ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      key: const Key('memory-batch-delete'),
+                      tooltip: l10n.memoryDeleteSelected,
+                      onPressed: _deleteSelected,
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -297,6 +307,7 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
                   memory.source.sourceMessageIds.isEmpty
               ? null
               : () => _openSource(memory),
+          onDelete: () => _deleteMemory(memory),
         );
       },
     );
@@ -456,6 +467,68 @@ class _MemoryInboxScreenState extends ConsumerState<MemoryInboxScreen> {
     );
   }
 
+  Future<void> _deleteMemory(LongTermMemory memory) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.memoryDelete),
+        content: Text(l10n.memoryDeleteConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _run(
+        () => ref.read(memoryInboxProvider.notifier).delete(memory.id),
+      );
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    final l10n = AppLocalizations.of(context);
+    final count = ref.read(memoryInboxProvider).selectedIds.length;
+    if (count == 0) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.memoryDeleteSelected),
+        content: Text(l10n.memoryDeleteSelectedConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _run(
+        () => ref.read(memoryInboxProvider.notifier).deleteSelected(),
+      );
+    }
+  }
+
   Future<void> _run(Future<void> Function() action) async {
     try {
       await action();
@@ -509,6 +582,7 @@ class _MemoryItem extends StatelessWidget {
     required this.onIgnore,
     required this.onLock,
     required this.onSource,
+    this.onDelete,
     this.chatTitle,
   });
 
@@ -522,6 +596,7 @@ class _MemoryItem extends StatelessWidget {
   final VoidCallback? onIgnore;
   final VoidCallback? onLock;
   final VoidCallback? onSource;
+  final VoidCallback? onDelete;
   final String? chatTitle;
 
   @override
@@ -703,6 +778,16 @@ class _MemoryItem extends StatelessWidget {
                     tooltip: l10n.memoryIgnore,
                     onPressed: onIgnore,
                     icon: const Icon(Icons.visibility_off_outlined),
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    key: Key('memory-delete-${memory.id}'),
+                    tooltip: l10n.memoryDelete,
+                    onPressed: onDelete,
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
               ],
             ),

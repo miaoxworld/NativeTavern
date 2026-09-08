@@ -13,20 +13,21 @@ class ImageGenSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(imageGenSettingsProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.imageGeneration),
+        title: Text(l10n.imageGeneration),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: AppLocalizations.of(context)!.resetToDefaults,
+            tooltip: l10n.resetToDefaults,
             onPressed: () {
               ref.read(imageGenSettingsProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: Text(
-                        AppLocalizations.of(context)!.settingsResetToDefaults)),
+                        l10n.settingsResetToDefaults)),
               );
             },
           ),
@@ -38,13 +39,13 @@ class ImageGenSettingsScreen extends ConsumerWidget {
           // Enable/Disable toggle
           _buildSection(
             context: context,
-            title: AppLocalizations.of(context)!.general,
+            title: l10n.general,
             children: [
               SwitchListTile(
                 title:
-                    Text(AppLocalizations.of(context)!.enableImageGeneration),
+                    Text(l10n.enableImageGeneration),
                 subtitle:
-                    Text(AppLocalizations.of(context)!.generateImagesUsingAi),
+                    Text(l10n.generateImagesUsingAi),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(imageGenSettingsProvider.notifier).setEnabled(value);
@@ -58,11 +59,11 @@ class ImageGenSettingsScreen extends ConsumerWidget {
           // Provider selection
           _buildSection(
             context: context,
-            title: AppLocalizations.of(context)!.provider,
+            title: l10n.provider,
             children: [
               ListTile(
                 title:
-                    Text(AppLocalizations.of(context)!.imageGenerationProvider),
+                    Text(l10n.imageGenerationProvider),
                 subtitle: Text(settings.provider.displayName),
                 trailing: DropdownButton<ImageGenProvider>(
                   value: settings.provider,
@@ -84,11 +85,11 @@ class ImageGenSettingsScreen extends ConsumerWidget {
                 ),
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.apiEndpoint),
+                title: Text(l10n.apiEndpoint),
                 subtitle: Text(
                   settings.apiEndpoint?.isNotEmpty == true
                       ? settings.apiEndpoint!
-                      : AppLocalizations.of(context)!.notConfigured,
+                      : l10n.notConfigured,
                 ),
                 trailing: const Icon(Icons.edit),
                 onTap: settings.enabled
@@ -97,15 +98,29 @@ class ImageGenSettingsScreen extends ConsumerWidget {
               ),
               if (settings.provider.requiresApiKey)
                 ListTile(
-                  title: Text(AppLocalizations.of(context)!.apiKey),
+                  title: Text(l10n.apiKey),
                   subtitle: Text(
                     settings.apiKey?.isNotEmpty == true
                         ? '••••••••${settings.apiKey!.substring(settings.apiKey!.length - 4)}'
-                        : AppLocalizations.of(context)!.notConfigured,
+                        : l10n.notConfigured,
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: settings.enabled
                       ? () => _showApiKeyDialog(context, ref, settings)
+                      : null,
+                ),
+              if (settings.provider == ImageGenProvider.automatic1111 ||
+                  settings.provider == ImageGenProvider.comfyui)
+                ListTile(
+                  title: Text(l10n.authHeader),
+                  subtitle: Text(
+                    settings.authHeaderValue?.isNotEmpty == true
+                        ? '${settings.authHeaderName?.isNotEmpty == true ? settings.authHeaderName! : "Authorization"}: ••••••••'
+                        : l10n.notConfigured,
+                  ),
+                  trailing: const Icon(Icons.edit),
+                  onTap: settings.enabled
+                      ? () => _showAuthHeaderDialog(context, ref, settings)
                       : null,
                 ),
               // Model selection
@@ -125,31 +140,61 @@ class ImageGenSettingsScreen extends ConsumerWidget {
                 title: Text(AppLocalizations.of(context)!.imageSize),
                 subtitle: Text(
                     '${settings.defaultWidth} × ${settings.defaultHeight}'),
-                trailing: DropdownButton<ImageAspectRatio>(
-                  value: ImageAspectRatio.presets.firstWhere(
-                    (p) =>
-                        p.width == settings.defaultWidth &&
-                        p.height == settings.defaultHeight,
-                    orElse: () => ImageAspectRatio.presets.first,
-                  ),
-                  onChanged: settings.enabled
-                      ? (value) {
-                          if (value != null) {
-                            ref
-                                .read(imageGenSettingsProvider.notifier)
-                                .setDefaultWidth(value.width);
-                            ref
-                                .read(imageGenSettingsProvider.notifier)
-                                .setDefaultHeight(value.height);
-                          }
-                        }
-                      : null,
-                  items: ImageAspectRatio.presets.map((preset) {
-                    return DropdownMenuItem(
-                      value: preset,
-                      child: Text(preset.name),
-                    );
-                  }).toList(),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButton<ImageAspectRatio>(
+                      value: ImageAspectRatio.presets.firstWhere(
+                        (p) =>
+                            p.width == settings.defaultWidth &&
+                            p.height == settings.defaultHeight,
+                        orElse: () => ImageAspectRatio.custom(
+                          settings.defaultWidth,
+                          settings.defaultHeight,
+                        ),
+                      ),
+                      onChanged: settings.enabled
+                          ? (value) {
+                              if (value != null) {
+                                ref
+                                    .read(imageGenSettingsProvider.notifier)
+                                    .setCustomDimensions(
+                                      value.width,
+                                      value.height,
+                                    );
+                              }
+                            }
+                          : null,
+                      items: [
+                        ...ImageAspectRatio.presets.map((preset) {
+                          return DropdownMenuItem(
+                            value: preset,
+                            child: Text(preset.name),
+                          );
+                        }),
+                        if (!ImageAspectRatio.presets.any((p) =>
+                            p.width == settings.defaultWidth &&
+                            p.height == settings.defaultHeight))
+                          DropdownMenuItem(
+                            value: ImageAspectRatio.custom(
+                              settings.defaultWidth,
+                              settings.defaultHeight,
+                            ),
+                            child: Text(
+                              '${AppLocalizations.of(context)!.customDimensions} (${settings.defaultWidth}×${settings.defaultHeight})',
+                            ),
+                          ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.tune, size: 20),
+                      tooltip: AppLocalizations.of(context)!.customDimensions,
+                      onPressed: settings.enabled
+                          ? () => _showCustomDimensionsDialog(
+                              context, ref, settings)
+                          : null,
+                    ),
+                  ],
                 ),
               ),
 
@@ -383,10 +428,80 @@ class ImageGenSettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 16),
 
+          // Prompt extensions
+          _buildSection(
+            context: context,
+            title: AppLocalizations.of(context)!.positivePromptExtension,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: TextEditingController(
+                      text: settings.positivePromptExtension ?? ''),
+                  decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)!.positivePromptExtension,
+                    hintText: AppLocalizations.of(context)!
+                        .positivePromptExtensionHint,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                  enabled: settings.enabled,
+                  onChanged: (value) {
+                    ref
+                        .read(imageGenSettingsProvider.notifier)
+                        .setPositivePromptExtension(
+                            value.trim().isEmpty ? null : value.trim());
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: TextEditingController(
+                      text: settings.negativePromptExtension ?? ''),
+                  decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)!.negativePromptExtension,
+                    hintText: AppLocalizations.of(context)!
+                        .negativePromptExtensionHint,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                  enabled: settings.enabled,
+                  onChanged: (value) {
+                    ref
+                        .read(imageGenSettingsProvider.notifier)
+                        .setNegativePromptExtension(
+                            value.trim().isEmpty ? null : value.trim());
+                  },
+                ),
+              ),
+              SwitchListTile(
+                title:
+                    Text(AppLocalizations.of(context)!.includeChatAndTagContext),
+                subtitle: Text(
+                  AppLocalizations.of(context)!
+                      .includeChatAndTagContextDescription,
+                ),
+                value: settings.includeChatAndTagContext,
+                onChanged: settings.enabled
+                    ? (value) {
+                        ref
+                            .read(imageGenSettingsProvider.notifier)
+                            .setIncludeChatAndTagContext(value);
+                      }
+                    : null,
+              ),
+            ],
+          ),
+
           // Test section
           _buildSection(
             context: context,
-            title: AppLocalizations.of(context)!.test,
+            title: AppLocalizations.of(context)!.testGeneration,
             children: [
               _ImageGenTestWidget(enabled: settings.enabled),
             ],
@@ -609,6 +724,126 @@ class ImageGenSettingsScreen extends ConsumerWidget {
     );
   }
 
+  void _showAuthHeaderDialog(
+      BuildContext context, WidgetRef ref, ImageGenSettings settings) {
+    final nameController =
+        TextEditingController(text: settings.authHeaderName);
+    final valueController =
+        TextEditingController(text: settings.authHeaderValue);
+    final l10n = AppLocalizations.of(context);
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.authHeader),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.authHeaderSubtitle,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: l10n.authHeaderName,
+                hintText: l10n.authHeaderNameHint,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: valueController,
+              decoration: InputDecoration(
+                labelText: l10n.authHeaderValue,
+                hintText: l10n.authHeaderValueHint,
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(imageGenSettingsProvider.notifier).setAuthHeader(
+                    name: nameController.text.trim().isEmpty
+                        ? null
+                        : nameController.text.trim(),
+                    value: valueController.text.trim().isEmpty
+                        ? null
+                        : valueController.text.trim(),
+                  );
+              Navigator.pop(context);
+            },
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomDimensionsDialog(
+      BuildContext context, WidgetRef ref, ImageGenSettings settings) {
+    final widthController =
+        TextEditingController(text: settings.defaultWidth.toString());
+    final heightController =
+        TextEditingController(text: settings.defaultHeight.toString());
+    final l10n = AppLocalizations.of(context);
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.customDimensions),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: widthController,
+              decoration: InputDecoration(
+                labelText: l10n.customWidth,
+                helperText: '64 - 4096 (e.g. 512, 768, 1024)',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: heightController,
+              decoration: InputDecoration(
+                labelText: l10n.customHeight,
+                helperText: '64 - 4096 (e.g. 512, 768, 1024)',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final w =
+                  int.tryParse(widthController.text) ?? settings.defaultWidth;
+              final h =
+                  int.tryParse(heightController.text) ?? settings.defaultHeight;
+              ref
+                  .read(imageGenSettingsProvider.notifier)
+                  .setCustomDimensions(w, h);
+              Navigator.pop(context);
+            },
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getEndpointHint(ImageGenProvider provider) {
     // Just return the provider's default endpoint
     return provider.defaultEndpoint;
@@ -662,7 +897,7 @@ class _ImageGenTestWidgetState extends ConsumerState<_ImageGenTestWidget> {
           TextField(
             controller: _controller,
             decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.prompt,
+              labelText: AppLocalizations.of(context)!.positivePrompt,
               hintText: AppLocalizations.of(context)!.enterPromptToGenerate,
               border: const OutlineInputBorder(),
             ),
@@ -676,10 +911,23 @@ class _ImageGenTestWidgetState extends ConsumerState<_ImageGenTestWidget> {
                     !genState.isGenerating
                 ? () {
                     final settings = ref.read(imageGenSettingsProvider);
+                    var prompt = _controller.text;
+                    if (settings.positivePromptExtension != null &&
+                        settings.positivePromptExtension!.trim().isNotEmpty) {
+                      prompt =
+                          '$prompt, ${settings.positivePromptExtension!.trim()}';
+                    }
+                    var negative = settings.defaultNegativePrompt;
+                    if (settings.negativePromptExtension != null &&
+                        settings.negativePromptExtension!.trim().isNotEmpty) {
+                      negative = negative != null && negative.trim().isNotEmpty
+                          ? '$negative, ${settings.negativePromptExtension!.trim()}'
+                          : settings.negativePromptExtension!.trim();
+                    }
                     ref.read(imageGenStateProvider.notifier).generate(
                           ImageGenRequest(
-                            prompt: _controller.text,
-                            negativePrompt: settings.defaultNegativePrompt,
+                            prompt: prompt,
+                            negativePrompt: negative,
                             width: settings.defaultWidth,
                             height: settings.defaultHeight,
                             steps: settings.defaultSteps,
