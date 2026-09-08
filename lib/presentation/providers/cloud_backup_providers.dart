@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -17,6 +18,53 @@ import 'package:native_tavern/domain/services/google_drive_service.dart';
 import 'package:native_tavern/domain/services/icloud_sync_conflict.dart';
 import 'package:native_tavern/domain/services/legacy_ntx_converter.dart';
 import 'package:native_tavern/domain/services/secret_vault_service.dart';
+import 'package:native_tavern/presentation/providers/character_providers.dart';
+import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/presentation/providers/group_providers.dart';
+import 'package:native_tavern/presentation/providers/moment_providers.dart';
+import 'package:native_tavern/presentation/providers/persona_providers.dart';
+import 'package:native_tavern/presentation/providers/story_providers.dart';
+import 'package:native_tavern/presentation/providers/story_timeline_providers.dart';
+import 'package:native_tavern/presentation/providers/world_info_providers.dart';
+
+/// How often automatic cloud sync runs while the app is in the foreground.
+enum CloudSyncSchedule {
+  onOpen,
+  every15Minutes,
+  every30Minutes,
+  hourly;
+
+  Duration? get interval => switch (this) {
+        onOpen => null,
+        every15Minutes => const Duration(minutes: 15),
+        every30Minutes => const Duration(minutes: 30),
+        hourly => const Duration(hours: 1),
+      };
+
+  static CloudSyncSchedule fromName(String? name) =>
+      CloudSyncSchedule.values.firstWhere(
+        (value) => value.name == name,
+        orElse: () => CloudSyncSchedule.every30Minutes,
+      );
+}
+
+/// True when the remote snapshot was written by another device after this one
+/// last finished a sync.
+bool remoteCloudSnapshotIsNewer({
+  required DateTime? remoteUpdatedAt,
+  required DateTime? lastLocalSync,
+  required String? remoteDeviceId,
+  required String localDeviceId,
+}) {
+  if (remoteUpdatedAt == null) return false;
+  if (remoteDeviceId != null && remoteDeviceId == localDeviceId) {
+    return false;
+  }
+  if (lastLocalSync == null) return true;
+  return remoteUpdatedAt.isAfter(
+    lastLocalSync.add(const Duration(seconds: 2)),
+  );
+}
 
 /// Path of a backup file opened from the system Files app / share sheet.
 final pendingBackupImportPathProvider = StateProvider<String?>((ref) => null);
@@ -86,6 +134,7 @@ class CloudBackupSettings {
   final bool iCloudEnabled;
   final bool googleDriveEnabled;
   final bool autoSyncEnabled;
+  final CloudSyncSchedule syncSchedule;
   final DateTime? lastICloudSync;
   final DateTime? lastGoogleDriveSync;
   final RestoreMode defaultRestoreMode;
@@ -99,6 +148,7 @@ class CloudBackupSettings {
     this.iCloudEnabled = false,
     this.googleDriveEnabled = false,
     this.autoSyncEnabled = false,
+    this.syncSchedule = CloudSyncSchedule.every30Minutes,
     this.lastICloudSync,
     this.lastGoogleDriveSync,
     this.defaultRestoreMode = RestoreMode.merge,
@@ -123,6 +173,7 @@ class CloudBackupSettings {
     bool? iCloudEnabled,
     bool? googleDriveEnabled,
     bool? autoSyncEnabled,
+    CloudSyncSchedule? syncSchedule,
     DateTime? lastICloudSync,
     DateTime? lastGoogleDriveSync,
     RestoreMode? defaultRestoreMode,
@@ -136,6 +187,7 @@ class CloudBackupSettings {
       iCloudEnabled: iCloudEnabled ?? this.iCloudEnabled,
       googleDriveEnabled: googleDriveEnabled ?? this.googleDriveEnabled,
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
+      syncSchedule: syncSchedule ?? this.syncSchedule,
       lastICloudSync: lastICloudSync ?? this.lastICloudSync,
       lastGoogleDriveSync: lastGoogleDriveSync ?? this.lastGoogleDriveSync,
       defaultRestoreMode: defaultRestoreMode ?? this.defaultRestoreMode,
@@ -154,6 +206,7 @@ class CloudBackupSettings {
         'iCloudEnabled': iCloudEnabled,
         'googleDriveEnabled': googleDriveEnabled,
         'autoSyncEnabled': autoSyncEnabled,
+        'syncSchedule': syncSchedule.name,
         'lastICloudSync': lastICloudSync?.toIso8601String(),
         'lastGoogleDriveSync': lastGoogleDriveSync?.toIso8601String(),
         'defaultRestoreMode': defaultRestoreMode.name,
@@ -169,6 +222,7 @@ class CloudBackupSettings {
       iCloudEnabled: json['iCloudEnabled'] as bool? ?? false,
       googleDriveEnabled: json['googleDriveEnabled'] as bool? ?? false,
       autoSyncEnabled: json['autoSyncEnabled'] as bool? ?? false,
+      syncSchedule: CloudSyncSchedule.fromName(json['syncSchedule'] as String?),
       lastICloudSync: json['lastICloudSync'] != null
           ? DateTime.tryParse(json['lastICloudSync'] as String)
           : null,
@@ -199,10 +253,13 @@ final cloudBackupSettingsProvider =
 /// Notifier for cloud backup settings
 class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
   static const _storageKey = 'cloud_backup_settings';
+  final Completer<void> _loaded = Completer<void>();
 
   CloudBackupSettingsNotifier() : super(const CloudBackupSettings()) {
     _loadSettings();
   }
+
+  Future<void> get ready => _loaded.future;
 
   Future<void> _loadSettings() async {
     try {
@@ -216,6 +273,10 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
       }
     } catch (e) {
       print('Error loading cloud backup settings: $e');
+    } finally {
+      if (!_loaded.isCompleted) {
+        _loaded.complete();
+      }
     }
   }
 
@@ -248,6 +309,11 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
           ? true
           : state.googleDriveEnabled,
     );
+    _saveSettings();
+  }
+
+  void setSyncSchedule(CloudSyncSchedule schedule) {
+    state = state.copyWith(syncSchedule: schedule);
     _saveSettings();
   }
 
@@ -538,6 +604,7 @@ class CloudBackupOperationNotifier
       // Apply restored data
       await restoreCallback(backupData, mode);
       await _applyVault(backupData, BackupImportSelection.all);
+      _invalidateSyncedCollections();
 
       state = state.copyWith(
         isLoading: false,
@@ -968,6 +1035,7 @@ class CloudBackupOperationNotifier
 
       await restoreCallback(backupData, mode);
       await _applyVault(backupData, BackupImportSelection.all);
+      _invalidateSyncedCollections();
 
       state = state.copyWith(
         isLoading: false,
@@ -1079,6 +1147,7 @@ class CloudBackupOperationNotifier
       // Apply restored data
       await restoreCallback(backupData, mode);
       await _applyVault(backupData, BackupImportSelection.all);
+      _invalidateSyncedCollections();
 
       state = state.copyWith(
         isLoading: false,
@@ -1402,6 +1471,7 @@ class CloudBackupOperationNotifier
       // Apply restored data
       await restoreCallback(backupData, mode);
       await _applyVault(backupData, BackupImportSelection.all);
+      _invalidateSyncedCollections();
 
       state = state.copyWith(
         isLoading: false,
@@ -1474,6 +1544,24 @@ class CloudBackupOperationNotifier
 
   static const _deviceIdKey = 'cloud_sync_device_id';
   bool _autoSyncInFlight = false;
+  bool _icloudProbeSucceededThisSession = false;
+
+  void _invalidateSyncedCollections() {
+    _ref.invalidate(characterListProvider);
+    _ref.invalidate(characterDetailProvider);
+    _ref.invalidate(characterChatsProvider);
+    _ref.invalidate(allChatsProvider);
+    _ref.invalidate(pagedChatsProvider);
+    _ref.invalidate(allWorldInfosProvider);
+    _ref.invalidate(allGroupsProvider);
+    _ref.invalidate(allPersonasProvider);
+    _ref.invalidate(storyLinesProvider);
+    _ref.invalidate(storyChaptersProvider);
+    _ref.invalidate(momentFeedProvider);
+    _ref.invalidate(pagedMomentFeedProvider);
+    _ref.read(worldMomentRevisionProvider.notifier).state++;
+    _ref.read(storyRevisionProvider.notifier).state++;
+  }
 
   Future<String> _deviceId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -1572,6 +1660,7 @@ class CloudBackupOperationNotifier
       }
       await restoreCallback(package, mode);
       await _applyVault(package, selection);
+      _invalidateSyncedCollections();
     }
     if (conflict.provider == CloudProvider.iCloud) {
       await _service.keepCurrentSyncVersion();
@@ -1612,16 +1701,13 @@ class CloudBackupOperationNotifier
     required DateTime? lastLocalSync,
     required String? remoteDeviceId,
     required String localDeviceId,
-  }) {
-    if (remoteUpdatedAt == null) return false;
-    if (remoteDeviceId != null && remoteDeviceId == localDeviceId) {
-      return false;
-    }
-    if (lastLocalSync == null) return true;
-    return remoteUpdatedAt.isAfter(
-      lastLocalSync.add(const Duration(seconds: 15)),
-    );
-  }
+  }) =>
+      remoteCloudSnapshotIsNewer(
+        remoteUpdatedAt: remoteUpdatedAt,
+        lastLocalSync: lastLocalSync,
+        remoteDeviceId: remoteDeviceId,
+        localDeviceId: localDeviceId,
+      );
 
   /// Pull remote changes then push the merged local snapshot.
   Future<void> runAutoSync({
@@ -1669,6 +1755,31 @@ class CloudBackupOperationNotifier
     }
     _autoSyncInFlight = true;
     try {
+      if (settings.iCloudEnabled && !_icloudProbeSucceededThisSession) {
+        final probe = await _service.probeICloudSync();
+        _icloudProbeSucceededThisSession = probe.queryCompleted;
+        if (!probe.queryCompleted) {
+          debugPrint(
+            '[CloudBackup] skip pause push: iCloud snapshot not discovered yet',
+          );
+          return;
+        }
+        final deviceId = await _deviceId();
+        final remoteUpdatedAt = probe.metadata?['updatedAt'] != null
+            ? DateTime.tryParse(probe.metadata!['updatedAt'] as String)?.toUtc()
+            : probe.backup?.createdAt.toUtc();
+        if (_remoteIsNewer(
+          remoteUpdatedAt: remoteUpdatedAt,
+          lastLocalSync: settings.lastICloudSync?.toUtc(),
+          remoteDeviceId: probe.metadata?['deviceId'] as String?,
+          localDeviceId: deviceId,
+        )) {
+          debugPrint(
+            '[CloudBackup] skip pause push: other device has a newer snapshot',
+          );
+          return;
+        }
+      }
       final data = await loadData();
       final artifacts = await _service.createCloudBackupArtifacts(
         data: data,
@@ -1721,25 +1832,37 @@ class CloudBackupOperationNotifier
     if (await _service.getICloudDirectory() == null) {
       return;
     }
+    await _service.prefetchICloudSyncFiles();
+    final probe = await _service.probeICloudSync();
+    _icloudProbeSucceededThisSession = probe.queryCompleted;
+    if (!probe.queryCompleted && probe.backup == null) {
+      debugPrint(
+        '[CloudBackup] iCloud query did not finish; skipping auto-sync push',
+      );
+      return;
+    }
     final settings = _ref.read(cloudBackupSettingsProvider);
     final deviceId = await _deviceId();
-    final metadata = await _service.readICloudSyncMetadata();
-    final remote = await _service.getICloudSyncBackup();
+    final metadata = probe.metadata;
+    final remote = probe.backup;
     final remoteUpdatedAt = metadata?['updatedAt'] != null
         ? DateTime.tryParse(metadata!['updatedAt'] as String)?.toUtc()
         : remote?.createdAt.toUtc();
-    final shouldPull = _remoteIsNewer(
-      remoteUpdatedAt: remoteUpdatedAt,
-      lastLocalSync: settings.lastICloudSync?.toUtc(),
-      remoteDeviceId: metadata?['deviceId'] as String?,
-      localDeviceId: deviceId,
-    );
+    final shouldPull = remote != null &&
+        _remoteIsNewer(
+          remoteUpdatedAt: remoteUpdatedAt,
+          lastLocalSync: settings.lastICloudSync?.toUtc(),
+          remoteDeviceId: metadata?['deviceId'] as String?,
+          localDeviceId: deviceId,
+        );
     final lastSync = settings.lastICloudSync?.toUtc();
     final localHasEdits = lastSync == null
         ? false
         : await DatabaseBackupService(_ref.read(databaseProvider))
             .hasLocalEditsSince(lastSync);
-    final fileConflicts = await _service.syncFileHasConflicts();
+    final fileConflicts = await _service.syncFileHasConflicts(
+      remotePath: remote?.remotePath,
+    );
     if (remote != null && ((shouldPull && localHasEdits) || fileConflicts)) {
       final remotePackage = await _service.downloadFromICloud(backup: remote);
       final snapshotPath = await _writeConflictSnapshot(await loadData());
@@ -1754,16 +1877,30 @@ class CloudBackupOperationNotifier
       );
       return;
     }
-    if (shouldPull && remote != null) {
+    if (shouldPull) {
       final localData = await loadData();
-      await downloadFromICloud(
-        backup: remote,
+      final merged = await downloadFromICloud(
+        backup: remote!,
         mode: RestoreMode.merge,
         localData: localData,
         restoreCallback: restoreCallback,
       );
+      if (merged == null) {
+        debugPrint(
+          '[CloudBackup] skip iCloud push: pull from the other device failed',
+        );
+        return;
+      }
     }
     if (uploadAfterPull) {
+      if (!probe.queryCompleted &&
+          metadata?['deviceId'] != null &&
+          metadata?['deviceId'] != deviceId) {
+        debugPrint(
+          '[CloudBackup] skip iCloud push: remote from another device was not confirmed',
+        );
+        return;
+      }
       final data = await loadData();
       final artifacts = await _service.createCloudBackupArtifacts(
         data: data,

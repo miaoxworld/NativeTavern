@@ -1,5 +1,38 @@
 import 'package:flutter/services.dart';
 
+/// One file discovered in the private iCloud sync folder.
+class ICloudSyncQueryItem {
+  final String name;
+  final String path;
+  final bool downloaded;
+
+  const ICloudSyncQueryItem({
+    required this.name,
+    required this.path,
+    this.downloaded = false,
+  });
+}
+
+/// Result of an NSMetadataQuery over the private ubiquity data scope.
+class ICloudSyncQueryResult {
+  final bool completed;
+  final String? directory;
+  final List<ICloudSyncQueryItem> files;
+
+  const ICloudSyncQueryResult({
+    required this.completed,
+    this.directory,
+    this.files = const [],
+  });
+
+  ICloudSyncQueryItem? itemNamed(String name) {
+    for (final file in files) {
+      if (file.name == name) return file;
+    }
+    return null;
+  }
+}
+
 /// Native iCloud container access (iOS / macOS).
 ///
 /// Auto-sync lives in the private ubiquity Library folder so it is not shown
@@ -44,6 +77,51 @@ class ICloudContainerService {
         'ensureDownloaded',
         {'path': filePath},
       );
+      return result ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  /// Discover sync files that may not be materialized locally yet.
+  Future<ICloudSyncQueryResult?> querySyncFiles() async {
+    try {
+      final raw = await _channel.invokeMethod<dynamic>('querySyncFiles');
+      if (raw is! Map) return null;
+      final files = <ICloudSyncQueryItem>[];
+      final rawFiles = raw['files'];
+      if (rawFiles is List) {
+        for (final entry in rawFiles) {
+          if (entry is! Map) continue;
+          final name = entry['name'] as String?;
+          final path = entry['path'] as String?;
+          if (name == null || path == null || path.isEmpty) continue;
+          files.add(
+            ICloudSyncQueryItem(
+              name: name,
+              path: path,
+              downloaded: entry['downloaded'] as bool? ?? false,
+            ),
+          );
+        }
+      }
+      return ICloudSyncQueryResult(
+        completed: raw['completed'] as bool? ?? false,
+        directory: raw['directory'] as String?,
+        files: files,
+      );
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  Future<bool> prefetchSyncFiles() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('prefetchSyncFiles');
       return result ?? false;
     } on MissingPluginException {
       return false;

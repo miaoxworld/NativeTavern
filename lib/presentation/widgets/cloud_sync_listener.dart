@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/core/services/initialization_service.dart';
@@ -19,6 +21,8 @@ class CloudSyncListener extends ConsumerStatefulWidget {
 class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
     with WidgetsBindingObserver {
   var _ready = false;
+  Timer? _periodicSync;
+  AppLifecycleState _lifecycle = AppLifecycleState.resumed;
 
   @override
   void initState() {
@@ -28,6 +32,11 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
   }
 
   Future<void> _start() async {
+    if (!mounted) return;
+    await ref.read(cloudBackupSettingsProvider.notifier).ready.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {},
+        );
     if (!mounted) return;
     final signedIn = await GoogleDriveService.instance.trySilentSignIn();
     if (mounted && signedIn) {
@@ -40,7 +49,21 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
       }
     }
     _ready = true;
+    _syncPeriodicTimer(ref.read(cloudBackupSettingsProvider));
     await _pullAndPush();
+  }
+
+  void _syncPeriodicTimer(CloudBackupSettings settings) {
+    _periodicSync?.cancel();
+    _periodicSync = null;
+    if (!settings.autoSyncEnabled) return;
+    final interval = settings.syncSchedule.interval;
+    if (interval == null) return;
+    _periodicSync = Timer.periodic(interval, (_) {
+      if (_lifecycle == AppLifecycleState.resumed) {
+        _pullAndPush();
+      }
+    });
   }
 
   DatabaseBackupService get _dbBackup =>
@@ -73,6 +96,7 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycle = state;
     switch (state) {
       case AppLifecycleState.resumed:
         _pullAndPush();
@@ -89,10 +113,20 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
 
   @override
   void dispose() {
+    _periodicSync?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    ref.listen<CloudBackupSettings>(cloudBackupSettingsProvider, (prev, next) {
+      if (!_ready) return;
+      _syncPeriodicTimer(next);
+      if (next.autoSyncEnabled && prev?.autoSyncEnabled != true) {
+        _pullAndPush();
+      }
+    });
+    return widget.child;
+  }
 }
