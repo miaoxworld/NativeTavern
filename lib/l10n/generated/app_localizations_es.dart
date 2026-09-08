@@ -6842,4 +6842,88 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get localBackupPasswordHint =>
       'Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.';
+
+  @override
+  String get testGeneration => 'Test Generation';
+
+  @override
+  String get positivePrompt => 'Positive Prompt';
+
+  @override
+  String get customDimensions => 'Custom Dimensions';
+
+  @override
+  String get customWidth => 'Width';
+
+  @override
+  String get customHeight => 'Height';
+
+  @override
+  String get positivePromptExtension => 'Positive Prompt Extension';
+
+  @override
+  String get positivePromptExtensionHint =>
+      'Keywords or template added to enhance positive prompts';
+
+  @override
+  String get negativePromptExtension => 'Negative Prompt Extension';
+
+  @override
+  String get negativePromptExtensionHint =>
+      'Terms and quality avoidances added to negative prompts';
+
+  @override
+  String get includeChatAndTagContext => 'Include Chat & Tag Context';
+
+  @override
+  String get includeChatAndTagContextDescription =>
+      'Automatically enrich image prompts using character, lorebook, and chat tags';
+
+  @override
+  String get generateImage => 'Generate Image';
+
+  @override
+  String get chatTags => 'Chat Tags';
+
+  @override
+  String get lorebookTags => 'Lorebook Tags';
+
+  @override
+  String get editTags => 'Edit Tags';
+
+  @override
+  String get tagsCommaSeparatedHint => 'Separate tags with commas';
+
+  @override
+  String get memoryDelete => 'Delete memory';
+
+  @override
+  String get memoryDeleteConfirmation =>
+      'Are you sure you want to delete this memory? This action cannot be undone.';
+
+  @override
+  String get memoryDeleteSelected => 'Delete selected';
+
+  @override
+  String get memoryDeleteSelectedConfirmation =>
+      'Are you sure you want to delete the selected memories? This action cannot be undone.';
+
+  @override
+  String get authHeader => 'Header Authentication';
+
+  @override
+  String get authHeaderSubtitle =>
+      'Custom HTTP header for authenticated reverse proxies or gateways';
+
+  @override
+  String get authHeaderName => 'Header Name';
+
+  @override
+  String get authHeaderNameHint => 'Authorization (default), X-Api-Key, etc.';
+
+  @override
+  String get authHeaderValue => 'Header Value';
+
+  @override
+  String get authHeaderValueHint => 'Enter token, key, or Bearer <token>';
 }

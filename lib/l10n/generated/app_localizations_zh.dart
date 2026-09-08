@@ -6583,6 +6583,84 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get localBackupPasswordHint =>
       '可选。保存或分享 .ntx 文件时可设置密码。已登录设备上的 iCloud 与 Google Drive 自动同步不会要求此密码。';
+
+  @override
+  String get testGeneration => '测试生成';
+
+  @override
+  String get positivePrompt => '正向提示词';
+
+  @override
+  String get customDimensions => '自定义尺寸';
+
+  @override
+  String get customWidth => '宽度';
+
+  @override
+  String get customHeight => '高度';
+
+  @override
+  String get positivePromptExtension => '正向提示词扩展';
+
+  @override
+  String get positivePromptExtensionHint => '用于增强正向提示词的模板或关键词';
+
+  @override
+  String get negativePromptExtension => '负向提示词扩展';
+
+  @override
+  String get negativePromptExtensionHint => '添加到负向提示词中的避让词和质量过滤';
+
+  @override
+  String get includeChatAndTagContext => '包含聊天与标签上下文';
+
+  @override
+  String get includeChatAndTagContextDescription => '使用角色、世界书和聊天标签自动丰富图像提示词';
+
+  @override
+  String get generateImage => '生成图片';
+
+  @override
+  String get chatTags => '聊天标签';
+
+  @override
+  String get lorebookTags => '世界书标签';
+
+  @override
+  String get editTags => '编辑标签';
+
+  @override
+  String get tagsCommaSeparatedHint => '用逗号分隔多个标签';
+
+  @override
+  String get memoryDelete => '删除记忆';
+
+  @override
+  String get memoryDeleteConfirmation => '确定要删除此记忆吗？此操作无法撤销。';
+
+  @override
+  String get memoryDeleteSelected => '删除所选';
+
+  @override
+  String get memoryDeleteSelectedConfirmation => '确定要删除所选的记忆吗？此操作无法撤销。';
+
+  @override
+  String get authHeader => '标头认证';
+
+  @override
+  String get authHeaderSubtitle => '用于受认证的反向代理或网关的自定义 HTTP 标头';
+
+  @override
+  String get authHeaderName => '标头名称';
+
+  @override
+  String get authHeaderNameHint => 'Authorization (默认), X-Api-Key 等';
+
+  @override
+  String get authHeaderValue => '标头值';
+
+  @override
+  String get authHeaderValueHint => '输入令牌、密钥或 Bearer <token>';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -13166,4 +13244,82 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String get localBackupPasswordHint =>
       '選用。儲存或分享 .ntx 檔時可設定密碼。已登入裝置上的 iCloud 與 Google Drive 自動同步不會要求此密碼。';
+
+  @override
+  String get testGeneration => '測試產生';
+
+  @override
+  String get positivePrompt => '正向提示詞';
+
+  @override
+  String get customDimensions => '自訂尺寸';
+
+  @override
+  String get customWidth => '寬度';
+
+  @override
+  String get customHeight => '高度';
+
+  @override
+  String get positivePromptExtension => '正向提示詞擴展';
+
+  @override
+  String get positivePromptExtensionHint => '用於增強正向提示詞的範本或關鍵詞';
+
+  @override
+  String get negativePromptExtension => '負向提示詞擴展';
+
+  @override
+  String get negativePromptExtensionHint => '添加到負向提示詞中的避讓詞和品質過濾';
+
+  @override
+  String get includeChatAndTagContext => '包含聊天與標籤上下文';
+
+  @override
+  String get includeChatAndTagContextDescription => '使用角色、世界書和聊天標籤自動豐富圖像提示詞';
+
+  @override
+  String get generateImage => '產生圖片';
+
+  @override
+  String get chatTags => '聊天標籤';
+
+  @override
+  String get lorebookTags => '世界書標籤';
+
+  @override
+  String get editTags => '編輯標籤';
+
+  @override
+  String get tagsCommaSeparatedHint => '用逗號分隔多個標籤';
+
+  @override
+  String get memoryDelete => '刪除記憶';
+
+  @override
+  String get memoryDeleteConfirmation => '確定要刪除此記憶嗎？此操作無法撤銷。';
+
+  @override
+  String get memoryDeleteSelected => '刪除所選';
+
+  @override
+  String get memoryDeleteSelectedConfirmation => '確定要刪除所選的記憶嗎？此操作無法撤銷。';
+
+  @override
+  String get authHeader => '標頭認證';
+
+  @override
+  String get authHeaderSubtitle => '用於受認證的反向代理或閘道的自訂 HTTP 標頭';
+
+  @override
+  String get authHeaderName => '標頭名稱';
+
+  @override
+  String get authHeaderNameHint => 'Authorization (預設), X-Api-Key 等';
+
+  @override
+  String get authHeaderValue => '標頭值';
+
+  @override
+  String get authHeaderValueHint => '輸入權杖、金鑰或 Bearer <token>';
 }

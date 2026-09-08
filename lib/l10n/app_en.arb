@@ -7241,5 +7241,109 @@
   "localBackupPasswordHint": "Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.",
   "@localBackupPasswordHint": {
     "description": "Settings explanation for optional local backup passwords"
+  },
+  "testGeneration": "Test Generation",
+  "@testGeneration": {
+    "description": "Section title for testing image generation"
+  },
+  "positivePrompt": "Positive Prompt",
+  "@positivePrompt": {
+    "description": "Label for positive prompt input"
+  },
+  "customDimensions": "Custom Dimensions",
+  "@customDimensions": {
+    "description": "Option and dialog title for custom image dimensions"
+  },
+  "customWidth": "Width",
+  "@customWidth": {
+    "description": "Label for custom image width input"
+  },
+  "customHeight": "Height",
+  "@customHeight": {
+    "description": "Label for custom image height input"
+  },
+  "positivePromptExtension": "Positive Prompt Extension",
+  "@positivePromptExtension": {
+    "description": "Label for positive prompt extension template"
+  },
+  "positivePromptExtensionHint": "Keywords or template added to enhance positive prompts",
+  "@positivePromptExtensionHint": {
+    "description": "Hint text for positive prompt extension"
+  },
+  "negativePromptExtension": "Negative Prompt Extension",
+  "@negativePromptExtension": {
+    "description": "Label for negative prompt extension template"
+  },
+  "negativePromptExtensionHint": "Terms and quality avoidances added to negative prompts",
+  "@negativePromptExtensionHint": {
+    "description": "Hint text for negative prompt extension"
+  },
+  "includeChatAndTagContext": "Include Chat & Tag Context",
+  "@includeChatAndTagContext": {
+    "description": "Toggle to include character, lorebook, and chat tags in prompt generation"
+  },
+  "includeChatAndTagContextDescription": "Automatically enrich image prompts using character, lorebook, and chat tags",
+  "@includeChatAndTagContextDescription": {
+    "description": "Description for include chat and tag context toggle"
+  },
+  "generateImage": "Generate Image",
+  "@generateImage": {
+    "description": "Action to generate an image"
+  },
+  "chatTags": "Chat Tags",
+  "@chatTags": {
+    "description": "Label for chat session tags"
+  },
+  "lorebookTags": "Lorebook Tags",
+  "@lorebookTags": {
+    "description": "Label for lorebook tags"
+  },
+  "editTags": "Edit Tags",
+  "@editTags": {
+    "description": "Action to edit tags"
+  },
+  "tagsCommaSeparatedHint": "Separate tags with commas",
+  "@tagsCommaSeparatedHint": {
+    "description": "Hint text explaining tags should be separated by commas"
+  },
+  "memoryDelete": "Delete memory",
+  "@memoryDelete": {
+    "description": "Action to delete a single memory"
+  },
+  "memoryDeleteConfirmation": "Are you sure you want to delete this memory? This action cannot be undone.",
+  "@memoryDeleteConfirmation": {
+    "description": "Confirmation message when deleting a single memory"
+  },
+  "memoryDeleteSelected": "Delete selected",
+  "@memoryDeleteSelected": {
+    "description": "Action to delete selected memories"
+  },
+  "memoryDeleteSelectedConfirmation": "Are you sure you want to delete the selected memories? This action cannot be undone.",
+  "@memoryDeleteSelectedConfirmation": {
+    "description": "Confirmation message when deleting selected memories"
+  },
+  "authHeader": "Header Authentication",
+  "@authHeader": {
+    "description": "Title for optional custom HTTP header authentication"
+  },
+  "authHeaderSubtitle": "Custom HTTP header for authenticated reverse proxies or gateways",
+  "@authHeaderSubtitle": {
+    "description": "Subtitle for header authentication settings"
+  },
+  "authHeaderName": "Header Name",
+  "@authHeaderName": {
+    "description": "Label for custom auth header name"
+  },
+  "authHeaderNameHint": "Authorization (default), X-Api-Key, etc.",
+  "@authHeaderNameHint": {
+    "description": "Hint text for custom auth header name"
+  },
+  "authHeaderValue": "Header Value",
+  "@authHeaderValue": {
+    "description": "Label for custom auth header value"
+  },
+  "authHeaderValueHint": "Enter token, key, or Bearer <token>",
+  "@authHeaderValueHint": {
+    "description": "Hint text for custom auth header value"
   }
 }

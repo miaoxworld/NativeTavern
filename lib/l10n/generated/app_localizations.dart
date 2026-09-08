@@ -12158,6 +12158,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.'**
   String get localBackupPasswordHint;
+
+  /// Section title for testing image generation
+  ///
+  /// In en, this message translates to:
+  /// **'Test Generation'**
+  String get testGeneration;
+
+  /// Label for positive prompt input
+  ///
+  /// In en, this message translates to:
+  /// **'Positive Prompt'**
+  String get positivePrompt;
+
+  /// Option and dialog title for custom image dimensions
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Dimensions'**
+  String get customDimensions;
+
+  /// Label for custom image width input
+  ///
+  /// In en, this message translates to:
+  /// **'Width'**
+  String get customWidth;
+
+  /// Label for custom image height input
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get customHeight;
+
+  /// Label for positive prompt extension template
+  ///
+  /// In en, this message translates to:
+  /// **'Positive Prompt Extension'**
+  String get positivePromptExtension;
+
+  /// Hint text for positive prompt extension
+  ///
+  /// In en, this message translates to:
+  /// **'Keywords or template added to enhance positive prompts'**
+  String get positivePromptExtensionHint;
+
+  /// Label for negative prompt extension template
+  ///
+  /// In en, this message translates to:
+  /// **'Negative Prompt Extension'**
+  String get negativePromptExtension;
+
+  /// Hint text for negative prompt extension
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and quality avoidances added to negative prompts'**
+  String get negativePromptExtensionHint;
+
+  /// Toggle to include character, lorebook, and chat tags in prompt generation
+  ///
+  /// In en, this message translates to:
+  /// **'Include Chat & Tag Context'**
+  String get includeChatAndTagContext;
+
+  /// Description for include chat and tag context toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically enrich image prompts using character, lorebook, and chat tags'**
+  String get includeChatAndTagContextDescription;
+
+  /// Action to generate an image
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Image'**
+  String get generateImage;
+
+  /// Label for chat session tags
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Tags'**
+  String get chatTags;
+
+  /// Label for lorebook tags
+  ///
+  /// In en, this message translates to:
+  /// **'Lorebook Tags'**
+  String get lorebookTags;
+
+  /// Action to edit tags
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Tags'**
+  String get editTags;
+
+  /// Hint text explaining tags should be separated by commas
+  ///
+  /// In en, this message translates to:
+  /// **'Separate tags with commas'**
+  String get tagsCommaSeparatedHint;
+
+  /// Action to delete a single memory
+  ///
+  /// In en, this message translates to:
+  /// **'Delete memory'**
+  String get memoryDelete;
+
+  /// Confirmation message when deleting a single memory
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this memory? This action cannot be undone.'**
+  String get memoryDeleteConfirmation;
+
+  /// Action to delete selected memories
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected'**
+  String get memoryDeleteSelected;
+
+  /// Confirmation message when deleting selected memories
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the selected memories? This action cannot be undone.'**
+  String get memoryDeleteSelectedConfirmation;
+
+  /// Title for optional custom HTTP header authentication
+  ///
+  /// In en, this message translates to:
+  /// **'Header Authentication'**
+  String get authHeader;
+
+  /// Subtitle for header authentication settings
+  ///
+  /// In en, this message translates to:
+  /// **'Custom HTTP header for authenticated reverse proxies or gateways'**
+  String get authHeaderSubtitle;
+
+  /// Label for custom auth header name
+  ///
+  /// In en, this message translates to:
+  /// **'Header Name'**
+  String get authHeaderName;
+
+  /// Hint text for custom auth header name
+  ///
+  /// In en, this message translates to:
+  /// **'Authorization (default), X-Api-Key, etc.'**
+  String get authHeaderNameHint;
+
+  /// Label for custom auth header value
+  ///
+  /// In en, this message translates to:
+  /// **'Header Value'**
+  String get authHeaderValue;
+
+  /// Hint text for custom auth header value
+  ///
+  /// In en, this message translates to:
+  /// **'Enter token, key, or Bearer <token>'**
+  String get authHeaderValueHint;
 }
 
 class _AppLocalizationsDelegate
