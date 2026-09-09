@@ -29,6 +29,10 @@ For local development and non-store device testing:
 
 # Target a connected physical iOS device
 ./build_ios_local.sh --device <device-id>
+
+# Simulator (uses BUNDLE_ID and ICLOUD_CONTAINER_ID from .env)
+./build_ios_local.sh --simulator
+./build_ios_local.sh --simulator "iPhone 14 Pro Max"
 ```
 
 Artifacts are placed in `build/local_release/`:
@@ -39,6 +43,9 @@ Artifacts are placed in `build/local_release/`:
 - `build_ios_local.sh` automatically loads `.env` (`BUNDLE_ID`, `ICLOUD_CONTAINER_ID`, `ENABLE_ICLOUD`).
 - When `ENABLE_ICLOUD=false` (or using standard wildcard provisioning profiles), `Runner.entitlements` is temporarily swapped with an empty plist during the build and safely restored via exit trap.
 - When `ENABLE_ICLOUD=true` with a custom `ICLOUD_CONTAINER_ID`, the container identifier is dynamically injected into `Runner.entitlements` and `Info.plist`.
+- `./build_ios_local.sh --simulator` (and `tool/run_ios_simulator.sh`) apply the same `.env` `BUNDLE_ID` and `ICLOUD_CONTAINER_ID` as the sideload IPA: they rewrite Runner `PRODUCT_BUNDLE_IDENTIFIER` in `project.pbxproj` (xcconfig is not enough; `flutter run` reads the target setting), inject entitlements/Info.plist, set `ENABLE_DEBUG_DYLIB=NO` (Xcode 16+ Debug otherwise builds a ~40KB blank executor that aborts at `abort_could_not_find_entry_point___debug_dylib` because `flutter run` on simulators uses `simctl launch` with no LLDB), then keep `flutter run --debug` attached. Logs go to `build/local_release/simulator/flutter_run.log` and `device.log`. After launch the script fails if the installed app is not that bundle ID / iCloud container, if the binary is still the Debug stub, or if Runner is not running. Leave the process running to keep the app alive. Flutter does not allow Release/Profile simulator builds. The pbxproj/Info.plist/entitlements/Debug.xcconfig files are restored on exit.
+- Toolchain: use `/Applications/Xcode.app` when it exists. Use `/Applications/Xcode-beta.app` only when macOS is a developer beta (build version ends in a lowercase letter, e.g. `26A5425a`) **and** `Xcode.app` is missing.
+- Live UI: **Xcode 26 and earlier** open `Simulator.app`. **Xcode 27+** (WWDC 2026) replaced Simulator.app with Device Hub (`Xcode > Open Developer Tool > Device Hub`). Do not `simctl boot` a Device Hub simulator first; that leaves `FramebufferProviderStates: none` / DeviceKit 4002.
 
 ---
 

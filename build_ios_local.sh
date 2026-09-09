@@ -15,7 +15,13 @@ BUNDLE_ID="${BUNDLE_ID:-${APPLE_BUNDLE_ID:-${IOS_BUNDLE_ID:-$EXPECTED_BUNDLE_ID}
 EXPECTED_IOS_TARGET="15.0"
 EXPORT_METHOD="${EXPORT_METHOD:-${IOS_EXPORT_METHOD:-development}}"
 BUILD_FOR_DEVICE="${BUILD_FOR_DEVICE:-false}"
+BUILD_FOR_SIMULATOR="${BUILD_FOR_SIMULATOR:-false}"
 DEVICE_ID="${DEVICE_ID:-}"
+SIMULATOR_QUERY="${SIMULATOR_QUERY:-}"
+XCODE_APP="${XCODE_APP:-}"
+XCODE_MAJOR="${XCODE_MAJOR:-0}"
+XCODE_VERSION_STRING="${XCODE_VERSION_STRING:-}"
+SIMULATOR_UI="${SIMULATOR_UI:-}"
 POD_REPO_UPDATE="${POD_REPO_UPDATE:-false}"
 CHECK_ONLY="${CHECK_ONLY:-false}"
 SKIP_CLEAN="${SKIP_CLEAN:-false}"
@@ -51,6 +57,16 @@ while [[ $# -gt 0 ]]; do
       DEVICE_ID="$2"
       shift 2
       ;;
+    --simulator)
+      BUILD_FOR_SIMULATOR="true"
+      if [[ $# -gt 1 && "$2" != -* ]]; then
+        SIMULATOR_QUERY="$2"
+        shift 2
+      else
+        SIMULATOR_QUERY="iPhone 14 Pro Max"
+        shift
+      fi
+      ;;
     -h|--help)
       echo "Usage: ./build_ios_local.sh [options]"
       echo "Options:"
@@ -59,6 +75,14 @@ while [[ $# -gt 0 ]]; do
       echo "  --export-method <m>   development or ad-hoc (default: development)"
       echo "  --bundle-id <id>      Override iOS bundle identifier"
       echo "  --device <id>         Target a connected physical iOS device"
+      echo "  --simulator [id|name] Build, install, and keep a Debug session on an"
+      echo "                        iOS Simulator using BUNDLE_ID and"
+      echo "                        ICLOUD_CONTAINER_ID from .env"
+      echo "                        (default: iPhone 14 Pro Max)."
+      echo "                        Stays attached so the app can run; logs go to"
+      echo "                        build/local_release/simulator/."
+      echo "                        Xcode 26 and earlier open Simulator.app;"
+      echo "                        Xcode 27+ opens Device Hub."
       exit 0
       ;;
     *)
@@ -104,6 +128,105 @@ read_project_team_id() {
   sed -n 's/.*DEVELOPMENT_TEAM = \([^;]*\);.*/\1/p' "$PBXPROJ" \
     | tr -d '"' \
     | awk 'NF { print; exit }'
+}
+
+# Apple seed/developer-beta builds end in a lowercase letter (e.g. 26A5425a).
+# Release builds end in digits (e.g. 24G84). ProductVersionExtra is an RSR
+# suffix like "(a)", not a beta marker — do not use it here.
+macos_is_developer_beta() {
+  local build
+  build="$(sw_vers -buildVersion 2>/dev/null || true)"
+  [[ "$build" =~ [a-z]$ ]]
+}
+
+# Prefer /Applications/Xcode.app. Use Xcode-beta.app only when macOS itself is
+# a developer beta and the release Xcode.app is missing.
+select_xcode_app() {
+  local app=""
+  if [[ -d /Applications/Xcode.app ]]; then
+    app="/Applications/Xcode.app"
+  elif macos_is_developer_beta && [[ -d /Applications/Xcode-beta.app ]]; then
+    app="/Applications/Xcode-beta.app"
+  elif [[ -d /Applications/Xcode-beta.app ]]; then
+    fail "Xcode.app was not found in /Applications. Xcode-beta.app is only used when macOS is a developer beta (build $(sw_vers -buildVersion))."
+  else
+    fail "Xcode.app was not found in /Applications."
+  fi
+  XCODE_APP="$app"
+  export DEVELOPER_DIR="$XCODE_APP/Contents/Developer"
+}
+
+read_xcode_major() {
+  local ver out
+  out="$(xcodebuild -version 2>/dev/null || true)"
+  ver="$(printf '%s\n' "$out" | awk '/^Xcode / { print $2; exit }')"
+  XCODE_VERSION_STRING="${ver:-unknown}"
+  XCODE_MAJOR="${ver%%.*}"
+  [[ "$XCODE_MAJOR" =~ ^[0-9]+$ ]] || XCODE_MAJOR=0
+}
+
+# Device Hub replaced Simulator.app in Xcode 27 (WWDC 2026 / Apple docs).
+# Xcode 26.x and earlier still ship Simulator.app.
+simulator_ui_kind() {
+  local sim_app="${XCODE_APP}/Contents/Developer/Applications/Simulator.app"
+  local hub_app="${XCODE_APP}/Contents/Applications/DeviceHub.app"
+  if [[ "${XCODE_MAJOR:-0}" -ge 27 && -d "$hub_app" ]]; then
+    printf 'devicehub\n'
+    return
+  fi
+  if [[ -d "$sim_app" ]]; then
+    printf 'simulator\n'
+    return
+  fi
+  if [[ -d "$hub_app" ]]; then
+    printf 'devicehub\n'
+    return
+  fi
+  printf 'none\n'
+}
+
+open_simulator_runtime_ui() {
+  local kind hub sim
+  kind="$(simulator_ui_kind)"
+  SIMULATOR_UI="$kind"
+  case "$kind" in
+    devicehub)
+      hub="${XCODE_APP}/Contents/Applications/DeviceHub.app"
+      printf 'Opening Device Hub (Xcode %s; Simulator.app is not used on Xcode 27+)\n' "$XCODE_MAJOR"
+      open "$hub"
+      ;;
+    simulator)
+      sim="${XCODE_APP}/Contents/Developer/Applications/Simulator.app"
+      printf 'Opening Simulator.app (Xcode %s)\n' "$XCODE_MAJOR"
+      open "$sim"
+      ;;
+    *)
+      printf 'WARNING: Neither Simulator.app nor Device Hub was found in %s\n' "$XCODE_APP" >&2
+      ;;
+  esac
+}
+
+resolve_simulator_udid() {
+  local query="$1"
+  local udid=""
+  if [[ "$query" =~ ^[0-9A-Fa-f-]{36}$ ]]; then
+    printf '%s\n' "$query"
+    return 0
+  fi
+  udid="$(
+    set +o pipefail
+    xcrun simctl list devices available \
+      | awk -v name="$query" '
+          index($0, name) && $0 ~ /\([0-9A-F-]{36}\)/ {
+            if (match($0, /\([0-9A-F-]{36}\)/)) {
+              print substr($0, RSTART + 1, RLENGTH - 2)
+              exit
+            }
+          }
+        '
+  )"
+  [[ -n "$udid" ]] || fail "No available simulator matching: $query"
+  printf '%s\n' "$udid"
 }
 
 validate_source_project() {
@@ -170,21 +293,41 @@ validate_app_bundle() {
     || fail "Built MinimumOSVersion is $minimum_os, expected $EXPECTED_IOS_TARGET"
   require_file "$app_path/$executable"
 
-  strings "$app_path/$executable" \
-    | grep -F 'com.nativetavern/live2d_render_scale' >/dev/null \
+  app_contains_string() {
+    local needle="$1"
+    strings "$app_path/$executable" | grep -F "$needle" >/dev/null && return 0
+    if [[ -f "$app_path/${executable}.debug.dylib" ]]; then
+      strings "$app_path/${executable}.debug.dylib" | grep -F "$needle" >/dev/null && return 0
+    fi
+    return 1
+  }
+
+  app_contains_symbol() {
+    local needle="$1"
+    nm -gjU "$app_path/$executable" | grep -Fx "$needle" >/dev/null && return 0
+    if [[ -f "$app_path/${executable}.debug.dylib" ]]; then
+      nm -gjU "$app_path/${executable}.debug.dylib" | grep -Fx "$needle" >/dev/null && return 0
+    fi
+    return 1
+  }
+
+  app_contains_string 'com.nativetavern/live2d_render_scale' \
     || fail "Built native binary is missing the Live2D render-scale channel"
-  strings "$app_path/$executable" \
-    | grep -F 'Live2DGLView' >/dev/null \
+  app_contains_string 'Live2DGLView' \
     || fail "Built native binary is missing the Live2D renderer"
-  nm -gjU "$app_path/$executable" \
-    | grep -Fx '_spine_major_version' >/dev/null \
+  app_contains_symbol '_spine_major_version' \
     || fail "Built native binary is missing the statically linked Spine FFI symbols"
   require_file "$app_path/Frameworks/App.framework/App"
-  strings "$app_path/Frameworks/App.framework/App" \
-    | grep -F 'com.nativetavern/live2d_render_scale' >/dev/null \
-    || fail "Built Dart binary is missing the Live2D render-scale channel"
+  # Debug simulator JIT may not embed this dart string in App.framework.
+  if [[ "$app_path" != *iphonesimulator* ]]; then
+    strings "$app_path/Frameworks/App.framework/App" \
+      | grep -F 'com.nativetavern/live2d_render_scale' >/dev/null \
+      || fail "Built Dart binary is missing the Live2D render-scale channel"
+  fi
 
-  codesign --verify --deep --strict "$app_path"
+  if [[ "$app_path" != *iphonesimulator* ]]; then
+    codesign --verify --deep --strict "$app_path"
+  fi
   printf 'Validated app: %s %s (%s), iOS %s+\n' \
     "$bundle_id" "$version" "$build" "$minimum_os"
 }
@@ -202,9 +345,12 @@ validate_ipa() {
   validate_app_bundle "$app_path"
 }
 
+select_xcode_app
 for command_name in git flutter pod xcodebuild plutil unzip strings nm codesign shasum; do
   require_command "$command_name"
 done
+read_xcode_major
+SIMULATOR_UI="$(simulator_ui_kind)"
 
 require_file pubspec.yaml
 VERSION="$(awk '/^version:/ { print $2; exit }' pubspec.yaml)"
@@ -229,6 +375,12 @@ TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nativetavern-ios-release.XXXXXX")"
 ENTITLEMENTS_FILE="ios/Runner/Runner.entitlements"
 ENTITLEMENTS_BACKUP="$TEMP_DIR/Runner.entitlements.bak"
 INFO_PLIST_BACKUP="$TEMP_DIR/Info.plist.bak"
+PBXPROJ_BACKUP="$TEMP_DIR/project.pbxproj.bak"
+DEBUG_XCCONFIG="ios/Flutter/Debug.xcconfig"
+DEBUG_XCCONFIG_BACKUP="$TEMP_DIR/Debug.xcconfig.bak"
+SIMULATOR_LOGSTREAM_PID=""
+FLUTTER_RUN_PID=""
+SIMULATOR_TAIL_PID=""
 
 if [[ -f "$ENTITLEMENTS_FILE" ]]; then
   cp "$ENTITLEMENTS_FILE" "$ENTITLEMENTS_BACKUP"
@@ -236,10 +388,32 @@ fi
 if [[ -f "$INFO_PLIST" ]]; then
   cp "$INFO_PLIST" "$INFO_PLIST_BACKUP"
 fi
+if [[ -f "$PBXPROJ" ]]; then
+  cp "$PBXPROJ" "$PBXPROJ_BACKUP"
+fi
+if [[ -f "$DEBUG_XCCONFIG" ]]; then
+  cp "$DEBUG_XCCONFIG" "$DEBUG_XCCONFIG_BACKUP"
+fi
 
 cleanup() {
+  if [[ -n "${SIMULATOR_TAIL_PID:-}" ]]; then
+    kill "${SIMULATOR_TAIL_PID}" 2>/dev/null || true
+  fi
+  if [[ -n "${SIMULATOR_LOGSTREAM_PID:-}" ]]; then
+    kill "${SIMULATOR_LOGSTREAM_PID}" 2>/dev/null || true
+  fi
+  if [[ -n "${FLUTTER_RUN_PID:-}" ]]; then
+    kill "${FLUTTER_RUN_PID}" 2>/dev/null || true
+    wait "${FLUTTER_RUN_PID}" 2>/dev/null || true
+  fi
   if [[ -f "$ENTITLEMENTS_BACKUP" ]]; then
     cp -f "$ENTITLEMENTS_BACKUP" "$ENTITLEMENTS_FILE"
+  fi
+  if [[ -f "$DEBUG_XCCONFIG_BACKUP" ]]; then
+    cp -f "$DEBUG_XCCONFIG_BACKUP" "$DEBUG_XCCONFIG"
+  fi
+  if [[ -f "$PBXPROJ_BACKUP" ]]; then
+    cp -f "$PBXPROJ_BACKUP" "$PBXPROJ"
   fi
   if [[ -f "$INFO_PLIST_BACKUP" ]]; then
     cp -f "$INFO_PLIST_BACKUP" "$INFO_PLIST"
@@ -257,6 +431,14 @@ EXPORT_OPTIONS="$TEMP_DIR/ExportOptions.plist"
 TARGET_CONTAINER_ID="${ICLOUD_CONTAINER_ID:-iCloud.com.miaomiaoxworld.nativetavern}"
 
 printf '=== Building NativeTavern %s ===\n' "$VERSION"
+printf 'macOS: %s (%s)%s\n' \
+  "$(sw_vers -productVersion)" \
+  "$(sw_vers -buildVersion)" \
+  "$(macos_is_developer_beta && printf ' [developer beta]' || true)"
+printf 'Xcode: %s (major %s) at %s\n' \
+  "${XCODE_VERSION_STRING:-unknown}" \
+  "$XCODE_MAJOR" \
+  "$XCODE_APP"
 printf 'Team: %s\n' "$TEAM_ID"
 printf 'Bundle ID: %s\n' "$BUNDLE_ID"
 printf 'iCloud Enabled: %s\n' "$ENABLE_ICLOUD"
@@ -264,6 +446,10 @@ if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
   printf 'iCloud Container: %s\n' "$TARGET_CONTAINER_ID"
 fi
 printf 'Export Method: %s\n' "$EXPORT_METHOD"
+if [[ "$BUILD_FOR_SIMULATOR" == 'true' ]]; then
+  printf 'Simulator: %s\n' "${SIMULATOR_QUERY:-iPhone 14 Pro Max}"
+  printf 'Simulator UI: %s\n' "$SIMULATOR_UI"
+fi
 
 if [[ "$SKIP_CLEAN" != 'true' ]]; then
   flutter clean
@@ -356,6 +542,169 @@ if [[ "$BUILD_FOR_DEVICE" == 'true' ]]; then
   fi
 
   printf 'Installed NativeTavern %s on device %s.\n' "$VERSION" "$DEVICE_ID"
+  exit 0
+fi
+
+apply_simulator_bundle_id() {
+  # Target-level PRODUCT_BUNDLE_IDENTIFIER in project.pbxproj beats xcconfig.
+  # flutter run does not pass command-line overrides, so the project file must
+  # match .env for the simulator install. RunnerTests keep the .RunnerTests id.
+  if [[ "$BUNDLE_ID" == "$EXPECTED_BUNDLE_ID" ]]; then
+    return 0
+  fi
+  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};" "$PBXPROJ" \
+    || fail "Cannot apply BUNDLE_ID: expected $EXPECTED_BUNDLE_ID in $PBXPROJ"
+  sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBXPROJ"
+  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};" "$PBXPROJ" \
+    || fail "Failed to write PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID into $PBXPROJ"
+  if [[ -f "$DEBUG_XCCONFIG" ]]; then
+    printf '\nPRODUCT_BUNDLE_IDENTIFIER=%s\n' "$BUNDLE_ID" >> "$DEBUG_XCCONFIG"
+  fi
+}
+
+apply_simulator_xcode_overrides() {
+  apply_simulator_bundle_id
+  # Xcode 16+ Debug defaults to ENABLE_DEBUG_DYLIB=YES: a ~40KB blank executor
+  # plus Runner.debug.dylib. flutter run on the simulator uses simctl launch
+  # (no LLDB), so the stub aborts at abort_could_not_find_entry_point___debug_dylib.
+  # Command-line FLUTTER_XCODE_* beats project defaults.
+  if [[ -f "$DEBUG_XCCONFIG" ]]; then
+    printf '\nENABLE_DEBUG_DYLIB=NO\n' >> "$DEBUG_XCCONFIG"
+  fi
+  export FLUTTER_XCODE_ENABLE_DEBUG_DYLIB=NO
+}
+
+verify_simulator_app_identity() {
+  local container plist installed
+  container="$(xcrun simctl get_app_container "$SIMULATOR_ID" "$BUNDLE_ID" app 2>/dev/null || true)"
+  if [[ -z "$container" || ! -d "$container" ]]; then
+    if xcrun simctl get_app_container "$SIMULATOR_ID" "$EXPECTED_BUNDLE_ID" app >/dev/null 2>&1; then
+      fail "Simulator installed $EXPECTED_BUNDLE_ID instead of $BUNDLE_ID from .env"
+    fi
+    fail "Simulator does not have $BUNDLE_ID installed"
+  fi
+  plist="$container/Info.plist"
+  [[ -f "$plist" ]] || fail "Installed app is missing Info.plist at $plist"
+  installed="$(read_plist_value "$plist" CFBundleIdentifier)"
+  [[ "$installed" == "$BUNDLE_ID" ]] \
+    || fail "Installed CFBundleIdentifier is $installed, expected $BUNDLE_ID"
+  printf 'Verified simulator bundle ID: %s\n' "$installed"
+  if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
+    read_plist_value "$plist" "NSUbiquitousContainers:$TARGET_CONTAINER_ID:NSUbiquitousContainerName" \
+      | grep -q . \
+      || fail "Installed app is missing iCloud container $TARGET_CONTAINER_ID"
+    printf 'Verified simulator iCloud container: %s\n' "$TARGET_CONTAINER_ID"
+  fi
+}
+
+verify_simulator_debug_binary() {
+  local container="$1"
+  local runner size
+  runner="$container/Runner"
+  [[ -f "$runner" ]] || fail "Installed Runner binary missing at $runner"
+  if nm "$runner" 2>/dev/null | grep -Fq 'abort_could_not_find_entry_point___debug_dylib'; then
+    fail "Simulator binary is still Apple's Debug stub (ENABLE_DEBUG_DYLIB). It cannot run without LLDB."
+  fi
+  size="$(stat -f '%z' "$runner")"
+  [[ "$size" -gt 1000000 ]] \
+    || fail "Simulator Runner is only $size bytes; expected a full Debug executable"
+  printf 'Verified simulator Debug binary is a real executable (%s bytes)\n' "$size"
+}
+
+wait_for_simulator_debug_session() {
+  local log="$1"
+  local timeout_s="${2:-360}"
+  local start now elapsed
+  start="$(date +%s)"
+  while true; do
+    if grep -Eq 'No entry point found\. Checked|Error launching application on|Could not build the application for the simulator|Error waiting for a debug connection' "$log" 2>/dev/null; then
+      fail "Simulator launch failed. See $log"
+    fi
+    # Dart VM / key commands mean the process is up. Do not use `simctl spawn ps`:
+    # iOS 27 simulator runtimes have no ps, which false-failed a live session.
+    if grep -Eq 'Flutter run key commands|A Dart VM Service on|The Dart VM Service is listening' "$log" 2>/dev/null; then
+      return 0
+    fi
+    if [[ -n "${FLUTTER_RUN_PID:-}" ]] && ! kill -0 "$FLUTTER_RUN_PID" 2>/dev/null; then
+      fail "flutter run exited before the app was ready. See $log"
+    fi
+    now="$(date +%s)"
+    elapsed=$((now - start))
+    if [[ "$elapsed" -ge "$timeout_s" ]]; then
+      fail "Timed out after ${timeout_s}s waiting for the simulator Debug session. See $log"
+    fi
+    sleep 2
+  done
+}
+
+if [[ "$BUILD_FOR_SIMULATOR" == 'true' ]]; then
+  SIMULATOR_ID="$(resolve_simulator_udid "${SIMULATOR_QUERY:-iPhone 14 Pro Max}")"
+  printf 'Resolved simulator UDID: %s\n' "$SIMULATOR_ID"
+
+  SIM_LOG_DIR="$REPO_ROOT/build/local_release/simulator"
+  mkdir -p "$SIM_LOG_DIR"
+  FLUTTER_LOG="$SIM_LOG_DIR/flutter_run.log"
+  DEVICE_LOG="$SIM_LOG_DIR/device.log"
+  : >"$FLUTTER_LOG"
+  : >"$DEVICE_LOG"
+
+  # Flutter Debug on iOS 27 uses a blank executor unless ENABLE_DEBUG_DYLIB=NO.
+  # flutter run on simulators does not attach LLDB; --no-resident then tears
+  # the session down before you can test. Keep resident Debug + a real binary.
+  apply_simulator_xcode_overrides
+  printf 'Simulator Xcode identity: PRODUCT_BUNDLE_IDENTIFIER=%s\n' "$BUNDLE_ID"
+  printf 'Simulator Debug dylib: ENABLE_DEBUG_DYLIB=NO\n'
+  if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
+    printf 'Simulator iCloud identity: %s\n' "$TARGET_CONTAINER_ID"
+  fi
+  printf 'Simulator flutter log: %s\n' "$FLUTTER_LOG"
+  printf 'Simulator device log: %s\n' "$DEVICE_LOG"
+
+  open_simulator_runtime_ui
+  sleep 2
+
+  xcrun simctl terminate "$SIMULATOR_ID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+  xcrun simctl terminate "$SIMULATOR_ID" "$EXPECTED_BUNDLE_ID" >/dev/null 2>&1 || true
+  xcrun simctl uninstall "$SIMULATOR_ID" "$EXPECTED_BUNDLE_ID" >/dev/null 2>&1 || true
+  xcrun simctl uninstall "$SIMULATOR_ID" "$BUNDLE_ID" >/dev/null 2>&1 || true
+
+  xcrun simctl spawn "$SIMULATOR_ID" log stream --level debug --style compact \
+    --predicate 'processImagePath CONTAINS "Runner"' \
+    >"$DEVICE_LOG" 2>&1 &
+  SIMULATOR_LOGSTREAM_PID=$!
+
+  printf 'Launching Debug session (stays attached; Ctrl-C to stop)...\n'
+  flutter run \
+    -d "$SIMULATOR_ID" \
+    --debug \
+    >"$FLUTTER_LOG" 2>&1 &
+  FLUTTER_RUN_PID=$!
+  tail -n +1 -f "$FLUTTER_LOG" &
+  SIMULATOR_TAIL_PID=$!
+
+  wait_for_simulator_debug_session "$FLUTTER_LOG"
+  verify_simulator_app_identity
+  INSTALLED_CONTAINER="$(xcrun simctl get_app_container "$SIMULATOR_ID" "$BUNDLE_ID" app)"
+  verify_simulator_debug_binary "$INSTALLED_CONTAINER"
+
+  printf 'NativeTavern %s is running on simulator %s (%s).\n' \
+    "$VERSION" "${SIMULATOR_QUERY:-iPhone 14 Pro Max}" "$SIMULATOR_ID"
+  printf 'Bundle ID: %s\n' "$BUNDLE_ID"
+  if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
+    printf 'iCloud container: %s\n' "$TARGET_CONTAINER_ID"
+  fi
+  printf 'Leave this process running to keep the app alive. Ctrl-C stops it.\n'
+  printf 'Logs: %s\n' "$FLUTTER_LOG"
+  printf 'Device logs: %s\n' "$DEVICE_LOG"
+  if [[ "$SIMULATOR_UI" == 'devicehub' ]]; then
+    printf 'If Device Hub shows error 4002, select this simulator and click Start after CoreDevice has restarted.\n'
+  fi
+
+  wait "$FLUTTER_RUN_PID"
+  flutter_status=$?
+  if [[ "$flutter_status" -ne 0 ]]; then
+    fail "flutter run exited $flutter_status. See $FLUTTER_LOG"
+  fi
   exit 0
 fi
 

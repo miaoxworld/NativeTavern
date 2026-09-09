@@ -60,7 +60,7 @@ Do not report a release complete until the external platform states, artifact ch
 For fast day-to-day local testing and non-store device sideloading:
 
 - **iOS Local**: `./build_ios_local.sh [options]`
-  - Supports `--check-only`, `--skip-clean`, `--export-method <development|ad-hoc>`, and custom `BUNDLE_ID` in `.env`.
+  - Supports `--check-only`, `--skip-clean`, `--export-method <development|ad-hoc>`, `--simulator [id|name]`, and custom `BUNDLE_ID` in `.env`.
 - **Android Local**: `./build_android_local.sh [options]`
   - Supports `--check-only`, `--debug`, `--release`, `--skip-clean`, `--package <id>`, `--install` (`-i`), and automatic debug-signed fallback for device sideloading via `adb`.
 - **macOS Local**: `./build_macos_local.sh [options]`
