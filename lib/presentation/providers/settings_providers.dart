@@ -472,6 +472,16 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
     });
   }
 
+  /// Reloads the active connection after cloud restore of encrypted keys.
+  Future<void> reloadFromStorage() async {
+    await _enqueueWrite(() async {
+      final previous = _stateChangedBeforeLoad;
+      _stateChangedBeforeLoad = false;
+      await _loadConfig();
+      _stateChangedBeforeLoad = previous;
+    });
+  }
+
   // Advanced sampler methods
   void updateTypicalP(double value) {
     state = state.copyWith(typicalP: value);
@@ -1082,6 +1092,11 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   void resetToDefaults() {
     state = const AppSettings();
     _saveSettings();
+  }
+
+  /// Reloads theme, language, and feature flags after a cloud restore.
+  Future<void> reloadFromStorage() async {
+    await _loadSettings();
   }
 }
 

@@ -84,3 +84,50 @@ class BackupImportSelection {
     return filtered;
   }
 }
+
+/// App / connection settings that can stay per-device when the user turns
+/// settings sync off. Personas, chats, and other libraries are not included.
+class CloudDeviceSettings {
+  static const localOnlyPreferenceKeys = {
+    'cloud_backup_settings',
+    'cloud_sync_setup_completed',
+    'cloud_sync_device_id',
+    'ai_data_sharing_choice',
+    'ai_data_sharing_disclosure_version',
+  };
+
+  static const dataKeys = ['llmConfigs', 'globalStates'];
+
+  static Map<String, dynamic> extractFromData(Map<String, dynamic> data) {
+    return {
+      for (final key in dataKeys)
+        if (data[key] != null) key: data[key],
+    };
+  }
+
+  static Map<String, dynamic> stripFromData(Map<String, dynamic> data) {
+    final stripped = Map<String, dynamic>.from(data);
+    for (final key in dataKeys) {
+      stripped.remove(key);
+    }
+    return stripped;
+  }
+
+  /// Keeps this device's library data and the other device's settings so a
+  /// per-device-settings install cannot wipe shared connection/UI settings.
+  static Map<String, dynamic> overlayRemoteSettings({
+    required Map<String, dynamic> localData,
+    required Map<String, dynamic>? remoteData,
+  }) {
+    final merged = Map<String, dynamic>.from(localData);
+    if (remoteData == null) return stripFromData(merged);
+    for (final key in dataKeys) {
+      if (remoteData[key] != null) {
+        merged[key] = remoteData[key];
+      } else {
+        merged.remove(key);
+      }
+    }
+    return merged;
+  }
+}

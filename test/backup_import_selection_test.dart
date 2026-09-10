@@ -30,4 +30,33 @@ void main() {
     expect(filtered.containsKey('storyChapters'), isTrue);
     expect(filtered.containsKey('llmConfigs'), isFalse);
   });
+
+  test('CloudDeviceSettings overlays remote settings onto local library data',
+      () {
+    final merged = CloudDeviceSettings.overlayRemoteSettings(
+      localData: {
+        'chats': {'c': 1},
+        'llmConfigs': {'local': 1},
+        'globalStates': {'app_settings': 'local'},
+      },
+      remoteData: {
+        'llmConfigs': {'remote': 1},
+        'globalStates': {'app_settings': 'remote'},
+      },
+    );
+    expect(merged['chats'], {'c': 1});
+    expect(merged['llmConfigs'], {'remote': 1});
+    expect(merged['globalStates'], {'app_settings': 'remote'});
+  });
+
+  test('CloudDeviceSettings strips settings from a payload', () {
+    final stripped = CloudDeviceSettings.stripFromData({
+      'chats': {'c': 1},
+      'llmConfigs': {'local': 1},
+      'globalStates': {'app_settings': 'local'},
+    });
+    expect(stripped.containsKey('chats'), isTrue);
+    expect(stripped.containsKey('llmConfigs'), isFalse);
+    expect(stripped.containsKey('globalStates'), isFalse);
+  });
 }

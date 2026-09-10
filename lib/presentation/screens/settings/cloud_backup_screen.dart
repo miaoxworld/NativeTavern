@@ -122,7 +122,16 @@ class CloudBackupScreen extends ConsumerWidget {
                         }
                       },
                     ),
-                    if (settings.autoSyncEnabled)
+                    if (settings.autoSyncEnabled) ...[
+                      SwitchListTile(
+                        secondary: const Icon(Icons.tune),
+                        title: Text(l10n.syncSettingsAcrossDevices),
+                        subtitle: Text(l10n.syncSettingsAcrossDevicesDescription),
+                        value: settings.syncSettingsEnabled,
+                        onChanged: ref
+                            .read(cloudBackupSettingsProvider.notifier)
+                            .setSyncSettingsEnabled,
+                      ),
                       ListTile(
                         leading: const Icon(Icons.schedule,
                             color: AppTheme.accentColor),
@@ -166,6 +175,7 @@ class CloudBackupScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                    ],
                     ListTile(
                       leading: const Icon(Icons.sync_alt,
                           color: AppTheme.accentColor),

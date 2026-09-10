@@ -58,6 +58,28 @@ void main() {
     expect((package['preferences'] as Map)['locale'], 'zh');
   });
 
+  test('settings can be omitted from a snapshot for per-device preferences',
+      () async {
+    final service = CloudBackupService.forTesting(
+      documentsDirectory: documents,
+    );
+    final artifacts = await service.createCloudBackupArtifacts(
+      data: {
+        'chats': {
+          'chat': {'id': 'chat', 'title': 'Harbor'},
+        },
+        'llmConfigs': {
+          'config': {'id': 'config', 'name': 'Local'},
+        },
+      },
+      provider: CloudProvider.iCloud,
+      includePreferences: false,
+    );
+    final package = jsonDecode(await artifacts.dataFile.readAsString()) as Map;
+    expect(package['preferences'], isEmpty);
+    expect((package['data'] as Map)['chats'], isNotEmpty);
+  });
+
   test('media switches include whole categories without mixing categories',
       () async {
     final nativeData = Directory(p.join(documents.path, 'NativeTavern'));
