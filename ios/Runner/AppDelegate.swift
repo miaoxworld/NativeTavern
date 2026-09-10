@@ -335,7 +335,8 @@ import BackgroundTasks
         DispatchQueue.main.async { result(ok) }
       }
     case "querySyncFiles":
-      queryICloudSyncFiles { payload in
+      let timeout = (call.arguments as? [String: Any])?["timeout"] as? Double
+      queryICloudSyncFiles(timeoutSeconds: timeout) { payload in
         result(payload)
       }
     case "prefetchSyncFiles":
@@ -387,6 +388,7 @@ import BackgroundTasks
     let names = [
       "NativeTavern_sync.ntx",
       "NativeTavern_sync.meta.json",
+      "NativeTavern_sync.vault.json",
     ]
     for name in names {
       let source = documents.appendingPathComponent(name)
@@ -402,6 +404,7 @@ import BackgroundTasks
   private static let iCloudSyncFileNames = [
     "NativeTavern_sync.ntx",
     "NativeTavern_sync.meta.json",
+    "NativeTavern_sync.vault.json",
   ]
 
   private func registerICloudPrefetchTask() {
@@ -448,7 +451,10 @@ import BackgroundTasks
     return true
   }
 
-  private func queryICloudSyncFiles(completion: @escaping ([String: Any]) -> Void) {
+  private func queryICloudSyncFiles(
+    timeoutSeconds: Double?,
+    completion: @escaping ([String: Any]) -> Void
+  ) {
     guard let sync = iCloudSyncURL() else {
       completion(["completed": false, "files": []])
       return
@@ -465,9 +471,10 @@ import BackgroundTasks
       let query = NSMetadataQuery()
       query.searchScopes = [NSMetadataQueryUbiquitousDataScope]
       query.predicate = NSPredicate(
-        format: "(%K == %@) OR (%K == %@)",
+        format: "(%K == %@) OR (%K == %@) OR (%K == %@)",
         NSMetadataItemFSNameKey, "NativeTavern_sync.ntx",
-        NSMetadataItemFSNameKey, "NativeTavern_sync.meta.json"
+        NSMetadataItemFSNameKey, "NativeTavern_sync.meta.json",
+        NSMetadataItemFSNameKey, "NativeTavern_sync.vault.json"
       )
       self.iCloudQuery = query
 
@@ -521,9 +528,10 @@ import BackgroundTasks
         finish(true)
       }
 
+      let wait = timeoutSeconds ?? 20
       let timeout = DispatchWorkItem { finish(false) }
       self.iCloudQueryTimeout = timeout
-      DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: timeout)
+      DispatchQueue.main.asyncAfter(deadline: .now() + wait, execute: timeout)
 
       if !query.start() {
         finish(false)

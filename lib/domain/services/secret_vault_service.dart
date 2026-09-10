@@ -22,7 +22,7 @@ class SecretVaultService {
     AppDatabase? database,
     FlutterSecureStorage? storage,
     McpCredentialRepository? mcpCredentials,
-    Future<Uint8List> Function()? wrapKeyLoader,
+    Future<Uint8List?> Function()? wrapKeyLoader,
   })  : _database = database,
         _storage = storage ??
             const FlutterSecureStorage(
@@ -44,10 +44,19 @@ class SecretVaultService {
   final AppDatabase? _database;
   final FlutterSecureStorage _storage;
   final McpCredentialRepository? _mcpCredentials;
-  final Future<Uint8List> Function()? _wrapKeyLoader;
+  final Future<Uint8List?> Function()? _wrapKeyLoader;
   final AesGcm _aes = AesGcm.with256bits();
 
+  static const llmConfigPreferenceKey = 'llm_config';
+  static const llmProviderConfigPrefix = 'llm_provider_config_';
+
+  static bool isConnectionSecretKey(String key) {
+    return key == llmConfigPreferenceKey ||
+        key.startsWith(llmProviderConfigPrefix);
+  }
+
   static bool isSensitivePreferenceKey(String key) {
+    if (isConnectionSecretKey(key)) return true;
     final normalized = key.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     const needles = [
       'apikey',
@@ -67,6 +76,34 @@ class SecretVaultService {
     return needles.any(normalized.contains);
   }
 
+  static bool encodedValueContainsSecret(String value) {
+    final trimmed = value.trimLeft();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+      return false;
+    }
+    try {
+      return _jsonContainsSecret(jsonDecode(value));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static bool _jsonContainsSecret(Object? value) {
+    if (value is Map) {
+      for (final entry in value.entries) {
+        if (isSensitivePreferenceKey(entry.key.toString()) &&
+            entry.value is String &&
+            (entry.value as String).trim().isNotEmpty) {
+          return true;
+        }
+        if (_jsonContainsSecret(entry.value)) return true;
+      }
+    } else if (value is List) {
+      return value.any(_jsonContainsSecret);
+    }
+    return false;
+  }
+
   Future<Map<String, dynamic>?> sealCurrentSecrets() async {
     final bundle = await collectSecrets();
     if (bundle.isEmpty) return null;
@@ -75,6 +112,7 @@ class SecretVaultService {
 
   Future<Map<String, dynamic>> collectSecrets() async {
     final llmKeys = <String, String>{};
+    final globalStates = <String, String>{};
     final database = _database;
     if (database != null) {
       final configs = await database.select(database.llmConfigs).get();
@@ -84,16 +122,20 @@ class SecretVaultService {
           llmKeys[config.id] = key;
         }
       }
+      final states = await database.select(database.globalStates).get();
+      for (final state in states) {
+        if (!_shouldCollectSecretValue(state.key, state.value)) continue;
+        globalStates[state.key] = state.value;
+      }
     }
 
     final preferences = <String, String>{};
     final prefs = await SharedPreferences.getInstance();
     for (final key in prefs.getKeys()) {
-      if (!isSensitivePreferenceKey(key)) continue;
       final value = prefs.get(key);
-      if (value is String && value.trim().isNotEmpty) {
-        preferences[key] = value;
-      }
+      if (value is! String || value.trim().isEmpty) continue;
+      if (!_shouldCollectSecretValue(key, value)) continue;
+      preferences[key] = value;
     }
 
     final mcpTokens = <String, String>{};
@@ -111,8 +153,13 @@ class SecretVaultService {
     return {
       if (llmKeys.isNotEmpty) 'llmConfigs': llmKeys,
       if (preferences.isNotEmpty) 'preferences': preferences,
+      if (globalStates.isNotEmpty) 'globalStates': globalStates,
       if (mcpTokens.isNotEmpty) 'mcpTokens': mcpTokens,
     };
+  }
+
+  bool _shouldCollectSecretValue(String key, String value) {
+    return isSensitivePreferenceKey(key) || encodedValueContainsSecret(value);
   }
 
   Future<Map<String, dynamic>> sealBundle(Map<String, dynamic> bundle) async {
@@ -138,7 +185,8 @@ class SecretVaultService {
     final mac = vault['t'];
     if (nonce is! String || cipher is! String || mac is! String) return null;
     try {
-      final keyBytes = wrapKey ?? await _loadOrCreateWrapKey();
+      final keyBytes = wrapKey ?? await loadWrapKey();
+      if (keyBytes == null) return null;
       final secretKey = await _aes.newSecretKeyFromBytes(keyBytes);
       final clear = await _aes.decrypt(
         SecretBox(
@@ -188,6 +236,22 @@ class SecretVaultService {
       }
     }
 
+    final globalStates = bundle['globalStates'];
+    if (database != null && globalStates is Map) {
+      for (final entry in globalStates.entries) {
+        final value = entry.value?.toString();
+        if (value == null || value.isEmpty) continue;
+        await database.into(database.globalStates).insert(
+              GlobalStatesCompanion.insert(
+                key: entry.key.toString(),
+                value: value,
+                updatedAt: DateTime.now(),
+              ),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+    }
+
     final mcpTokens = bundle['mcpTokens'];
     if (mcpTokens is Map) {
       for (final entry in mcpTokens.entries) {
@@ -215,6 +279,21 @@ class SecretVaultService {
   /// Returns the wrapping key, creating one if this device has never synced.
   Future<Uint8List> exportWrapKey() => _loadOrCreateWrapKey();
 
+  /// Existing wrapping key, or null when this device has never sealed a vault.
+  Future<Uint8List?> loadWrapKey() async {
+    final loader = _wrapKeyLoader;
+    if (loader != null) return loader();
+    try {
+      final existing = await _storage.read(key: _wrapKeyStorageKey);
+      if (existing != null && existing.isNotEmpty) {
+        return Uint8List.fromList(base64Decode(existing));
+      }
+    } catch (_) {
+      // Plugin storage is unavailable in unit tests.
+    }
+    return null;
+  }
+
   /// Adopts a wrapping key from another device on the same cloud account.
   Future<void> importWrapKey(Uint8List bytes) async {
     if (bytes.length != 32) {
@@ -227,12 +306,8 @@ class SecretVaultService {
   }
 
   Future<Uint8List> _loadOrCreateWrapKey() async {
-    final loader = _wrapKeyLoader;
-    if (loader != null) return loader();
-    final existing = await _storage.read(key: _wrapKeyStorageKey);
-    if (existing != null && existing.isNotEmpty) {
-      return Uint8List.fromList(base64Decode(existing));
-    }
+    final existing = await loadWrapKey();
+    if (existing != null) return existing;
     final generated = await _aes.newSecretKey();
     final bytes = Uint8List.fromList(await generated.extractBytes());
     await _storage.write(

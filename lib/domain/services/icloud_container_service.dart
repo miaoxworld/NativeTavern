@@ -86,9 +86,14 @@ class ICloudContainerService {
   }
 
   /// Discover sync files that may not be materialized locally yet.
-  Future<ICloudSyncQueryResult?> querySyncFiles() async {
+  Future<ICloudSyncQueryResult?> querySyncFiles({
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
     try {
-      final raw = await _channel.invokeMethod<dynamic>('querySyncFiles');
+      final raw = await _channel.invokeMethod<dynamic>(
+        'querySyncFiles',
+        {'timeout': timeout.inMilliseconds / 1000.0},
+      );
       if (raw is! Map) return null;
       final files = <ICloudSyncQueryItem>[];
       final rawFiles = raw['files'];

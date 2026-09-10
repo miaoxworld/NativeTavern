@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +33,48 @@ void main() {
     });
 
     expect(await vault.unseal(sealed, wrapKey: otherKey), isNull);
+  });
+
+  test('collects connection snapshots even when the preference key is llm_config',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'llm_config': jsonEncode({
+        'provider': 'xai',
+        'model': 'grok-4',
+        'apiKey': 'xai-live-secret',
+        'apiUrl': 'https://api.x.ai/v1',
+      }),
+      'llm_provider_config_openai': jsonEncode({
+        'apiKey': 'sk-live-secret',
+        'apiUrl': 'https://api.openai.com/v1',
+        'model': 'gpt-4o',
+      }),
+      'locale': 'en',
+    });
+    final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
+    final vault = SecretVaultService(wrapKeyLoader: () async => wrapKey);
+    final bundle = await vault.collectSecrets();
+    final preferences = bundle['preferences'] as Map;
+    expect(preferences['llm_config'], contains('xai-live-secret'));
+    expect(
+      preferences['llm_provider_config_openai'],
+      contains('sk-live-secret'),
+    );
+    expect(preferences.containsKey('locale'), isFalse);
+  });
+
+  test('unseal returns null when this device has no wrapping key yet', () async {
+    SharedPreferences.setMockInitialValues({});
+    final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
+    final sealed = await SecretVaultService(
+      wrapKeyLoader: () async => wrapKey,
+    ).sealBundle({
+      'preferences': {'llm_config': '{"apiKey":"xai-live-secret"}'},
+    });
+    final opened = await SecretVaultService(
+      wrapKeyLoader: () async => null,
+    ).unseal(sealed);
+    expect(opened, isNull);
   });
 
   test('exportWrapKey returns the configured wrapping key', () async {
