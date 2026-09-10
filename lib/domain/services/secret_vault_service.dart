@@ -205,23 +205,48 @@ class SecretVaultService {
     return null;
   }
 
-  Future<void> applyVault(Object? vault) async {
+  Future<SecretVaultApplyResult> applyVault(Object? vault) async {
     final bundle = await unseal(vault);
-    if (bundle == null) return;
-    await applyBundle(bundle);
+    if (bundle == null) return const SecretVaultApplyResult();
+    return applyBundle(bundle);
   }
 
-  Future<void> applyBundle(Map<String, dynamic> bundle) async {
+  /// Merges remote secrets onto this device without wiping local keys.
+  ///
+  /// Empty remote values are ignored. Matching values are left alone. When
+  /// both sides have different non-empty secrets, the local value is kept and
+  /// a [SecretKeyConflict] is reported so the user can choose.
+  Future<SecretVaultApplyResult> applyBundle(
+      Map<String, dynamic> bundle) async {
+    final conflicts = <SecretKeyConflict>[];
     final database = _database;
     final llmKeys = bundle['llmConfigs'];
     if (database != null && llmKeys is Map) {
       for (final entry in llmKeys.entries) {
         final id = entry.key.toString();
-        final apiKey = entry.value?.toString();
-        if (apiKey == null || apiKey.isEmpty) continue;
-        await (database.update(database.llmConfigs)
+        final remote = entry.value?.toString() ?? '';
+        if (remote.trim().isEmpty) continue;
+        final existing = await (database.select(database.llmConfigs)
               ..where((table) => table.id.equals(id)))
-            .write(LlmConfigsCompanion(apiKey: Value(apiKey)));
+            .getSingleOrNull();
+        final local = existing?.apiKey ?? '';
+        switch (_mergeSecret(local, remote)) {
+          case _SecretMerge.skip:
+            break;
+          case _SecretMerge.applyRemote:
+            await (database.update(database.llmConfigs)
+                  ..where((table) => table.id.equals(id)))
+                .write(LlmConfigsCompanion(apiKey: Value(remote)));
+          case _SecretMerge.conflict:
+            conflicts.add(
+              SecretKeyConflict(
+                store: SecretKeyStore.llmConfigs,
+                id: id,
+                localValue: local,
+                remoteValue: remote,
+              ),
+            );
+        }
       }
     }
 
@@ -229,9 +254,24 @@ class SecretVaultService {
     if (preferences is Map) {
       final prefs = await SharedPreferences.getInstance();
       for (final entry in preferences.entries) {
-        final value = entry.value;
-        if (value is String) {
-          await prefs.setString(entry.key.toString(), value);
+        final key = entry.key.toString();
+        final remote = entry.value?.toString() ?? '';
+        if (remote.trim().isEmpty) continue;
+        final local = prefs.getString(key) ?? '';
+        switch (_mergeSecret(local, remote)) {
+          case _SecretMerge.skip:
+            break;
+          case _SecretMerge.applyRemote:
+            await prefs.setString(key, remote);
+          case _SecretMerge.conflict:
+            conflicts.add(
+              SecretKeyConflict(
+                store: SecretKeyStore.preferences,
+                id: key,
+                localValue: local,
+                remoteValue: remote,
+              ),
+            );
         }
       }
     }
@@ -239,41 +279,119 @@ class SecretVaultService {
     final globalStates = bundle['globalStates'];
     if (database != null && globalStates is Map) {
       for (final entry in globalStates.entries) {
-        final value = entry.value?.toString();
-        if (value == null || value.isEmpty) continue;
-        await database.into(database.globalStates).insert(
-              GlobalStatesCompanion.insert(
-                key: entry.key.toString(),
-                value: value,
-                updatedAt: DateTime.now(),
+        final key = entry.key.toString();
+        final remote = entry.value?.toString() ?? '';
+        if (remote.trim().isEmpty) continue;
+        final existing = await (database.select(database.globalStates)
+              ..where((table) => table.key.equals(key)))
+            .getSingleOrNull();
+        final local = existing?.value ?? '';
+        switch (_mergeSecret(local, remote)) {
+          case _SecretMerge.skip:
+            break;
+          case _SecretMerge.applyRemote:
+            await database.into(database.globalStates).insert(
+                  GlobalStatesCompanion.insert(
+                    key: key,
+                    value: remote,
+                    updatedAt: DateTime.now(),
+                  ),
+                  mode: InsertMode.insertOrReplace,
+                );
+          case _SecretMerge.conflict:
+            conflicts.add(
+              SecretKeyConflict(
+                store: SecretKeyStore.globalStates,
+                id: key,
+                localValue: local,
+                remoteValue: remote,
               ),
-              mode: InsertMode.insertOrReplace,
             );
+        }
       }
     }
 
     final mcpTokens = bundle['mcpTokens'];
     if (mcpTokens is Map) {
       for (final entry in mcpTokens.entries) {
-        final value = entry.value?.toString();
-        if (value == null || value.isEmpty) continue;
-        await _storage.write(key: entry.key.toString(), value: value);
+        final key = entry.key.toString();
+        final remote = entry.value?.toString() ?? '';
+        if (remote.trim().isEmpty) continue;
+        String local = '';
+        try {
+          local = await _storage.read(key: key) ?? '';
+        } catch (_) {}
+        switch (_mergeSecret(local, remote)) {
+          case _SecretMerge.skip:
+            break;
+          case _SecretMerge.applyRemote:
+            await _writeMcpToken(key, remote);
+          case _SecretMerge.conflict:
+            conflicts.add(
+              SecretKeyConflict(
+                store: SecretKeyStore.mcpTokens,
+                id: key,
+                localValue: local,
+                remoteValue: remote,
+              ),
+            );
+        }
       }
     }
 
-    final mcpRepo = _mcpCredentials;
-    if (mcpRepo != null && mcpTokens is Map) {
-      for (final entry in mcpTokens.entries) {
-        final key = entry.key.toString();
-        final value = entry.value?.toString() ?? '';
-        const prefix = 'native_tavern.mcp.';
-        const suffix = '.token';
-        if (!key.startsWith(prefix) || !key.endsWith(suffix)) continue;
-        final serverId =
-            key.substring(prefix.length, key.length - suffix.length);
-        await mcpRepo.writeToken(serverId, value);
+    return SecretVaultApplyResult(conflicts: conflicts);
+  }
+
+  Future<void> applyChosenRemoteKeys(Iterable<SecretKeyConflict> chosen) async {
+    final database = _database;
+    final prefs = await SharedPreferences.getInstance();
+    for (final conflict in chosen) {
+      final remote = conflict.remoteValue;
+      if (remote.trim().isEmpty) continue;
+      switch (conflict.store) {
+        case SecretKeyStore.llmConfigs:
+          if (database == null) break;
+          await (database.update(database.llmConfigs)
+                ..where((table) => table.id.equals(conflict.id)))
+              .write(LlmConfigsCompanion(apiKey: Value(remote)));
+        case SecretKeyStore.preferences:
+          await prefs.setString(conflict.id, remote);
+        case SecretKeyStore.globalStates:
+          if (database == null) break;
+          await database.into(database.globalStates).insert(
+                GlobalStatesCompanion.insert(
+                  key: conflict.id,
+                  value: remote,
+                  updatedAt: DateTime.now(),
+                ),
+                mode: InsertMode.insertOrReplace,
+              );
+        case SecretKeyStore.mcpTokens:
+          await _writeMcpToken(conflict.id, remote);
       }
     }
+  }
+
+  Future<void> _writeMcpToken(String key, String value) async {
+    try {
+      await _storage.write(key: key, value: value);
+    } catch (_) {}
+    final mcpRepo = _mcpCredentials;
+    if (mcpRepo == null) return;
+    const prefix = 'native_tavern.mcp.';
+    const suffix = '.token';
+    if (!key.startsWith(prefix) || !key.endsWith(suffix)) return;
+    final serverId = key.substring(prefix.length, key.length - suffix.length);
+    await mcpRepo.writeToken(serverId, value);
+  }
+
+  static _SecretMerge _mergeSecret(String local, String remote) {
+    final localValue = local.trim();
+    final remoteValue = remote.trim();
+    if (remoteValue.isEmpty) return _SecretMerge.skip;
+    if (localValue.isEmpty) return _SecretMerge.applyRemote;
+    if (localValue == remoteValue) return _SecretMerge.skip;
+    return _SecretMerge.conflict;
   }
 
   /// Returns the wrapping key, creating one if this device has never synced.
@@ -316,4 +434,31 @@ class SecretVaultService {
     );
     return bytes;
   }
+}
+
+enum SecretKeyStore { llmConfigs, preferences, globalStates, mcpTokens }
+
+enum _SecretMerge { skip, applyRemote, conflict }
+
+/// Two non-empty API keys for the same slot, kept until the user chooses.
+class SecretKeyConflict {
+  final SecretKeyStore store;
+  final String id;
+  final String localValue;
+  final String remoteValue;
+
+  const SecretKeyConflict({
+    required this.store,
+    required this.id,
+    required this.localValue,
+    required this.remoteValue,
+  });
+}
+
+class SecretVaultApplyResult {
+  final List<SecretKeyConflict> conflicts;
+
+  const SecretVaultApplyResult({this.conflicts = const []});
+
+  bool get hasConflicts => conflicts.isNotEmpty;
 }

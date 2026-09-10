@@ -35,7 +35,8 @@ void main() {
     expect(await vault.unseal(sealed, wrapKey: otherKey), isNull);
   });
 
-  test('collects connection snapshots even when the preference key is llm_config',
+  test(
+      'collects connection snapshots even when the preference key is llm_config',
       () async {
     SharedPreferences.setMockInitialValues({
       'llm_config': jsonEncode({
@@ -63,7 +64,8 @@ void main() {
     expect(preferences.containsKey('locale'), isFalse);
   });
 
-  test('unseal returns null when this device has no wrapping key yet', () async {
+  test('unseal returns null when this device has no wrapping key yet',
+      () async {
     SharedPreferences.setMockInitialValues({});
     final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
     final sealed = await SecretVaultService(
@@ -75,6 +77,42 @@ void main() {
       wrapKeyLoader: () async => null,
     ).unseal(sealed);
     expect(opened, isNull);
+  });
+
+  test('applyBundle never wipes a local key with an empty remote value',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'llm_config': '{"apiKey":"local-secret"}',
+    });
+    final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
+    final vault = SecretVaultService(wrapKeyLoader: () async => wrapKey);
+    final result = await vault.applyBundle({
+      'preferences': {'llm_config': ''},
+    });
+    expect(result.conflicts, isEmpty);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('llm_config'), '{"apiKey":"local-secret"}');
+  });
+
+  test(
+      'applyBundle keeps the local key and reports a conflict when both differ',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'llm_config': '{"apiKey":"local-secret"}',
+    });
+    final wrapKey = Uint8List.fromList(List<int>.generate(32, (i) => i + 1));
+    final vault = SecretVaultService(wrapKeyLoader: () async => wrapKey);
+    final result = await vault.applyBundle({
+      'preferences': {'llm_config': '{"apiKey":"remote-secret"}'},
+    });
+    expect(result.conflicts, hasLength(1));
+    expect(result.conflicts.single.localValue, contains('local-secret'));
+    expect(result.conflicts.single.remoteValue, contains('remote-secret'));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('llm_config'), '{"apiKey":"local-secret"}');
+
+    await vault.applyChosenRemoteKeys(result.conflicts);
+    expect(prefs.getString('llm_config'), '{"apiKey":"remote-secret"}');
   });
 
   test('exportWrapKey returns the configured wrapping key', () async {
