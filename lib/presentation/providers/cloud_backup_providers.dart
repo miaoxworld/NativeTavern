@@ -121,6 +121,10 @@ final pendingBackupImportPathProvider = StateProvider<String?>((ref) => null);
 final pendingICloudConflictProvider =
     StateProvider<ICloudSyncConflict?>((ref) => null);
 
+/// Differing API keys kept local until the user picks which to keep.
+final pendingApiKeyConflictsProvider =
+    StateProvider<List<SecretKeyConflict>>((ref) => const []);
+
 /// Prompt for a password-protected `.ntx`. Return null to cancel.
 typedef BackupPasswordPrompt = Future<String?> Function({
   required bool incorrect,
@@ -359,9 +363,8 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
       iCloudEnabled: value && (Platform.isIOS || Platform.isMacOS)
           ? true
           : state.iCloudEnabled,
-      googleDriveEnabled: value && Platform.isAndroid
-          ? true
-          : state.googleDriveEnabled,
+      googleDriveEnabled:
+          value && Platform.isAndroid ? true : state.googleDriveEnabled,
     );
     _saveSettings();
   }
@@ -441,8 +444,7 @@ final cloudSyncSetupProvider =
 class CloudSyncSetupNotifier extends StateNotifier<CloudSyncSetupState> {
   static const storageKey = 'cloud_sync_setup_completed';
 
-  CloudSyncSetupNotifier(this._ref)
-      : super(const CloudSyncSetupState()) {
+  CloudSyncSetupNotifier(this._ref) : super(const CloudSyncSetupState()) {
     _probe();
   }
 
@@ -452,7 +454,8 @@ class CloudSyncSetupNotifier extends StateNotifier<CloudSyncSetupState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (prefs.getBool(storageKey) == true) {
-        state = const CloudSyncSetupState(status: CloudSyncSetupStatus.finished);
+        state =
+            const CloudSyncSetupState(status: CloudSyncSetupStatus.finished);
         return;
       }
       await _ref.read(cloudBackupSettingsProvider.notifier).ready.timeout(
@@ -998,16 +1001,34 @@ class CloudBackupOperationNotifier
       final vault = SecretVaultService(
         database: _ref.read(databaseProvider),
       );
-      final resolvedKey = wrapKey ??
-          await _iCloudWrapKey() ??
-          await _googleDriveWrapKey();
+      final resolvedKey =
+          wrapKey ?? await _iCloudWrapKey() ?? await _googleDriveWrapKey();
       if (resolvedKey != null) {
         await vault.importWrapKey(resolvedKey);
       }
-      await vault.applyVault(package['ntxVault']);
+      final result = await vault.applyVault(package['ntxVault']);
       await _ref.read(llmConfigProvider.notifier).reloadFromStorage();
+      if (result.hasConflicts) {
+        _ref.read(pendingApiKeyConflictsProvider.notifier).state =
+            result.conflicts;
+      }
     } catch (e) {
       debugPrint('[CloudBackup] vault apply failed: $e');
+    }
+  }
+
+  Future<void> resolveApiKeyConflicts({
+    required Iterable<SecretKeyConflict> useRemote,
+  }) async {
+    try {
+      await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).applyChosenRemoteKeys(useRemote);
+      await _ref.read(llmConfigProvider.notifier).reloadFromStorage();
+    } catch (e) {
+      debugPrint('[CloudBackup] API key conflict apply failed: $e');
+    } finally {
+      _ref.read(pendingApiKeyConflictsProvider.notifier).state = const [];
     }
   }
 
@@ -1038,6 +1059,16 @@ class CloudBackupOperationNotifier
 
   Future<void> _uploadICloudWrapKey() async {
     try {
+      final remote = await _service.readICloudNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+      );
+      final remoteBytes = await _wrapKeyFromJson(remote);
+      if (remoteBytes != null) {
+        await SecretVaultService(
+          database: _ref.read(databaseProvider),
+        ).importWrapKey(remoteBytes);
+        return;
+      }
       final wrapKey = await SecretVaultService(
         database: _ref.read(databaseProvider),
       ).exportWrapKey();
@@ -1073,6 +1104,17 @@ class CloudBackupOperationNotifier
 
   Future<void> _uploadGoogleDriveWrapKey() async {
     try {
+      final remote = await _googleDriveService.readNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+        appData: true,
+      );
+      final remoteBytes = await _wrapKeyFromJson(remote);
+      if (remoteBytes != null) {
+        await SecretVaultService(
+          database: _ref.read(databaseProvider),
+        ).importWrapKey(remoteBytes);
+        return;
+      }
       final wrapKey = await SecretVaultService(
         database: _ref.read(databaseProvider),
       ).exportWrapKey();

@@ -12,6 +12,7 @@ import 'package:native_tavern/presentation/widgets/debug_log_overlay.dart';
 import 'package:native_tavern/presentation/widgets/cloud_sync_listener.dart';
 import 'package:native_tavern/presentation/widgets/cloud_sync_setup_gate.dart';
 import 'package:native_tavern/presentation/widgets/file_open_listener.dart';
+import 'package:native_tavern/presentation/widgets/api_key_conflict_dialog.dart';
 import 'package:native_tavern/presentation/widgets/icloud_conflict_dialog.dart';
 import 'package:native_tavern/presentation/widgets/privacy/ai_data_sharing_consent_gate.dart';
 
@@ -77,10 +78,12 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
           child: CloudSyncSetupGate(
             child: CloudSyncListener(
               child: ICloudConflictGate(
-                child: AiDataSharingConsentGate(
-                  child: DebugLogOverlayWrapper(
-                    enabled: settings.enableDebugLog,
-                    child: child ?? const SizedBox.shrink(),
+                child: ApiKeyConflictGate(
+                  child: AiDataSharingConsentGate(
+                    child: DebugLogOverlayWrapper(
+                      enabled: settings.enableDebugLog,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   ),
                 ),
               ),
