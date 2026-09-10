@@ -12494,6 +12494,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter token, key, or Bearer <token>'**
   String get authHeaderValueHint;
+
+  /// Settings title for home screen widgets
+  ///
+  /// In en, this message translates to:
+  /// **'Home Screen Widgets'**
+  String get homeWidgets;
+
+  /// Subtitle explaining home screen widgets
+  ///
+  /// In en, this message translates to:
+  /// **'Glance at moments, chats, characters, and API status without opening the app.'**
+  String get homeWidgetsSubtitle;
+
+  /// Toggle that publishes widget snapshots
+  ///
+  /// In en, this message translates to:
+  /// **'Update home screen widgets'**
+  String get homeWidgetEnabled;
+
+  /// Hint for the widget update toggle
+  ///
+  /// In en, this message translates to:
+  /// **'When on, NativeTavern refreshes widgets after chats, moments, and usage change.'**
+  String get homeWidgetEnabledHint;
+
+  /// Toggle to randomize chat order in the chats widget
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle chat order'**
+  String get homeWidgetShuffleChats;
+
+  /// Hint for chat shuffle
+  ///
+  /// In en, this message translates to:
+  /// **'Each chat still shows its latest messages in order. Only the character order is shuffled.'**
+  String get homeWidgetShuffleChatsHint;
+
+  /// Limit the characters widget to favorite cards
+  ///
+  /// In en, this message translates to:
+  /// **'Characters widget: favorites only'**
+  String get homeWidgetFavoritesOnly;
+
+  /// Toggle remote credit refresh for the status widget
+  ///
+  /// In en, this message translates to:
+  /// **'Check provider credits'**
+  String get homeWidgetRefreshRemoteUsage;
+
+  /// Hint for remote credit refresh
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the current API key on providers that publish a balance or credits endpoint.'**
+  String get homeWidgetRefreshRemoteUsageHint;
+
+  /// How often chat/character/moment slides advance
+  ///
+  /// In en, this message translates to:
+  /// **'Slideshow interval'**
+  String get homeWidgetSlideInterval;
+
+  /// How many recent messages to show for each chat
+  ///
+  /// In en, this message translates to:
+  /// **'Messages per chat'**
+  String get homeWidgetMessagesPerChat;
+
+  /// Moments widget title
+  ///
+  /// In en, this message translates to:
+  /// **'Moments'**
+  String get homeWidgetMoments;
+
+  /// Chats widget title
+  ///
+  /// In en, this message translates to:
+  /// **'Chats'**
+  String get homeWidgetChats;
+
+  /// Characters widget title
+  ///
+  /// In en, this message translates to:
+  /// **'Characters'**
+  String get homeWidgetCharacters;
+
+  /// API status widget title
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get homeWidgetStatus;
+
+  /// Empty state for the moments widget
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has posted yet.'**
+  String get homeWidgetEmptyMoments;
+
+  /// Empty state for the chats widget
+  ///
+  /// In en, this message translates to:
+  /// **'No chats yet.'**
+  String get homeWidgetEmptyChats;
+
+  /// Empty state for the characters widget
+  ///
+  /// In en, this message translates to:
+  /// **'No characters yet.'**
+  String get homeWidgetEmptyCharacters;
+
+  /// Fallback action on a widget
+  ///
+  /// In en, this message translates to:
+  /// **'Open NativeTavern'**
+  String get homeWidgetOpenApp;
+
+  /// Provider is configured
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get homeWidgetProviderReady;
+
+  /// Provider is missing an API key
+  ///
+  /// In en, this message translates to:
+  /// **'API key needed'**
+  String get homeWidgetProviderNeedsKey;
+
+  /// Local provider status
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get homeWidgetProviderLocal;
+
+  /// Provider could not be reached
+  ///
+  /// In en, this message translates to:
+  /// **'Unreachable'**
+  String get homeWidgetProviderUnreachable;
+
+  /// Token usage for today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeWidgetTokensToday;
+
+  /// All-time token usage
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get homeWidgetTokensTotal;
+
+  /// Current model label
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get homeWidgetCurrentModel;
+
+  /// Remote credit balance label
+  ///
+  /// In en, this message translates to:
+  /// **'Credits'**
+  String get homeWidgetRemoteCredits;
+
+  /// Provider has no remote usage API
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked locally'**
+  String get homeWidgetRemoteUnsupported;
+
+  /// Last updated label
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get homeWidgetUpdated;
+
+  /// How to add the widgets on each platform
+  ///
+  /// In en, this message translates to:
+  /// **'On iPhone, iPad, and Mac, long-press the home screen or desktop and add NativeTavern widgets. On Android, long-press the home screen and choose widgets.'**
+  String get homeWidgetAddHint;
+
+  /// Section title for token usage
+  ///
+  /// In en, this message translates to:
+  /// **'Provider usage'**
+  String get providerUsage;
+
+  /// Explains local vs remote usage tracking
+  ///
+  /// In en, this message translates to:
+  /// **'NativeTavern records tokens from each reply. Some providers also report remaining credits.'**
+  String get providerUsageSubtitle;
+
+  /// Today's usage row
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get providerUsageToday;
+
+  /// All-time usage row
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get providerUsageAllTime;
+
+  /// Generation count label
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get providerUsageGenerations;
+
+  /// Prompt token label
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt'**
+  String get providerUsagePrompt;
+
+  /// Completion token label
+  ///
+  /// In en, this message translates to:
+  /// **'Completion'**
+  String get providerUsageCompletion;
+
+  /// Remote balance row title
+  ///
+  /// In en, this message translates to:
+  /// **'Provider balance'**
+  String get providerUsageRemoteBalance;
+
+  /// Shown when remote usage is unsupported
+  ///
+  /// In en, this message translates to:
+  /// **'This provider does not publish a balance API for this key.'**
+  String get providerUsageUnsupported;
+
+  /// Slideshow interval in seconds
+  ///
+  /// In en, this message translates to:
+  /// **'{count} seconds'**
+  String secondsValue(int count);
+
+  /// Previous slide on a home screen widget
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get homeWidgetPrevious;
+
+  /// Next slide on a home screen widget
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get homeWidgetNext;
+
+  /// Limit chats and characters widgets to one card
+  ///
+  /// In en, this message translates to:
+  /// **'Pin a character'**
+  String get homeWidgetPinCharacter;
+
+  /// Hint for pinning a character to widgets
+  ///
+  /// In en, this message translates to:
+  /// **'The Characters and Chats widgets show only this character. Leave as None to cycle through everyone.'**
+  String get homeWidgetPinCharacterHint;
+
+  /// Do not pin a character on widgets
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get homeWidgetPinCharacterNone;
+
+  /// Limit the chats widget to favorite characters
+  ///
+  /// In en, this message translates to:
+  /// **'Chats widget: favorite characters only'**
+  String get homeWidgetFavoriteChatsOnly;
+
+  /// Hint for favorite-chats widget filter
+  ///
+  /// In en, this message translates to:
+  /// **'Only chats with a favorited character appear in the Chats widget.'**
+  String get homeWidgetFavoriteChatsOnlyHint;
 }
 
 class _AppLocalizationsDelegate

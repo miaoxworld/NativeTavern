@@ -66,6 +66,14 @@ void main() {
     expect(l10n.systemLanguage, '跟随系统语言');
     expect(l10n.enableEmbeddedImages, '显示嵌入和外部图片');
     expect(l10n.apiKeySyncConflictTitle, 'API 密钥冲突');
+    expect(l10n.homeWidgets, '主屏幕小组件');
+    expect(l10n.providerUsage, '服务商用量');
+    expect(l10n.homeWidgetShuffleChats, '打乱聊天顺序');
+    expect(l10n.homeWidgetPrevious, '上一条');
+    expect(l10n.homeWidgetNext, '下一条');
+    expect(l10n.homeWidgetPinCharacter, '固定一个角色');
+    expect(l10n.homeWidgetPinCharacterNone, '无');
+    expect(l10n.homeWidgetFavoriteChatsOnly, '聊天小组件仅显示收藏角色');
   });
 
   test('English language picker uses System Language, not System Theme', () {
@@ -74,6 +82,11 @@ void main() {
     expect(l10n.systemLanguage.toLowerCase(), isNot(contains('theme')));
     expect(l10n.systemTheme, 'System Theme');
     expect(l10n.enableEmbeddedImages, contains('images'));
+    expect(l10n.homeWidgets, 'Home Screen Widgets');
+    expect(l10n.providerUsage, 'Provider usage');
+    expect(l10n.secondsValue(8), '8 seconds');
+    expect(l10n.homeWidgetPrevious, 'Previous');
+    expect(l10n.homeWidgetNext, 'Next');
     expect(EmbeddingProvider.siliconflow.displayName, 'SiliconFlow');
     expect(EmbeddingProvider.siliconflow.displayName, isNot(contains('硅')));
   });

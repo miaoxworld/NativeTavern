@@ -6763,6 +6763,152 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authHeaderValueHint => '输入令牌、密钥或 Bearer <token>';
+
+  @override
+  String get homeWidgets => '主屏幕小组件';
+
+  @override
+  String get homeWidgetsSubtitle => '不用打开应用也能看动态、聊天、角色卡和 API 状态。';
+
+  @override
+  String get homeWidgetEnabled => '更新主屏幕小组件';
+
+  @override
+  String get homeWidgetEnabledHint => '开启后，聊天、动态和用量变化会刷新小组件。';
+
+  @override
+  String get homeWidgetShuffleChats => '打乱聊天顺序';
+
+  @override
+  String get homeWidgetShuffleChatsHint => '每个角色的最近消息仍按时间顺序播放，只打乱角色之间的顺序。';
+
+  @override
+  String get homeWidgetFavoritesOnly => '角色小组件仅显示收藏';
+
+  @override
+  String get homeWidgetRefreshRemoteUsage => '查询服务商额度';
+
+  @override
+  String get homeWidgetRefreshRemoteUsageHint =>
+      '对提供余额或积分接口的服务商，使用当前 API 密钥查询。';
+
+  @override
+  String get homeWidgetSlideInterval => '轮播间隔';
+
+  @override
+  String get homeWidgetMessagesPerChat => '每个聊天的消息数';
+
+  @override
+  String get homeWidgetMoments => '动态';
+
+  @override
+  String get homeWidgetChats => '聊天';
+
+  @override
+  String get homeWidgetCharacters => '角色';
+
+  @override
+  String get homeWidgetStatus => '状态';
+
+  @override
+  String get homeWidgetEmptyMoments => '还没人发过。';
+
+  @override
+  String get homeWidgetEmptyChats => '还没有聊天。';
+
+  @override
+  String get homeWidgetEmptyCharacters => '还没有角色。';
+
+  @override
+  String get homeWidgetOpenApp => '打开 NativeTavern';
+
+  @override
+  String get homeWidgetProviderReady => '就绪';
+
+  @override
+  String get homeWidgetProviderNeedsKey => '需要 API 密钥';
+
+  @override
+  String get homeWidgetProviderLocal => '本地';
+
+  @override
+  String get homeWidgetProviderUnreachable => '无法连接';
+
+  @override
+  String get homeWidgetTokensToday => '今日';
+
+  @override
+  String get homeWidgetTokensTotal => '总计';
+
+  @override
+  String get homeWidgetCurrentModel => '模型';
+
+  @override
+  String get homeWidgetRemoteCredits => '额度';
+
+  @override
+  String get homeWidgetRemoteUnsupported => '仅本地统计';
+
+  @override
+  String get homeWidgetUpdated => '更新于';
+
+  @override
+  String get homeWidgetAddHint =>
+      '在 iPhone、iPad 和 Mac 上，长按主屏幕或桌面添加 NativeTavern 小组件。在 Android 上，长按主屏幕并选择小组件。';
+
+  @override
+  String get providerUsage => '服务商用量';
+
+  @override
+  String get providerUsageSubtitle =>
+      'NativeTavern 会记录每次回复的 Token。部分服务商还会返回剩余额度。';
+
+  @override
+  String get providerUsageToday => '今日';
+
+  @override
+  String get providerUsageAllTime => '累计';
+
+  @override
+  String get providerUsageGenerations => '回复次数';
+
+  @override
+  String get providerUsagePrompt => '提示';
+
+  @override
+  String get providerUsageCompletion => '补全';
+
+  @override
+  String get providerUsageRemoteBalance => '服务商余额';
+
+  @override
+  String get providerUsageUnsupported => '此服务商未对该密钥提供余额接口。';
+
+  @override
+  String secondsValue(int count) {
+    return '$count 秒';
+  }
+
+  @override
+  String get homeWidgetPrevious => '上一条';
+
+  @override
+  String get homeWidgetNext => '下一条';
+
+  @override
+  String get homeWidgetPinCharacter => '固定一个角色';
+
+  @override
+  String get homeWidgetPinCharacterHint => '角色和聊天小组件只显示这个角色。选“无”则继续轮播全部。';
+
+  @override
+  String get homeWidgetPinCharacterNone => '无';
+
+  @override
+  String get homeWidgetFavoriteChatsOnly => '聊天小组件仅显示收藏角色';
+
+  @override
+  String get homeWidgetFavoriteChatsOnlyHint => '只有收藏角色的聊天会出现在聊天小组件里。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -13525,4 +13671,150 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get authHeaderValueHint => '輸入權杖、金鑰或 Bearer <token>';
+
+  @override
+  String get homeWidgets => '主畫面小工具';
+
+  @override
+  String get homeWidgetsSubtitle => '不必打開 App 也能看動態、聊天、角色卡和 API 狀態。';
+
+  @override
+  String get homeWidgetEnabled => '更新主畫面小工具';
+
+  @override
+  String get homeWidgetEnabledHint => '開啟後，聊天、動態和用量變化會重新整理小工具。';
+
+  @override
+  String get homeWidgetShuffleChats => '打亂聊天順序';
+
+  @override
+  String get homeWidgetShuffleChatsHint => '每個角色的最近訊息仍依時間順序播放，只打亂角色之間的順序。';
+
+  @override
+  String get homeWidgetFavoritesOnly => '角色小工具只顯示收藏';
+
+  @override
+  String get homeWidgetRefreshRemoteUsage => '查詢服務商額度';
+
+  @override
+  String get homeWidgetRefreshRemoteUsageHint =>
+      '對提供餘額或點數介面的服務商，使用目前 API 金鑰查詢。';
+
+  @override
+  String get homeWidgetSlideInterval => '輪播間隔';
+
+  @override
+  String get homeWidgetMessagesPerChat => '每個聊天的訊息數';
+
+  @override
+  String get homeWidgetMoments => '動態';
+
+  @override
+  String get homeWidgetChats => '聊天';
+
+  @override
+  String get homeWidgetCharacters => '角色';
+
+  @override
+  String get homeWidgetStatus => '狀態';
+
+  @override
+  String get homeWidgetEmptyMoments => '還沒人發過。';
+
+  @override
+  String get homeWidgetEmptyChats => '還沒有聊天。';
+
+  @override
+  String get homeWidgetEmptyCharacters => '還沒有角色。';
+
+  @override
+  String get homeWidgetOpenApp => '打開 NativeTavern';
+
+  @override
+  String get homeWidgetProviderReady => '就緒';
+
+  @override
+  String get homeWidgetProviderNeedsKey => '需要 API 金鑰';
+
+  @override
+  String get homeWidgetProviderLocal => '本機';
+
+  @override
+  String get homeWidgetProviderUnreachable => '無法連線';
+
+  @override
+  String get homeWidgetTokensToday => '今日';
+
+  @override
+  String get homeWidgetTokensTotal => '總計';
+
+  @override
+  String get homeWidgetCurrentModel => '模型';
+
+  @override
+  String get homeWidgetRemoteCredits => '額度';
+
+  @override
+  String get homeWidgetRemoteUnsupported => '僅本機統計';
+
+  @override
+  String get homeWidgetUpdated => '更新於';
+
+  @override
+  String get homeWidgetAddHint =>
+      '在 iPhone、iPad 和 Mac 上，長按主畫面或桌面新增 NativeTavern 小工具。在 Android 上，長按主畫面並選擇小工具。';
+
+  @override
+  String get providerUsage => '服務商用量';
+
+  @override
+  String get providerUsageSubtitle =>
+      'NativeTavern 會記錄每次回覆的 Token。部分服務商也會回報剩餘額度。';
+
+  @override
+  String get providerUsageToday => '今日';
+
+  @override
+  String get providerUsageAllTime => '累計';
+
+  @override
+  String get providerUsageGenerations => '回覆次數';
+
+  @override
+  String get providerUsagePrompt => '提示';
+
+  @override
+  String get providerUsageCompletion => '補全';
+
+  @override
+  String get providerUsageRemoteBalance => '服務商餘額';
+
+  @override
+  String get providerUsageUnsupported => '此服務商未對此金鑰提供餘額介面。';
+
+  @override
+  String secondsValue(int count) {
+    return '$count 秒';
+  }
+
+  @override
+  String get homeWidgetPrevious => '上一則';
+
+  @override
+  String get homeWidgetNext => '下一則';
+
+  @override
+  String get homeWidgetPinCharacter => '固定一個角色';
+
+  @override
+  String get homeWidgetPinCharacterHint => '角色和聊天小工具只顯示這個角色。選「無」則繼續輪播全部。';
+
+  @override
+  String get homeWidgetPinCharacterNone => '無';
+
+  @override
+  String get homeWidgetFavoriteChatsOnly => '聊天小工具只顯示收藏角色';
+
+  @override
+  String get homeWidgetFavoriteChatsOnlyHint => '只有收藏角色的聊天會出現在聊天小工具裡。';
 }

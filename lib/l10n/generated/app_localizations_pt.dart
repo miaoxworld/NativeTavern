@@ -7028,4 +7028,157 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get authHeaderValueHint => 'Enter token, key, or Bearer <token>';
+
+  @override
+  String get homeWidgets => 'Home Screen Widgets';
+
+  @override
+  String get homeWidgetsSubtitle =>
+      'Glance at moments, chats, characters, and API status without opening the app.';
+
+  @override
+  String get homeWidgetEnabled => 'Update home screen widgets';
+
+  @override
+  String get homeWidgetEnabledHint =>
+      'When on, NativeTavern refreshes widgets after chats, moments, and usage change.';
+
+  @override
+  String get homeWidgetShuffleChats => 'Shuffle chat order';
+
+  @override
+  String get homeWidgetShuffleChatsHint =>
+      'Each chat still shows its latest messages in order. Only the character order is shuffled.';
+
+  @override
+  String get homeWidgetFavoritesOnly => 'Characters widget: favorites only';
+
+  @override
+  String get homeWidgetRefreshRemoteUsage => 'Check provider credits';
+
+  @override
+  String get homeWidgetRefreshRemoteUsageHint =>
+      'Uses the current API key on providers that publish a balance or credits endpoint.';
+
+  @override
+  String get homeWidgetSlideInterval => 'Slideshow interval';
+
+  @override
+  String get homeWidgetMessagesPerChat => 'Messages per chat';
+
+  @override
+  String get homeWidgetMoments => 'Moments';
+
+  @override
+  String get homeWidgetChats => 'Chats';
+
+  @override
+  String get homeWidgetCharacters => 'Characters';
+
+  @override
+  String get homeWidgetStatus => 'Status';
+
+  @override
+  String get homeWidgetEmptyMoments => 'Nobody has posted yet.';
+
+  @override
+  String get homeWidgetEmptyChats => 'No chats yet.';
+
+  @override
+  String get homeWidgetEmptyCharacters => 'No characters yet.';
+
+  @override
+  String get homeWidgetOpenApp => 'Open NativeTavern';
+
+  @override
+  String get homeWidgetProviderReady => 'Ready';
+
+  @override
+  String get homeWidgetProviderNeedsKey => 'API key needed';
+
+  @override
+  String get homeWidgetProviderLocal => 'Local';
+
+  @override
+  String get homeWidgetProviderUnreachable => 'Unreachable';
+
+  @override
+  String get homeWidgetTokensToday => 'Today';
+
+  @override
+  String get homeWidgetTokensTotal => 'Total';
+
+  @override
+  String get homeWidgetCurrentModel => 'Model';
+
+  @override
+  String get homeWidgetRemoteCredits => 'Credits';
+
+  @override
+  String get homeWidgetRemoteUnsupported => 'Tracked locally';
+
+  @override
+  String get homeWidgetUpdated => 'Updated';
+
+  @override
+  String get homeWidgetAddHint =>
+      'On iPhone, iPad, and Mac, long-press the home screen or desktop and add NativeTavern widgets. On Android, long-press the home screen and choose widgets.';
+
+  @override
+  String get providerUsage => 'Provider usage';
+
+  @override
+  String get providerUsageSubtitle =>
+      'NativeTavern records tokens from each reply. Some providers also report remaining credits.';
+
+  @override
+  String get providerUsageToday => 'Today';
+
+  @override
+  String get providerUsageAllTime => 'All time';
+
+  @override
+  String get providerUsageGenerations => 'Replies';
+
+  @override
+  String get providerUsagePrompt => 'Prompt';
+
+  @override
+  String get providerUsageCompletion => 'Completion';
+
+  @override
+  String get providerUsageRemoteBalance => 'Provider balance';
+
+  @override
+  String get providerUsageUnsupported =>
+      'This provider does not publish a balance API for this key.';
+
+  @override
+  String secondsValue(int count) {
+    return '$count seconds';
+  }
+
+  @override
+  String get homeWidgetPrevious => 'Previous';
+
+  @override
+  String get homeWidgetNext => 'Next';
+
+  @override
+  String get homeWidgetPinCharacter => 'Pin a character';
+
+  @override
+  String get homeWidgetPinCharacterHint =>
+      'The Characters and Chats widgets show only this character. Leave as None to cycle through everyone.';
+
+  @override
+  String get homeWidgetPinCharacterNone => 'None';
+
+  @override
+  String get homeWidgetFavoriteChatsOnly =>
+      'Chats widget: favorite characters only';
+
+  @override
+  String get homeWidgetFavoriteChatsOnlyHint =>
+      'Only chats with a favorited character appear in the Chats widget.';
 }

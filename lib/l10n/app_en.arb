@@ -7474,5 +7474,198 @@
   "authHeaderValueHint": "Enter token, key, or Bearer <token>",
   "@authHeaderValueHint": {
     "description": "Hint text for custom auth header value"
+  },
+  "homeWidgets": "Home Screen Widgets",
+  "@homeWidgets": {
+    "description": "Settings title for home screen widgets"
+  },
+  "homeWidgetsSubtitle": "Glance at moments, chats, characters, and API status without opening the app.",
+  "@homeWidgetsSubtitle": {
+    "description": "Subtitle explaining home screen widgets"
+  },
+  "homeWidgetEnabled": "Update home screen widgets",
+  "@homeWidgetEnabled": {
+    "description": "Toggle that publishes widget snapshots"
+  },
+  "homeWidgetEnabledHint": "When on, NativeTavern refreshes widgets after chats, moments, and usage change.",
+  "@homeWidgetEnabledHint": {
+    "description": "Hint for the widget update toggle"
+  },
+  "homeWidgetShuffleChats": "Shuffle chat order",
+  "@homeWidgetShuffleChats": {
+    "description": "Toggle to randomize chat order in the chats widget"
+  },
+  "homeWidgetShuffleChatsHint": "Each chat still shows its latest messages in order. Only the character order is shuffled.",
+  "@homeWidgetShuffleChatsHint": {
+    "description": "Hint for chat shuffle"
+  },
+  "homeWidgetFavoritesOnly": "Characters widget: favorites only",
+  "@homeWidgetFavoritesOnly": {
+    "description": "Limit the characters widget to favorite cards"
+  },
+  "homeWidgetRefreshRemoteUsage": "Check provider credits",
+  "@homeWidgetRefreshRemoteUsage": {
+    "description": "Toggle remote credit refresh for the status widget"
+  },
+  "homeWidgetRefreshRemoteUsageHint": "Uses the current API key on providers that publish a balance or credits endpoint.",
+  "@homeWidgetRefreshRemoteUsageHint": {
+    "description": "Hint for remote credit refresh"
+  },
+  "homeWidgetSlideInterval": "Slideshow interval",
+  "@homeWidgetSlideInterval": {
+    "description": "How often chat/character/moment slides advance"
+  },
+  "homeWidgetMessagesPerChat": "Messages per chat",
+  "@homeWidgetMessagesPerChat": {
+    "description": "How many recent messages to show for each chat"
+  },
+  "homeWidgetMoments": "Moments",
+  "@homeWidgetMoments": {
+    "description": "Moments widget title"
+  },
+  "homeWidgetChats": "Chats",
+  "@homeWidgetChats": {
+    "description": "Chats widget title"
+  },
+  "homeWidgetCharacters": "Characters",
+  "@homeWidgetCharacters": {
+    "description": "Characters widget title"
+  },
+  "homeWidgetStatus": "Status",
+  "@homeWidgetStatus": {
+    "description": "API status widget title"
+  },
+  "homeWidgetEmptyMoments": "Nobody has posted yet.",
+  "@homeWidgetEmptyMoments": {
+    "description": "Empty state for the moments widget"
+  },
+  "homeWidgetEmptyChats": "No chats yet.",
+  "@homeWidgetEmptyChats": {
+    "description": "Empty state for the chats widget"
+  },
+  "homeWidgetEmptyCharacters": "No characters yet.",
+  "@homeWidgetEmptyCharacters": {
+    "description": "Empty state for the characters widget"
+  },
+  "homeWidgetOpenApp": "Open NativeTavern",
+  "@homeWidgetOpenApp": {
+    "description": "Fallback action on a widget"
+  },
+  "homeWidgetProviderReady": "Ready",
+  "@homeWidgetProviderReady": {
+    "description": "Provider is configured"
+  },
+  "homeWidgetProviderNeedsKey": "API key needed",
+  "@homeWidgetProviderNeedsKey": {
+    "description": "Provider is missing an API key"
+  },
+  "homeWidgetProviderLocal": "Local",
+  "@homeWidgetProviderLocal": {
+    "description": "Local provider status"
+  },
+  "homeWidgetProviderUnreachable": "Unreachable",
+  "@homeWidgetProviderUnreachable": {
+    "description": "Provider could not be reached"
+  },
+  "homeWidgetTokensToday": "Today",
+  "@homeWidgetTokensToday": {
+    "description": "Token usage for today"
+  },
+  "homeWidgetTokensTotal": "Total",
+  "@homeWidgetTokensTotal": {
+    "description": "All-time token usage"
+  },
+  "homeWidgetCurrentModel": "Model",
+  "@homeWidgetCurrentModel": {
+    "description": "Current model label"
+  },
+  "homeWidgetRemoteCredits": "Credits",
+  "@homeWidgetRemoteCredits": {
+    "description": "Remote credit balance label"
+  },
+  "homeWidgetRemoteUnsupported": "Tracked locally",
+  "@homeWidgetRemoteUnsupported": {
+    "description": "Provider has no remote usage API"
+  },
+  "homeWidgetUpdated": "Updated",
+  "@homeWidgetUpdated": {
+    "description": "Last updated label"
+  },
+  "homeWidgetAddHint": "On iPhone, iPad, and Mac, long-press the home screen or desktop and add NativeTavern widgets. On Android, long-press the home screen and choose widgets.",
+  "@homeWidgetAddHint": {
+    "description": "How to add the widgets on each platform"
+  },
+  "providerUsage": "Provider usage",
+  "@providerUsage": {
+    "description": "Section title for token usage"
+  },
+  "providerUsageSubtitle": "NativeTavern records tokens from each reply. Some providers also report remaining credits.",
+  "@providerUsageSubtitle": {
+    "description": "Explains local vs remote usage tracking"
+  },
+  "providerUsageToday": "Today",
+  "@providerUsageToday": {
+    "description": "Today's usage row"
+  },
+  "providerUsageAllTime": "All time",
+  "@providerUsageAllTime": {
+    "description": "All-time usage row"
+  },
+  "providerUsageGenerations": "Replies",
+  "@providerUsageGenerations": {
+    "description": "Generation count label"
+  },
+  "providerUsagePrompt": "Prompt",
+  "@providerUsagePrompt": {
+    "description": "Prompt token label"
+  },
+  "providerUsageCompletion": "Completion",
+  "@providerUsageCompletion": {
+    "description": "Completion token label"
+  },
+  "providerUsageRemoteBalance": "Provider balance",
+  "@providerUsageRemoteBalance": {
+    "description": "Remote balance row title"
+  },
+  "providerUsageUnsupported": "This provider does not publish a balance API for this key.",
+  "@providerUsageUnsupported": {
+    "description": "Shown when remote usage is unsupported"
+  },
+  "secondsValue": "{count} seconds",
+  "@secondsValue": {
+    "description": "Slideshow interval in seconds",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeWidgetPrevious": "Previous",
+  "@homeWidgetPrevious": {
+    "description": "Previous slide on a home screen widget"
+  },
+  "homeWidgetNext": "Next",
+  "@homeWidgetNext": {
+    "description": "Next slide on a home screen widget"
+  },
+  "homeWidgetPinCharacter": "Pin a character",
+  "@homeWidgetPinCharacter": {
+    "description": "Limit chats and characters widgets to one card"
+  },
+  "homeWidgetPinCharacterHint": "The Characters and Chats widgets show only this character. Leave as None to cycle through everyone.",
+  "@homeWidgetPinCharacterHint": {
+    "description": "Hint for pinning a character to widgets"
+  },
+  "homeWidgetPinCharacterNone": "None",
+  "@homeWidgetPinCharacterNone": {
+    "description": "Do not pin a character on widgets"
+  },
+  "homeWidgetFavoriteChatsOnly": "Chats widget: favorite characters only",
+  "@homeWidgetFavoriteChatsOnly": {
+    "description": "Limit the chats widget to favorite characters"
+  },
+  "homeWidgetFavoriteChatsOnlyHint": "Only chats with a favorited character appear in the Chats widget.",
+  "@homeWidgetFavoriteChatsOnlyHint": {
+    "description": "Hint for favorite-chats widget filter"
   }
 }
