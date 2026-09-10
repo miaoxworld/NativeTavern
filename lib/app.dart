@@ -6,12 +6,15 @@ import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/providers/theme_providers.dart';
 import 'package:native_tavern/presentation/providers/locale_provider.dart';
 import 'package:native_tavern/presentation/providers/moment_providers.dart';
+import 'package:native_tavern/presentation/providers/home_widget_providers.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/domain/services/debug_log_service.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/presentation/widgets/debug_log_overlay.dart';
 import 'package:native_tavern/presentation/widgets/cloud_sync_listener.dart';
 import 'package:native_tavern/presentation/widgets/cloud_sync_setup_gate.dart';
 import 'package:native_tavern/presentation/widgets/file_open_listener.dart';
+import 'package:native_tavern/presentation/widgets/home_widget_launch_listener.dart';
 import 'package:native_tavern/presentation/widgets/api_key_conflict_dialog.dart';
 import 'package:native_tavern/presentation/widgets/icloud_conflict_dialog.dart';
 import 'package:native_tavern/presentation/widgets/privacy/ai_data_sharing_consent_gate.dart';
@@ -36,6 +39,7 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
       if (settings.enableDebugLog) {
         ref.read(debugLogServiceProvider).startCapturing();
       }
+      RegionService.isChinaRegion();
     });
   }
 
@@ -47,6 +51,7 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
     final settings = ref.watch(appSettingsProvider);
     ref.watch(worldRuntimeProvider);
     ref.watch(momentContextRegistrationProvider);
+    ref.watch(homeWidgetSyncRegistrationProvider);
 
     // Listen for debug log setting changes
     ref.listen<AppSettings>(appSettingsProvider, (previous, next) {
@@ -74,15 +79,17 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        return FileOpenListener(
-          child: CloudSyncSetupGate(
-            child: CloudSyncListener(
-              child: ICloudConflictGate(
-                child: ApiKeyConflictGate(
-                  child: AiDataSharingConsentGate(
-                    child: DebugLogOverlayWrapper(
-                      enabled: settings.enableDebugLog,
-                      child: child ?? const SizedBox.shrink(),
+        return HomeWidgetLaunchListener(
+          child: FileOpenListener(
+            child: CloudSyncSetupGate(
+              child: CloudSyncListener(
+                child: ICloudConflictGate(
+                  child: ApiKeyConflictGate(
+                    child: AiDataSharingConsentGate(
+                      child: DebugLogOverlayWrapper(
+                        enabled: settings.enableDebugLog,
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),

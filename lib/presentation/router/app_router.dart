@@ -8,6 +8,7 @@ import 'package:native_tavern/presentation/screens/character/character_list_scre
 import 'package:native_tavern/presentation/screens/character/character_detail_screen.dart';
 import 'package:native_tavern/presentation/screens/character_editor/character_editor_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/home_widget_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/prompt_manager_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/advanced_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/quick_reply_screen.dart';
@@ -99,6 +100,7 @@ abstract class AppRoutes {
   static const dataBank = '/data-bank';
   static const rpgScenarioEditor = '/rpg-scenario-editor';
   static const storageManagement = '/storage-management';
+  static const homeWidgets = '/settings/home-widgets';
 }
 
 /// Navigation keys for nested navigation
@@ -254,6 +256,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'statistics',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const StatisticsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.homeWidgets,
+        name: 'homeWidgets',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HomeWidgetSettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.aiPresets,

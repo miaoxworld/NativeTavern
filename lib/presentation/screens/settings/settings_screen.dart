@@ -237,6 +237,14 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.statistics),
           ),
+          ListTile(
+            key: const Key('home-widgets-settings-tile'),
+            leading: const Icon(Icons.widgets_outlined),
+            title: Text(l10n.homeWidgets),
+            subtitle: Text(l10n.homeWidgetsSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.homeWidgets),
+          ),
           const Divider(height: 32),
           _buildSectionHeader(context, l10n.about),
           ListTile(
