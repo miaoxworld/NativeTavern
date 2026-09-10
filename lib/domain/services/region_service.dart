@@ -26,6 +26,24 @@ class RegionService {
     return provider == LLMProvider.openai || provider == LLMProvider.xai;
   }
 
+  /// Cached mainland-China result. `false` until detection has run.
+  static bool get cachedIsChinaRegion => _cachedIsChinaRegion == true;
+
+  /// Apple App Store remote-AI policy: do not meter xAI/Grok usage in
+  /// mainland China. Detection uses storefront/SIM/locale, not UI language.
+  /// Unknown region is treated as "do not meter" until detection finishes.
+  static bool get allowsXaiUsageAccounting => _cachedIsChinaRegion == false;
+
+  /// xAI and dual-detected Grok endpoints.
+  static bool isXaiUsageEndpoint(LLMConfig config) {
+    return OpenAIProviderPreset.resolve(config) == OpenAIProviderPreset.xai;
+  }
+
+  @visibleForTesting
+  static void debugSetChinaRegion(bool? value) {
+    _cachedIsChinaRegion = value;
+  }
+
   /// Check if the app is running in China region
   /// On iOS: Uses comprehensive detection (SKStorefront, locale, timezone, preferred languages)
   /// On Android: Uses system locale and SIM country

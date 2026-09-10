@@ -7,6 +7,7 @@ import 'package:native_tavern/domain/models/tool_calling.dart';
 import 'package:native_tavern/domain/services/ai_data_sharing_consent_service.dart';
 import 'package:native_tavern/domain/services/context_window_service.dart';
 import 'package:native_tavern/domain/services/external_call_audit_service.dart';
+import 'package:native_tavern/domain/services/llm_usage_parser.dart';
 import 'package:native_tavern/domain/services/tool_calling/tool_calling_adapter.dart';
 
 /// LLM Provider enum
@@ -94,10 +95,12 @@ enum OpenAIProviderPreset {
 class LLMResponse {
   final String content;
   final String? reasoning;
+  final LlmTokenUsage? usage;
 
   const LLMResponse({
     required this.content,
     this.reasoning,
+    this.usage,
   });
 
   bool get hasReasoning => reasoning != null && reasoning!.isNotEmpty;
@@ -537,6 +540,13 @@ class LLMService {
   final Dio _dio;
   final ContextWindowService _contextWindowService = ContextWindowService();
 
+  /// Called whenever a provider reports token usage for a turn.
+  void Function(LLMConfig config, LlmTokenUsage usage)? onUsage;
+
+  /// When set, usage is recorded and `stream_options.include_usage` is sent
+  /// only if this returns true. Used to keep xAI metering out of mainland China.
+  bool Function(LLMConfig config)? shouldRecordUsage;
+
   LLMService({
     Dio? dio,
     ExternalCallAuditRepository auditRepository =
@@ -684,6 +694,7 @@ class LLMService {
       headers: _openAiHeaders(config),
       cancellationToken: cancellationToken,
     );
+    _emitUsage(config, data);
     final choices = toolObjectList(data['choices']);
     final rawMessage =
         choices.isEmpty ? null : toolObject(choices.first['message']);
@@ -733,6 +744,7 @@ class LLMService {
       },
       cancellationToken: cancellationToken,
     );
+    _emitUsage(config, data);
     final content = data['content'];
     if (content is! List) {
       throw const ToolProtocolException(
@@ -787,6 +799,7 @@ class LLMService {
       headers: {'Content-Type': 'application/json'},
       cancellationToken: cancellationToken,
     );
+    _emitUsage(config, data);
     final candidates = toolObjectList(data['candidates']);
     final content =
         candidates.isEmpty ? null : toolObject(candidates.first['content']);
@@ -1336,10 +1349,51 @@ class LLMService {
     if (!response.hasReasoning) {
       final (content, reasoning) = ThinkTagParser.extract(response.content);
       if (reasoning != null) {
-        return LLMResponse(content: content, reasoning: reasoning);
+        return LLMResponse(
+          content: content,
+          reasoning: reasoning,
+          usage: response.usage,
+        );
       }
     }
     return response;
+  }
+
+  LLMResponse _responseWithUsage({
+    required String content,
+    String? reasoning,
+    required LLMConfig config,
+    Object? raw,
+  }) {
+    final usage = LlmUsageParser.parse(raw);
+    if (usage != null && _mayRecordUsage(config)) {
+      onUsage?.call(config, usage);
+    }
+    return LLMResponse(content: content, reasoning: reasoning, usage: usage);
+  }
+
+  bool _mayRecordUsage(LLMConfig config) {
+    return shouldRecordUsage?.call(config) ?? true;
+  }
+
+  void _emitUsage(LLMConfig config, Object? raw) {
+    final usage = LlmUsageParser.parse(raw);
+    if (usage != null && _mayRecordUsage(config)) {
+      onUsage?.call(config, usage);
+    }
+  }
+
+  LlmTokenUsage? _mergeObservedUsage(LlmTokenUsage? current, Object? raw) {
+    final parsed = LlmUsageParser.parse(raw);
+    if (parsed == null) return current;
+    if (current == null) return parsed;
+    return current.mergedWith(parsed);
+  }
+
+  void _flushObservedUsage(LLMConfig config, LlmTokenUsage? usage) {
+    if (usage != null && !usage.isEmpty && _mayRecordUsage(config)) {
+      onUsage?.call(config, usage);
+    }
   }
 
   /// Merge consecutive same-role messages (prompt post-processing).
@@ -2038,6 +2092,9 @@ class LLMService {
 
     if (stream) {
       requestData['stream'] = true;
+      if (preset != OpenAIProviderPreset.xai || _mayRecordUsage(config)) {
+        requestData['stream_options'] = {'include_usage': true};
+      }
     }
 
     switch (preset) {
@@ -2161,7 +2218,12 @@ class LLMService {
         contentPreview:
             content.length > 100 ? '${content.substring(0, 100)}...' : content);
 
-    return LLMResponse(content: content, reasoning: reasoning);
+    return _responseWithUsage(
+      content: content,
+      reasoning: reasoning,
+      config: config,
+      raw: data,
+    );
   }
 
   Stream<String> _streamOpenAI(
@@ -2192,6 +2254,7 @@ class LLMService {
     final buffer = StringBuffer();
     final fullContent = StringBuffer();
     var isFirst = true;
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       buffer.write(chunk);
@@ -2203,6 +2266,7 @@ class LLMService {
         if (line.startsWith('data: ') && !line.contains('[DONE]')) {
           try {
             final json = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+            observedUsage = _mergeObservedUsage(observedUsage, json);
             final choices = json['choices'] as List<dynamic>?;
             if (choices != null && choices.isNotEmpty) {
               final choice = choices[0] as Map<String, dynamic>;
@@ -2242,6 +2306,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
@@ -2311,7 +2376,12 @@ class LLMService {
         contentPreview:
             content.length > 100 ? '${content.substring(0, 100)}...' : content);
 
-    return LLMResponse(content: content, reasoning: reasoning);
+    return _responseWithUsage(
+      content: content,
+      reasoning: reasoning,
+      config: config,
+      raw: data,
+    );
   }
 
   Stream<String> _streamClaude(
@@ -2356,6 +2426,7 @@ class LLMService {
     final buffer = StringBuffer();
     final fullContent = StringBuffer();
     var isFirst = true;
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       buffer.write(chunk);
@@ -2367,6 +2438,7 @@ class LLMService {
         if (line.startsWith('data: ')) {
           try {
             final json = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+            observedUsage = _mergeObservedUsage(observedUsage, json);
             if (json['type'] == 'content_block_delta') {
               final delta = json['delta'] as Map<String, dynamic>?;
               final text = delta?['text'] as String?;
@@ -2388,6 +2460,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
@@ -2458,7 +2531,12 @@ class LLMService {
         contentPreview:
             content.length > 100 ? '${content.substring(0, 100)}...' : content);
 
-    return LLMResponse(content: content, reasoning: reasoning);
+    return _responseWithUsage(
+      content: content,
+      reasoning: reasoning,
+      config: config,
+      raw: data,
+    );
   }
 
   Stream<String> _streamGemini(
@@ -2521,7 +2599,12 @@ class LLMService {
         contentPreview:
             content.length > 100 ? '${content.substring(0, 100)}...' : content);
 
-    return LLMResponse(content: content, reasoning: reasoning);
+    return _responseWithUsage(
+      content: content,
+      reasoning: reasoning,
+      config: config,
+      raw: data,
+    );
   }
 
   Stream<String> _streamOllama(
@@ -2558,6 +2641,7 @@ class LLMService {
     final buffer = StringBuffer();
     final fullContent = StringBuffer();
     var isFirst = true;
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       buffer.write(chunk);
@@ -2569,6 +2653,7 @@ class LLMService {
         if (line.isNotEmpty) {
           try {
             final json = jsonDecode(line) as Map<String, dynamic>;
+            observedUsage = _mergeObservedUsage(observedUsage, json);
             final message = json['message'] as Map<String, dynamic>?;
             final content = message?['content'] as String?;
             if (content != null) {
@@ -2588,6 +2673,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 
@@ -2642,7 +2728,12 @@ class LLMService {
             content.length > 100 ? '${content.substring(0, 100)}...' : content);
 
     // KoboldCpp doesn't typically return reasoning content
-    return LLMResponse(content: content, reasoning: null);
+    return _responseWithUsage(
+      content: content,
+      reasoning: null,
+      config: config,
+      raw: data,
+    );
   }
 
   Stream<String> _streamKobold(
@@ -2790,6 +2881,7 @@ class LLMService {
       final fullContent = StringBuffer();
       final fullReasoning = StringBuffer();
       var isFirst = true;
+      LlmTokenUsage? observedUsage;
 
       await for (final chunk in stream) {
         buffer.write(chunk);
@@ -2802,6 +2894,7 @@ class LLMService {
             try {
               final json =
                   jsonDecode(line.substring(6)) as Map<String, dynamic>;
+              observedUsage = _mergeObservedUsage(observedUsage, json);
               final choices = json['choices'] as List<dynamic>?;
               if (choices != null && choices.isNotEmpty) {
                 final choice = choices[0] as Map<String, dynamic>;
@@ -2853,6 +2946,7 @@ class LLMService {
         }
       }
 
+      _flushObservedUsage(config, observedUsage);
       _logStreamComplete(config.provider.name, fullContent.toString());
       if (fullReasoning.isNotEmpty) {
         _log('Reasoning content: ${fullReasoning.toString()}');
@@ -2915,6 +3009,7 @@ class LLMService {
     final fullThinking = StringBuffer();
     var isFirst = true;
     var currentBlockType = ''; // Track current content block type
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       buffer.write(chunk);
@@ -2926,6 +3021,7 @@ class LLMService {
         if (line.startsWith('data: ')) {
           try {
             final json = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+            observedUsage = _mergeObservedUsage(observedUsage, json);
             final eventType = json['type'] as String?;
 
             // Track content block type for thinking blocks
@@ -2988,6 +3084,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
     if (fullThinking.isNotEmpty) {
       _log('Thinking content: ${fullThinking.toString()}');
@@ -3041,9 +3138,11 @@ class LLMService {
     final fullContent = StringBuffer();
     final fullThought = StringBuffer();
     var isFirst = true;
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       for (final json in decoder.add(chunk)) {
+        observedUsage = _mergeObservedUsage(observedUsage, json);
         final candidates = json['candidates'] as List<dynamic>?;
         if (candidates == null || candidates.isEmpty) continue;
 
@@ -3091,6 +3190,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
     if (fullThought.isNotEmpty) {
       _log('Thought content: ${fullThought.toString()}');
@@ -3141,6 +3241,7 @@ class LLMService {
     final buffer = StringBuffer();
     final fullContent = StringBuffer();
     var isFirst = true;
+    LlmTokenUsage? observedUsage;
 
     await for (final chunk in stream) {
       buffer.write(chunk);
@@ -3152,6 +3253,7 @@ class LLMService {
         if (line.isNotEmpty) {
           try {
             final json = jsonDecode(line) as Map<String, dynamic>;
+            observedUsage = _mergeObservedUsage(observedUsage, json);
             final message = json['message'] as Map<String, dynamic>?;
             final content = message?['content'] as String?;
             if (content != null) {
@@ -3171,6 +3273,7 @@ class LLMService {
       }
     }
 
+    _flushObservedUsage(config, observedUsage);
     _logStreamComplete(config.provider.name, fullContent.toString());
   }
 

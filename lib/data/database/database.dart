@@ -661,7 +661,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration {
@@ -696,6 +696,7 @@ class AppDatabase extends _$AppDatabase {
             await _repairMomentCommentsForeignKey();
             await _ensureCharacterFriendshipsTable();
             await _ensureOperationLogsTable();
+            await _ensureProviderUsageTables();
             return;
           }
 
@@ -835,6 +836,9 @@ class AppDatabase extends _$AppDatabase {
               'ON moment_comments (parent_comment_id)',
             );
           }
+          if (from < 24) {
+            await _ensureProviderUsageTables();
+          }
         });
       },
       beforeOpen: (details) async {
@@ -842,6 +846,7 @@ class AppDatabase extends _$AppDatabase {
         await _repairMomentCommentsForeignKey();
         await _ensureCharacterFriendshipsTable();
         await _ensureOperationLogsTable();
+        await _ensureProviderUsageTables();
         final memorySearchIndexCreated =
             await _ensureLongTermMemorySearchIndex();
         if (memorySearchIndexCreated) {
@@ -1298,6 +1303,44 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS operation_logs_kind_subject_idx '
       'ON operation_logs (kind, subject_id, status)',
     );
+  }
+
+  Future<void> _ensureProviderUsageTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS provider_usage_events (
+        id TEXT NOT NULL PRIMARY KEY,
+        provider TEXT NOT NULL,
+        model TEXT NOT NULL,
+        prompt_tokens INTEGER NOT NULL,
+        completion_tokens INTEGER NOT NULL,
+        total_tokens INTEGER NOT NULL,
+        cached_tokens INTEGER NOT NULL DEFAULT 0,
+        reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+        cost_usd REAL NULL,
+        source TEXT NOT NULL,
+        chat_id TEXT NULL,
+        created_at INTEGER NOT NULL,
+        CHECK (source IN ('local', 'remote')),
+        CHECK (prompt_tokens >= 0),
+        CHECK (completion_tokens >= 0),
+        CHECK (total_tokens >= 0)
+      )
+    ''');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS provider_usage_events_provider_idx '
+      'ON provider_usage_events (provider, created_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS provider_usage_events_model_idx '
+      'ON provider_usage_events (provider, model, created_at)',
+    );
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS provider_usage_remote (
+        provider TEXT NOT NULL PRIMARY KEY,
+        payload_json TEXT NOT NULL,
+        fetched_at INTEGER NOT NULL
+      )
+    ''');
   }
 
   Future<void> _ensureCharacterFriendshipsTable() async {
