@@ -79,6 +79,8 @@ import BackgroundTasks
     iCloudChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleICloudCall(call, result: result)
     }
+
+    HomeWidgetPlugin.register(with: messenger)
   }
 
   private var fileOpenChannel: FlutterMethodChannel?
@@ -117,6 +119,9 @@ import BackgroundTasks
 
   @discardableResult
   func handleIncomingURL(_ url: URL) -> Bool {
+    if HomeWidgetPlugin.ingestLaunchURL(url) {
+      return true
+    }
     guard isNativeTavernDocument(url) else { return false }
     deliverOpenedFile(url)
     return true

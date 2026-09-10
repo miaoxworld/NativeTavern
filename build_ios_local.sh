@@ -12,6 +12,9 @@ fi
 
 EXPECTED_BUNDLE_ID="com.miaomiaoxworld.nativetavern"
 BUNDLE_ID="${BUNDLE_ID:-${APPLE_BUNDLE_ID:-${IOS_BUNDLE_ID:-$EXPECTED_BUNDLE_ID}}}"
+APP_GROUP_ID="${APP_GROUP_ID:-group.${BUNDLE_ID}}"
+EXPECTED_WIDGET_BUNDLE_ID="${EXPECTED_BUNDLE_ID}.HomeWidgets"
+WIDGET_BUNDLE_ID="${BUNDLE_ID}.HomeWidgets"
 EXPECTED_IOS_TARGET="15.0"
 EXPORT_METHOD="${EXPORT_METHOD:-${IOS_EXPORT_METHOD:-development}}"
 BUILD_FOR_DEVICE="${BUILD_FOR_DEVICE:-false}"
@@ -374,6 +377,10 @@ TEAM_ID="${TEAM_ID:-${APPLE_DEVELOP_ID:-$PROJECT_TEAM_ID}}"
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nativetavern-ios-release.XXXXXX")"
 ENTITLEMENTS_FILE="ios/Runner/Runner.entitlements"
 ENTITLEMENTS_BACKUP="$TEMP_DIR/Runner.entitlements.bak"
+WIDGET_ENTITLEMENTS_FILE="ios/HomeWidgets/HomeWidgets.entitlements"
+WIDGET_ENTITLEMENTS_BACKUP="$TEMP_DIR/HomeWidgets.entitlements.bak"
+WIDGET_INFO_PLIST="ios/HomeWidgets/Info.plist"
+WIDGET_INFO_PLIST_BACKUP="$TEMP_DIR/HomeWidgets.Info.plist.bak"
 INFO_PLIST_BACKUP="$TEMP_DIR/Info.plist.bak"
 PBXPROJ_BACKUP="$TEMP_DIR/project.pbxproj.bak"
 DEBUG_XCCONFIG="ios/Flutter/Debug.xcconfig"
@@ -384,6 +391,12 @@ SIMULATOR_TAIL_PID=""
 
 if [[ -f "$ENTITLEMENTS_FILE" ]]; then
   cp "$ENTITLEMENTS_FILE" "$ENTITLEMENTS_BACKUP"
+fi
+if [[ -f "$WIDGET_ENTITLEMENTS_FILE" ]]; then
+  cp "$WIDGET_ENTITLEMENTS_FILE" "$WIDGET_ENTITLEMENTS_BACKUP"
+fi
+if [[ -f "$WIDGET_INFO_PLIST" ]]; then
+  cp "$WIDGET_INFO_PLIST" "$WIDGET_INFO_PLIST_BACKUP"
 fi
 if [[ -f "$INFO_PLIST" ]]; then
   cp "$INFO_PLIST" "$INFO_PLIST_BACKUP"
@@ -408,6 +421,12 @@ cleanup() {
   fi
   if [[ -f "$ENTITLEMENTS_BACKUP" ]]; then
     cp -f "$ENTITLEMENTS_BACKUP" "$ENTITLEMENTS_FILE"
+  fi
+  if [[ -f "$WIDGET_ENTITLEMENTS_BACKUP" ]]; then
+    cp -f "$WIDGET_ENTITLEMENTS_BACKUP" "$WIDGET_ENTITLEMENTS_FILE"
+  fi
+  if [[ -f "$WIDGET_INFO_PLIST_BACKUP" ]]; then
+    cp -f "$WIDGET_INFO_PLIST_BACKUP" "$WIDGET_INFO_PLIST"
   fi
   if [[ -f "$DEBUG_XCCONFIG_BACKUP" ]]; then
     cp -f "$DEBUG_XCCONFIG_BACKUP" "$DEBUG_XCCONFIG"
@@ -441,6 +460,8 @@ printf 'Xcode: %s (major %s) at %s\n' \
   "$XCODE_APP"
 printf 'Team: %s\n' "$TEAM_ID"
 printf 'Bundle ID: %s\n' "$BUNDLE_ID"
+printf 'App Group: %s\n' "$APP_GROUP_ID"
+printf 'Widget Bundle ID: %s\n' "$WIDGET_BUNDLE_ID"
 printf 'iCloud Enabled: %s\n' "$ENABLE_ICLOUD"
 if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
   printf 'iCloud Container: %s\n' "$TARGET_CONTAINER_ID"
@@ -480,12 +501,14 @@ COMMON_XCODE_ARGS=(
   "FLUTTER_BUILD_NUMBER=$BUILD_NUMBER"
 )
 
-if [[ "$BUNDLE_ID" != "$EXPECTED_BUNDLE_ID" ]]; then
-  COMMON_XCODE_ARGS+=("PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID")
-fi
+# Bundle IDs are written onto Runner and HomeWidgets in the pbxproj so the
+# widget extension keeps "$BUNDLE_ID.HomeWidgets" instead of colliding.
 
-if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
-  cat <<EOF > "$ENTITLEMENTS_FILE"
+write_app_group_entitlements() {
+  local dest="$1"
+  local extra_icloud="${2:-false}"
+  if [[ "$extra_icloud" == 'true' ]]; then
+    cat <<EOF > "$dest"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -502,26 +525,75 @@ if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
 	<array>
 		<string>$TARGET_CONTAINER_ID</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$APP_GROUP_ID</string>
+	</array>
 </dict>
 </plist>
 EOF
-  if [[ "$TARGET_CONTAINER_ID" != "iCloud.com.miaomiaoxworld.nativetavern" ]]; then
-    sed -i '' "s/iCloud\.com\.miaomiaoxworld\.nativetavern/$TARGET_CONTAINER_ID/g" "$INFO_PLIST"
-  fi
-else
-  cat <<EOF > "$ENTITLEMENTS_FILE"
+  else
+    cat <<EOF > "$dest"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$APP_GROUP_ID</string>
+	</array>
 </dict>
 </plist>
 EOF
+  fi
+}
+
+set_plist_app_group() {
+  local plist="$1"
+  [[ -f "$plist" ]] || return 0
+  /usr/libexec/PlistBuddy -c "Delete :NTAppGroupId" "$plist" >/dev/null 2>&1 || true
+  /usr/libexec/PlistBuddy -c "Add :NTAppGroupId string $APP_GROUP_ID" "$plist"
+}
+
+if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
+  write_app_group_entitlements "$ENTITLEMENTS_FILE" true
+  if [[ "$TARGET_CONTAINER_ID" != "iCloud.com.miaomiaoxworld.nativetavern" ]]; then
+    sed -i '' "s/iCloud\.com\.miaomiaoxworld\.nativetavern/$TARGET_CONTAINER_ID/g" "$INFO_PLIST"
+  fi
+else
+  write_app_group_entitlements "$ENTITLEMENTS_FILE" false
 fi
+if [[ -f "$WIDGET_ENTITLEMENTS_FILE" ]]; then
+  write_app_group_entitlements "$WIDGET_ENTITLEMENTS_FILE" false
+fi
+set_plist_app_group "$INFO_PLIST"
+set_plist_app_group "$WIDGET_INFO_PLIST"
+
+apply_simulator_bundle_id() {
+  # Target-level PRODUCT_BUNDLE_IDENTIFIER in project.pbxproj beats xcconfig.
+  # flutter run does not pass command-line overrides, so the project file must
+  # match .env for the simulator install. RunnerTests keep the .RunnerTests id.
+  # HomeWidgets keeps "$BUNDLE_ID.HomeWidgets".
+  if [[ "$BUNDLE_ID" == "$EXPECTED_BUNDLE_ID" ]]; then
+    return 0
+  fi
+  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};" "$PBXPROJ" \
+    || fail "Cannot apply BUNDLE_ID: expected $EXPECTED_BUNDLE_ID in $PBXPROJ"
+  if grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_WIDGET_BUNDLE_ID};" "$PBXPROJ"; then
+    sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_WIDGET_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${WIDGET_BUNDLE_ID};/g" "$PBXPROJ"
+  fi
+  sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBXPROJ"
+  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};" "$PBXPROJ" \
+    || fail "Failed to write PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID into $PBXPROJ"
+  if [[ -f "$DEBUG_XCCONFIG" ]]; then
+    printf '\nPRODUCT_BUNDLE_IDENTIFIER=%s\n' "$BUNDLE_ID" >> "$DEBUG_XCCONFIG"
+  fi
+}
 
 if [[ "$BUILD_FOR_DEVICE" == 'true' ]]; then
   [[ -n "$DEVICE_ID" ]] || fail "Set DEVICE_ID when BUILD_FOR_DEVICE=true"
   DERIVED_DATA_PATH="$BUILD_ROOT/DerivedData"
+  apply_simulator_bundle_id
 
   xcodebuild "${COMMON_XCODE_ARGS[@]}" \
     -destination "id=$DEVICE_ID" \
@@ -544,23 +616,6 @@ if [[ "$BUILD_FOR_DEVICE" == 'true' ]]; then
   printf 'Installed NativeTavern %s on device %s.\n' "$VERSION" "$DEVICE_ID"
   exit 0
 fi
-
-apply_simulator_bundle_id() {
-  # Target-level PRODUCT_BUNDLE_IDENTIFIER in project.pbxproj beats xcconfig.
-  # flutter run does not pass command-line overrides, so the project file must
-  # match .env for the simulator install. RunnerTests keep the .RunnerTests id.
-  if [[ "$BUNDLE_ID" == "$EXPECTED_BUNDLE_ID" ]]; then
-    return 0
-  fi
-  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};" "$PBXPROJ" \
-    || fail "Cannot apply BUNDLE_ID: expected $EXPECTED_BUNDLE_ID in $PBXPROJ"
-  sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBXPROJ"
-  grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};" "$PBXPROJ" \
-    || fail "Failed to write PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID into $PBXPROJ"
-  if [[ -f "$DEBUG_XCCONFIG" ]]; then
-    printf '\nPRODUCT_BUNDLE_IDENTIFIER=%s\n' "$BUNDLE_ID" >> "$DEBUG_XCCONFIG"
-  fi
-}
 
 apply_simulator_xcode_overrides() {
   apply_simulator_bundle_id
@@ -589,6 +644,16 @@ verify_simulator_app_identity() {
   [[ "$installed" == "$BUNDLE_ID" ]] \
     || fail "Installed CFBundleIdentifier is $installed, expected $BUNDLE_ID"
   printf 'Verified simulator bundle ID: %s\n' "$installed"
+  widget_appex="$container/PlugIns/HomeWidgets.appex"
+  [[ -d "$widget_appex" ]] \
+    || fail "HomeWidgets.appex is missing from $container/PlugIns"
+  widget_group="$(codesign -d --entitlements :- "$widget_appex" 2>/dev/null | tr -d '\0' || true)"
+  printf '%s' "$widget_group" | grep -Fq "$APP_GROUP_ID" \
+    || fail "HomeWidgets.appex is missing App Group $APP_GROUP_ID"
+  runner_group="$(codesign -d --entitlements :- "$container/Runner" 2>/dev/null | tr -d '\0' || true)"
+  printf '%s' "$runner_group" | grep -Fq "$APP_GROUP_ID" \
+    || fail "Runner is missing App Group $APP_GROUP_ID"
+  printf 'Verified HomeWidgets extension and App Group %s\n' "$APP_GROUP_ID"
   if [[ "$ENABLE_ICLOUD" == 'true' ]]; then
     read_plist_value "$plist" "NSUbiquitousContainers:$TARGET_CONTAINER_ID:NSUbiquitousContainerName" \
       | grep -q . \

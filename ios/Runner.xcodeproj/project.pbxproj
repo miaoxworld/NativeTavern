@@ -18,6 +18,12 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A11E00010000000000000007 /* HomeWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000002 /* HomeWidgets.swift */; };
+		A11E00010000000000000008 /* HomeWidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000003 /* HomeWidgetShared.swift */; };
+		A11E00010000000000000009 /* HomeWidgetPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000006 /* HomeWidgetPlugin.swift */; };
+		A11E00010000000000000016 /* HomeWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000001 /* HomeWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A11E00010000000000000019 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000017 /* WidgetKit.framework */; };
+		A11E0001000000000000001A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11E00010000000000000018 /* SwiftUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +33,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		A11E00010000000000000013 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A11E0001000000000000000A;
+			remoteInfo = HomeWidgets;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -39,6 +52,17 @@
 			files = (
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11E00010000000000000015 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A11E00010000000000000016 /* HomeWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -70,6 +94,14 @@
 		8F3A1B2C4D5E6F708192A3B4 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		B3C47921D67762488E7E66BD /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		BADD92B5A03822C55D384BBB /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		A11E00010000000000000001 /* HomeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HomeWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A11E00010000000000000002 /* HomeWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidgets.swift; sourceTree = "<group>"; };
+		A11E00010000000000000003 /* HomeWidgetShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeWidgetShared.swift; path = ../native/apple_home_widgets/HomeWidgetShared.swift; sourceTree = SOURCE_ROOT; };
+		A11E00010000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A11E00010000000000000005 /* HomeWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HomeWidgets.entitlements; sourceTree = "<group>"; };
+		A11E00010000000000000006 /* HomeWidgetPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidgetPlugin.swift; sourceTree = "<group>"; };
+		A11E00010000000000000017 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		A11E00010000000000000018 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +110,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				56F282814E1897ED3B8D3079 /* Pods_RunnerTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11E0001000000000000000D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A11E00010000000000000019 /* WidgetKit.framework in Frameworks */,
+				A11E0001000000000000001A /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +173,7 @@
 			children = (
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
+				A11E00010000000000000012 /* HomeWidgets */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				3D908D5E517F6DAAB46FF190 /* Pods */,
@@ -143,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
+				A11E00010000000000000001 /* HomeWidgets.appex */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 			);
 			name = Products;
@@ -160,6 +203,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
+				A11E00010000000000000006 /* HomeWidgetPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -170,8 +214,21 @@
 			children = (
 				3B7F27B1F901C7AA665425E7 /* Pods_Runner.framework */,
 				3986998680623EFFB22335BC /* Pods_RunnerTests.framework */,
+				A11E00010000000000000017 /* WidgetKit.framework */,
+				A11E00010000000000000018 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A11E00010000000000000012 /* HomeWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				A11E00010000000000000002 /* HomeWidgets.swift */,
+				A11E00010000000000000003 /* HomeWidgetShared.swift */,
+				A11E00010000000000000004 /* Info.plist */,
+				A11E00010000000000000005 /* HomeWidgets.entitlements */,
+			);
+			path = HomeWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -206,6 +263,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				A11E00010000000000000015 /* Embed App Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				2D598F8BC60B950AF11EABBA /* [CP] Copy Pods Resources */,
 				69212C9C7D456CE9E1E6B417 /* [CP] Embed Pods Frameworks */,
@@ -213,6 +271,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				A11E00010000000000000014 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -221,6 +280,23 @@
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A11E0001000000000000000A /* HomeWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A11E00010000000000000011 /* Build configuration list for PBXNativeTarget "HomeWidgets" */;
+			buildPhases = (
+				A11E0001000000000000000B /* Sources */,
+				A11E0001000000000000000D /* Frameworks */,
+				A11E0001000000000000000C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HomeWidgets;
+			productName = HomeWidgets;
+			productReference = A11E00010000000000000001 /* HomeWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -239,6 +315,10 @@
 					97C146ED1CF9000F007C117D = {
 						CreatedOnToolsVersion = 7.3.1;
 						LastSwiftMigration = 1100;
+					};
+					A11E0001000000000000000A = {
+						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = Q2AMTVPJ86;
 					};
 				};
 			};
@@ -259,6 +339,7 @@
 			projectRoot = "";
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
+				A11E0001000000000000000A /* HomeWidgets */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 			);
 		};
@@ -266,6 +347,13 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		331C807F294A63A400263BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11E0001000000000000000C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -412,7 +500,17 @@
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				A11E00010000000000000009 /* HomeWidgetPlugin.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A11E0001000000000000000B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A11E00010000000000000007 /* HomeWidgets.swift in Sources */,
+				A11E00010000000000000008 /* HomeWidgetShared.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -423,6 +521,11 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		A11E00010000000000000014 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A11E0001000000000000000A /* HomeWidgets */;
+			targetProxy = A11E00010000000000000013 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -735,6 +838,79 @@
 			};
 			name = Release;
 		};
+
+		A11E0001000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HomeWidgets/HomeWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q2AMTVPJ86;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HomeWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.miaomiaoxworld.nativetavern.HomeWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A11E0001000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HomeWidgets/HomeWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q2AMTVPJ86;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HomeWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.miaomiaoxworld.nativetavern.HomeWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A11E00010000000000000010 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HomeWidgets/HomeWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q2AMTVPJ86;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HomeWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.miaomiaoxworld.nativetavern.HomeWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -764,6 +940,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A11E00010000000000000011 /* Build configuration list for PBXNativeTarget "HomeWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A11E0001000000000000000E /* Debug */,
+				A11E0001000000000000000F /* Release */,
+				A11E00010000000000000010 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

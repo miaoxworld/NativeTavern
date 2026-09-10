@@ -6,6 +6,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Native Tavern</string>
+	<key>NTAppGroupId</key>
+	<string>group.com.miaomiaoxworld.nativetavern</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -270,6 +272,16 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.1077961567755-u0fmbqpg1j94kn3nt0sq7v9ehfalc80g</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.nativetavern.widget</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>nativetavern</string>
 			</array>
 		</dict>
 	</array>
