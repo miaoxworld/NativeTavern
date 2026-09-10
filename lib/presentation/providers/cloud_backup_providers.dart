@@ -18,13 +18,34 @@ import 'package:native_tavern/domain/services/google_drive_service.dart';
 import 'package:native_tavern/domain/services/icloud_sync_conflict.dart';
 import 'package:native_tavern/domain/services/legacy_ntx_converter.dart';
 import 'package:native_tavern/domain/services/secret_vault_service.dart';
+import 'package:native_tavern/presentation/providers/ai_preset_providers.dart';
+import 'package:native_tavern/presentation/providers/background_providers.dart';
+import 'package:native_tavern/presentation/providers/backup_providers.dart';
+import 'package:native_tavern/presentation/providers/cfg_scale_providers.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/chat_providers.dart';
+import 'package:native_tavern/presentation/providers/data_bank_providers.dart';
 import 'package:native_tavern/presentation/providers/group_providers.dart';
+import 'package:native_tavern/presentation/providers/image_gen_providers.dart';
+import 'package:native_tavern/presentation/providers/locale_provider.dart';
+import 'package:native_tavern/presentation/providers/logit_bias_providers.dart';
+import 'package:native_tavern/presentation/providers/logprobs_providers.dart';
 import 'package:native_tavern/presentation/providers/moment_providers.dart';
 import 'package:native_tavern/presentation/providers/persona_providers.dart';
+import 'package:native_tavern/presentation/providers/prompt_manager_providers.dart';
+import 'package:native_tavern/presentation/providers/quick_reply_providers.dart';
+import 'package:native_tavern/presentation/providers/regex_providers.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
+import 'package:native_tavern/presentation/providers/sprite_providers.dart';
 import 'package:native_tavern/presentation/providers/story_providers.dart';
 import 'package:native_tavern/presentation/providers/story_timeline_providers.dart';
+import 'package:native_tavern/presentation/providers/stt_providers.dart';
+import 'package:native_tavern/presentation/providers/theme_providers.dart';
+import 'package:native_tavern/presentation/providers/tokenizer_providers.dart';
+import 'package:native_tavern/presentation/providers/tool_calling_providers.dart';
+import 'package:native_tavern/presentation/providers/translation_providers.dart';
+import 'package:native_tavern/presentation/providers/tts_providers.dart';
+import 'package:native_tavern/presentation/providers/vector_storage_providers.dart';
 import 'package:native_tavern/presentation/providers/world_info_providers.dart';
 
 /// How often automatic cloud sync runs while the app is in the foreground.
@@ -64,6 +85,33 @@ bool remoteCloudSnapshotIsNewer({
   return remoteUpdatedAt.isAfter(
     lastLocalSync.add(const Duration(seconds: 2)),
   );
+}
+
+/// First-launch prompt when iCloud/Drive already has a snapshot and this
+/// install has never completed a cloud sync.
+bool shouldOfferCloudSyncSetup({
+  required bool setupCompleted,
+  required DateTime? lastCloudSync,
+  required bool remoteSnapshotExists,
+}) {
+  if (setupCompleted || lastCloudSync != null) return false;
+  return remoteSnapshotExists;
+}
+
+/// Guard against a new device uploading an empty snapshot over existing data.
+bool shouldPushCloudSnapshot({
+  required bool queryCompleted,
+  required bool remoteSnapshotExists,
+  required DateTime? lastLocalSync,
+  required bool pulledThisRun,
+}) {
+  if (lastLocalSync == null && !queryCompleted && !remoteSnapshotExists) {
+    return false;
+  }
+  if (lastLocalSync == null && remoteSnapshotExists && !pulledThisRun) {
+    return false;
+  }
+  return true;
 }
 
 /// Path of a backup file opened from the system Files app / share sheet.
@@ -143,6 +191,7 @@ class CloudBackupSettings {
   final bool includeConversationImages;
   final bool includeBackgrounds;
   final bool includeLive2D;
+  final bool syncSettingsEnabled;
 
   const CloudBackupSettings({
     this.iCloudEnabled = false,
@@ -157,6 +206,7 @@ class CloudBackupSettings {
     this.includeConversationImages = false,
     this.includeBackgrounds = false,
     this.includeLive2D = false,
+    this.syncSettingsEnabled = true,
   });
 
   CloudBackupOptions get backupOptions => CloudBackupOptions(
@@ -182,6 +232,7 @@ class CloudBackupSettings {
     bool? includeConversationImages,
     bool? includeBackgrounds,
     bool? includeLive2D,
+    bool? syncSettingsEnabled,
   }) {
     return CloudBackupSettings(
       iCloudEnabled: iCloudEnabled ?? this.iCloudEnabled,
@@ -199,6 +250,7 @@ class CloudBackupSettings {
           includeConversationImages ?? this.includeConversationImages,
       includeBackgrounds: includeBackgrounds ?? this.includeBackgrounds,
       includeLive2D: includeLive2D ?? this.includeLive2D,
+      syncSettingsEnabled: syncSettingsEnabled ?? this.syncSettingsEnabled,
     );
   }
 
@@ -215,6 +267,7 @@ class CloudBackupSettings {
         'includeConversationImages': includeConversationImages,
         'includeBackgrounds': includeBackgrounds,
         'includeLive2D': includeLive2D,
+        'syncSettingsEnabled': syncSettingsEnabled,
       };
 
   factory CloudBackupSettings.fromJson(Map<String, dynamic> json) {
@@ -239,6 +292,7 @@ class CloudBackupSettings {
           json['includeConversationImages'] as bool? ?? false,
       includeBackgrounds: json['includeBackgrounds'] as bool? ?? false,
       includeLive2D: json['includeLive2D'] as bool? ?? false,
+      syncSettingsEnabled: json['syncSettingsEnabled'] as bool? ?? true,
     );
   }
 }
@@ -347,6 +401,11 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
     _saveSettings();
   }
 
+  void setSyncSettingsEnabled(bool value) {
+    state = state.copyWith(syncSettingsEnabled: value);
+    _saveSettings();
+  }
+
   void updateLastICloudSync() {
     state = state.copyWith(lastICloudSync: DateTime.now());
     _saveSettings();
@@ -355,6 +414,105 @@ class CloudBackupSettingsNotifier extends StateNotifier<CloudBackupSettings> {
   void updateLastGoogleDriveSync() {
     state = state.copyWith(lastGoogleDriveSync: DateTime.now());
     _saveSettings();
+  }
+}
+
+enum CloudSyncSetupStatus { checking, available, finished }
+
+class CloudSyncSetupState {
+  final CloudSyncSetupStatus status;
+  final CloudProvider? provider;
+
+  const CloudSyncSetupState({
+    this.status = CloudSyncSetupStatus.checking,
+    this.provider,
+  });
+
+  bool get blocksApp =>
+      status == CloudSyncSetupStatus.checking ||
+      status == CloudSyncSetupStatus.available;
+}
+
+final cloudSyncSetupProvider =
+    StateNotifierProvider<CloudSyncSetupNotifier, CloudSyncSetupState>((ref) {
+  return CloudSyncSetupNotifier(ref);
+});
+
+class CloudSyncSetupNotifier extends StateNotifier<CloudSyncSetupState> {
+  static const storageKey = 'cloud_sync_setup_completed';
+
+  CloudSyncSetupNotifier(this._ref)
+      : super(const CloudSyncSetupState()) {
+    _probe();
+  }
+
+  final Ref _ref;
+
+  Future<void> _probe() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(storageKey) == true) {
+        state = const CloudSyncSetupState(status: CloudSyncSetupStatus.finished);
+        return;
+      }
+      await _ref.read(cloudBackupSettingsProvider.notifier).ready.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {},
+          );
+      final settings = _ref.read(cloudBackupSettingsProvider);
+      final lastSync = settings.lastICloudSync ?? settings.lastGoogleDriveSync;
+      if (lastSync != null) {
+        await markFinished();
+        return;
+      }
+
+      var remoteExists = false;
+      CloudProvider? provider;
+      if (Platform.isIOS || Platform.isMacOS) {
+        await CloudBackupService.instance.prefetchICloudSyncFiles();
+        final probe = await CloudBackupService.instance.probeICloudSync(
+          queryTimeout: const Duration(seconds: 6),
+        );
+        remoteExists = probe.backup != null;
+        provider = CloudProvider.iCloud;
+      } else if (Platform.isAndroid) {
+        final signedIn = await GoogleDriveService.instance.trySilentSignIn();
+        if (signedIn) {
+          _ref.read(googleDriveSignedInProvider.notifier).state = true;
+          final remote = await GoogleDriveService.instance.findNamedFile(
+                CloudBackupService.syncBackupFileName,
+                appData: true,
+              ) ??
+              await GoogleDriveService.instance.findNamedFile(
+                CloudBackupService.syncBackupFileName,
+              );
+          remoteExists = remote != null;
+          provider = CloudProvider.googleDrive;
+        }
+      }
+
+      if (shouldOfferCloudSyncSetup(
+        setupCompleted: false,
+        lastCloudSync: lastSync,
+        remoteSnapshotExists: remoteExists,
+      )) {
+        state = CloudSyncSetupState(
+          status: CloudSyncSetupStatus.available,
+          provider: provider,
+        );
+        return;
+      }
+      await markFinished();
+    } catch (e) {
+      debugPrint('[CloudBackup] setup probe failed: $e');
+      await markFinished();
+    }
+  }
+
+  Future<void> markFinished() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(storageKey, true);
+    state = const CloudSyncSetupState(status: CloudSyncSetupStatus.finished);
   }
 }
 
@@ -467,6 +625,142 @@ class CloudBackupOperationNotifier
 
   CloudBackupService get _service => _ref.read(cloudBackupServiceProvider);
 
+  bool get _syncSettingsEnabled =>
+      _ref.read(cloudBackupSettingsProvider).syncSettingsEnabled;
+
+  Map<String, dynamic> _packageForRestore(
+    Map<String, dynamic> package, {
+    required bool restoreSettings,
+  }) {
+    if (restoreSettings) return package;
+    final data = package['data'];
+    if (data is! Map) return package;
+    return {
+      ...package,
+      'data': CloudDeviceSettings.stripFromData(
+        Map<String, dynamic>.from(data),
+      ),
+    };
+  }
+
+  Future<void> _replaceSyncedSettings(Map<String, dynamic> package) async {
+    final raw = package['data'];
+    if (raw is! Map) return;
+    final settings = CloudDeviceSettings.extractFromData(
+      Map<String, dynamic>.from(raw),
+    );
+    if (settings.isEmpty) return;
+    await DatabaseBackupService(_ref.read(databaseProvider)).importData(
+      data: settings,
+      mode: ImportMode.replace,
+    );
+  }
+
+  Future<void> _reloadSyncedSettings() async {
+    try {
+      await _ref.read(llmConfigProvider.notifier).reloadFromStorage();
+    } catch (e) {
+      debugPrint('[CloudBackup] llm config reload failed: $e');
+    }
+    try {
+      await _ref.read(appSettingsProvider.notifier).reloadFromStorage();
+    } catch (e) {
+      debugPrint('[CloudBackup] app settings reload failed: $e');
+    }
+    _ref.invalidate(connectionProfilesProvider);
+    _ref.invalidate(localeProvider);
+    _ref.invalidate(activeThemeIdProvider);
+    _ref.invalidate(customThemesProvider);
+    _ref.invalidate(ttsSettingsProvider);
+    _ref.invalidate(sttSettingsProvider);
+    _ref.invalidate(translationSettingsProvider);
+    _ref.invalidate(imageGenSettingsProvider);
+    _ref.invalidate(regexSettingsProvider);
+    _ref.invalidate(globalRegexScriptsProvider);
+    _ref.invalidate(promptManagerProvider);
+    _ref.invalidate(customPresetsProvider);
+    _ref.invalidate(activePresetIdProvider);
+    _ref.invalidate(aiCustomPresetsProvider);
+    _ref.invalidate(activeAIPresetIdProvider);
+    _ref.invalidate(tokenizerSettingsProvider);
+    _ref.invalidate(logitBiasSettingsProvider);
+    _ref.invalidate(cfgScaleSettingsProvider);
+    _ref.invalidate(logprobsSettingsProvider);
+    _ref.invalidate(quickReplyConfigProvider);
+    _ref.invalidate(spriteSettingsProvider);
+    _ref.invalidate(dataBankContextSettingsProvider);
+    _ref.invalidate(vectorStorageSettingsProvider);
+    _ref.invalidate(toolCallingSettingsProvider);
+    _ref.invalidate(globalBackgroundProvider);
+    _ref.invalidate(backupSettingsProvider);
+  }
+
+  Future<Map<String, dynamic>?> _remoteSettingsPackage({
+    required CloudProvider provider,
+  }) async {
+    try {
+      if (provider == CloudProvider.iCloud) {
+        final probe = await _service.probeICloudSync(
+          queryTimeout: const Duration(seconds: 8),
+        );
+        final path = probe.backup?.remotePath;
+        if (path == null || !await File(path).exists()) return null;
+        return (await _service.parseBackupFile(File(path))).package;
+      }
+      final remote = await _googleDriveService.findNamedFile(
+            CloudBackupService.syncBackupFileName,
+            appData: true,
+          ) ??
+          await _googleDriveService.findNamedFile(
+            CloudBackupService.syncBackupFileName,
+          );
+      if (remote == null) return null;
+      final cacheDir = await _service.getCloudCacheDirectory();
+      final downloaded = await _googleDriveService.downloadToFile(
+        fileId: remote.id,
+        destination: File(
+          path.join(cacheDir.path, CloudBackupService.syncBackupFileName),
+        ),
+      );
+      if (downloaded == null) return null;
+      return (await _service.parseBackupFile(downloaded)).package;
+    } catch (e) {
+      debugPrint('[CloudBackup] remote settings read failed: $e');
+      return null;
+    }
+  }
+
+  Future<CloudBackupArtifacts> _createSyncArtifacts({
+    required Map<String, dynamic> data,
+    required CloudProvider provider,
+    void Function(CloudBackupArtifactProgress progress)? onProgress,
+  }) async {
+    var payload = data;
+    Map<String, dynamic>? preferences;
+    if (!_syncSettingsEnabled) {
+      final remote = await _remoteSettingsPackage(provider: provider);
+      final remoteData = remote?['data'] is Map
+          ? Map<String, dynamic>.from(remote!['data'] as Map)
+          : null;
+      payload = CloudDeviceSettings.overlayRemoteSettings(
+        localData: data,
+        remoteData: remoteData,
+      );
+      preferences = remote?['preferences'] is Map
+          ? Map<String, dynamic>.from(remote!['preferences'] as Map)
+          : const <String, dynamic>{};
+    }
+    return _service.createCloudBackupArtifacts(
+      data: payload,
+      provider: provider,
+      options: CloudBackupOptions.iCloudSync,
+      ntxVault: await _currentVault(),
+      preferences: preferences,
+      includePreferences: true,
+      onProgress: onProgress,
+    );
+  }
+
   /// Upload backup to iCloud
   Future<CloudBackupInfo?> uploadToICloud(
     Future<Map<String, dynamic>> Function() loadData,
@@ -564,8 +858,10 @@ class CloudBackupOperationNotifier
 
     try {
       // Download backup
+      final restoreSettings = _syncSettingsEnabled;
       final backupData = await _service.downloadFromICloud(
         backup: backup,
+        restorePreferences: restoreSettings,
         onPartChanged: (part) {
           state = state.copyWith(
             stage: part == CloudBackupTransferPart.data
@@ -601,8 +897,14 @@ class CloudBackupOperationNotifier
         mode: mode,
       );
 
-      // Apply restored data
-      await restoreCallback(backupData, mode);
+      await restoreCallback(
+        _packageForRestore(backupData, restoreSettings: restoreSettings),
+        mode,
+      );
+      if (restoreSettings) {
+        await _replaceSyncedSettings(backupData);
+        await _reloadSyncedSettings();
+      }
       await _applyVault(backupData, BackupImportSelection.all);
       _invalidateSyncedCollections();
 
@@ -696,12 +998,58 @@ class CloudBackupOperationNotifier
       final vault = SecretVaultService(
         database: _ref.read(databaseProvider),
       );
-      if (wrapKey != null) {
-        await vault.importWrapKey(wrapKey);
+      final resolvedKey = wrapKey ??
+          await _iCloudWrapKey() ??
+          await _googleDriveWrapKey();
+      if (resolvedKey != null) {
+        await vault.importWrapKey(resolvedKey);
       }
       await vault.applyVault(package['ntxVault']);
+      await _ref.read(llmConfigProvider.notifier).reloadFromStorage();
     } catch (e) {
       debugPrint('[CloudBackup] vault apply failed: $e');
+    }
+  }
+
+  Future<Uint8List?> _wrapKeyFromJson(Map<String, dynamic>? remote) async {
+    final encoded = remote?['wrapKey'];
+    if (encoded is! String || encoded.isEmpty) return null;
+    final bytes = Uint8List.fromList(base64Decode(encoded));
+    if (bytes.length != 32) return null;
+    return bytes;
+  }
+
+  Future<Uint8List?> _iCloudWrapKey() async {
+    try {
+      final remote = await _service.readICloudNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+      );
+      final bytes = await _wrapKeyFromJson(remote);
+      if (bytes == null) return null;
+      await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).importWrapKey(bytes);
+      return bytes;
+    } catch (e) {
+      debugPrint('[CloudBackup] iCloud wrap key read failed: $e');
+      return null;
+    }
+  }
+
+  Future<void> _uploadICloudWrapKey() async {
+    try {
+      final wrapKey = await SecretVaultService(
+        database: _ref.read(databaseProvider),
+      ).exportWrapKey();
+      await _service.writeICloudNamedJson(
+        CloudBackupService.syncVaultKeyFileName,
+        {
+          'alg': 'A256GCM',
+          'wrapKey': base64Encode(wrapKey),
+        },
+      );
+    } catch (e) {
+      debugPrint('[CloudBackup] iCloud wrap key upload failed: $e');
     }
   }
 
@@ -711,10 +1059,8 @@ class CloudBackupOperationNotifier
         CloudBackupService.syncVaultKeyFileName,
         appData: true,
       );
-      final encoded = remote?['wrapKey'];
-      if (encoded is! String || encoded.isEmpty) return null;
-      final bytes = Uint8List.fromList(base64Decode(encoded));
-      if (bytes.length != 32) return null;
+      final bytes = await _wrapKeyFromJson(remote);
+      if (bytes == null) return null;
       await SecretVaultService(
         database: _ref.read(databaseProvider),
       ).importWrapKey(bytes);
@@ -793,9 +1139,14 @@ class CloudBackupOperationNotifier
     File file, {
     File? mediaFile,
     BackupPasswordPrompt? requestPassword,
+    bool restorePreferences = true,
   }) async {
     if (!await _service.isPasswordProtectedBackup(file)) {
-      return _service.importFromFile(file, mediaFile: mediaFile);
+      return _service.importFromFile(
+        file,
+        mediaFile: mediaFile,
+        restorePreferences: restorePreferences,
+      );
     }
     var incorrect = false;
     while (true) {
@@ -806,6 +1157,7 @@ class CloudBackupOperationNotifier
           file,
           mediaFile: mediaFile,
           password: password,
+          restorePreferences: restorePreferences,
         );
       } on BackupPasswordInvalidException {
         incorrect = true;
@@ -978,6 +1330,7 @@ class CloudBackupOperationNotifier
     required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
         restoreCallback,
     BackupPasswordPrompt? requestPassword,
+    bool restoreSettings = true,
   }) async {
     state = state.copyWith(
       isLoading: true,
@@ -1011,6 +1364,7 @@ class CloudBackupOperationNotifier
         file,
         mediaFile: mediaFile,
         requestPassword: requestPassword,
+        restorePreferences: restoreSettings,
       );
       if (backupData == null) {
         state = state.copyWith(
@@ -1033,7 +1387,14 @@ class CloudBackupOperationNotifier
         mode: mode,
       );
 
-      await restoreCallback(backupData, mode);
+      await restoreCallback(
+        _packageForRestore(backupData, restoreSettings: restoreSettings),
+        mode,
+      );
+      if (restoreSettings) {
+        await _replaceSyncedSettings(backupData);
+        await _reloadSyncedSettings();
+      }
       await _applyVault(backupData, BackupImportSelection.all);
       _invalidateSyncedCollections();
 
@@ -1144,8 +1505,9 @@ class CloudBackupOperationNotifier
         mode: mode,
       );
 
-      // Apply restored data
       await restoreCallback(backupData, mode);
+      await _replaceSyncedSettings(backupData);
+      await _reloadSyncedSettings();
       await _applyVault(backupData, BackupImportSelection.all);
       _invalidateSyncedCollections();
 
@@ -1552,6 +1914,7 @@ class CloudBackupOperationNotifier
     _ref.invalidate(characterChatsProvider);
     _ref.invalidate(allChatsProvider);
     _ref.invalidate(pagedChatsProvider);
+    _ref.invalidate(activeChatProvider);
     _ref.invalidate(allWorldInfosProvider);
     _ref.invalidate(allGroupsProvider);
     _ref.invalidate(allPersonasProvider);
@@ -1658,7 +2021,17 @@ class CloudBackupOperationNotifier
           Map<String, dynamic>.from(package['data'] as Map),
         );
       }
-      await restoreCallback(package, mode);
+      await restoreCallback(
+        _packageForRestore(
+          package,
+          restoreSettings: selection.settings && _syncSettingsEnabled,
+        ),
+        mode,
+      );
+      if (selection.settings && _syncSettingsEnabled) {
+        await _replaceSyncedSettings(package);
+        await _reloadSyncedSettings();
+      }
       await _applyVault(package, selection);
       _invalidateSyncedCollections();
     }
@@ -1709,6 +2082,67 @@ class CloudBackupOperationNotifier
         localDeviceId: localDeviceId,
       );
 
+  /// Replace local data with the existing iCloud / Drive snapshot.
+  Future<bool> importExistingCloudSync({
+    required Future<Map<String, dynamic>> Function() loadData,
+    required Future<void> Function(Map<String, dynamic> data, RestoreMode mode)
+        restoreCallback,
+  }) async {
+    if (_autoSyncInFlight || state.isLoading) return false;
+    _autoSyncInFlight = true;
+    try {
+      if (Platform.isIOS || Platform.isMacOS) {
+        await _service.prefetchICloudSyncFiles();
+        await _iCloudWrapKey();
+        final probe = await _service.probeICloudSync();
+        final remote = probe.backup;
+        if (remote == null) return false;
+        final localData = await loadData();
+        final merged = await downloadFromICloud(
+          backup: remote,
+          mode: RestoreMode.replace,
+          localData: localData,
+          restoreCallback: restoreCallback,
+        );
+        return merged != null;
+      }
+      if (Platform.isAndroid && _ref.read(googleDriveSignedInProvider)) {
+        await _googleDriveWrapKey();
+        final remote = await _googleDriveService.findNamedFile(
+              CloudBackupService.syncBackupFileName,
+              appData: true,
+            ) ??
+            await _googleDriveService.findNamedFile(
+              CloudBackupService.syncBackupFileName,
+            );
+        if (remote == null) return false;
+        final cacheDir = await _service.getCloudCacheDirectory();
+        final downloaded = await _googleDriveService.downloadToFile(
+          fileId: remote.id,
+          destination: File(
+            path.join(cacheDir.path, CloudBackupService.syncBackupFileName),
+          ),
+        );
+        if (downloaded == null) return false;
+        final localData = await loadData();
+        final result = await importFromPath(
+          filePath: downloaded.path,
+          mode: RestoreMode.replace,
+          localData: localData,
+          restoreCallback: restoreCallback,
+        );
+        return result != null;
+      }
+      return false;
+    } catch (e, stackTrace) {
+      debugPrint('[CloudBackup] importExistingCloudSync error: $e');
+      debugPrint('[CloudBackup] Stack trace: $stackTrace');
+      return false;
+    } finally {
+      _autoSyncInFlight = false;
+    }
+  }
+
   /// Pull remote changes then push the merged local snapshot.
   Future<void> runAutoSync({
     required Future<Map<String, dynamic>> Function() loadData,
@@ -1758,7 +2192,12 @@ class CloudBackupOperationNotifier
       if (settings.iCloudEnabled && !_icloudProbeSucceededThisSession) {
         final probe = await _service.probeICloudSync();
         _icloudProbeSucceededThisSession = probe.queryCompleted;
-        if (!probe.queryCompleted) {
+        if (!shouldPushCloudSnapshot(
+          queryCompleted: probe.queryCompleted,
+          remoteSnapshotExists: probe.backup != null,
+          lastLocalSync: settings.lastICloudSync?.toUtc(),
+          pulledThisRun: false,
+        )) {
           debugPrint(
             '[CloudBackup] skip pause push: iCloud snapshot not discovered yet',
           );
@@ -1781,19 +2220,18 @@ class CloudBackupOperationNotifier
         }
       }
       final data = await loadData();
-      final artifacts = await _service.createCloudBackupArtifacts(
+      final artifacts = await _createSyncArtifacts(
         data: data,
         provider: settings.iCloudEnabled
             ? CloudProvider.iCloud
             : CloudProvider.googleDrive,
-        options: CloudBackupOptions.iCloudSync,
-        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       final deviceId = await _deviceId();
       if (settings.iCloudEnabled) {
         await _service.uploadToICloud(backupFile: snapshot);
         await _service.writeICloudSyncMetadata(_syncMetadata(deviceId));
+        await _uploadICloudWrapKey();
         _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
         _ref.invalidate(iCloudBackupsProvider);
       }
@@ -1877,7 +2315,9 @@ class CloudBackupOperationNotifier
       );
       return;
     }
+    var pulledThisRun = false;
     if (shouldPull) {
+      await _iCloudWrapKey();
       final localData = await loadData();
       final merged = await downloadFromICloud(
         backup: remote!,
@@ -1891,26 +2331,29 @@ class CloudBackupOperationNotifier
         );
         return;
       }
+      pulledThisRun = true;
     }
     if (uploadAfterPull) {
-      if (!probe.queryCompleted &&
-          metadata?['deviceId'] != null &&
-          metadata?['deviceId'] != deviceId) {
+      if (!shouldPushCloudSnapshot(
+        queryCompleted: probe.queryCompleted,
+        remoteSnapshotExists: remote != null,
+        lastLocalSync: settings.lastICloudSync?.toUtc(),
+        pulledThisRun: pulledThisRun,
+      )) {
         debugPrint(
           '[CloudBackup] skip iCloud push: remote from another device was not confirmed',
         );
         return;
       }
       final data = await loadData();
-      final artifacts = await _service.createCloudBackupArtifacts(
+      final artifacts = await _createSyncArtifacts(
         data: data,
         provider: CloudProvider.iCloud,
-        options: CloudBackupOptions.iCloudSync,
-        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       await _service.uploadToICloud(backupFile: snapshot);
       await _service.writeICloudSyncMetadata(_syncMetadata(deviceId));
+      await _uploadICloudWrapKey();
       _ref.read(cloudBackupSettingsProvider.notifier).updateLastICloudSync();
       _ref.invalidate(iCloudBackupsProvider);
     }
@@ -1999,16 +2442,15 @@ class CloudBackupOperationNotifier
           mode: RestoreMode.merge,
           localData: localData,
           restoreCallback: restoreCallback,
+          restoreSettings: _syncSettingsEnabled,
         );
       }
     }
     if (uploadAfterPull) {
       final data = await loadData();
-      final artifacts = await _service.createCloudBackupArtifacts(
+      final artifacts = await _createSyncArtifacts(
         data: data,
         provider: CloudProvider.googleDrive,
-        options: CloudBackupOptions.iCloudSync,
-        ntxVault: await _currentVault(),
       );
       final snapshot = await _namedSyncSnapshot(artifacts);
       await _googleDriveService.upsertNamedFile(

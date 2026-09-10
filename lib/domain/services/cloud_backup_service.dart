@@ -402,6 +402,8 @@ class CloudBackupService {
     required CloudProvider provider,
     CloudBackupOptions options = const CloudBackupOptions(),
     Map<String, dynamic>? ntxVault,
+    Map<String, dynamic>? preferences,
+    bool includePreferences = true,
     String? password,
     void Function(CloudBackupArtifactProgress progress)? onProgress,
   }) async {
@@ -449,7 +451,11 @@ class CloudBackupService {
       'createdAt': DateTime.now().toIso8601String(),
       'provider': provider.name,
       'data': _sanitizeBackupValue(data),
-      'preferences': await _exportPreferences(),
+      'preferences': includePreferences
+          ? _sanitizeBackupValue(
+              preferences ?? await _exportPreferences(),
+            )
+          : const <String, dynamic>{},
       'textFiles': await _exportTextFiles(nativeData),
       'storageRoots': {
         'documents': documents.path,
@@ -845,6 +851,8 @@ class CloudBackupService {
 
   static const _excludedPreferenceKeys = {
     'cloud_backup_settings',
+    'cloud_sync_setup_completed',
+    'cloud_sync_device_id',
     'ai_data_sharing_choice',
     'ai_data_sharing_disclosure_version',
   };
@@ -896,8 +904,9 @@ class CloudBackupService {
   /// Restores non-database text state. Failures are reported on the package
   /// and do not prevent the database restore callback from running.
   Future<Map<String, dynamic>> restoreTextState(
-    Map<String, dynamic> backupPackage,
-  ) async {
+    Map<String, dynamic> backupPackage, {
+    bool restorePreferences = true,
+  }) async {
     final documents = await _documentsDirectoryProvider();
     final nativeData = Directory(path.join(documents.path, 'NativeTavern'));
     final replacements = _storageRootReplacements(
@@ -910,7 +919,7 @@ class CloudBackupService {
     );
     var failures = 0;
     final preferencesData = rewritten['preferences'];
-    if (preferencesData is Map) {
+    if (restorePreferences && preferencesData is Map) {
       try {
         final preferences = await SharedPreferences.getInstance();
         for (final entry in preferencesData.entries) {
@@ -959,10 +968,14 @@ class CloudBackupService {
   }
 
   Future<Map<String, dynamic>> restoreTextStateSafely(
-    Map<String, dynamic> backupPackage,
-  ) async {
+    Map<String, dynamic> backupPackage, {
+    bool restorePreferences = true,
+  }) async {
     try {
-      return await restoreTextState(backupPackage);
+      return await restoreTextState(
+        backupPackage,
+        restorePreferences: restorePreferences,
+      );
     } catch (error) {
       return {
         ...backupPackage,
@@ -1118,6 +1131,7 @@ class CloudBackupService {
     void Function(double progress)? onProgress,
     void Function(CloudBackupTransferPart part)? onPartChanged,
     void Function(int processed, int total)? onMediaProgress,
+    bool restorePreferences = true,
   }) async {
     if (backup.remotePath == null) {
       throw Exception('Backup remote path is null');
@@ -1137,6 +1151,7 @@ class CloudBackupService {
       file,
       onMediaProgress: onMediaProgress,
       onPartChanged: onPartChanged,
+      restorePreferences: restorePreferences,
     );
     onProgress?.call(1.0);
     return data;
@@ -1154,29 +1169,38 @@ class CloudBackupService {
     await _iCloudContainer.keepCurrentVersion(remote!.remotePath!);
   }
 
-  Future<ICloudSyncProbe> probeICloudSync() async {
+  Future<ICloudSyncProbe> probeICloudSync({
+    Duration queryTimeout = const Duration(seconds: 20),
+  }) async {
     final iCloudDir = await getICloudDirectory();
     if (iCloudDir == null) {
       return const ICloudSyncProbe(queryCompleted: false);
     }
 
-    final query = await _iCloudContainer.querySyncFiles();
+    final query = await _iCloudContainer.querySyncFiles(timeout: queryTimeout);
     final queryCompleted = query?.completed ?? false;
     final backupItem = query?.itemNamed(syncBackupFileName);
     final metadataItem = query?.itemNamed(syncMetadataFileName);
+    final vaultItem = query?.itemNamed(syncVaultKeyFileName);
 
     final backupPath = backupItem?.path ??
         path.join(iCloudDir.path, syncBackupFileName);
     final metadataPath = metadataItem?.path ??
         path.join(iCloudDir.path, syncMetadataFileName);
+    final vaultPath = vaultItem?.path ??
+        path.join(iCloudDir.path, syncVaultKeyFileName);
 
     final backupFile = File(backupPath);
     final metadataFile = File(metadataPath);
+    final vaultFile = File(vaultPath);
     if (backupItem != null || await backupFile.exists()) {
       await _iCloudContainer.ensureDownloaded(backupPath);
     }
     if (metadataItem != null || await metadataFile.exists()) {
       await _iCloudContainer.ensureDownloaded(metadataPath);
+    }
+    if (vaultItem != null || await vaultFile.exists()) {
+      await _iCloudContainer.ensureDownloaded(vaultPath);
     }
 
     CloudBackupInfo? backup;
@@ -1222,17 +1246,32 @@ class CloudBackupService {
   }
 
   Future<void> writeICloudSyncMetadata(Map<String, dynamic> metadata) async {
+    await writeICloudNamedJson(syncMetadataFileName, metadata);
+  }
+
+  Future<Map<String, dynamic>?> readICloudNamedJson(String fileName) async {
+    final iCloudDir = await getICloudDirectory();
+    if (iCloudDir == null) return null;
+    final file = File(path.join(iCloudDir.path, fileName));
+    await _iCloudContainer.ensureDownloaded(file.path);
+    return _readMetadataFile(file);
+  }
+
+  Future<void> writeICloudNamedJson(
+    String fileName,
+    Map<String, dynamic> data,
+  ) async {
     final iCloudDir = await getICloudDirectory();
     if (iCloudDir == null) return;
     final cacheDir = await getCloudCacheDirectory();
-    final temp = File(path.join(cacheDir.path, syncMetadataFileName));
-    await temp.writeAsString(jsonEncode(metadata), flush: true);
+    final temp = File(path.join(cacheDir.path, fileName));
+    await temp.writeAsString(jsonEncode(data), flush: true);
     final copied = await _iCloudContainer.copyIntoContainer(
       sourcePath: temp.path,
-      fileName: syncMetadataFileName,
+      fileName: fileName,
     );
     if (!copied) {
-      final dest = File(path.join(iCloudDir.path, syncMetadataFileName));
+      final dest = File(path.join(iCloudDir.path, fileName));
       if (await dest.exists()) {
         await dest.delete();
       }
@@ -1315,6 +1354,7 @@ class CloudBackupService {
     String? password,
     void Function(int processed, int total)? onMediaProgress,
     void Function(CloudBackupTransferPart part)? onPartChanged,
+    bool restorePreferences = true,
   }) async {
     if (isDataBackupPath(file.path) || isMediaBackupPath(file.path)) {
       throw Exception(
@@ -1333,7 +1373,10 @@ class CloudBackupService {
       throw Exception('Invalid backup file: not a NativeTavern backup');
     }
 
-    data = await restoreTextStateSafely(data);
+    data = await restoreTextStateSafely(
+      data,
+      restorePreferences: restorePreferences,
+    );
     if (parsed.mediaBytes == null) {
       if (parsed.mediaExpected) {
         data['_mediaRestoreWarning'] = 'Optional media backup was not found.';

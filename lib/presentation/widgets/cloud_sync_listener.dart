@@ -38,6 +38,12 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
           onTimeout: () {},
         );
     if (!mounted) return;
+    await _waitUntilSetupFinished();
+    if (!mounted) return;
+    if (ref.read(cloudSyncSetupProvider).status !=
+        CloudSyncSetupStatus.finished) {
+      return;
+    }
     final signedIn = await GoogleDriveService.instance.trySilentSignIn();
     if (mounted && signedIn) {
       ref.read(googleDriveSignedInProvider.notifier).state = true;
@@ -69,8 +75,23 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
   DatabaseBackupService get _dbBackup =>
       DatabaseBackupService(ref.read(databaseProvider));
 
+  Future<void> _waitUntilSetupFinished() async {
+    while (mounted) {
+      final status = ref.read(cloudSyncSetupProvider).status;
+      if (status == CloudSyncSetupStatus.finished ||
+          status == CloudSyncSetupStatus.available) {
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
   Future<void> _pullAndPush() async {
     if (!_ready || !mounted) return;
+    if (ref.read(cloudSyncSetupProvider).status !=
+        CloudSyncSetupStatus.finished) {
+      return;
+    }
     await ref.read(cloudBackupOperationProvider.notifier).runAutoSync(
           loadData: _dbBackup.exportAllData,
           restoreCallback: (data, mode) async {
@@ -89,6 +110,10 @@ class _CloudSyncListenerState extends ConsumerState<CloudSyncListener>
 
   Future<void> _push() async {
     if (!_ready || !mounted) return;
+    if (ref.read(cloudSyncSetupProvider).status !=
+        CloudSyncSetupStatus.finished) {
+      return;
+    }
     await ref.read(cloudBackupOperationProvider.notifier).pushAutoSync(
           loadData: _dbBackup.exportAllData,
         );
