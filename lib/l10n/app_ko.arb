@@ -431,5 +431,16 @@
   "backupPasswordIncorrect": "That password is incorrect.",
   "localBackupPasswordHint": "Optional. Saving or sharing a .ntx file can be password-protected. Automatic iCloud and Google Drive sync stays unlocked on your signed-in devices.",
   "googleDriveSyncConflictTitle": "Google Drive data conflict",
-  "googleDriveSyncConflictBody": "This Android device and another signed-in device both changed data since the last Google Drive sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently."
+  "googleDriveSyncConflictBody": "This Android device and another signed-in device both changed data since the last Google Drive sync. Choose what to keep. A local .ntx snapshot is saved first so nothing is discarded silently.",
+  "systemLanguage": "System Language",
+  "compactGridView": "Compact grid",
+  "multimedia": "Multimedia",
+  "enableEmbeddedImages": "Show embedded and external images",
+  "enableEmbeddedImagesDescription": "Load images from chat messages, including remote URLs. Turn off to block network images for security.",
+  "embeddedImagesDisabled": "Images are hidden",
+  "imageFailedToLoad": "Image failed to load",
+  "apiKeySyncConflictTitle": "API key conflict",
+  "apiKeySyncConflictBody": "This device and another device have different API keys. Unchecked keys stay on this device. Check a key to use the other device's copy. Your keys are never deleted silently.",
+  "apiKeySyncConflictChoice": "This device: {localKey}. Other device: {remoteKey}.",
+  "apiKeyConflictActiveProvider": "Active provider"
 }

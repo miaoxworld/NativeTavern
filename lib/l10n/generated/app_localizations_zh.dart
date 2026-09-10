@@ -688,6 +688,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get systemTheme => '跟随系统';
 
   @override
+  String get systemLanguage => '跟随系统语言';
+
+  @override
   String get primaryColor => '主色调';
 
   @override
@@ -749,6 +752,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gridView => '网格视图';
+
+  @override
+  String get compactGridView => '紧凑网格';
+
+  @override
+  String get multimedia => '多媒体';
+
+  @override
+  String get enableEmbeddedImages => '显示嵌入和外部图片';
+
+  @override
+  String get enableEmbeddedImagesDescription =>
+      '加载聊天中的图片（包括网络地址）。关闭后将拦截网络图片，更安全。';
+
+  @override
+  String get embeddedImagesDisabled => '已隐藏图片';
+
+  @override
+  String get imageFailedToLoad => '图片加载失败';
+
+  @override
+  String get apiKeySyncConflictTitle => 'API 密钥冲突';
+
+  @override
+  String get apiKeySyncConflictBody =>
+      '此设备与另一台设备的 API 密钥不同。未勾选的密钥保留在此设备。勾选后改用另一台设备的密钥。不会悄悄删除你的密钥。';
+
+  @override
+  String apiKeySyncConflictChoice(String localKey, String remoteKey) {
+    return '此设备：$localKey。另一台设备：$remoteKey。';
+  }
+
+  @override
+  String get apiKeyConflictActiveProvider => '当前提供商';
 
   @override
   String get search => '搜索';
@@ -7412,6 +7449,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get systemTheme => '跟隨系統';
 
   @override
+  String get systemLanguage => '跟隨系統語言';
+
+  @override
   String get primaryColor => '主色調';
 
   @override
@@ -7473,6 +7513,40 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get gridView => '格狀檢視';
+
+  @override
+  String get compactGridView => '緊湊網格';
+
+  @override
+  String get multimedia => '多媒體';
+
+  @override
+  String get enableEmbeddedImages => '顯示嵌入與外部圖片';
+
+  @override
+  String get enableEmbeddedImagesDescription =>
+      '載入聊天中的圖片（包括網路網址）。關閉後會攔截網路圖片，較安全。';
+
+  @override
+  String get embeddedImagesDisabled => '已隱藏圖片';
+
+  @override
+  String get imageFailedToLoad => '圖片載入失敗';
+
+  @override
+  String get apiKeySyncConflictTitle => 'API 金鑰衝突';
+
+  @override
+  String get apiKeySyncConflictBody =>
+      '此裝置與另一部裝置的 API 金鑰不同。未勾選的金鑰保留在此裝置。勾選後改用另一部裝置的金鑰。不會悄悄刪除你的金鑰。';
+
+  @override
+  String apiKeySyncConflictChoice(String localKey, String remoteKey) {
+    return '此裝置：$localKey。另一部裝置：$remoteKey。';
+  }
+
+  @override
+  String get apiKeyConflictActiveProvider => '目前提供者';
 
   @override
   String get search => '搜尋';

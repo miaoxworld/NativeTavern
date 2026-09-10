@@ -697,6 +697,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get systemTheme => 'اتباع النظام';
 
   @override
+  String get systemLanguage => 'System Language';
+
+  @override
   String get primaryColor => 'اللون الأساسي';
 
   @override
@@ -758,6 +761,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gridView => 'عرض الشبكة';
+
+  @override
+  String get compactGridView => 'Compact grid';
+
+  @override
+  String get multimedia => 'Multimedia';
+
+  @override
+  String get enableEmbeddedImages => 'Show embedded and external images';
+
+  @override
+  String get enableEmbeddedImagesDescription =>
+      'Load images from chat messages, including remote URLs. Turn off to block network images for security.';
+
+  @override
+  String get embeddedImagesDisabled => 'Images are hidden';
+
+  @override
+  String get imageFailedToLoad => 'Image failed to load';
+
+  @override
+  String get apiKeySyncConflictTitle => 'API key conflict';
+
+  @override
+  String get apiKeySyncConflictBody =>
+      'This device and another device have different API keys. Unchecked keys stay on this device. Check a key to use the other device\'s copy. Your keys are never deleted silently.';
+
+  @override
+  String apiKeySyncConflictChoice(String localKey, String remoteKey) {
+    return 'This device: $localKey. Other device: $remoteKey.';
+  }
+
+  @override
+  String get apiKeyConflictActiveProvider => 'Active provider';
 
   @override
   String get search => 'بحث';

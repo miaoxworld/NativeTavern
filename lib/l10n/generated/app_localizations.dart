@@ -1423,6 +1423,12 @@ abstract class AppLocalizations {
   /// **'System Theme'**
   String get systemTheme;
 
+  /// Follow the device language in the language picker
+  ///
+  /// In en, this message translates to:
+  /// **'System Language'**
+  String get systemLanguage;
+
   /// Primary color label
   ///
   /// In en, this message translates to:
@@ -1548,6 +1554,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Grid view'**
   String get gridView;
+
+  /// Compact grid view toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Compact grid'**
+  String get compactGridView;
+
+  /// Settings section for TTS, STT, and related features
+  ///
+  /// In en, this message translates to:
+  /// **'Multimedia'**
+  String get multimedia;
+
+  /// Toggle for rendering markdown, HTML, and URL images in chat
+  ///
+  /// In en, this message translates to:
+  /// **'Show embedded and external images'**
+  String get enableEmbeddedImages;
+
+  /// Explanation of the embedded/external image toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Load images from chat messages, including remote URLs. Turn off to block network images for security.'**
+  String get enableEmbeddedImagesDescription;
+
+  /// Placeholder shown in chat when image loading is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Images are hidden'**
+  String get embeddedImagesDisabled;
+
+  /// Error shown when a chat image cannot be fetched
+  ///
+  /// In en, this message translates to:
+  /// **'Image failed to load'**
+  String get imageFailedToLoad;
+
+  /// Title of the API key conflict dialog
+  ///
+  /// In en, this message translates to:
+  /// **'API key conflict'**
+  String get apiKeySyncConflictTitle;
+
+  /// Body of the API key conflict dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This device and another device have different API keys. Unchecked keys stay on this device. Check a key to use the other device\'s copy. Your keys are never deleted silently.'**
+  String get apiKeySyncConflictBody;
+
+  /// Shows masked local and remote API keys
+  ///
+  /// In en, this message translates to:
+  /// **'This device: {localKey}. Other device: {remoteKey}.'**
+  String apiKeySyncConflictChoice(String localKey, String remoteKey);
+
+  /// Label for the currently selected LLM connection key
+  ///
+  /// In en, this message translates to:
+  /// **'Active provider'**
+  String get apiKeyConflictActiveProvider;
 
   /// Search label
   ///

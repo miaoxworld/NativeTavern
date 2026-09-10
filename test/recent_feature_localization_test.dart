@@ -63,6 +63,19 @@ void main() {
     expect(l10n.cloudSyncSetupImport, '导入云端数据');
     expect(l10n.cloudSyncSetupStartFresh, '从零开始');
     expect(l10n.syncSettingsAcrossDevices, '同步设置');
+    expect(l10n.systemLanguage, '跟随系统语言');
+    expect(l10n.enableEmbeddedImages, '显示嵌入和外部图片');
+    expect(l10n.apiKeySyncConflictTitle, 'API 密钥冲突');
+  });
+
+  test('English language picker uses System Language, not System Theme', () {
+    final l10n = AppLocalizationsEn();
+    expect(l10n.systemLanguage, 'System Language');
+    expect(l10n.systemLanguage.toLowerCase(), isNot(contains('theme')));
+    expect(l10n.systemTheme, 'System Theme');
+    expect(l10n.enableEmbeddedImages, contains('images'));
+    expect(EmbeddingProvider.siliconflow.displayName, 'SiliconFlow');
+    expect(EmbeddingProvider.siliconflow.displayName, isNot(contains('硅')));
   });
 
   test('localizes audited child surfaces in simplified Chinese', () {

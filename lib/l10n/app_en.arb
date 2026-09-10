@@ -962,6 +962,10 @@
   "@systemTheme": {
     "description": "System theme option"
   },
+  "systemLanguage": "System Language",
+  "@systemLanguage": {
+    "description": "Follow the device language in the language picker"
+  },
   "primaryColor": "Primary Color",
   "@primaryColor": {
     "description": "Primary color label"
@@ -1045,6 +1049,50 @@
   "gridView": "Grid view",
   "@gridView": {
     "description": "Grid view toggle"
+  },
+  "compactGridView": "Compact grid",
+  "@compactGridView": {
+    "description": "Compact grid view toggle"
+  },
+  "multimedia": "Multimedia",
+  "@multimedia": {
+    "description": "Settings section for TTS, STT, and related features"
+  },
+  "enableEmbeddedImages": "Show embedded and external images",
+  "@enableEmbeddedImages": {
+    "description": "Toggle for rendering markdown, HTML, and URL images in chat"
+  },
+  "enableEmbeddedImagesDescription": "Load images from chat messages, including remote URLs. Turn off to block network images for security.",
+  "@enableEmbeddedImagesDescription": {
+    "description": "Explanation of the embedded/external image toggle"
+  },
+  "embeddedImagesDisabled": "Images are hidden",
+  "@embeddedImagesDisabled": {
+    "description": "Placeholder shown in chat when image loading is turned off"
+  },
+  "imageFailedToLoad": "Image failed to load",
+  "@imageFailedToLoad": {
+    "description": "Error shown when a chat image cannot be fetched"
+  },
+  "apiKeySyncConflictTitle": "API key conflict",
+  "@apiKeySyncConflictTitle": {
+    "description": "Title of the API key conflict dialog"
+  },
+  "apiKeySyncConflictBody": "This device and another device have different API keys. Unchecked keys stay on this device. Check a key to use the other device's copy. Your keys are never deleted silently.",
+  "@apiKeySyncConflictBody": {
+    "description": "Body of the API key conflict dialog"
+  },
+  "apiKeySyncConflictChoice": "This device: {localKey}. Other device: {remoteKey}.",
+  "@apiKeySyncConflictChoice": {
+    "description": "Shows masked local and remote API keys",
+    "placeholders": {
+      "localKey": { "type": "String" },
+      "remoteKey": { "type": "String" }
+    }
+  },
+  "apiKeyConflictActiveProvider": "Active provider",
+  "@apiKeyConflictActiveProvider": {
+    "description": "Label for the currently selected LLM connection key"
   },
   "search": "Search",
   "@search": {

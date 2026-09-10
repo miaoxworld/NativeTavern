@@ -2055,5 +2055,16 @@
   "authHeaderName": "标头名称",
   "authHeaderNameHint": "Authorization (默认), X-Api-Key 等",
   "authHeaderValue": "标头值",
-  "authHeaderValueHint": "输入令牌、密钥或 Bearer <token>"
+  "authHeaderValueHint": "输入令牌、密钥或 Bearer <token>",
+  "systemLanguage": "跟随系统语言",
+  "compactGridView": "紧凑网格",
+  "multimedia": "多媒体",
+  "enableEmbeddedImages": "显示嵌入和外部图片",
+  "enableEmbeddedImagesDescription": "加载聊天中的图片（包括网络地址）。关闭后将拦截网络图片，更安全。",
+  "embeddedImagesDisabled": "已隐藏图片",
+  "imageFailedToLoad": "图片加载失败",
+  "apiKeySyncConflictTitle": "API 密钥冲突",
+  "apiKeySyncConflictBody": "此设备与另一台设备的 API 密钥不同。未勾选的密钥保留在此设备。勾选后改用另一台设备的密钥。不会悄悄删除你的密钥。",
+  "apiKeySyncConflictChoice": "此设备：{localKey}。另一台设备：{remoteKey}。",
+  "apiKeyConflictActiveProvider": "当前提供商"
 }
