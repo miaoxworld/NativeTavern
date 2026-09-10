@@ -59,6 +59,10 @@ void main() {
     expect(l10n.mcpServers, 'MCP 服务器');
     expect(l10n.storageManagement, '存储管理');
     expect(l10n.live2dModelsCount(2), '2 个模型');
+    expect(l10n.cloudSyncSetupTitle, '发现云端数据');
+    expect(l10n.cloudSyncSetupImport, '导入云端数据');
+    expect(l10n.cloudSyncSetupStartFresh, '从零开始');
+    expect(l10n.syncSettingsAcrossDevices, '同步设置');
   });
 
   test('localizes audited child surfaces in simplified Chinese', () {

@@ -3679,7 +3679,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      'Keep chats, characters, lorebooks, moments, story artifacts, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.';
+      'Keep chats, characters, lorebooks, moments, story artifacts, settings, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.';
+
+  @override
+  String get syncSettingsAcrossDevices => 'Sync settings';
+
+  @override
+  String get syncSettingsAcrossDevicesDescription =>
+      'When on, theme, language, AI connection settings, TTS, prompts, and other preferences stay the same on every device. Turn this off to keep those settings only on this device.';
 
   @override
   String get enableGoogleDriveBackup => 'Enable Google Drive Backup';
@@ -6765,6 +6772,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncCollectionApiKeys => 'Encrypted API keys';
+
+  @override
+  String get cloudSyncSetupTitle => 'Cloud data found';
+
+  @override
+  String get cloudSyncSetupFoundOnICloud =>
+      'NativeTavern data is already saved in your iCloud account.';
+
+  @override
+  String get cloudSyncSetupFoundOnGoogleDrive =>
+      'NativeTavern data is already saved in this Google account.';
+
+  @override
+  String cloudSyncSetupBody(String provider) {
+    return 'This $provider account already has NativeTavern chats, characters, and encrypted API keys. Import them onto this device, or start with a new empty library. Starting from scratch does not delete the copy on your other devices.';
+  }
+
+  @override
+  String get cloudSyncSetupImport => 'Import cloud data';
+
+  @override
+  String get cloudSyncSetupImportDescription =>
+      'Bring chats, names, characters, lore, and API keys from your other device onto this one.';
+
+  @override
+  String get cloudSyncSetupStartFresh => 'Start from scratch';
+
+  @override
+  String get cloudSyncSetupStartFreshDescription =>
+      'Keep this device empty. Cloud data stays on your other devices until you turn on automatic sync later.';
+
+  @override
+  String get cloudSyncSetupImporting => 'Importing…';
+
+  @override
+  String get cloudSyncSetupError =>
+      'Could not import cloud data. Check your connection and try again, or start from scratch.';
+
+  @override
+  String get cloudSyncSetupChecking => 'Checking for cloud data…';
 
   @override
   String get memoryAndConversationalStorage =>

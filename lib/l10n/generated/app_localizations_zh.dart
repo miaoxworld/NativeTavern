@@ -3582,7 +3582,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      '在设备之间同步聊天、角色、世界书、动态、故事内容和加密 API 密钥。Apple 设备使用私有 iCloud 同步。出现冲突时可选择保留内容。';
+      '在设备之间同步聊天、角色、世界书、动态、故事内容、设置和加密 API 密钥。Apple 设备使用私有 iCloud 同步。出现冲突时可选择保留内容。';
+
+  @override
+  String get syncSettingsAcrossDevices => '同步设置';
+
+  @override
+  String get syncSettingsAcrossDevicesDescription =>
+      '开启后，主题、语言、AI 连接设置、语音、提示词和其他偏好会在每台设备上保持一致。关闭后，这些设置仅保留在本机。';
 
   @override
   String get enableGoogleDriveBackup => '启用 Google Drive 备份';
@@ -6512,6 +6519,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get syncCollectionApiKeys => '加密的 API 密钥';
+
+  @override
+  String get cloudSyncSetupTitle => '发现云端数据';
+
+  @override
+  String get cloudSyncSetupFoundOnICloud =>
+      '你的 iCloud 账号里已经保存了 NativeTavern 数据。';
+
+  @override
+  String get cloudSyncSetupFoundOnGoogleDrive =>
+      '此 Google 账号里已经保存了 NativeTavern 数据。';
+
+  @override
+  String cloudSyncSetupBody(String provider) {
+    return '此 $provider 账号已有 NativeTavern 的聊天、角色和加密 API 密钥。可以导入到本机，或从空白资料库开始。从零开始不会删除其他设备上的副本。';
+  }
+
+  @override
+  String get cloudSyncSetupImport => '导入云端数据';
+
+  @override
+  String get cloudSyncSetupImportDescription =>
+      '把其他设备上的聊天、会话名称、角色、世界书和 API 密钥同步到本机。';
+
+  @override
+  String get cloudSyncSetupStartFresh => '从零开始';
+
+  @override
+  String get cloudSyncSetupStartFreshDescription =>
+      '本机保持空白。云端数据仍留在其他设备，之后可在设置中开启自动同步。';
+
+  @override
+  String get cloudSyncSetupImporting => '正在导入…';
+
+  @override
+  String get cloudSyncSetupError => '无法导入云端数据。请检查网络后重试，或选择从零开始。';
+
+  @override
+  String get cloudSyncSetupChecking => '正在检查云端数据…';
 
   @override
   String get memoryAndConversationalStorage => '记忆与会话存储';
@@ -10260,7 +10306,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get enableCrossDeviceSyncDescription =>
-      '在裝置之間同步聊天、角色、世界書、動態、故事內容與加密 API 金鑰。Apple 裝置使用私有 iCloud 同步。發生衝突時可選擇保留內容。';
+      '在裝置之間同步聊天、角色、世界書、動態、故事內容、設定與加密 API 金鑰。Apple 裝置使用私有 iCloud 同步。發生衝突時可選擇保留內容。';
+
+  @override
+  String get syncSettingsAcrossDevices => '同步設定';
+
+  @override
+  String get syncSettingsAcrossDevicesDescription =>
+      '開啟後，主題、語言、AI 連線設定、語音、提示詞和其他偏好會在每部裝置上保持一致。關閉後，這些設定僅保留在本機。';
 
   @override
   String get enableGoogleDriveBackup => '啟用 Google 雲端硬碟備份';
@@ -13192,6 +13245,44 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get syncCollectionApiKeys => '加密的 API 金鑰';
+
+  @override
+  String get cloudSyncSetupTitle => '發現雲端資料';
+
+  @override
+  String get cloudSyncSetupFoundOnICloud => '你的 iCloud 帳號已儲存 NativeTavern 資料。';
+
+  @override
+  String get cloudSyncSetupFoundOnGoogleDrive =>
+      '此 Google 帳號已儲存 NativeTavern 資料。';
+
+  @override
+  String cloudSyncSetupBody(String provider) {
+    return '此 $provider 帳號已有 NativeTavern 的聊天、角色與加密 API 金鑰。可以匯入到本機，或從空白資料庫開始。從零開始不會刪除其他裝置上的副本。';
+  }
+
+  @override
+  String get cloudSyncSetupImport => '匯入雲端資料';
+
+  @override
+  String get cloudSyncSetupImportDescription =>
+      '把其他裝置上的聊天、會話名稱、角色、世界書和 API 金鑰同步到本機。';
+
+  @override
+  String get cloudSyncSetupStartFresh => '從零開始';
+
+  @override
+  String get cloudSyncSetupStartFreshDescription =>
+      '本機保持空白。雲端資料仍留在其他裝置，之後可在設定中開啟自動同步。';
+
+  @override
+  String get cloudSyncSetupImporting => '正在匯入…';
+
+  @override
+  String get cloudSyncSetupError => '無法匯入雲端資料。請檢查網路後重試，或選擇從零開始。';
+
+  @override
+  String get cloudSyncSetupChecking => '正在檢查雲端資料…';
 
   @override
   String get memoryAndConversationalStorage => '記憶與對話儲存';

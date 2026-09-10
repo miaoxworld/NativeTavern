@@ -6742,8 +6742,20 @@ abstract class AppLocalizations {
   /// Description of automatic cross-device backup sync
   ///
   /// In en, this message translates to:
-  /// **'Keep chats, characters, lorebooks, moments, story artifacts, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.'**
+  /// **'Keep chats, characters, lorebooks, moments, story artifacts, settings, and encrypted API keys updated across devices. Apple devices use private iCloud sync; Android uses Google Drive. Conflicts let you choose what stays.'**
   String get enableCrossDeviceSyncDescription;
+
+  /// Toggle for syncing app and connection settings across devices
+  ///
+  /// In en, this message translates to:
+  /// **'Sync settings'**
+  String get syncSettingsAcrossDevices;
+
+  /// Explanation of the per-device settings sync toggle
+  ///
+  /// In en, this message translates to:
+  /// **'When on, theme, language, AI connection settings, TTS, prompts, and other preferences stay the same on every device. Turn this off to keep those settings only on this device.'**
+  String get syncSettingsAcrossDevicesDescription;
 
   /// Enable Google Drive backup toggle, the Android counterpart to iCloud backup
   ///
@@ -12020,6 +12032,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Encrypted API keys'**
   String get syncCollectionApiKeys;
+
+  /// Title of the first-launch iCloud or Google Drive import screen
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud data found'**
+  String get cloudSyncSetupTitle;
+
+  /// Subtitle when iCloud already has a snapshot
+  ///
+  /// In en, this message translates to:
+  /// **'NativeTavern data is already saved in your iCloud account.'**
+  String get cloudSyncSetupFoundOnICloud;
+
+  /// Subtitle when Google Drive already has a snapshot
+  ///
+  /// In en, this message translates to:
+  /// **'NativeTavern data is already saved in this Google account.'**
+  String get cloudSyncSetupFoundOnGoogleDrive;
+
+  /// Body of the first-launch cloud import screen
+  ///
+  /// In en, this message translates to:
+  /// **'This {provider} account already has NativeTavern chats, characters, and encrypted API keys. Import them onto this device, or start with a new empty library. Starting from scratch does not delete the copy on your other devices.'**
+  String cloudSyncSetupBody(String provider);
+
+  /// Button that restores the existing cloud snapshot
+  ///
+  /// In en, this message translates to:
+  /// **'Import cloud data'**
+  String get cloudSyncSetupImport;
+
+  /// Explanation of importing existing cloud data
+  ///
+  /// In en, this message translates to:
+  /// **'Bring chats, names, characters, lore, and API keys from your other device onto this one.'**
+  String get cloudSyncSetupImportDescription;
+
+  /// Button that skips importing cloud data
+  ///
+  /// In en, this message translates to:
+  /// **'Start from scratch'**
+  String get cloudSyncSetupStartFresh;
+
+  /// Explanation of starting without importing cloud data
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this device empty. Cloud data stays on your other devices until you turn on automatic sync later.'**
+  String get cloudSyncSetupStartFreshDescription;
+
+  /// Progress label while restoring cloud data on first launch
+  ///
+  /// In en, this message translates to:
+  /// **'Importing…'**
+  String get cloudSyncSetupImporting;
+
+  /// Error shown when first-launch cloud import fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not import cloud data. Check your connection and try again, or start from scratch.'**
+  String get cloudSyncSetupError;
+
+  /// Status while probing iCloud or Google Drive on first launch
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for cloud data…'**
+  String get cloudSyncSetupChecking;
 
   /// Section header for memory and conversational storage in AI configuration
   ///
