@@ -71,6 +71,8 @@ class ChatRepository {
     final id = chat.id.isEmpty ? _uuid.v4() : chat.id;
     final now = DateTime.now();
 
+    final settings = Map<String, dynamic>.from(chat.settings);
+    settings['titleUpdatedAt'] = now.toIso8601String();
     final newChat = models.Chat(
       id: id,
       characterId: chat.characterId,
@@ -80,7 +82,7 @@ class ChatRepository {
       authorNoteDepth: chat.authorNoteDepth,
       authorNoteEnabled: chat.authorNoteEnabled,
       summaries: chat.summaries,
-      settings: chat.settings,
+      settings: settings,
       createdAt: now,
       updatedAt: now,
     );
@@ -106,19 +108,24 @@ class ChatRepository {
   /// Update chat
   Future<models.Chat> updateChat(models.Chat chat) async {
     final now = DateTime.now();
+    final existing = await getChat(chat.id);
+    var next = chat;
+    if (existing == null || existing.title != chat.title) {
+      next = chat.withSetting('titleUpdatedAt', now.toIso8601String());
+    }
 
     await (_db.update(_db.chats)..where((t) => t.id.equals(chat.id))).write(
       ChatsCompanion(
-        title: Value(chat.title),
-        authorNote: Value(chat.authorNote),
-        authorNoteDepth: Value(chat.authorNoteDepth),
-        authorNoteEnabled: Value(chat.authorNoteEnabled),
-        settingsJson: Value(_encodeSettings(chat)),
+        title: Value(next.title),
+        authorNote: Value(next.authorNote),
+        authorNoteDepth: Value(next.authorNoteDepth),
+        authorNoteEnabled: Value(next.authorNoteEnabled),
+        settingsJson: Value(_encodeSettings(next)),
         updatedAt: Value(now),
       ),
     );
 
-    return chat.copyWith(updatedAt: now);
+    return next.copyWith(updatedAt: now);
   }
 
   /// Delete chat and all its messages

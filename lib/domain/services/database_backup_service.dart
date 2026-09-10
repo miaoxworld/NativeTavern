@@ -1,8 +1,48 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:native_tavern/data/database/database.dart';
 import 'package:native_tavern/domain/services/backup_import_selection.dart';
 import 'package:native_tavern/domain/services/database_backup_v15_adapter.dart';
+
+/// Default / auto-generated chat titles that should not overwrite a custom name.
+bool isPlaceholderChatTitle(String title) {
+  final trimmed = title.trim();
+  if (trimmed.isEmpty) return true;
+  final lower = trimmed.toLowerCase();
+  if (lower == 'new chat') return true;
+  if (lower.startsWith('chat with ')) return true;
+  if (trimmed.startsWith('与') && trimmed.endsWith('聊天')) return true;
+  if (trimmed.startsWith('與') && trimmed.endsWith('聊天')) return true;
+  return false;
+}
+
+/// Picks the chat title to keep when two devices edited the same session.
+///
+/// Sending a message bumps [Chat.updatedAt] without changing the title, so a
+/// naive "newer row wins" merge would replace a renamed title with the other
+/// device's default "Chat with …" name.
+String mergedChatTitle({
+  required String localTitle,
+  required String remoteTitle,
+  required DateTime localUpdatedAt,
+  DateTime? remoteUpdatedAt,
+  DateTime? localTitleUpdatedAt,
+  DateTime? remoteTitleUpdatedAt,
+}) {
+  if (localTitle == remoteTitle) return localTitle;
+  final localPlaceholder = isPlaceholderChatTitle(localTitle);
+  final remotePlaceholder = isPlaceholderChatTitle(remoteTitle);
+  if (localPlaceholder && !remotePlaceholder) return remoteTitle;
+  if (remotePlaceholder && !localPlaceholder) return localTitle;
+  final localTime = localTitleUpdatedAt ?? localUpdatedAt;
+  final remoteTime = remoteTitleUpdatedAt ?? remoteUpdatedAt;
+  if (remoteTime != null && remoteTime.isAfter(localTime)) {
+    return remoteTitle;
+  }
+  return localTitle;
+}
 
 /// Service for exporting and importing database data for backup purposes
 class DatabaseBackupService {
@@ -126,7 +166,28 @@ class DatabaseBackupService {
         .getSingleOrNull();
     if (await newer(moment?.updatedAt)) return true;
 
+    final settings = await (_db.select(_db.globalStates)
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(settings?.updatedAt)) return true;
+
+    final llm = await (_db.select(_db.llmConfigs)
+          ..orderBy([(t) => OrderingTerm.desc(t.modifiedAt)])
+          ..limit(1))
+        .getSingleOrNull();
+    if (await newer(llm?.modifiedAt)) return true;
+
     return false;
+  }
+
+  /// True when this install already has chats or messages of its own.
+  Future<bool> hasUserChatData() async {
+    final chat = await (_db.select(_db.chats)..limit(1)).getSingleOrNull();
+    if (chat != null) return true;
+    final message =
+        await (_db.select(_db.messages)..limit(1)).getSingleOrNull();
+    return message != null;
   }
 
   /// Import data from a backup, with support for different restore modes
@@ -305,7 +366,10 @@ class DatabaseBackupService {
 
     for (final entry in data.entries) {
       try {
-        final json = entry.value as Map<String, dynamic>;
+        final json = _normalizeCharacterJson(
+          Map<String, dynamic>.from(entry.value as Map),
+          fallbackId: entry.key,
+        );
         final id = json['id']?.toString() ?? entry.key;
 
         final existing = await (_db.select(_db.characters)
@@ -351,13 +415,15 @@ class DatabaseBackupService {
   Future<_ImportEntityResult> _importChats(
       Map<String, dynamic> data, ImportMode mode) async {
     int added = 0, updated = 0, skipped = 0;
-    int fkSkipped = 0;
 
     debugPrint(
         '[DatabaseBackup] _importChats: Processing ${data.length} chat entries');
 
     for (final entry in data.entries) {
-      final json = entry.value as Map<String, dynamic>;
+      final json = _normalizeChatJson(
+        Map<String, dynamic>.from(entry.value as Map),
+        fallbackId: entry.key,
+      );
       final id = json['id']?.toString() ?? entry.key;
       // Support both camelCase (JSON export) and snake_case formats
       final characterId =
@@ -369,12 +435,7 @@ class DatabaseBackupService {
               ..where((t) => t.id.equals(characterId)))
             .getSingleOrNull();
         if (characterExists == null) {
-          // Skip this chat if the character doesn't exist
-          debugPrint(
-              '[DatabaseBackup] Skipping chat $id: character_id $characterId not found');
-          skipped++;
-          fkSkipped++;
-          continue;
+          await _ensureCharacterStub(characterId);
         }
       }
 
@@ -392,9 +453,48 @@ class DatabaseBackupService {
           updated++;
         } else if (mode == ImportMode.merge) {
           final backupTime = _parseDateTime(json['updatedAt']);
-          if (backupTime != null && backupTime.isAfter(existing.updatedAt)) {
+          final incoming = Chat.fromJson(json);
+          final title = mergedChatTitle(
+            localTitle: existing.title,
+            remoteTitle: incoming.title,
+            localUpdatedAt: existing.updatedAt,
+            remoteUpdatedAt: backupTime,
+            localTitleUpdatedAt:
+                _titleUpdatedAtFromSettings(existing.settingsJson),
+            remoteTitleUpdatedAt: _titleUpdatedAtFromJson(json),
+          );
+          final newerRemote =
+              backupTime != null && backupTime.isAfter(existing.updatedAt);
+          if (newerRemote) {
             await (_db.update(_db.chats)..where((t) => t.id.equals(id)))
-                .write(Chat.fromJson(json).toCompanion(true));
+                .write(
+              incoming
+                  .copyWith(
+                    title: title,
+                    settingsJson: _settingsJsonWithTitle(
+                      incoming.settingsJson,
+                      title,
+                      titleUpdatedAt: _titleUpdatedAtFromJson(json) ??
+                          _titleUpdatedAtFromSettings(existing.settingsJson),
+                    ),
+                  )
+                  .toCompanion(true),
+            );
+            updated++;
+          } else if (title != existing.title) {
+            await (_db.update(_db.chats)..where((t) => t.id.equals(id))).write(
+              existing
+                  .copyWith(
+                    title: title,
+                    settingsJson: _settingsJsonWithTitle(
+                      existing.settingsJson,
+                      title,
+                      titleUpdatedAt: _titleUpdatedAtFromJson(json) ??
+                          _titleUpdatedAtFromSettings(existing.settingsJson),
+                    ),
+                  )
+                  .toCompanion(true),
+            );
             updated++;
           } else {
             skipped++;
@@ -410,7 +510,7 @@ class DatabaseBackupService {
     }
 
     debugPrint(
-        '[DatabaseBackup] _importChats completed: added=$added, updated=$updated, skipped=$skipped (FK skipped=$fkSkipped)');
+        '[DatabaseBackup] _importChats completed: added=$added, updated=$updated, skipped=$skipped');
     return _ImportEntityResult(
         added: added, updated: updated, skipped: skipped);
   }
@@ -424,7 +524,10 @@ class DatabaseBackupService {
         '[DatabaseBackup] _importMessages: Processing ${data.length} message entries');
 
     for (final entry in data.entries) {
-      final json = entry.value as Map<String, dynamic>;
+      final json = _normalizeMessageJson(
+        Map<String, dynamic>.from(entry.value as Map),
+        fallbackId: entry.key,
+      );
       final id = json['id']?.toString() ?? entry.key;
       // Support both camelCase (JSON export) and snake_case formats
       final chatId = (json['chatId'] ?? json['chat_id'])?.toString();
@@ -808,6 +911,170 @@ class DatabaseBackupService {
 
     return _ImportEntityResult(
         added: added, updated: updated, skipped: skipped);
+  }
+
+  Future<void> _ensureCharacterStub(String id) async {
+    final now = DateTime.now().toUtc();
+    try {
+      await _db.into(_db.characters).insert(
+            Character(
+              id: id,
+              name: 'Unknown',
+              description: '',
+              personality: '',
+              scenario: '',
+              firstMessage: '',
+              alternateGreetings: '[]',
+              exampleDialogue: '',
+              systemPrompt: '',
+              postHistoryInstructions: '',
+              creatorNotes: '',
+              tags: '[]',
+              creator: '',
+              characterVersion: '',
+              assetsJson: '{}',
+              characterBookJson: '',
+              extensionsJson: '{}',
+              isFavorite: false,
+              isDeleted: false,
+              createdAt: now,
+              modifiedAt: now,
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+    } catch (e) {
+      debugPrint('[DatabaseBackup] Failed to stub character $id: $e');
+    }
+  }
+
+  Map<String, dynamic> _normalizeCharacterJson(
+    Map<String, dynamic> json, {
+    required String fallbackId,
+  }) {
+    final normalized = <String, dynamic>{
+      'description': '',
+      'personality': '',
+      'scenario': '',
+      'firstMessage': '',
+      'alternateGreetings': '[]',
+      'exampleDialogue': '',
+      'systemPrompt': '',
+      'postHistoryInstructions': '',
+      'creatorNotes': '',
+      'tags': '[]',
+      'creator': '',
+      'characterVersion': '',
+      'assetsJson': '{}',
+      'characterBookJson': '',
+      'extensionsJson': '{}',
+      'isFavorite': false,
+      'isDeleted': false,
+      ...json,
+      'id': json['id']?.toString() ?? fallbackId,
+    };
+    _encodeJsonField(normalized, 'alternateGreetings');
+    _encodeJsonField(normalized, 'tags');
+    _encodeJsonField(normalized, 'assetsJson');
+    _encodeJsonField(normalized, 'characterBookJson');
+    _encodeJsonField(normalized, 'extensionsJson');
+    return normalized;
+  }
+
+  Map<String, dynamic> _normalizeChatJson(
+    Map<String, dynamic> json, {
+    required String fallbackId,
+  }) {
+    var settingsJson = json['settingsJson'];
+    if (settingsJson is Map) {
+      settingsJson = jsonEncode(settingsJson);
+    } else if (settingsJson is! String) {
+      final settings = json['settings'];
+      settingsJson = settings is Map ? jsonEncode(settings) : '{}';
+    }
+    final normalized = <String, dynamic>{
+      'groupId': null,
+      'title': 'New Chat',
+      'authorNote': '',
+      'authorNoteDepth': 4,
+      'authorNoteEnabled': false,
+      ...json,
+    };
+    normalized['id'] = json['id']?.toString() ?? fallbackId;
+    normalized['characterId'] =
+        (json['characterId'] ?? json['character_id'])?.toString() ?? '';
+    normalized['title'] =
+        json['title'] as String? ?? json['name'] as String? ?? 'New Chat';
+    normalized['settingsJson'] = settingsJson;
+    return normalized;
+  }
+
+  Map<String, dynamic> _normalizeMessageJson(
+    Map<String, dynamic> json, {
+    required String fallbackId,
+  }) {
+    final normalized = <String, dynamic>{
+      'swipes': '[]',
+      'currentSwipeIndex': 0,
+      'isEdited': false,
+      'isHidden': false,
+      'metadataJson': '{}',
+      'attachmentsJson': '[]',
+      ...json,
+      'id': json['id']?.toString() ?? fallbackId,
+      'chatId': (json['chatId'] ?? json['chat_id'])?.toString(),
+    };
+    _encodeJsonField(normalized, 'swipes');
+    _encodeJsonField(normalized, 'metadataJson');
+    _encodeJsonField(normalized, 'attachmentsJson');
+    return normalized;
+  }
+
+  void _encodeJsonField(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value is Map || value is List) {
+      json[key] = jsonEncode(value);
+    }
+  }
+
+  DateTime? _titleUpdatedAtFromJson(Map<String, dynamic> json) {
+    final direct = _parseDateTime(json['titleUpdatedAt']);
+    if (direct != null) return direct;
+    return _titleUpdatedAtFromSettings(json['settingsJson']) ??
+        _titleUpdatedAtFromSettings(json['settings']);
+  }
+
+  DateTime? _titleUpdatedAtFromSettings(Object? settings) {
+    Map<String, dynamic>? map;
+    if (settings is Map) {
+      map = Map<String, dynamic>.from(settings);
+    } else if (settings is String && settings.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(settings);
+        if (decoded is Map) {
+          map = Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+    }
+    return _parseDateTime(map?['titleUpdatedAt']);
+  }
+
+  String _settingsJsonWithTitle(
+    String settingsJson,
+    String title, {
+    DateTime? titleUpdatedAt,
+  }) {
+    Map<String, dynamic> map = {};
+    try {
+      final decoded = jsonDecode(settingsJson);
+      if (decoded is Map) {
+        map = Map<String, dynamic>.from(decoded);
+      }
+    } catch (_) {}
+    map['title'] = title;
+    if (titleUpdatedAt != null) {
+      map['titleUpdatedAt'] = titleUpdatedAt.toIso8601String();
+    }
+    return jsonEncode(map);
   }
 }
 
