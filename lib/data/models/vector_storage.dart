@@ -310,7 +310,7 @@ extension EmbeddingProviderExtension on EmbeddingProvider {
       case EmbeddingProvider.ollama:
         return 'Ollama (Local)';
       case EmbeddingProvider.siliconflow:
-        return 'SiliconFlow (硅基流动)';
+        return 'SiliconFlow';
       case EmbeddingProvider.local:
         return 'Local (Sentence Transformers)';
       case EmbeddingProvider.custom:

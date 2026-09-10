@@ -45,7 +45,7 @@ extension CharacterViewModeExtension on CharacterViewMode {
       case CharacterViewMode.grid:
         return l10n.gridView;
       case CharacterViewMode.compactGrid:
-        return 'Compact Grid'; // 紧凑网格视图
+        return l10n.compactGridView;
     }
   }
 }
