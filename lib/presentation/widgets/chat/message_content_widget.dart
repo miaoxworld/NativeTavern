@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/chat/html_webview_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,7 +17,7 @@ import 'package:native_tavern/l10n/generated/app_localizations.dart';
 /// - Markdown: bold, italic, strikethrough, code blocks, lists, links, etc.
 /// - Complex HTML: rendered via WebView for full CSS support
 /// - Text selection with context menu (copy, select all)
-class MessageContentWidget extends StatefulWidget {
+class MessageContentWidget extends ConsumerStatefulWidget {
   final String content;
   final Color textColor;
   final bool selectable;
@@ -45,10 +47,11 @@ class MessageContentWidget extends StatefulWidget {
   });
 
   @override
-  State<MessageContentWidget> createState() => _MessageContentWidgetState();
+  ConsumerState<MessageContentWidget> createState() =>
+      _MessageContentWidgetState();
 }
 
-class _MessageContentWidgetState extends State<MessageContentWidget> {
+class _MessageContentWidgetState extends ConsumerState<MessageContentWidget> {
   String? _selectedText;
 
   /// Content key for forcing WebView re-render after streaming ends
@@ -63,6 +66,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
   Color? _cachedColor;
   int? _cachedVersion;
   Brightness? _cachedBrightness;
+  bool? _cachedAllowImages;
 
   @override
   void didUpdateWidget(MessageContentWidget oldWidget) {
@@ -201,12 +205,14 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     }
 
     final brightness = Theme.of(context).brightness;
+    final allowImages = ref.watch(appSettingsProvider).enableEmbeddedImages;
     if (_cachedWidget != null &&
         _cachedContent == widget.content &&
         _cachedStreaming == widget.isStreaming &&
         _cachedColor == widget.textColor &&
         _cachedVersion == _contentVersion &&
-        _cachedBrightness == brightness) {
+        _cachedBrightness == brightness &&
+        _cachedAllowImages == allowImages) {
       return _cachedWidget!;
     }
 
@@ -217,6 +223,7 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
     _cachedColor = widget.textColor;
     _cachedVersion = _contentVersion;
     _cachedBrightness = brightness;
+    _cachedAllowImages = allowImages;
     return result;
   }
 
@@ -238,6 +245,8 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         fontSize: widget.fontSize,
         onLongPress: widget.onLongPress,
         contentKey: contentKey,
+        allowExternalImages:
+            ref.watch(appSettingsProvider).enableEmbeddedImages,
       );
     }
     // For all other content (including simple HTML), convert to Markdown and render
@@ -442,7 +451,30 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
         shrinkWrap: true,
         softLineBreak: true, // Enable soft line breaks for proper text wrapping
         imageBuilder: (uri, title, alt) {
-          // Custom image builder using CachedNetworkImage
+          final allowImages =
+              ref.watch(appSettingsProvider).enableEmbeddedImages;
+          final isData = uri.scheme == 'data' || uri.scheme == 'file';
+          if (!allowImages && !isData) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.hide_image_outlined,
+                      color: AppTheme.textMuted, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context).embeddedImagesDisabled,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: ClipRRect(
@@ -466,8 +498,8 @@ class _MessageContentWidgetState extends State<MessageContentWidget> {
                       const Icon(Icons.broken_image, color: AppTheme.textMuted),
                       const SizedBox(height: 4),
                       Text(
-                        'Image failed to load',
-                        style: TextStyle(
+                        AppLocalizations.of(context).imageFailedToLoad,
+                        style: const TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 12,
                         ),

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:native_tavern/domain/services/image_generation_service.dart';
+import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Widget to display images extracted from text content
-class ExtractedImagesWidget extends StatelessWidget {
+class ExtractedImagesWidget extends ConsumerWidget {
   final String text;
   final double maxHeight;
   final EdgeInsets padding;
@@ -20,7 +21,10 @@ class ExtractedImagesWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(appSettingsProvider).enableEmbeddedImages) {
+      return const SizedBox.shrink();
+    }
     final urls = ImageGenerationService.extractImageUrls(text);
 
     // Filter out URLs that are already in Markdown image syntax (they will be rendered by markdown)

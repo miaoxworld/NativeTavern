@@ -84,6 +84,17 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.backgroundSettings),
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.image_outlined),
+            title: Text(l10n.enableEmbeddedImages),
+            subtitle: Text(l10n.enableEmbeddedImagesDescription),
+            value: ref.watch(appSettingsProvider).enableEmbeddedImages,
+            onChanged: (value) {
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .updateEnableEmbeddedImages(value);
+            },
+          ),
           ListTile(
             key: const Key('memory-inbox-settings-tile'),
             leading: const Icon(Icons.memory),
@@ -106,7 +117,7 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.rpgScenarioEditor),
             ),
           const Divider(height: 32),
-          _buildSectionHeader(context, 'Multimedia'),
+          _buildSectionHeader(context, l10n.multimedia),
           ListTile(
             leading: const Icon(Icons.record_voice_over),
             title: Text(l10n.tts),
@@ -417,7 +428,7 @@ class _LanguageTile extends ConsumerWidget {
     final currentLocale = ref.watch(localeProvider);
 
     // Find the current locale's display name
-    String currentLanguage = l10n.systemTheme;
+    String currentLanguage = l10n.systemLanguage;
     if (currentLocale != null) {
       final supportedLocale = supportedLocales.where((sl) {
         if (currentLocale.countryCode != null) {
@@ -492,7 +503,7 @@ class _LanguageTile extends ConsumerWidget {
                   // System default option
                   ListTile(
                     leading: const Icon(Icons.phone_android),
-                    title: Text(l10n.systemTheme),
+                    title: Text(l10n.systemLanguage),
                     trailing: currentLocale == null
                         ? const Icon(Icons.check, color: Colors.green)
                         : null,

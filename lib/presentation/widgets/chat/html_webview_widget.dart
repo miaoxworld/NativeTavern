@@ -18,6 +18,9 @@ class HtmlWebViewWidget extends StatefulWidget {
   /// Unique key to force rebuild when content changes significantly
   final String? contentKey;
 
+  /// When false, skip loading http(s) images while still showing data URIs.
+  final bool allowExternalImages;
+
   const HtmlWebViewWidget({
     super.key,
     required this.htmlContent,
@@ -26,6 +29,7 @@ class HtmlWebViewWidget extends StatefulWidget {
     this.fontSize,
     this.onLongPress,
     this.contentKey,
+    this.allowExternalImages = true,
   });
 
   @override
@@ -65,7 +69,8 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
   void didUpdateWidget(HtmlWebViewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Check if content has changed (important for swipe switching)
-    final contentChanged = widget.htmlContent != oldWidget.htmlContent;
+    final contentChanged = widget.htmlContent != oldWidget.htmlContent ||
+        widget.allowExternalImages != oldWidget.allowExternalImages;
     // Check if contentKey has changed (e.g., streaming ended)
     final keyChanged =
         widget.contentKey != oldWidget.contentKey && widget.contentKey != null;
@@ -151,6 +156,7 @@ class _HtmlWebViewWidgetState extends State<HtmlWebViewWidget> {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script>window.__ntAllowExternalImages = ${widget.allowExternalImages};</script>
   <style>
     * {
       box-sizing: border-box;
@@ -448,6 +454,11 @@ $content
     images.forEach(function(img) {
       // Only defer external images (not data URIs)
       if (img.src && !img.src.startsWith('data:') && !img.getAttribute('data-deferred')) {
+        if (!window.__ntAllowExternalImages) {
+          img.removeAttribute('src');
+          img.alt = img.alt || 'Image blocked';
+          return;
+        }
         img.setAttribute('data-original-src', img.src);
         img.setAttribute('data-deferred', 'true');
         img.removeAttribute('src');

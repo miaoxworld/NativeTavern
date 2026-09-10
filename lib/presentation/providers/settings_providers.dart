@@ -771,6 +771,7 @@ class AppSettings {
   final int storyTurnsPerChapter;
   final double storyHighConfidenceThreshold;
   final bool momentsEnabled;
+  final bool enableEmbeddedImages;
 
   const AppSettings({
     this.theme = 'dark',
@@ -793,6 +794,7 @@ class AppSettings {
     this.storyTurnsPerChapter = 20,
     this.storyHighConfidenceThreshold = 0.8,
     this.momentsEnabled = false,
+    this.enableEmbeddedImages = true,
   });
 
   AppSettings copyWith({
@@ -816,6 +818,7 @@ class AppSettings {
     int? storyTurnsPerChapter,
     double? storyHighConfidenceThreshold,
     bool? momentsEnabled,
+    bool? enableEmbeddedImages,
   }) {
     return AppSettings(
       theme: theme ?? this.theme,
@@ -844,6 +847,7 @@ class AppSettings {
       storyHighConfidenceThreshold:
           storyHighConfidenceThreshold ?? this.storyHighConfidenceThreshold,
       momentsEnabled: momentsEnabled ?? this.momentsEnabled,
+      enableEmbeddedImages: enableEmbeddedImages ?? this.enableEmbeddedImages,
     );
   }
 
@@ -868,6 +872,7 @@ class AppSettings {
         'storyTurnsPerChapter': storyTurnsPerChapter,
         'storyHighConfidenceThreshold': storyHighConfidenceThreshold,
         'momentsEnabled': momentsEnabled,
+        'enableEmbeddedImages': enableEmbeddedImages,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -902,6 +907,7 @@ class AppSettings {
         (json['storyHighConfidenceThreshold'] as num?)?.toDouble(),
       ),
       momentsEnabled: json['momentsEnabled'] as bool? ?? false,
+      enableEmbeddedImages: json['enableEmbeddedImages'] as bool? ?? true,
     );
   }
 
@@ -1018,6 +1024,11 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
 
   void updateDebugLog(bool enabled) {
     state = state.copyWith(enableDebugLog: enabled);
+    _saveSettings();
+  }
+
+  void updateEnableEmbeddedImages(bool enabled) {
+    state = state.copyWith(enableEmbeddedImages: enabled);
     _saveSettings();
   }
 
