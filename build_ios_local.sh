@@ -155,12 +155,10 @@ select_xcode_app() {
     [[ -d "$app" ]] || fail "XCODE_APP is set but not a directory: $app"
   elif [[ -d /Applications/Xcode.app ]]; then
     app="/Applications/Xcode.app"
-  elif macos_is_developer_beta && [[ -d /Applications/Xcode-beta.app ]]; then
-    app="/Applications/Xcode-beta.app"
   elif [[ -d /Applications/Xcode-beta.app ]]; then
-    fail "Xcode.app was not found in /Applications. Xcode-beta.app is only used when macOS is a developer beta (build $(sw_vers -buildVersion)). Set XCODE_APP=/Applications/Xcode-beta.app to override."
+    app="/Applications/Xcode-beta.app"
   else
-    fail "Xcode.app was not found in /Applications."
+    fail "Xcode was not found in /Applications."
   fi
   XCODE_APP="$app"
   export DEVELOPER_DIR="$XCODE_APP/Contents/Developer"

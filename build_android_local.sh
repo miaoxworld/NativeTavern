@@ -10,6 +10,9 @@ if [ -f .env ]; then
     set -a
     source .env
     set +a
+    FLUTTER_ENV_FLAGS="--dart-define-from-file=.env"
+else
+    FLUTTER_ENV_FLAGS=""
 fi
 
 BUILD_MODE="${BUILD_MODE:-release}"
@@ -191,10 +194,6 @@ restore_flutter_state
 
 echo "Restoring Flutter dependencies..."
 flutter pub get
-
-if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
-  flutter build ios --config-only $FLUTTER_ENV_FLAGS
-fi
 
 if [ "${SKIP_LAUNCHER_ICONS:-false}" = "true" ]; then
     echo "Skipping launcher icon generation (SKIP_LAUNCHER_ICONS=true)."
@@ -405,6 +404,14 @@ cat > "$STRINGS_XML" << EOF
 <resources>
     <string name="app_name">Native Tavern</string>
     <string name="default_web_client_id">$WEB_CLIENT_ID</string>
+    <string name="widget_moments_label">Moments</string>
+    <string name="widget_moments_description">View latest character moments</string>
+    <string name="widget_chats_label">Chats</string>
+    <string name="widget_chats_description">Quick access to recent chats</string>
+    <string name="widget_characters_label">Characters</string>
+    <string name="widget_characters_description">Quick access to your favorite characters</string>
+    <string name="widget_status_label">Status</string>
+    <string name="widget_status_description">View current Tavern status</string>
 </resources>
 EOF
 

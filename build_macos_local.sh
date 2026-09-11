@@ -10,9 +10,13 @@ if [ -f .env ]; then
     set -a
     source .env
     set +a
+    FLUTTER_ENV_FLAGS="--dart-define-from-file=.env"
+else
+    FLUTTER_ENV_FLAGS=""
 fi
 
 BUILD_MODE="${BUILD_MODE:-release}"
+TARGET_ARCH="${TARGET_ARCH:-all}"
 CHECK_ONLY="${CHECK_ONLY:-false}"
 SKIP_CLEAN="${SKIP_CLEAN:-${SKIP_FLUTTER_CLEAN:-false}}"
 BUNDLE_ID="${BUNDLE_ID:-${APPLE_BUNDLE_ID:-${MACOS_BUNDLE_ID:-com.miaomiaoxworld.nativetavern}}}"
@@ -36,6 +40,10 @@ while [[ $# -gt 0 ]]; do
             BUILD_MODE="release"
             shift
             ;;
+        --arch)
+            TARGET_ARCH="$2"
+            shift 2
+            ;;
         --skip-clean)
             SKIP_CLEAN="true"
             shift
@@ -50,6 +58,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --check-only         Validate configuration without building"
             echo "  --debug              Build in debug mode"
             echo "  --release            Build in release mode (default)"
+            echo "  --arch <arch>        Target architecture: arm64, x86_64 (intel), or all (default)"
             echo "  --skip-clean         Skip flutter clean for faster rebuilds"
             echo "  --bundle-id <id>     Override macOS bundle identifier"
             exit 0
@@ -106,7 +115,7 @@ echo "Resolving dependencies..."
 flutter pub get
 
 if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
-  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+  flutter build macos --config-only $FLUTTER_ENV_FLAGS
 fi
 
 echo "Generating launcher icons..."
@@ -120,7 +129,10 @@ restore_macos_identity() {
     "macos/HomeWidgets/HomeWidgets.entitlements" \
     "macos/Runner/Info.plist" \
     "macos/HomeWidgets/Info.plist" \
-    "macos/Runner.xcodeproj/project.pbxproj"
+    "macos/Runner.xcodeproj/project.pbxproj" \
+    "macos/Flutter/Flutter-Debug.xcconfig" \
+    "macos/Flutter/Flutter-Release.xcconfig" \
+    "macos/Runner/Configs/AppInfo.xcconfig"
   do
     local bak="$MACOS_TEMP/$(echo "$pair" | tr '/' '_')"
     if [[ -f "$bak" ]]; then
@@ -137,7 +149,10 @@ for pair in \
   macos/HomeWidgets/HomeWidgets.entitlements \
   macos/Runner/Info.plist \
   macos/HomeWidgets/Info.plist \
-  macos/Runner.xcodeproj/project.pbxproj
+  macos/Runner.xcodeproj/project.pbxproj \
+  macos/Flutter/Flutter-Debug.xcconfig \
+  macos/Flutter/Flutter-Release.xcconfig \
+  macos/Runner/Configs/AppInfo.xcconfig
 do
   [[ -f "$pair" ]] || continue
   cp -f "$pair" "$MACOS_TEMP/$(echo "$pair" | tr '/' '_')"
@@ -162,35 +177,115 @@ if [[ "$BUNDLE_ID" != "$EXPECTED_BUNDLE_ID" ]]; then
     sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_WIDGET_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${WIDGET_BUNDLE_ID};/g" "$PBXPROJ"
   fi
   sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBXPROJ"
+  APPINFO="macos/Runner/Configs/AppInfo.xcconfig"
+  if [[ -f "$APPINFO" ]]; then
+    sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID}/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}/g" "$APPINFO"
+  fi
 fi
 
-echo "Building macOS application ($BUILD_MODE)..."
-flutter build macos $FLUTTER_ENV_FLAGS "--$BUILD_MODE" \
-    --build-name="$BUILD_NAME" \
-    --build-number="$BUILD_NUMBER"
+build_single_arch() {
+    local target_arch="$1"
+    echo "=== Building macOS application ($BUILD_MODE, $target_arch) ==="
 
-# Locate built .app bundle
-BUILD_DIR_NAME="$(tr '[:lower:]' '[:upper:]' <<< "${BUILD_MODE:0:1}")${BUILD_MODE:1}"
-BUILD_APP_PATH="$(find "build/macos/Build/Products/$BUILD_DIR_NAME" -maxdepth 1 -type d -name '*.app' -print -quit 2>/dev/null || true)"
+    # Ensure Live2D Cubism Core header exists
+    local cubism_header="packages/native_tavern_live2d_macos/macos/CubismCore/include/Live2DCubismCore.h"
+    if [[ ! -f "$cubism_header" ]]; then
+      local cached_header="$(find ~/.pub-cache/git -name "Live2DCubismCore.h" -print -quit 2>/dev/null || true)"
+      if [[ -n "$cached_header" && -f "$cached_header" ]]; then
+        mkdir -p "$(dirname "$cubism_header")"
+        cp -f "$cached_header" "$cubism_header"
+        echo "Installed Live2DCubismCore.h from cache."
+      fi
+    fi
 
-if [ -z "$BUILD_APP_PATH" ] || [ ! -d "$BUILD_APP_PATH" ]; then
-    BUILD_APP_PATH="$(find build/macos/Build/Products -maxdepth 2 -type d -name '*.app' -print -quit 2>/dev/null || true)"
-fi
+    local pbxproj="macos/Runner.xcodeproj/project.pbxproj"
+    local debug_xcconfig="macos/Flutter/Flutter-Debug.xcconfig"
+    local release_xcconfig="macos/Flutter/Flutter-Release.xcconfig"
+    local target_xcconfig="$debug_xcconfig"
+    if [ "$BUILD_MODE" == "release" ]; then
+        target_xcconfig="$release_xcconfig"
+    fi
 
-[ -n "$BUILD_APP_PATH" ] && [ -d "$BUILD_APP_PATH" ] || { echo "ERROR: macOS build did not produce an .app bundle"; exit 1; }
+    local xcconfig_bak="${target_xcconfig}.arch_bak"
+    local pbxproj_bak="${pbxproj}.arch_bak"
+    cp -f "$target_xcconfig" "$xcconfig_bak"
+    cp -f "$pbxproj" "$pbxproj_bak"
 
-mkdir -p build/local_release
-FINAL_ZIP="build/local_release/NativeTavern_v${VERSION}_macOS_${BUILD_MODE}.zip"
-rm -f "$FINAL_ZIP"
+    printf '\nARCHS = %s\nONLY_ACTIVE_ARCH = NO\n' "$target_arch" >> "$target_xcconfig"
+    sed -i '' "s/ONLY_ACTIVE_ARCH = YES;/ONLY_ACTIVE_ARCH = NO;/g" "$pbxproj"
 
-echo "Packaging application bundle into $FINAL_ZIP..."
-ditto -c -k --sequesterRsrc --keepParent "$BUILD_APP_PATH" "$FINAL_ZIP"
+    TEAM_ID="${TEAM_ID:-${APPLE_DEVELOP_ID:-}}"
+    if [[ -n "$TEAM_ID" ]]; then
+      printf '\nDEVELOPMENT_TEAM = %s\n' "$TEAM_ID" >> "$target_xcconfig"
+      export FLUTTER_XCODE_DEVELOPMENT_TEAM="$TEAM_ID"
+    fi
 
-[ -f "$FINAL_ZIP" ] || { echo "ERROR: Failed to produce release archive: $FINAL_ZIP"; exit 1; }
+    BUILD_DIR_NAME="$(tr '[:lower:]' '[:upper:]' <<< "${BUILD_MODE:0:1}")${BUILD_MODE:1}"
+    rm -rf "build/macos/Build/Products/$BUILD_DIR_NAME"
 
-echo "=== Local macOS Build Finished Successfully ==="
-echo "Application bundle: $BUILD_APP_PATH"
-echo "Archive: $FINAL_ZIP"
-SHA="$(shasum -a 256 "$FINAL_ZIP" | awk '{ print $1 }')"
-echo "SHA-256: $SHA"
-printf '%s  %s\n' "$SHA" "$(basename "$FINAL_ZIP")" > "${FINAL_ZIP}.sha256"
+    local flutter_cmd=(flutter)
+    if [ "$target_arch" == "x86_64" ]; then
+        flutter_cmd=(arch -x86_64 flutter)
+    elif [ "$target_arch" == "arm64" ]; then
+        flutter_cmd=(arch -arm64 flutter)
+    fi
+
+    "${flutter_cmd[@]}" build macos $FLUTTER_ENV_FLAGS "--$BUILD_MODE" \
+        --build-name="$BUILD_NAME" \
+        --build-number="$BUILD_NUMBER"
+
+    cp -f "$xcconfig_bak" "$target_xcconfig"
+    cp -f "$pbxproj_bak" "$pbxproj"
+    rm -f "$xcconfig_bak" "$pbxproj_bak"
+
+    BUILD_APP_PATH="$(find "build/macos/Build/Products/$BUILD_DIR_NAME" -maxdepth 1 -type d -name '*.app' -print -quit 2>/dev/null || true)"
+
+    if [ -z "$BUILD_APP_PATH" ] || [ ! -d "$BUILD_APP_PATH" ]; then
+        BUILD_APP_PATH="$(find build/macos/Build/Products -maxdepth 2 -type d -name '*.app' -print -quit 2>/dev/null || true)"
+    fi
+
+    [ -n "$BUILD_APP_PATH" ] && [ -d "$BUILD_APP_PATH" ] || { echo "ERROR: macOS build did not produce an .app bundle for $target_arch"; exit 1; }
+
+    if [[ -f "$BUILD_APP_PATH/Contents/MacOS/NativeTavern" ]]; then
+      echo "Binary architecture check:"
+      file "$BUILD_APP_PATH/Contents/MacOS/NativeTavern"
+    fi
+
+    mkdir -p build/local_release
+    FINAL_ZIP="build/local_release/NativeTavern_v${VERSION}_macOS_${BUILD_MODE}_${target_arch}.zip"
+    rm -f "$FINAL_ZIP"
+
+    echo "Packaging $target_arch application bundle into $FINAL_ZIP..."
+    ditto -c -k --sequesterRsrc --keepParent "$BUILD_APP_PATH" "$FINAL_ZIP"
+
+    [ -f "$FINAL_ZIP" ] || { echo "ERROR: Failed to produce release archive: $FINAL_ZIP"; exit 1; }
+
+    echo "=== Local macOS Build ($target_arch) Finished Successfully ==="
+    echo "Application bundle: $BUILD_APP_PATH"
+    echo "Archive: $FINAL_ZIP"
+    SHA="$(shasum -a 256 "$FINAL_ZIP" | awk '{ print $1 }')"
+    echo "SHA-256: $SHA"
+    printf '%s  %s\n' "$SHA" "$(basename "$FINAL_ZIP")" > "${FINAL_ZIP}.sha256"
+
+    # Also keep default un-suffixed zip for default / primary arch
+    local default_zip="build/local_release/NativeTavern_v${VERSION}_macOS_${BUILD_MODE}.zip"
+    cp -f "$FINAL_ZIP" "$default_zip"
+    printf '%s  %s\n' "$SHA" "$(basename "$default_zip")" > "${default_zip}.sha256"
+}
+
+case "$TARGET_ARCH" in
+    arm64)
+        build_single_arch "arm64"
+        ;;
+    x86_64|intel)
+        build_single_arch "x86_64"
+        ;;
+    all|both)
+        build_single_arch "arm64"
+        build_single_arch "x86_64"
+        ;;
+    *)
+        echo "Unknown architecture: $TARGET_ARCH (expected: arm64, x86_64, or all)"
+        exit 1
+        ;;
+esac
