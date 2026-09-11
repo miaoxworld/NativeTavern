@@ -13,6 +13,7 @@ import '../../providers/vector_storage_providers.dart';
 import '../../router/app_router.dart';
 import '../../theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import '../../widgets/settings/local_model_manager_sheet.dart';
 
 /// Provider for China region detection
 final isChinaRegionProvider = FutureProvider<bool>((ref) async {
@@ -131,6 +132,8 @@ class AIConfigScreen extends ConsumerWidget {
           const _ModelTile(),
           const _OpenRouterProviderTile(),
           const _ConnectionTestTile(),
+          if (ref.watch(llmConfigProvider).provider.isLocalServer)
+            const _LocalModelManagerTile(),
 
           const Divider(height: 32),
           _buildSectionHeader(
@@ -978,6 +981,29 @@ class _ConnectionTestTile extends ConsumerWidget {
     }
   }
 }
+
+class _LocalModelManagerTile extends ConsumerWidget {
+  const _LocalModelManagerTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(llmConfigProvider);
+    return ListTile(
+      leading: const Icon(Icons.download),
+      title: Text(AppLocalizations.of(context).localModelManagerTitle),
+      subtitle: Text(AppLocalizations.of(context).localModelManagerHint),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => LocalModelManagerSheet(config: config),
+        );
+      },
+    );
+  }
+}
+
 
 /// Context Length tile - shows the context window size (input tokens)
 class _ContextLengthTile extends ConsumerWidget {

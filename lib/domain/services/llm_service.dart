@@ -2561,6 +2561,7 @@ class LLMService {
       'stream': false,
       'options': {
         'num_predict': config.maxTokens,
+        'num_ctx': config.contextLength,
         'temperature': config.temperature,
         'top_p': config.topP,
         'top_k': config.topK,
@@ -2618,6 +2619,7 @@ class LLMService {
       'stream': true,
       'options': {
         'num_predict': config.maxTokens,
+        'num_ctx': config.contextLength,
         'temperature': config.temperature,
         'top_p': config.topP,
         'top_k': config.topK,
@@ -3209,6 +3211,7 @@ class LLMService {
       'stream': true,
       'options': {
         'num_predict': config.maxTokens,
+        'num_ctx': config.contextLength,
         'temperature': config.temperature,
         'top_p': config.topP,
         'top_k': config.topK,
