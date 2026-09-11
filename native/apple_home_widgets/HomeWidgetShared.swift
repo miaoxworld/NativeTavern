@@ -745,3 +745,256 @@ private func formatTokens(_ value: Int) -> String {
   return "\(value)"
 }
 
+#if os(iOS) && canImport(ActivityKit)
+import ActivityKit
+
+public struct NativeTavernLiveAttributes: ActivityAttributes {
+  public struct ContentState: Codable, Hashable {
+    public var chatId: String
+    public var characterId: String
+    public var characterName: String
+    public var avatarFileName: String?
+    public var snippet: String
+    public var phase: String // "generating" | "speaking" | "idle"
+    public var providerLabel: String
+    public var deepLink: String
+    public var startedAt: Date
+    public var updatedAt: Date
+    public var tokensToday: Int
+
+    public init(
+      chatId: String,
+      characterId: String,
+      characterName: String,
+      avatarFileName: String? = nil,
+      snippet: String,
+      phase: String,
+      providerLabel: String,
+      deepLink: String,
+      startedAt: Date,
+      updatedAt: Date,
+      tokensToday: Int
+    ) {
+      self.chatId = chatId
+      self.characterId = characterId
+      self.characterName = characterName
+      self.avatarFileName = avatarFileName
+      self.snippet = snippet
+      self.phase = phase
+      self.providerLabel = providerLabel
+      self.deepLink = deepLink
+      self.startedAt = startedAt
+      self.updatedAt = updatedAt
+      self.tokensToday = tokensToday
+    }
+  }
+
+  public var initialChatId: String
+
+  public init(initialChatId: String) {
+    self.initialChatId = initialChatId
+  }
+}
+
+@available(iOS 16.1, *)
+public struct NativeTavernLiveActivityWidget: Widget {
+  public init() {}
+
+  public var body: some WidgetConfiguration {
+    ActivityConfiguration(for: NativeTavernLiveAttributes.self) { context in
+      LiveActivityLockScreenBannerView(state: context.state)
+        .widgetURL(URL(string: context.state.deepLink.isEmpty ? "nativetavern://widget/home" : context.state.deepLink))
+    } dynamicIsland: { context in
+      DynamicIsland {
+        DynamicIslandExpandedRegion(.leading) {
+          HStack(spacing: 8) {
+            if let avatar = context.state.avatarFileName,
+               let image = HomeWidgetStore.image(named: avatar) {
+              Image(compat: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 28, height: 28)
+                .clipShape(Circle())
+            } else {
+              Image(systemName: "bubble.left.and.bubble.right.fill")
+                .font(.system(size: 16))
+                .foregroundColor(.purple)
+            }
+            Text(context.state.characterName)
+              .font(.headline)
+              .lineLimit(1)
+          }
+        }
+        DynamicIslandExpandedRegion(.trailing) {
+          HStack(spacing: 4) {
+            Text(sanitizedProvider(context.state.providerLabel))
+              .font(.caption2.weight(.semibold))
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .background(Capsule().fill(Color.purple.opacity(0.25)))
+            phaseIcon(context.state.phase)
+          }
+        }
+        DynamicIslandExpandedRegion(.bottom) {
+          VStack(alignment: .leading, spacing: 4) {
+            let labelText = context.state.snippet.isEmpty
+              ? (context.state.phase == "speaking" ? "Reading reply..." : "Generating reply...")
+              : context.state.snippet
+            Text(labelText)
+              .font(.subheadline)
+              .lineLimit(3)
+              .foregroundStyle(.secondary)
+            if context.state.tokensToday > 0 {
+              HStack {
+                Spacer()
+                Text("Tokens: \(formatTokens(context.state.tokensToday))")
+                  .font(.caption2)
+                  .foregroundStyle(.secondary)
+              }
+            }
+          }
+          .padding(.top, 4)
+        }
+      } compactLeading: {
+        if let avatar = context.state.avatarFileName,
+           let image = HomeWidgetStore.image(named: avatar) {
+          Image(compat: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 18, height: 18)
+            .clipShape(Circle())
+        } else {
+          Image(systemName: "sparkles")
+            .foregroundStyle(.purple)
+        }
+      } compactTrailing: {
+        phaseIcon(context.state.phase)
+      } minimal: {
+        if let avatar = context.state.avatarFileName,
+           let image = HomeWidgetStore.image(named: avatar) {
+          Image(compat: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 18, height: 18)
+            .clipShape(Circle())
+        } else {
+          Image(systemName: "bubble.left.fill")
+            .foregroundStyle(.purple)
+        }
+      }
+      .widgetURL(URL(string: context.state.deepLink.isEmpty ? "nativetavern://widget/home" : context.state.deepLink))
+    }
+  }
+}
+
+@available(iOS 16.1, *)
+private struct LiveActivityLockScreenBannerView: View {
+  let state: NativeTavernLiveAttributes.ContentState
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 12) {
+      if let avatar = state.avatarFileName,
+         let image = HomeWidgetStore.image(named: avatar) {
+        Image(compat: image)
+          .resizable()
+          .scaledToFill()
+          .frame(width: 44, height: 44)
+          .clipShape(RoundedRectangle(cornerRadius: 10))
+      } else {
+        ZStack {
+          RoundedRectangle(cornerRadius: 10)
+            .fill(Color.purple.opacity(0.2))
+            .frame(width: 44, height: 44)
+          Image(systemName: "bubble.left.and.bubble.right.fill")
+            .font(.system(size: 20))
+            .foregroundStyle(.purple)
+        }
+      }
+
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center) {
+          Text(state.characterName)
+            .font(.headline)
+            .lineLimit(1)
+          Spacer()
+          HStack(spacing: 6) {
+            Text(sanitizedProvider(state.providerLabel))
+              .font(.caption2.weight(.medium))
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .background(Capsule().fill(Color.white.opacity(0.12)))
+            phaseBadge(state.phase)
+          }
+        }
+
+        let displayText = state.snippet.isEmpty
+          ? (state.phase == "speaking" ? "Reading reply..." : "Generating reply...")
+          : state.snippet
+        Text(displayText)
+          .font(.subheadline)
+          .lineLimit(4)
+          .foregroundStyle(.primary)
+
+        if state.tokensToday > 0 {
+          HStack {
+            Spacer()
+            Text("Tokens: \(formatTokens(state.tokensToday))")
+              .font(.caption2)
+              .foregroundStyle(.secondary)
+          }
+        }
+      }
+    }
+    .padding(14)
+    .activityBackgroundTint(Color.black.opacity(0.8))
+  }
+}
+
+@available(iOS 16.1, *)
+@ViewBuilder
+private func phaseIcon(_ phase: String) -> some View {
+  switch phase {
+  case "speaking":
+    Image(systemName: "waveform")
+      .foregroundStyle(.blue)
+      .font(.caption2)
+  default:
+    Image(systemName: "sparkles")
+      .foregroundStyle(.purple)
+      .font(.caption2)
+  }
+}
+
+@available(iOS 16.1, *)
+@ViewBuilder
+private func phaseBadge(_ phase: String) -> some View {
+  switch phase {
+  case "speaking":
+    HStack(spacing: 3) {
+      Image(systemName: "waveform")
+      Text("Speaking")
+    }
+    .font(.caption2.weight(.medium))
+    .foregroundStyle(.blue)
+  default:
+    HStack(spacing: 3) {
+      Image(systemName: "sparkles")
+      Text("Generating")
+    }
+    .font(.caption2.weight(.medium))
+    .foregroundStyle(.purple)
+  }
+}
+
+private func sanitizedProvider(_ label: String) -> String {
+  let restricted = ["OpenAI", "xAI (Grok)", "xAI", "Grok", "Claude", "Gemini", "OpenRouter"]
+  if restricted.contains(label) {
+    let lang = Locale.preferredLanguages.first?.lowercased() ?? ""
+    if lang.hasPrefix("zh") {
+      return "LLM"
+    }
+  }
+  return label.isEmpty ? "LLM" : label
+}
+#endif
+

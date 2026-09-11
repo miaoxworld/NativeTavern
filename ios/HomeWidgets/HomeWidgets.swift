@@ -8,5 +8,10 @@ struct HomeWidgets: WidgetBundle {
     NativeTavernChatsWidget()
     NativeTavernCharactersWidget()
     NativeTavernStatusWidget()
+    #if os(iOS) && canImport(ActivityKit)
+    if #available(iOS 16.1, *) {
+      NativeTavernLiveActivityWidget()
+    }
+    #endif
   }
 }
