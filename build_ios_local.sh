@@ -143,15 +143,19 @@ macos_is_developer_beta() {
 }
 
 # Prefer /Applications/Xcode.app. Use Xcode-beta.app only when macOS itself is
-# a developer beta and the release Xcode.app is missing.
+# a developer beta and the release Xcode.app is missing. An explicit XCODE_APP
+# in the environment wins, so local sideload machines with only Xcode-beta can
+# still archive an IPA.
 select_xcode_app() {
-  local app=""
-  if [[ -d /Applications/Xcode.app ]]; then
+  local app="${XCODE_APP:-}"
+  if [[ -n "$app" ]]; then
+    [[ -d "$app" ]] || fail "XCODE_APP is set but not a directory: $app"
+  elif [[ -d /Applications/Xcode.app ]]; then
     app="/Applications/Xcode.app"
   elif macos_is_developer_beta && [[ -d /Applications/Xcode-beta.app ]]; then
     app="/Applications/Xcode-beta.app"
   elif [[ -d /Applications/Xcode-beta.app ]]; then
-    fail "Xcode.app was not found in /Applications. Xcode-beta.app is only used when macOS is a developer beta (build $(sw_vers -buildVersion))."
+    fail "Xcode.app was not found in /Applications. Xcode-beta.app is only used when macOS is a developer beta (build $(sw_vers -buildVersion)). Set XCODE_APP=/Applications/Xcode-beta.app to override."
   else
     fail "Xcode.app was not found in /Applications."
   fi
