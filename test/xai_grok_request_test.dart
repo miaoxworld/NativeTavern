@@ -193,7 +193,7 @@ void main() {
     });
 
     test(
-        'OpenAI and xAI are both filtered out when China restriction is active',
+        'overseas cloud providers are filtered out when China restriction is active',
         () {
       List<LLMProvider> filterProviders({required bool hideRestricted}) {
         return LLMProvider.values.where((provider) {
@@ -208,7 +208,9 @@ void main() {
       final restrictedProviders = filterProviders(hideRestricted: true);
       expect(restrictedProviders.contains(LLMProvider.openai), isFalse);
       expect(restrictedProviders.contains(LLMProvider.xai), isFalse);
-      expect(restrictedProviders.contains(LLMProvider.claude), isTrue);
+      expect(restrictedProviders.contains(LLMProvider.claude), isFalse);
+      expect(restrictedProviders.contains(LLMProvider.gemini), isFalse);
+      expect(restrictedProviders.contains(LLMProvider.openRouter), isFalse);
       expect(restrictedProviders.contains(LLMProvider.deepSeek), isTrue);
       expect(restrictedProviders.contains(LLMProvider.lmStudio), isTrue);
       expect(restrictedProviders.contains(LLMProvider.ollama), isTrue);
@@ -246,6 +248,23 @@ void main() {
         ),
         isFalse,
       );
+    });
+
+    test('image, speech, and embedding gateways hide the same overseas clouds',
+        () {
+      expect(RegionService.isRestrictedImageGenId('openai'), isTrue);
+      expect(RegionService.isRestrictedImageGenId('openai_chat'), isTrue);
+      expect(RegionService.isRestrictedImageGenId('gemini'), isTrue);
+      expect(RegionService.isRestrictedImageGenId('automatic1111'), isFalse);
+      expect(RegionService.isRestrictedTtsId('elevenlabs'), isTrue);
+      expect(RegionService.isRestrictedTtsId('azure'), isTrue);
+      expect(RegionService.isRestrictedTtsId('system'), isFalse);
+      expect(RegionService.isRestrictedSttId('openai_compatible'), isTrue);
+      expect(RegionService.isRestrictedSttId('elevenlabs'), isTrue);
+      expect(RegionService.isRestrictedEmbeddingName('openai'), isTrue);
+      expect(RegionService.isRestrictedEmbeddingName('gemini'), isTrue);
+      expect(RegionService.isRestrictedEmbeddingName('cohere'), isTrue);
+      expect(RegionService.isRestrictedEmbeddingName('siliconflow'), isFalse);
     });
   });
 }

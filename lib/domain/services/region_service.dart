@@ -10,11 +10,13 @@ class RegionService {
   static bool? _cachedIsChinaRegion;
   static List<String>? _cachedReasons;
 
-  /// OpenAI and xAI must stay out of China-store and Chinese-language UI.
+  /// Unlicensed overseas cloud AI must stay out of China-store and
+  /// Chinese-language UI (Apple China App Store policy).
   ///
-  /// Local servers (Ollama, LM Studio, KoboldCpp) stay visible: they run on
-  /// the user's machine/LAN and are treated like the existing local options,
-  /// not unlicensed cloud generative-AI services.
+  /// Hidden: OpenAI-compatible hosted OpenAI, xAI, Claude, Gemini, OpenRouter.
+  /// Visible: Chinese-hosted clouds (DeepSeek, Qwen, SiliconFlow, Moonshot,
+  /// Z.AI, MiniMax), custom OAI-compatible endpoints, and local servers
+  /// (Ollama, LM Studio, KoboldCpp).
   static bool hidesRestrictedAiProviders({
     required bool isChinaRegion,
     required String languageCode,
@@ -23,7 +25,41 @@ class RegionService {
   }
 
   static bool isRestrictedCloudProvider(LLMProvider provider) {
-    return provider == LLMProvider.openai || provider == LLMProvider.xai;
+    return switch (provider) {
+      LLMProvider.openai ||
+      LLMProvider.xai ||
+      LLMProvider.claude ||
+      LLMProvider.gemini ||
+      LLMProvider.openRouter =>
+        true,
+      LLMProvider.deepSeek ||
+      LLMProvider.qwen ||
+      LLMProvider.siliconFlow ||
+      LLMProvider.moonshot ||
+      LLMProvider.zai ||
+      LLMProvider.miniMax ||
+      LLMProvider.openAICompatible ||
+      LLMProvider.ollama ||
+      LLMProvider.lmStudio ||
+      LLMProvider.koboldCpp =>
+        false,
+    };
+  }
+
+  static bool isRestrictedImageGenId(String id) {
+    return id == 'openai' || id == 'openai_chat' || id == 'gemini';
+  }
+
+  static bool isRestrictedTtsId(String id) {
+    return id == 'elevenlabs' || id == 'azure' || id == 'openai_compatible';
+  }
+
+  static bool isRestrictedSttId(String id) {
+    return id == 'elevenlabs' || id == 'openai_compatible';
+  }
+
+  static bool isRestrictedEmbeddingName(String name) {
+    return name == 'openai' || name == 'gemini' || name == 'cohere';
   }
 
   /// Cached mainland-China result. `false` until detection has run.

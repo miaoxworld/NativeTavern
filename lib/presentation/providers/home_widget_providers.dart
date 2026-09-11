@@ -12,6 +12,8 @@ import 'package:native_tavern/domain/services/home_widget/home_widget_bridge.dar
 import 'package:native_tavern/domain/services/home_widget/home_widget_models.dart';
 import 'package:native_tavern/domain/services/home_widget/home_widget_sync_service.dart';
 import 'package:native_tavern/domain/services/llm_service.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/domain/services/provider_reachability.dart';
 import 'package:native_tavern/domain/services/provider_usage_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
@@ -139,7 +141,13 @@ HomeWidgetTheme homeWidgetThemeFromConfig(AppThemeConfig config) {
   );
 }
 
-String homeWidgetProviderLabel(LLMProvider provider) {
+String homeWidgetProviderLabel(
+  LLMProvider provider, {
+  bool hideRestricted = false,
+}) {
+  if (hideRestricted && RegionService.isRestrictedCloudProvider(provider)) {
+    return 'LLM';
+  }
   return switch (provider) {
     LLMProvider.openai => 'OpenAI',
     LLMProvider.claude => 'Claude',
@@ -168,12 +176,19 @@ final homeWidgetSyncRegistrationProvider = Provider<void>((ref) {
       final locale = ref.read(localeProvider);
       final localeCode = locale?.languageCode ?? 'en';
       final l10n = lookupAppLocalizations(locale ?? const Locale('en'));
+      final hideRestricted = RegionService.hidesRestrictedAiProviders(
+        isChinaRegion: ref.read(isChinaRegionProvider).valueOrNull ?? false,
+        languageCode: localeCode,
+      );
       await ref.read(homeWidgetSyncServiceProvider).publish(
             config: ref.read(llmConfigProvider),
             settings: ref.read(homeWidgetSettingsProvider),
             labels: homeWidgetLabelsFromL10n(l10n),
             locale: localeCode,
-            providerLabel: homeWidgetProviderLabel,
+            providerLabel: (provider) => homeWidgetProviderLabel(
+              provider,
+              hideRestricted: hideRestricted,
+            ),
             theme: homeWidgetThemeFromConfig(
               ref.read(activeThemeConfigProvider),
             ),

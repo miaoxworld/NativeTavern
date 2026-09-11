@@ -2,7 +2,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/domain/services/image_generation_service.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/presentation/providers/image_gen_providers.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
@@ -25,9 +27,7 @@ class ImageGenSettingsScreen extends ConsumerWidget {
             onPressed: () {
               ref.read(imageGenSettingsProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(
-                        l10n.settingsResetToDefaults)),
+                SnackBar(content: Text(l10n.settingsResetToDefaults)),
               );
             },
           ),
@@ -42,10 +42,8 @@ class ImageGenSettingsScreen extends ConsumerWidget {
             title: l10n.general,
             children: [
               SwitchListTile(
-                title:
-                    Text(l10n.enableImageGeneration),
-                subtitle:
-                    Text(l10n.generateImagesUsingAi),
+                title: Text(l10n.enableImageGeneration),
+                subtitle: Text(l10n.generateImagesUsingAi),
                 value: settings.enabled,
                 onChanged: (value) {
                   ref.read(imageGenSettingsProvider.notifier).setEnabled(value);
@@ -62,8 +60,7 @@ class ImageGenSettingsScreen extends ConsumerWidget {
             title: l10n.provider,
             children: [
               ListTile(
-                title:
-                    Text(l10n.imageGenerationProvider),
+                title: Text(l10n.imageGenerationProvider),
                 subtitle: Text(settings.provider.displayName),
                 trailing: DropdownButton<ImageGenProvider>(
                   value: settings.provider,
@@ -76,7 +73,17 @@ class ImageGenSettingsScreen extends ConsumerWidget {
                           }
                         }
                       : null,
-                  items: ImageGenProvider.values.map((provider) {
+                  items: ImageGenProvider.values.where((provider) {
+                    final hide = RegionService.hidesRestrictedAiProviders(
+                      isChinaRegion:
+                          ref.watch(isChinaRegionProvider).valueOrNull ?? false,
+                      languageCode:
+                          Localizations.localeOf(context).languageCode,
+                    );
+                    if (!hide) return true;
+                    if (provider == settings.provider) return true;
+                    return !RegionService.isRestrictedImageGenId(provider.id);
+                  }).map((provider) {
                     return DropdownMenuItem(
                       value: provider,
                       child: Text(provider.displayName),
@@ -480,8 +487,8 @@ class ImageGenSettingsScreen extends ConsumerWidget {
                 ),
               ),
               SwitchListTile(
-                title:
-                    Text(AppLocalizations.of(context)!.includeChatAndTagContext),
+                title: Text(
+                    AppLocalizations.of(context)!.includeChatAndTagContext),
                 subtitle: Text(
                   AppLocalizations.of(context)!
                       .includeChatAndTagContextDescription,
@@ -726,8 +733,7 @@ class ImageGenSettingsScreen extends ConsumerWidget {
 
   void _showAuthHeaderDialog(
       BuildContext context, WidgetRef ref, ImageGenSettings settings) {
-    final nameController =
-        TextEditingController(text: settings.authHeaderName);
+    final nameController = TextEditingController(text: settings.authHeaderName);
     final valueController =
         TextEditingController(text: settings.authHeaderValue);
     final l10n = AppLocalizations.of(context);

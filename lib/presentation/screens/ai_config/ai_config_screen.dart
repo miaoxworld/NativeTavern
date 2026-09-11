@@ -360,7 +360,6 @@ class _LLMProviderTile extends ConsumerWidget {
     final hideRestricted =
         _shouldHideRestrictedProviders(context, isChinaRegion);
     return LLMProvider.values.where((provider) {
-      // Hide OpenAI and xAI in China region or when language is Chinese
       if (hideRestricted && RegionService.isRestrictedCloudProvider(provider)) {
         return false;
       }

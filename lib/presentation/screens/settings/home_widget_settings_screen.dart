@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/character.dart';
 import 'package:native_tavern/data/models/provider_usage.dart';
 import 'package:native_tavern/domain/services/home_widget/home_widget_models.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/character_providers.dart';
 import 'package:native_tavern/presentation/providers/home_widget_providers.dart';
 import 'package:native_tavern/presentation/providers/locale_provider.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/providers/theme_providers.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 
 class HomeWidgetSettingsScreen extends ConsumerWidget {
@@ -224,12 +226,24 @@ class HomeWidgetSettingsScreen extends ConsumerWidget {
                       onPressed: () async {
                         await usage.refreshRemote(config);
                         final locale = ref.read(localeProvider);
+                        final localeCode = locale?.languageCode ?? 'en';
+                        final hideRestricted =
+                            RegionService.hidesRestrictedAiProviders(
+                          isChinaRegion:
+                              ref.read(isChinaRegionProvider).valueOrNull ??
+                                  false,
+                          languageCode: localeCode,
+                        );
                         await ref.read(homeWidgetSyncServiceProvider).publish(
                               config: config,
                               settings: settings,
                               labels: homeWidgetLabelsFromL10n(l10n),
-                              locale: locale?.languageCode ?? 'en',
-                              providerLabel: homeWidgetProviderLabel,
+                              locale: localeCode,
+                              providerLabel: (provider) =>
+                                  homeWidgetProviderLabel(
+                                provider,
+                                hideRestricted: hideRestricted,
+                              ),
                               theme: homeWidgetThemeFromConfig(
                                 ref.read(activeThemeConfigProvider),
                               ),

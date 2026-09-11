@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
 import 'package:native_tavern/presentation/providers/tts_providers.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 
@@ -100,7 +102,17 @@ class TTSSettingsScreen extends ConsumerWidget {
                           }
                         }
                       : null,
-                  items: TTSProvider.values.map((provider) {
+                  items: TTSProvider.values.where((provider) {
+                    final hide = RegionService.hidesRestrictedAiProviders(
+                      isChinaRegion:
+                          ref.watch(isChinaRegionProvider).valueOrNull ?? false,
+                      languageCode:
+                          Localizations.localeOf(context).languageCode,
+                    );
+                    if (!hide) return true;
+                    if (provider == settings.provider) return true;
+                    return !RegionService.isRestrictedTtsId(provider.id);
+                  }).map((provider) {
                     return DropdownMenuItem(
                       value: provider,
                       child: Text(provider.displayName),

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/stt_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
@@ -123,7 +125,18 @@ class STTSettingsScreen extends ConsumerWidget {
                         }
                       : null,
                   items: [
-                    for (final provider in STTProvider.values)
+                    for (final provider in STTProvider.values.where((provider) {
+                      final hide = RegionService.hidesRestrictedAiProviders(
+                        isChinaRegion:
+                            ref.watch(isChinaRegionProvider).valueOrNull ??
+                                false,
+                        languageCode:
+                            Localizations.localeOf(context).languageCode,
+                      );
+                      if (!hide) return true;
+                      if (provider == settings.provider) return true;
+                      return !RegionService.isRestrictedSttId(provider.id);
+                    }))
                       DropdownMenuItem(
                         value: provider,
                         child: Text(provider.displayName),

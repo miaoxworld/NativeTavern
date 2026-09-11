@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/vector_storage.dart';
+import 'package:native_tavern/domain/services/region_service.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
+import 'package:native_tavern/presentation/screens/ai_config/ai_config_screen.dart';
 import 'package:native_tavern/presentation/providers/vector_storage_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
@@ -154,7 +156,16 @@ class VectorStorageSettingsScreen extends ConsumerWidget {
               labelText: l10n.provider,
               border: const OutlineInputBorder(),
             ),
-            items: EmbeddingProvider.values.map((provider) {
+            items: EmbeddingProvider.values.where((provider) {
+              final hide = RegionService.hidesRestrictedAiProviders(
+                isChinaRegion:
+                    ref.watch(isChinaRegionProvider).valueOrNull ?? false,
+                languageCode: Localizations.localeOf(context).languageCode,
+              );
+              if (!hide) return true;
+              if (provider == settings.embeddingProvider) return true;
+              return !RegionService.isRestrictedEmbeddingName(provider.name);
+            }).map((provider) {
               return DropdownMenuItem(
                 value: provider,
                 child: Text(provider.displayName),
