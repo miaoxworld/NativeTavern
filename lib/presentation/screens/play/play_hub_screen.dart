@@ -21,13 +21,8 @@ class PlayHubScreen extends ConsumerWidget {
             key: const Key('play-hub-moments'),
             icon: Icons.dynamic_feed_outlined,
             title: l10n.moments,
-            onTap: () async {
-              final enabled = await ensureAiPlayFeatureEnabled(
-                context,
-                ref,
-                AiPlayFeature.moments,
-              );
-              if (enabled && context.mounted) {
+            onTap: () {
+              if (context.mounted) {
                 context.push(AppRoutes.playMoments);
               }
             },

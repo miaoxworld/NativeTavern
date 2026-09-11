@@ -79,6 +79,23 @@ void main() {
     expect(await container.read(momentFeedProvider.future), isEmpty);
   });
 
+  test('existing moments stay visible after the feature is turned off',
+      () async {
+    final service = container.read(momentServiceProvider);
+    await service.createPost(
+      authorId: 'character-1',
+      authorName: 'Ava',
+      origin: MomentPostOrigin.character,
+      body: 'The gate is locked.',
+    );
+    expect(await container.read(momentFeedProvider.future), hasLength(1));
+
+    container.read(appSettingsProvider.notifier).updateMomentsEnabled(false);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    container.invalidate(momentFeedProvider);
+    expect(await container.read(momentFeedProvider.future), hasLength(1));
+  });
+
   test('character retries and repeated text do not create duplicate moments',
       () async {
     final service = container.read(momentServiceProvider);
@@ -339,7 +356,7 @@ void main() {
     expect(feed.single.comments.single.authorName, 'Lucy');
   });
 
-  test('turning moments off hides the feed without deleting posts', () async {
+  test('turning moments off keeps the feed without deleting posts', () async {
     container.read(appSettingsProvider.notifier).updateMomentsEnabled(true);
     await container.read(momentServiceProvider).createPost(
           authorId: MomentService.userAuthorId,
@@ -348,7 +365,7 @@ void main() {
           body: 'Still here.',
         );
     container.read(appSettingsProvider.notifier).updateMomentsEnabled(false);
-    expect(await container.read(momentFeedProvider.future), isEmpty);
+    expect(await container.read(momentFeedProvider.future), hasLength(1));
     expect(
         await container.read(momentRepositoryProvider).listAll(), hasLength(1));
   });

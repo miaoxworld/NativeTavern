@@ -131,7 +131,6 @@ final worldRuntimeProvider = Provider<WorldRuntime>((ref) {
 
 final momentFeedProvider =
     FutureProvider.autoDispose<List<MomentFeedItem>>((ref) async {
-  if (!ref.watch(appSettingsProvider).momentsEnabled) return const [];
   ref.watch(worldMomentRevisionProvider);
   return ref.watch(momentServiceProvider).loadFeed();
 });
@@ -152,7 +151,6 @@ class PagedMomentFeedNotifier
 
   @override
   Future<List<MomentFeedItem>> build() async {
-    if (!ref.watch(appSettingsProvider).momentsEnabled) return const [];
     ref.watch(worldMomentRevisionProvider);
     _offset = 0;
     _hasMore = true;

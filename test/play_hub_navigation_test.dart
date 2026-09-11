@@ -173,16 +173,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('play-hub-moments')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('enable-moments-dialog')), findsOneWidget);
-    expect(find.text('moments-page'), findsNothing);
-    await tester.tap(find.byKey(const Key('enable-play-feature-cancel')));
-    await tester.pumpAndSettle();
-    expect(find.text('moments-page'), findsNothing);
-
-    await tester.tap(find.byKey(const Key('play-hub-moments')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('enable-play-feature-confirm')));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('enable-moments-dialog')), findsNothing);
     expect(find.text('moments-page'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -327,6 +318,9 @@ void main() {
           characterRepositoryProvider.overrideWithValue(characterRepository),
           chatRepositoryProvider.overrideWithValue(chatRepository),
           worldInfoRepositoryProvider.overrideWithValue(worldInfoRepository),
+          storyTimelineSourceProvider.overrideWithValue(
+            const EmptyStoryTimelineSource(),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -364,7 +358,8 @@ void main() {
 
     router.go(AppRoutes.playMoments);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('moments-disabled-empty')), findsOneWidget);
+    expect(find.byKey(const Key('moments-paused-banner')), findsOneWidget);
+    expect(find.byKey(const Key('moments-empty')), findsOneWidget);
     expect(find.text(l10n.momentsDisabledEmpty), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

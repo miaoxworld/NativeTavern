@@ -40,108 +40,100 @@ class MomentsScreen extends ConsumerWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: palette.page,
-        body: !settings.momentsEnabled
-            ? Column(
-                children: [
-                  _CoverHeader(
-                    height: _coverHeight,
-                    topInset: topInset,
-                    selfName: selfName,
-                    selfAvatarPath: persona?.avatarPath,
-                    palette: palette,
-                    onBack: () => Navigator.of(context).maybePop(),
-                  ),
-                  Expanded(
-                    child: _CenteredMessage(
-                      l10n.momentsDisabledEmpty,
-                      key: const Key('moments-disabled-empty'),
-                      color: palette.time,
+        body: feed.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _CenteredMessage(error.toString()),
+          data: (items) {
+            return NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.extentAfter < 600) {
+                  ref.read(pagedMomentFeedProvider.notifier).loadMore();
+                }
+                return false;
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  SliverAppBar(
+                    pinned: true,
+                    stretch: true,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    backgroundColor: palette.page,
+                    surfaceTintColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    title: Text(l10n.moments),
+                    expandedHeight: _coverHeight + topInset,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                      onPressed: () => Navigator.of(context).maybePop(),
                     ),
-                  ),
-                ],
-              )
-            : feed.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => _CenteredMessage(error.toString()),
-                data: (items) {
-                  return NotificationListener<ScrollNotification>(
-                    onNotification: (notification) {
-                      if (notification.metrics.extentAfter < 600) {
-                        ref.read(pagedMomentFeedProvider.notifier).loadMore();
-                      }
-                      return false;
-                    },
-                    child: CustomScrollView(
-                      physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      slivers: [
-                        SliverAppBar(
-                          pinned: true,
-                          stretch: true,
-                          elevation: 0,
-                          scrolledUnderElevation: 0,
-                          backgroundColor: palette.page,
-                          surfaceTintColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          title: Text(l10n.moments),
-                          expandedHeight: _coverHeight + topInset,
-                          leading: IconButton(
-                            icon:
-                                const Icon(Icons.arrow_back_ios_new, size: 18),
-                            onPressed: () => Navigator.of(context).maybePop(),
-                          ),
-                          actions: [
-                            IconButton(
-                              key: const Key('moments-compose'),
-                              tooltip: l10n.momentsCompose,
-                              onPressed: () => _compose(context, ref, selfName),
-                              icon: const Icon(Icons.camera_alt_outlined),
-                            ),
-                          ],
-                          flexibleSpace: FlexibleSpaceBar(
-                            collapseMode: CollapseMode.pin,
-                            background: _CoverHeader(
-                              height: _coverHeight + topInset,
-                              topInset: topInset,
-                              selfName: selfName,
-                              selfAvatarPath: persona?.avatarPath,
-                              palette: palette,
-                              showChrome: false,
-                            ),
-                          ),
+                    actions: [
+                      if (settings.momentsEnabled)
+                        IconButton(
+                          key: const Key('moments-compose'),
+                          tooltip: l10n.momentsCompose,
+                          onPressed: () => _compose(context, ref, selfName),
+                          icon: const Icon(Icons.camera_alt_outlined),
                         ),
-                        if (items.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: _CenteredMessage(
-                              l10n.momentsEmpty,
-                              key: const Key('moments-empty'),
-                              color: palette.time,
-                            ),
-                          )
-                        else
-                          SliverList.separated(
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) => Divider(
-                              height: 1,
-                              thickness: 0.5,
-                              color: palette.divider,
-                            ),
-                            itemBuilder: (context, index) => _MomentRow(
-                              item: items[index],
-                              character:
-                                  _authorOf(characters, items[index].post),
-                              persona: persona,
-                              selfName: selfName,
-                              palette: palette,
-                            ),
-                          ),
-                      ],
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      collapseMode: CollapseMode.pin,
+                      background: _CoverHeader(
+                        height: _coverHeight + topInset,
+                        topInset: topInset,
+                        selfName: selfName,
+                        selfAvatarPath: persona?.avatarPath,
+                        palette: palette,
+                        showChrome: false,
+                      ),
                     ),
-                  );
-                },
+                  ),
+                  if (!settings.momentsEnabled)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        child: Text(
+                          l10n.momentsEnabledSubtitle,
+                          key: const Key('moments-paused-banner'),
+                          style: TextStyle(color: palette.time),
+                        ),
+                      ),
+                    ),
+                  if (items.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _CenteredMessage(
+                        settings.momentsEnabled
+                            ? l10n.momentsEmpty
+                            : l10n.momentsDisabledEmpty,
+                        key: const Key('moments-empty'),
+                        color: palette.time,
+                      ),
+                    )
+                  else
+                    SliverList.separated(
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        thickness: 0.5,
+                        color: palette.divider,
+                      ),
+                      itemBuilder: (context, index) => _MomentRow(
+                        item: items[index],
+                        character: _authorOf(characters, items[index].post),
+                        persona: persona,
+                        selfName: selfName,
+                        palette: palette,
+                      ),
+                    ),
+                ],
               ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -159,6 +151,7 @@ class MomentsScreen extends ConsumerWidget {
     WidgetRef ref,
     String selfName,
   ) async {
+    if (!ref.read(appSettingsProvider).momentsEnabled) return;
     final draft = await Navigator.of(context).push<_ComposeDraft>(
       MaterialPageRoute(builder: (_) => const _MomentsComposePage()),
     );
