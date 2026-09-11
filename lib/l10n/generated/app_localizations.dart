@@ -12806,6 +12806,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Idle'**
   String get homeWidgetLiveIdle;
+
+  /// Title for the local model manager sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Local Model Manager'**
+  String get localModelManagerTitle;
+
+  /// Subtitle for the local model manager tile
+  ///
+  /// In en, this message translates to:
+  /// **'Download, inspect, or configure local models (Ollama, LM Studio)'**
+  String get localModelManagerHint;
+
+  /// Tab label for downloading models
+  ///
+  /// In en, this message translates to:
+  /// **'Pull / Download'**
+  String get localModelPullTab;
+
+  /// Tab label for creating derivative models
+  ///
+  /// In en, this message translates to:
+  /// **'Create Derivative'**
+  String get localModelCreateTab;
+
+  /// Hint for model name input
+  ///
+  /// In en, this message translates to:
+  /// **'Model name or URL'**
+  String get localModelNameHint;
+
+  /// Helper text for model name input
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. llama3.1, mistral, or huggingface.co/...'**
+  String get localModelNameHelper;
+
+  /// Button to pull model
+  ///
+  /// In en, this message translates to:
+  /// **'Pull Model'**
+  String get localModelPullButton;
+
+  /// Label for new derivative model name
+  ///
+  /// In en, this message translates to:
+  /// **'New model name'**
+  String get localModelNewName;
+
+  /// Label for base model name
+  ///
+  /// In en, this message translates to:
+  /// **'Base model name'**
+  String get localModelBaseName;
+
+  /// Label for system prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Custom System Prompt (Optional)'**
+  String get localModelSystemPrompt;
+
+  /// Label for context limit
+  ///
+  /// In en, this message translates to:
+  /// **'Context window limit (Optional)'**
+  String get localModelContextLimit;
+
+  /// Button to create derivative model
+  ///
+  /// In en, this message translates to:
+  /// **'Create Model'**
+  String get localModelCreateButton;
+
+  /// Success message for pulling model
+  ///
+  /// In en, this message translates to:
+  /// **'Model pulled successfully'**
+  String get localModelPullSuccess;
+
+  /// Success message for creating model
+  ///
+  /// In en, this message translates to:
+  /// **'Model created successfully'**
+  String get localModelCreateSuccess;
+
+  /// Title for notifications screen
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// Message shown when there are no new notifications
+  ///
+  /// In en, this message translates to:
+  /// **'No new notifications'**
+  String get noNotifications;
+
+  /// Button to dismiss all notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss All'**
+  String get dismissAll;
+
+  /// Title for contributors screen
+  ///
+  /// In en, this message translates to:
+  /// **'Contributors'**
+  String get contributors;
 }
 
 class _AppLocalizationsDelegate

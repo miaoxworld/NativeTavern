@@ -6924,6 +6924,60 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get homeWidgetLiveIdle => '空闲';
+
+  @override
+  String get localModelManagerTitle => '本地模型管理器';
+
+  @override
+  String get localModelManagerHint => '下载、检查或配置本地模型 (Ollama, LM Studio)';
+
+  @override
+  String get localModelPullTab => '拉取 / 下载';
+
+  @override
+  String get localModelCreateTab => '创建衍生模型';
+
+  @override
+  String get localModelNameHint => '模型名称或 URL';
+
+  @override
+  String get localModelNameHelper => '例如：llama3.1、mistral 或 huggingface.co/...';
+
+  @override
+  String get localModelPullButton => '拉取模型';
+
+  @override
+  String get localModelNewName => '新模型名称';
+
+  @override
+  String get localModelBaseName => '基础模型名称';
+
+  @override
+  String get localModelSystemPrompt => '自定义系统提示词 (可选)';
+
+  @override
+  String get localModelContextLimit => '上下文窗口限制 (可选)';
+
+  @override
+  String get localModelCreateButton => '创建模型';
+
+  @override
+  String get localModelPullSuccess => '模型拉取成功';
+
+  @override
+  String get localModelCreateSuccess => '模型创建成功';
+
+  @override
+  String get notifications => '通知';
+
+  @override
+  String get noNotifications => '暂无新通知';
+
+  @override
+  String get dismissAll => '全部标为已读';
+
+  @override
+  String get contributors => '贡献者';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -13847,4 +13901,58 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get homeWidgetLiveIdle => '閒置';
+
+  @override
+  String get localModelManagerTitle => '本地模型管理器';
+
+  @override
+  String get localModelManagerHint => '下載、檢查或配置本地模型 (Ollama, LM Studio)';
+
+  @override
+  String get localModelPullTab => '拉取 / 下載';
+
+  @override
+  String get localModelCreateTab => '建立衍生模型';
+
+  @override
+  String get localModelNameHint => '模型名稱或 URL';
+
+  @override
+  String get localModelNameHelper => '例如：llama3.1、mistral 或 huggingface.co/...';
+
+  @override
+  String get localModelPullButton => '拉取模型';
+
+  @override
+  String get localModelNewName => '新模型名稱';
+
+  @override
+  String get localModelBaseName => '基礎模型名稱';
+
+  @override
+  String get localModelSystemPrompt => '自訂系統提示詞 (選填)';
+
+  @override
+  String get localModelContextLimit => '上下文窗口限制 (選填)';
+
+  @override
+  String get localModelCreateButton => '建立模型';
+
+  @override
+  String get localModelPullSuccess => '模型拉取成功';
+
+  @override
+  String get localModelCreateSuccess => '模型建立成功';
+
+  @override
+  String get notifications => '通知';
+
+  @override
+  String get noNotifications => '暫無新通知';
+
+  @override
+  String get dismissAll => '全部標為已讀';
+
+  @override
+  String get contributors => '貢獻者';
 }

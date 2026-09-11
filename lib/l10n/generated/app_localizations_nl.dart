@@ -7197,4 +7197,60 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get homeWidgetLiveIdle => 'Idle';
+
+  @override
+  String get localModelManagerTitle => 'Local Model Manager';
+
+  @override
+  String get localModelManagerHint =>
+      'Download, inspect, or configure local models (Ollama, LM Studio)';
+
+  @override
+  String get localModelPullTab => 'Pull / Download';
+
+  @override
+  String get localModelCreateTab => 'Create Derivative';
+
+  @override
+  String get localModelNameHint => 'Model name or URL';
+
+  @override
+  String get localModelNameHelper =>
+      'e.g. llama3.1, mistral, or huggingface.co/...';
+
+  @override
+  String get localModelPullButton => 'Pull Model';
+
+  @override
+  String get localModelNewName => 'New model name';
+
+  @override
+  String get localModelBaseName => 'Base model name';
+
+  @override
+  String get localModelSystemPrompt => 'Custom System Prompt (Optional)';
+
+  @override
+  String get localModelContextLimit => 'Context window limit (Optional)';
+
+  @override
+  String get localModelCreateButton => 'Create Model';
+
+  @override
+  String get localModelPullSuccess => 'Model pulled successfully';
+
+  @override
+  String get localModelCreateSuccess => 'Model created successfully';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get noNotifications => 'No new notifications';
+
+  @override
+  String get dismissAll => 'Dismiss All';
+
+  @override
+  String get contributors => 'Contributors';
 }
