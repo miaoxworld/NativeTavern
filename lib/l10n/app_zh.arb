@@ -2113,5 +2113,10 @@
   "homeWidgetPinCharacterHint": "角色和聊天小组件只显示这个角色。选“无”则继续轮播全部。",
   "homeWidgetPinCharacterNone": "无",
   "homeWidgetFavoriteChatsOnly": "聊天小组件仅显示收藏角色",
-  "homeWidgetFavoriteChatsOnlyHint": "只有收藏角色的聊天会出现在聊天小组件里。"
+  "homeWidgetFavoriteChatsOnlyHint": "只有收藏角色的聊天会出现在聊天小组件里。",
+  "homeWidgetLiveActivityTitle": "实时活动与锁屏",
+  "homeWidgetLiveActivitySubtitle": "在生成回复时于锁屏和灵动岛显示实时进度与回复。",
+  "homeWidgetLiveGenerating": "正在生成回复…",
+  "homeWidgetLiveSpeaking": "正在朗读…",
+  "homeWidgetLiveIdle": "空闲"
 }

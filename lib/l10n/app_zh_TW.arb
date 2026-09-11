@@ -2113,5 +2113,10 @@
   "homeWidgetPinCharacterHint": "角色和聊天小工具只顯示這個角色。選「無」則繼續輪播全部。",
   "homeWidgetPinCharacterNone": "無",
   "homeWidgetFavoriteChatsOnly": "聊天小工具只顯示收藏角色",
-  "homeWidgetFavoriteChatsOnlyHint": "只有收藏角色的聊天會出現在聊天小工具裡。"
+  "homeWidgetFavoriteChatsOnlyHint": "只有收藏角色的聊天會出現在聊天小工具裡。",
+  "homeWidgetLiveActivityTitle": "即時動態與鎖定畫面",
+  "homeWidgetLiveActivitySubtitle": "在生成回覆時於鎖定畫面與動態島顯示即時進度與回覆。",
+  "homeWidgetLiveGenerating": "正在生成回覆…",
+  "homeWidgetLiveSpeaking": "正在朗讀…",
+  "homeWidgetLiveIdle": "閒置"
 }

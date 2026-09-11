@@ -7185,4 +7185,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get homeWidgetFavoriteChatsOnlyHint =>
       'Only chats with a favorited character appear in the Chats widget.';
+
+  @override
+  String get homeWidgetLiveActivityTitle => 'Live Activity & Lock Screen';
+
+  @override
+  String get homeWidgetLiveActivitySubtitle =>
+      'Show live chat replies and Dynamic Island on lock screen while generating.';
+
+  @override
+  String get homeWidgetLiveGenerating => 'Generating reply…';
+
+  @override
+  String get homeWidgetLiveSpeaking => 'Speaking…';
+
+  @override
+  String get homeWidgetLiveIdle => 'Idle';
 }

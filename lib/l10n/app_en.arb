@@ -7667,5 +7667,25 @@
   "homeWidgetFavoriteChatsOnlyHint": "Only chats with a favorited character appear in the Chats widget.",
   "@homeWidgetFavoriteChatsOnlyHint": {
     "description": "Hint for favorite-chats widget filter"
+  },
+  "homeWidgetLiveActivityTitle": "Live Activity & Lock Screen",
+  "@homeWidgetLiveActivityTitle": {
+    "description": "Title for Live Activity and lock-screen live updates setting"
+  },
+  "homeWidgetLiveActivitySubtitle": "Show live chat replies and Dynamic Island on lock screen while generating.",
+  "@homeWidgetLiveActivitySubtitle": {
+    "description": "Subtitle explaining live activity behavior during chat generation"
+  },
+  "homeWidgetLiveGenerating": "Generating reply…",
+  "@homeWidgetLiveGenerating": {
+    "description": "Phase label when assistant reply is actively generating"
+  },
+  "homeWidgetLiveSpeaking": "Speaking…",
+  "@homeWidgetLiveSpeaking": {
+    "description": "Phase label when TTS is reading the reply"
+  },
+  "homeWidgetLiveIdle": "Idle",
+  "@homeWidgetLiveIdle": {
+    "description": "Phase label when no live generation is active"
   }
 }

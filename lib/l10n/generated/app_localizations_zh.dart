@@ -6909,6 +6909,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get homeWidgetFavoriteChatsOnlyHint => '只有收藏角色的聊天会出现在聊天小组件里。';
+
+  @override
+  String get homeWidgetLiveActivityTitle => '实时活动与锁屏';
+
+  @override
+  String get homeWidgetLiveActivitySubtitle => '在生成回复时于锁屏和灵动岛显示实时进度与回复。';
+
+  @override
+  String get homeWidgetLiveGenerating => '正在生成回复…';
+
+  @override
+  String get homeWidgetLiveSpeaking => '正在朗读…';
+
+  @override
+  String get homeWidgetLiveIdle => '空闲';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -13817,4 +13832,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get homeWidgetFavoriteChatsOnlyHint => '只有收藏角色的聊天會出現在聊天小工具裡。';
+
+  @override
+  String get homeWidgetLiveActivityTitle => '即時動態與鎖定畫面';
+
+  @override
+  String get homeWidgetLiveActivitySubtitle => '在生成回覆時於鎖定畫面與動態島顯示即時進度與回覆。';
+
+  @override
+  String get homeWidgetLiveGenerating => '正在生成回覆…';
+
+  @override
+  String get homeWidgetLiveSpeaking => '正在朗讀…';
+
+  @override
+  String get homeWidgetLiveIdle => '閒置';
 }

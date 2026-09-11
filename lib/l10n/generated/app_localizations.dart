@@ -12776,6 +12776,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only chats with a favorited character appear in the Chats widget.'**
   String get homeWidgetFavoriteChatsOnlyHint;
+
+  /// Title for Live Activity and lock-screen live updates setting
+  ///
+  /// In en, this message translates to:
+  /// **'Live Activity & Lock Screen'**
+  String get homeWidgetLiveActivityTitle;
+
+  /// Subtitle explaining live activity behavior during chat generation
+  ///
+  /// In en, this message translates to:
+  /// **'Show live chat replies and Dynamic Island on lock screen while generating.'**
+  String get homeWidgetLiveActivitySubtitle;
+
+  /// Phase label when assistant reply is actively generating
+  ///
+  /// In en, this message translates to:
+  /// **'Generating reply…'**
+  String get homeWidgetLiveGenerating;
+
+  /// Phase label when TTS is reading the reply
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking…'**
+  String get homeWidgetLiveSpeaking;
+
+  /// Phase label when no live generation is active
+  ///
+  /// In en, this message translates to:
+  /// **'Idle'**
+  String get homeWidgetLiveIdle;
 }
 
 class _AppLocalizationsDelegate
