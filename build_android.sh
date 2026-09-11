@@ -460,7 +460,7 @@ echo "Building Android APK (for direct distribution)..."
 dart run tool/build_android_release.dart \
     .flutter-plugins-dependencies \
     android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-flutter build apk --release --no-pub --android-skip-build-dependency-validation
+flutter build apk $FLUTTER_ENV_FLAGS --release --no-pub --android-skip-build-dependency-validation
 
 # Rename/Move APK
 echo "Copying APK to release directory..."
@@ -472,7 +472,7 @@ echo "Building Android App Bundle (AAB) for Google Play..."
 dart run tool/build_android_release.dart \
     .flutter-plugins-dependencies \
     android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-flutter build appbundle --release --no-pub --android-skip-build-dependency-validation
+flutter build appbundle $FLUTTER_ENV_FLAGS --release --no-pub --android-skip-build-dependency-validation
 
 # Rename/Move AAB
 echo "Copying AAB to release directory..."

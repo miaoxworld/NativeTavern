@@ -105,6 +105,10 @@ fi
 echo "Resolving dependencies..."
 flutter pub get
 
+if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
+  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+fi
+
 echo "Generating launcher icons..."
 dart run flutter_launcher_icons
 
@@ -161,7 +165,7 @@ if [[ "$BUNDLE_ID" != "$EXPECTED_BUNDLE_ID" ]]; then
 fi
 
 echo "Building macOS application ($BUILD_MODE)..."
-flutter build macos "--$BUILD_MODE" \
+flutter build macos $FLUTTER_ENV_FLAGS "--$BUILD_MODE" \
     --build-name="$BUILD_NAME" \
     --build-number="$BUILD_NUMBER"
 

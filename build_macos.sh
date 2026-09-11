@@ -39,11 +39,15 @@ fi
 flutter clean
 flutter pub get
 
+if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
+  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+fi
+
 printf '=== Generating Launcher Icons ===\n'
 dart run flutter_launcher_icons
 
 # Build macOS release application
-flutter build macos --release \
+flutter build macos $FLUTTER_ENV_FLAGS --release \
   --build-name="$BUILD_NAME" \
   --build-number="$BUILD_NUMBER"
 

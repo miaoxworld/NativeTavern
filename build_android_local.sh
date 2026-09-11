@@ -192,6 +192,10 @@ restore_flutter_state
 echo "Restoring Flutter dependencies..."
 flutter pub get
 
+if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
+  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+fi
+
 if [ "${SKIP_LAUNCHER_ICONS:-false}" = "true" ]; then
     echo "Skipping launcher icon generation (SKIP_LAUNCHER_ICONS=true)."
 else
@@ -565,7 +569,7 @@ mkdir -p build/local_release
 
 if [ "$BUILD_TARGET" == "apk" ] || [ "$BUILD_TARGET" == "all" ]; then
     echo "Building Android APK ($BUILD_MODE)..."
-    flutter build apk "--$BUILD_MODE" --no-pub --android-skip-build-dependency-validation
+    flutter build apk $FLUTTER_ENV_FLAGS "--$BUILD_MODE" --no-pub --android-skip-build-dependency-validation
     APK_OUTPUT="build/app/outputs/flutter-apk/app-$BUILD_MODE.apk"
     [ -f "$APK_OUTPUT" ] || { echo "ERROR: APK was not produced at $APK_OUTPUT"; exit 1; }
     LOCAL_APK="build/local_release/NativeTavern_v${VERSION}_${BUILD_MODE}.apk"
@@ -600,7 +604,7 @@ fi
 
 if [ "$BUILD_TARGET" == "aab" ] || [ "$BUILD_TARGET" == "all" ]; then
     echo "Building Android App Bundle ($BUILD_MODE)..."
-    flutter build appbundle "--$BUILD_MODE" --no-pub --android-skip-build-dependency-validation
+    flutter build appbundle $FLUTTER_ENV_FLAGS "--$BUILD_MODE" --no-pub --android-skip-build-dependency-validation
     AAB_OUTPUT="build/app/outputs/bundle/$BUILD_MODE/app-$BUILD_MODE.aab"
     [ -f "$AAB_OUTPUT" ] || { echo "ERROR: AAB was not produced at $AAB_OUTPUT"; exit 1; }
     LOCAL_AAB="build/local_release/NativeTavern_v${VERSION}_${BUILD_MODE}.aab"

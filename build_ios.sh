@@ -169,6 +169,9 @@ if [[ -f .env ]]; then
   set -a
   source .env
   set +a
+  FLUTTER_ENV_FLAGS="--dart-define-from-file=.env"
+else
+  FLUTTER_ENV_FLAGS=""
 fi
 
 PROJECT_TEAM_ID="$(read_project_team_id)"
@@ -192,6 +195,10 @@ printf 'Team: %s\n' "$TEAM_ID"
 
 flutter clean
 flutter pub get
+
+if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
+  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+fi
 
 echo "=== Generating Launcher Icons ==="
 dart run flutter_launcher_icons

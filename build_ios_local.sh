@@ -8,6 +8,9 @@ if [[ -f .env ]]; then
   set -a
   source .env
   set +a
+  FLUTTER_ENV_FLAGS="--dart-define-from-file=.env"
+else
+  FLUTTER_ENV_FLAGS=""
 fi
 
 EXPECTED_BUNDLE_ID="com.miaomiaoxworld.nativetavern"
@@ -493,6 +496,10 @@ fi
 if [[ "$SKIP_CLEAN" != 'true' ]]; then
   flutter clean
   flutter pub get
+
+if [[ -n "$FLUTTER_ENV_FLAGS" ]]; then
+  flutter build ios --config-only $FLUTTER_ENV_FLAGS
+fi
 fi
 
 echo "=== Generating Launcher Icons ==="
