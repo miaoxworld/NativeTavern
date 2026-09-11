@@ -296,6 +296,20 @@ validate_app_bundle() {
     || fail "Built MinimumOSVersion is $minimum_os, expected $EXPECTED_IOS_TARGET"
   require_file "$app_path/$executable"
 
+  widget_appex="$app_path/PlugIns/HomeWidgets.appex"
+  [[ -d "$widget_appex" ]] \
+    || fail "HomeWidgets.appex is missing from $app_path/PlugIns"
+  widget_group="$(codesign -d --entitlements :- "$widget_appex" 2>/dev/null | tr -d '\0' || true)"
+  printf '%s' "$widget_group" | grep -Fq "$APP_GROUP_ID" \
+    || fail "HomeWidgets.appex is missing App Group $APP_GROUP_ID from .env"
+  runner_group="$(codesign -d --entitlements :- "$app_path/$executable" 2>/dev/null | tr -d '\0' || true)"
+  printf '%s' "$runner_group" | grep -Fq "$APP_GROUP_ID" \
+    || fail "Runner is missing App Group $APP_GROUP_ID from .env"
+  widget_plist_group="$(read_plist_value "$widget_appex/Info.plist" NTAppGroupId || true)"
+  [[ "$widget_plist_group" == "$APP_GROUP_ID" ]] \
+    || fail "HomeWidgets Info.plist NTAppGroupId is ${widget_plist_group:-empty}, expected $APP_GROUP_ID"
+  printf 'Verified App Group %s on Runner and HomeWidgets\n' "$APP_GROUP_ID"
+
   app_contains_string() {
     local needle="$1"
     strings "$app_path/$executable" | grep -F "$needle" >/dev/null && return 0
@@ -569,10 +583,10 @@ fi
 set_plist_app_group "$INFO_PLIST"
 set_plist_app_group "$WIDGET_INFO_PLIST"
 
-apply_simulator_bundle_id() {
+apply_local_bundle_ids() {
   # Target-level PRODUCT_BUNDLE_IDENTIFIER in project.pbxproj beats xcconfig.
-  # flutter run does not pass command-line overrides, so the project file must
-  # match .env for the simulator install. RunnerTests keep the .RunnerTests id.
+  # flutter run / xcodebuild archive do not pass command-line overrides, so the
+  # project file must match .env for simulator, device, and sideload IPA.
   # HomeWidgets keeps "$BUNDLE_ID.HomeWidgets".
   if [[ "$BUNDLE_ID" == "$EXPECTED_BUNDLE_ID" ]]; then
     return 0
@@ -593,7 +607,7 @@ apply_simulator_bundle_id() {
 if [[ "$BUILD_FOR_DEVICE" == 'true' ]]; then
   [[ -n "$DEVICE_ID" ]] || fail "Set DEVICE_ID when BUILD_FOR_DEVICE=true"
   DERIVED_DATA_PATH="$BUILD_ROOT/DerivedData"
-  apply_simulator_bundle_id
+  apply_local_bundle_ids
 
   xcodebuild "${COMMON_XCODE_ARGS[@]}" \
     -destination "id=$DEVICE_ID" \
@@ -618,7 +632,7 @@ if [[ "$BUILD_FOR_DEVICE" == 'true' ]]; then
 fi
 
 apply_simulator_xcode_overrides() {
-  apply_simulator_bundle_id
+  apply_local_bundle_ids
   # Xcode 16+ Debug defaults to ENABLE_DEBUG_DYLIB=YES: a ~40KB blank executor
   # plus Runner.debug.dylib. flutter run on the simulator uses simctl launch
   # (no LLDB), so the stub aborts at abort_could_not_find_entry_point___debug_dylib.
@@ -772,6 +786,8 @@ if [[ "$BUILD_FOR_SIMULATOR" == 'true' ]]; then
   fi
   exit 0
 fi
+
+apply_local_bundle_ids
 
 xcodebuild "${COMMON_XCODE_ARGS[@]}" \
   -destination 'generic/platform=iOS' \

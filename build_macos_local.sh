@@ -16,6 +16,10 @@ BUILD_MODE="${BUILD_MODE:-release}"
 CHECK_ONLY="${CHECK_ONLY:-false}"
 SKIP_CLEAN="${SKIP_CLEAN:-${SKIP_FLUTTER_CLEAN:-false}}"
 BUNDLE_ID="${BUNDLE_ID:-${APPLE_BUNDLE_ID:-${MACOS_BUNDLE_ID:-com.miaomiaoxworld.nativetavern}}}"
+APP_GROUP_ID="${APP_GROUP_ID:-group.${BUNDLE_ID}}"
+EXPECTED_BUNDLE_ID="com.miaomiaoxworld.nativetavern"
+EXPECTED_WIDGET_BUNDLE_ID="${EXPECTED_BUNDLE_ID}.HomeWidgets"
+WIDGET_BUNDLE_ID="${BUNDLE_ID}.HomeWidgets"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -60,6 +64,7 @@ done
 echo "=== NativeTavern Local macOS Build ==="
 echo "Build Mode: $BUILD_MODE"
 echo "Bundle ID: $BUNDLE_ID"
+echo "App Group: $APP_GROUP_ID"
 echo "Skip Clean: $SKIP_CLEAN"
 echo "Check Only: $CHECK_ONLY"
 
@@ -102,6 +107,58 @@ flutter pub get
 
 echo "Generating launcher icons..."
 dart run flutter_launcher_icons
+
+MACOS_TEMP="$(mktemp -d "${TMPDIR:-/tmp}/nt-macos-local.XXXXXX")"
+restore_macos_identity() {
+  for pair in \
+    "macos/Runner/DebugProfile.entitlements" \
+    "macos/Runner/Release.entitlements" \
+    "macos/HomeWidgets/HomeWidgets.entitlements" \
+    "macos/Runner/Info.plist" \
+    "macos/HomeWidgets/Info.plist" \
+    "macos/Runner.xcodeproj/project.pbxproj"
+  do
+    local bak="$MACOS_TEMP/$(echo "$pair" | tr '/' '_')"
+    if [[ -f "$bak" ]]; then
+      cp -f "$bak" "$pair"
+    fi
+  done
+  rm -rf -- "$MACOS_TEMP"
+}
+trap restore_macos_identity EXIT INT TERM
+
+for pair in \
+  macos/Runner/DebugProfile.entitlements \
+  macos/Runner/Release.entitlements \
+  macos/HomeWidgets/HomeWidgets.entitlements \
+  macos/Runner/Info.plist \
+  macos/HomeWidgets/Info.plist \
+  macos/Runner.xcodeproj/project.pbxproj
+do
+  [[ -f "$pair" ]] || continue
+  cp -f "$pair" "$MACOS_TEMP/$(echo "$pair" | tr '/' '_')"
+done
+
+for entitlements in \
+  macos/Runner/DebugProfile.entitlements \
+  macos/Runner/Release.entitlements \
+  macos/HomeWidgets/HomeWidgets.entitlements
+do
+  [[ -f "$entitlements" ]] || continue
+  sed -i '' "s/group\.com\.miaomiaoxworld\.nativetavern/${APP_GROUP_ID}/g" "$entitlements"
+done
+for plist in macos/Runner/Info.plist macos/HomeWidgets/Info.plist; do
+  [[ -f "$plist" ]] || continue
+  /usr/libexec/PlistBuddy -c "Delete :NTAppGroupId" "$plist" >/dev/null 2>&1 || true
+  /usr/libexec/PlistBuddy -c "Add :NTAppGroupId string $APP_GROUP_ID" "$plist"
+done
+if [[ "$BUNDLE_ID" != "$EXPECTED_BUNDLE_ID" ]]; then
+  PBXPROJ="macos/Runner.xcodeproj/project.pbxproj"
+  if grep -Fq "PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_WIDGET_BUNDLE_ID};" "$PBXPROJ"; then
+    sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_WIDGET_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${WIDGET_BUNDLE_ID};/g" "$PBXPROJ"
+  fi
+  sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = ${EXPECTED_BUNDLE_ID};/PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};/g" "$PBXPROJ"
+fi
 
 echo "Building macOS application ($BUILD_MODE)..."
 flutter build macos "--$BUILD_MODE" \

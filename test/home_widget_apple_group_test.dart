@@ -45,6 +45,14 @@ void main() {
       contains('com.apple.security.application-groups'),
     );
     expect(
+      File('build_ios_local.sh').readAsStringSync(),
+      contains('apply_local_bundle_ids'),
+    );
+    expect(
+      File('build_macos_local.sh').readAsStringSync(),
+      contains('APP_GROUP_ID'),
+    );
+    expect(
       File('native/apple_home_widgets/HomeWidgetShared.swift').readAsStringSync(),
       contains('AdvanceHomeWidgetIntent'),
     );
