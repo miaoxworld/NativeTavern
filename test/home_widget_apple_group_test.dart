@@ -64,5 +64,21 @@ void main() {
       File('native/apple_home_widgets/HomeWidgetShared.swift').readAsStringSync(),
       contains('containerBackground'),
     );
+    expect(
+      File('ios/Runner/Info.plist').readAsStringSync(),
+      contains('NSSupportsLiveActivities'),
+    );
+    expect(
+      File('ios/Runner/HomeWidgetPlugin.swift').readAsStringSync(),
+      contains('NativeTavernLiveAttributes'),
+    );
+    expect(
+      File('native/apple_home_widgets/HomeWidgetShared.swift').readAsStringSync(),
+      contains('NativeTavernLiveActivityWidget'),
+    );
+    expect(
+      File('ios/HomeWidgets/HomeWidgets.swift').readAsStringSync(),
+      contains('NativeTavernLiveActivityWidget'),
+    );
   });
 }
