@@ -97,6 +97,68 @@ class HomeWidgetBridge {
     }
   }
 
+  Future<void> startLive(
+    HomeWidgetLiveState live, {
+    String? avatarSourcePath,
+  }) async {
+    if (!isSupported) return;
+    try {
+      if (avatarSourcePath != null && avatarSourcePath.isNotEmpty) {
+        final avatarName = live.characterAvatar ??
+            (live.characterId.isNotEmpty
+                ? 'character_${live.characterId}.img'
+                : 'chat_${live.chatId}.img');
+        await _copySingleImage(avatarSourcePath, avatarName);
+      }
+      await _channel.invokeMethod<void>('startLive', {
+        'json': jsonEncode(live.toJson()),
+      });
+    } on MissingPluginException {
+      return;
+    } on PlatformException {
+      return;
+    }
+  }
+
+  Future<void> updateLive(HomeWidgetLiveState live) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod<void>('updateLive', {
+        'json': jsonEncode(live.toJson()),
+      });
+    } on MissingPluginException {
+      return;
+    } on PlatformException {
+      return;
+    }
+  }
+
+  Future<void> endLive(HomeWidgetLiveState live) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod<void>('endLive', {
+        'json': jsonEncode(live.toJson()),
+      });
+    } on MissingPluginException {
+      return;
+    } on PlatformException {
+      return;
+    }
+  }
+
+  Future<void> _copySingleImage(String sourcePath, String name) async {
+    final container = await containerPath();
+    if (container == null || container.isEmpty) return;
+    final images = Directory(p.join(container, 'images'));
+    if (!images.existsSync()) {
+      images.createSync(recursive: true);
+    }
+    final source = File(sourcePath);
+    if (!source.existsSync()) return;
+    final destination = File(p.join(images.path, name));
+    await source.copy(destination.path);
+  }
+
   Future<void> _copyImages(HomeWidgetSnapshot snapshot) async {
     final container = await containerPath();
     if (container == null || container.isEmpty) return;

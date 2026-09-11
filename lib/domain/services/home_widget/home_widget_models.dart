@@ -235,6 +235,9 @@ class HomeWidgetLabels extends Equatable {
   final String updated;
   final String previous;
   final String next;
+  final String liveGenerating;
+  final String liveSpeaking;
+  final String liveIdle;
 
   const HomeWidgetLabels({
     required this.moments,
@@ -257,6 +260,9 @@ class HomeWidgetLabels extends Equatable {
     required this.updated,
     required this.previous,
     required this.next,
+    this.liveGenerating = 'Generating reply…',
+    this.liveSpeaking = 'Speaking…',
+    this.liveIdle = 'Idle',
   });
 
   static const english = HomeWidgetLabels(
@@ -280,6 +286,9 @@ class HomeWidgetLabels extends Equatable {
     updated: 'Updated',
     previous: 'Previous',
     next: 'Next',
+    liveGenerating: 'Generating reply…',
+    liveSpeaking: 'Speaking…',
+    liveIdle: 'Idle',
   );
 
   Map<String, dynamic> toJson() => {
@@ -303,6 +312,9 @@ class HomeWidgetLabels extends Equatable {
         'updated': updated,
         'previous': previous,
         'next': next,
+        'liveGenerating': liveGenerating,
+        'liveSpeaking': liveSpeaking,
+        'liveIdle': liveIdle,
       };
 
   factory HomeWidgetLabels.fromJson(Map<String, dynamic> json) {
@@ -331,6 +343,10 @@ class HomeWidgetLabels extends Equatable {
       updated: json['updated'] as String? ?? english.updated,
       previous: json['previous'] as String? ?? english.previous,
       next: json['next'] as String? ?? english.next,
+      liveGenerating:
+          json['liveGenerating'] as String? ?? english.liveGenerating,
+      liveSpeaking: json['liveSpeaking'] as String? ?? english.liveSpeaking,
+      liveIdle: json['liveIdle'] as String? ?? english.liveIdle,
     );
   }
 
@@ -607,6 +623,116 @@ class StatusWidgetPayload extends Equatable {
       ];
 }
 
+enum HomeWidgetLivePhase { generating, speaking, idle }
+
+class HomeWidgetLiveState extends Equatable {
+  final bool active;
+  final String chatId;
+  final String characterId;
+  final String characterName;
+  final String? characterAvatar;
+  final String snippet;
+  final HomeWidgetLivePhase phase;
+  final String providerLabel;
+  final String deepLink;
+  final DateTime startedAt;
+  final DateTime updatedAt;
+  final int tokensToday;
+  final String? error;
+
+  const HomeWidgetLiveState({
+    this.active = false,
+    this.chatId = '',
+    this.characterId = '',
+    this.characterName = '',
+    this.characterAvatar,
+    this.snippet = '',
+    this.phase = HomeWidgetLivePhase.idle,
+    this.providerLabel = '',
+    this.deepLink = '',
+    required this.startedAt,
+    required this.updatedAt,
+    this.tokensToday = 0,
+    this.error,
+  });
+
+  factory HomeWidgetLiveState.idle({DateTime? now}) {
+    final timestamp = now ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    return HomeWidgetLiveState(
+      active: false,
+      chatId: '',
+      characterId: '',
+      characterName: '',
+      characterAvatar: null,
+      snippet: '',
+      phase: HomeWidgetLivePhase.idle,
+      providerLabel: '',
+      deepLink: '',
+      startedAt: timestamp,
+      updatedAt: timestamp,
+      tokensToday: 0,
+      error: null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'active': active,
+        'chatId': chatId,
+        'characterId': characterId,
+        'characterName': characterName,
+        if (characterAvatar != null) 'characterAvatar': characterAvatar,
+        'snippet': snippet,
+        'phase': phase.name,
+        'providerLabel': providerLabel,
+        'deepLink': deepLink,
+        'startedAt': startedAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'tokensToday': tokensToday,
+        if (error != null) 'error': error,
+      };
+
+  factory HomeWidgetLiveState.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return HomeWidgetLiveState.idle();
+    return HomeWidgetLiveState(
+      active: json['active'] as bool? ?? false,
+      chatId: json['chatId'] as String? ?? '',
+      characterId: json['characterId'] as String? ?? '',
+      characterName: json['characterName'] as String? ?? '',
+      characterAvatar: json['characterAvatar'] as String?,
+      snippet: json['snippet'] as String? ?? '',
+      phase: HomeWidgetLivePhase.values.firstWhere(
+        (value) => value.name == json['phase'],
+        orElse: () => HomeWidgetLivePhase.idle,
+      ),
+      providerLabel: json['providerLabel'] as String? ?? '',
+      deepLink: json['deepLink'] as String? ?? '',
+      startedAt: DateTime.tryParse(json['startedAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      tokensToday: json['tokensToday'] as int? ?? 0,
+      error: json['error'] as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        active,
+        chatId,
+        characterId,
+        characterName,
+        characterAvatar,
+        snippet,
+        phase,
+        providerLabel,
+        deepLink,
+        startedAt,
+        updatedAt,
+        tokensToday,
+        error,
+      ];
+}
+
 class HomeWidgetSnapshot extends Equatable {
   static const schemaVersion = 2;
 
@@ -620,6 +746,7 @@ class HomeWidgetSnapshot extends Equatable {
   final List<ChatWidgetSlide> chats;
   final List<CharacterWidgetItem> characters;
   final StatusWidgetPayload status;
+  final HomeWidgetLiveState? live;
 
   const HomeWidgetSnapshot({
     this.version = schemaVersion,
@@ -632,6 +759,7 @@ class HomeWidgetSnapshot extends Equatable {
     this.chats = const [],
     this.characters = const [],
     required this.status,
+    this.live,
   });
 
   Map<String, dynamic> toJson() => {
@@ -645,6 +773,7 @@ class HomeWidgetSnapshot extends Equatable {
         'chats': chats.map((item) => item.toJson()).toList(),
         'characters': characters.map((item) => item.toJson()).toList(),
         'status': status.toJson(),
+        if (live != null) 'live': live!.toJson(),
       };
 
   factory HomeWidgetSnapshot.fromJson(Map<String, dynamic> json) {
@@ -674,6 +803,9 @@ class HomeWidgetSnapshot extends Equatable {
       status: StatusWidgetPayload.fromJson(
         json['status'] as Map<String, dynamic>? ?? const {},
       ),
+      live: json['live'] != null
+          ? HomeWidgetLiveState.fromJson(json['live'] as Map<String, dynamic>?)
+          : null,
     );
   }
 
@@ -689,6 +821,7 @@ class HomeWidgetSnapshot extends Equatable {
         chats,
         characters,
         status,
+        live,
       ];
 }
 
