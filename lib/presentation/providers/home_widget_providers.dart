@@ -23,6 +23,7 @@ import 'package:native_tavern/presentation/providers/locale_provider.dart';
 import 'package:native_tavern/presentation/providers/moment_providers.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/providers/theme_providers.dart';
+import 'package:native_tavern/presentation/providers/tts_providers.dart';
 import 'package:native_tavern/data/database/database.dart';
 import 'package:drift/drift.dart' as drift;
 
@@ -125,6 +126,9 @@ HomeWidgetLabels homeWidgetLabelsFromL10n(AppLocalizations l10n) {
     updated: l10n.homeWidgetUpdated,
     previous: l10n.homeWidgetPrevious,
     next: l10n.homeWidgetNext,
+    liveGenerating: l10n.homeWidgetLiveGenerating,
+    liveSpeaking: l10n.homeWidgetLiveSpeaking,
+    liveIdle: l10n.homeWidgetLiveIdle,
   );
 }
 
@@ -205,4 +209,193 @@ final homeWidgetSyncRegistrationProvider = Provider<void>((ref) {
   ref.listen(momentFeedProvider, (_, __) => schedule());
   ref.listen(activeThemeConfigProvider, (_, __) => schedule());
   schedule();
+});
+
+/// Tracks active chat generation and TTS playback to stream live lock-screen updates.
+final homeWidgetLiveRegistrationProvider = Provider<void>((ref) {
+  final bridge = ref.watch(homeWidgetBridgeProvider);
+  bool isLiveActive = false;
+  Timer? throttleTimer;
+  HomeWidgetLiveState? latestPendingUpdate;
+  DateTime? startedAt;
+
+  Future<void> sendEnd(HomeWidgetLiveState state) async {
+    throttleTimer?.cancel();
+    throttleTimer = null;
+    latestPendingUpdate = null;
+    if (isLiveActive) {
+      isLiveActive = false;
+      await bridge.endLive(state);
+      final localeCode = ref.read(localeProvider)?.languageCode ?? 'en';
+      final l10n = lookupAppLocalizations(
+        ref.read(localeProvider) ?? const Locale('en'),
+      );
+      final hideRestricted = RegionService.hidesRestrictedAiProviders(
+        isChinaRegion: ref.read(isChinaRegionProvider).valueOrNull ?? false,
+        languageCode: localeCode,
+      );
+      await ref.read(homeWidgetSyncServiceProvider).publish(
+            config: ref.read(llmConfigProvider),
+            settings: ref.read(homeWidgetSettingsProvider),
+            labels: homeWidgetLabelsFromL10n(l10n),
+            locale: localeCode,
+            providerLabel: (provider) => homeWidgetProviderLabel(
+              provider,
+              hideRestricted: hideRestricted,
+            ),
+            theme: homeWidgetThemeFromConfig(
+              ref.read(activeThemeConfigProvider),
+            ),
+            refreshRemote: false,
+          );
+    }
+  }
+
+  void scheduleUpdate(HomeWidgetLiveState state) {
+    latestPendingUpdate = state;
+    if (throttleTimer != null && throttleTimer!.isActive) return;
+    throttleTimer = Timer(const Duration(milliseconds: 600), () async {
+      final pending = latestPendingUpdate;
+      latestPendingUpdate = null;
+      if (pending != null && isLiveActive) {
+        await bridge.updateLive(pending);
+      }
+    });
+  }
+
+  ref.listen<ActiveChatState>(activeChatProvider, (previous, next) async {
+    final settings = ref.read(homeWidgetSettingsProvider);
+    if (!settings.enabled) {
+      if (isLiveActive) {
+        await sendEnd(HomeWidgetLiveState.idle());
+      }
+      return;
+    }
+
+    final chat = next.chat;
+    if (next.isGenerating && chat != null) {
+      final character = next.character;
+      final config = ref.read(llmConfigProvider);
+      final localeCode = ref.read(localeProvider)?.languageCode ?? 'en';
+      final hideRestricted = RegionService.hidesRestrictedAiProviders(
+        isChinaRegion: ref.read(isChinaRegionProvider).valueOrNull ?? false,
+        languageCode: localeCode,
+      );
+      final providerLabel = homeWidgetProviderLabel(
+        config.provider,
+        hideRestricted: hideRestricted,
+      );
+
+      final lastMsg = next.messages.isNotEmpty ? next.messages.last : null;
+      final snippet = (lastMsg?.content.isNotEmpty == true)
+          ? lastMsg!.content
+          : (lastMsg?.reasoning ?? '');
+
+      final avatarPath = character?.assets?.avatarPath;
+      final avatarFileName = avatarPath != null && avatarPath.isNotEmpty
+          ? (character?.id.isNotEmpty == true
+              ? 'character_${character!.id}.img'
+              : 'chat_${chat.id}.img')
+          : null;
+
+      final now = DateTime.now();
+      if (!isLiveActive) {
+        isLiveActive = true;
+        startedAt = now;
+        final liveState = HomeWidgetLiveState(
+          active: true,
+          chatId: chat.id,
+          characterId: character?.id ?? '',
+          characterName: character?.name ?? chat.title,
+          characterAvatar: avatarFileName,
+          snippet: snippet,
+          phase: HomeWidgetLivePhase.generating,
+          providerLabel: providerLabel,
+          deepLink: HomeWidgetDeepLink(
+            target: HomeWidgetDeepLinkTarget.chat,
+            id: chat.id,
+            kind: HomeWidgetKind.chats,
+          ).toUri().toString(),
+          startedAt: startedAt!,
+          updatedAt: now,
+          error: next.error,
+        );
+        await bridge.startLive(liveState, avatarSourcePath: avatarPath);
+      } else {
+        final liveState = HomeWidgetLiveState(
+          active: true,
+          chatId: chat.id,
+          characterId: character?.id ?? '',
+          characterName: character?.name ?? chat.title,
+          characterAvatar: avatarFileName,
+          snippet: snippet,
+          phase: HomeWidgetLivePhase.generating,
+          providerLabel: providerLabel,
+          deepLink: HomeWidgetDeepLink(
+            target: HomeWidgetDeepLinkTarget.chat,
+            id: chat.id,
+            kind: HomeWidgetKind.chats,
+          ).toUri().toString(),
+          startedAt: startedAt ?? now,
+          updatedAt: now,
+          error: next.error,
+        );
+        scheduleUpdate(liveState);
+      }
+    } else if (previous?.isGenerating == true && !next.isGenerating) {
+      final isSpeaking = ref.read(ttsSpeakingProvider);
+      if (isSpeaking && chat != null) {
+        final character = next.character;
+        final config = ref.read(llmConfigProvider);
+        final localeCode = ref.read(localeProvider)?.languageCode ?? 'en';
+        final hideRestricted = RegionService.hidesRestrictedAiProviders(
+          isChinaRegion: ref.read(isChinaRegionProvider).valueOrNull ?? false,
+          languageCode: localeCode,
+        );
+        final providerLabel = homeWidgetProviderLabel(
+          config.provider,
+          hideRestricted: hideRestricted,
+        );
+        final lastMsg = next.messages.isNotEmpty ? next.messages.last : null;
+        final snippet = lastMsg?.content ?? '';
+        final now = DateTime.now();
+        final liveState = HomeWidgetLiveState(
+          active: true,
+          chatId: chat.id,
+          characterId: character?.id ?? '',
+          characterName: character?.name ?? chat.title,
+          characterAvatar: character?.id.isNotEmpty == true
+              ? 'character_${character!.id}.img'
+              : null,
+          snippet: snippet,
+          phase: HomeWidgetLivePhase.speaking,
+          providerLabel: providerLabel,
+          deepLink: HomeWidgetDeepLink(
+            target: HomeWidgetDeepLinkTarget.chat,
+            id: chat.id,
+            kind: HomeWidgetKind.chats,
+          ).toUri().toString(),
+          startedAt: startedAt ?? now,
+          updatedAt: now,
+          error: next.error,
+        );
+        await bridge.updateLive(liveState);
+      } else {
+        await sendEnd(HomeWidgetLiveState.idle());
+      }
+    }
+  });
+
+  ref.listen<bool>(ttsSpeakingProvider, (previous, isSpeaking) async {
+    if (previous == true && !isSpeaking) {
+      final chatState = ref.read(activeChatProvider);
+      if (!chatState.isGenerating && isLiveActive) {
+        await sendEnd(HomeWidgetLiveState.idle());
+      }
+    }
+  });
+
+  ref.onDispose(() {
+    throttleTimer?.cancel();
+  });
 });

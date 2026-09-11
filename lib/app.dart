@@ -52,6 +52,7 @@ class _NativeTavernAppState extends ConsumerState<NativeTavernApp> {
     ref.watch(worldRuntimeProvider);
     ref.watch(momentContextRegistrationProvider);
     ref.watch(homeWidgetSyncRegistrationProvider);
+    ref.watch(homeWidgetLiveRegistrationProvider);
 
     // Listen for debug log setting changes
     ref.listen<AppSettings>(appSettingsProvider, (previous, next) {
