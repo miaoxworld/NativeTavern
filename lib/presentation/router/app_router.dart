@@ -9,6 +9,9 @@ import 'package:native_tavern/presentation/screens/character/character_detail_sc
 import 'package:native_tavern/presentation/screens/character_editor/character_editor_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/home_widget_settings_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/about_screen.dart';
+import 'package:native_tavern/presentation/screens/settings/contributors_screen.dart';
+import 'package:native_tavern/presentation/screens/notifications_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/prompt_manager_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/advanced_settings_screen.dart';
 import 'package:native_tavern/presentation/screens/settings/quick_reply_screen.dart';
@@ -101,6 +104,9 @@ abstract class AppRoutes {
   static const rpgScenarioEditor = '/rpg-scenario-editor';
   static const storageManagement = '/storage-management';
   static const homeWidgets = '/settings/home-widgets';
+  static const about = '/about';
+  static const contributors = '/contributors';
+  static const notifications = '/notifications';
 }
 
 /// Navigation keys for nested navigation
@@ -262,6 +268,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'homeWidgets',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const HomeWidgetSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.about,
+        name: 'about',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.contributors,
+        name: 'contributors',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ContributorsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.aiPresets,

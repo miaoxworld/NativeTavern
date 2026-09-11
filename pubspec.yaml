@@ -98,6 +98,7 @@ dependencies:
   permission_handler: 12.0.1
   record: ^6.2.1
   speech_to_text: ^7.4.0
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:
@@ -123,6 +124,7 @@ flutter:
   generate: true
   
   assets:
+    - data/
     - assets/characters/
     - assets/characters/images/
     - assets/characters/json/

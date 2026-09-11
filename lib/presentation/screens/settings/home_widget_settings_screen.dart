@@ -89,20 +89,26 @@ class HomeWidgetSettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.push_pin_outlined),
             title: Text(l10n.homeWidgetPinCharacter),
             subtitle: Text(l10n.homeWidgetPinCharacterHint),
-            trailing: DropdownButton<String?>(
-              value: _pinnedValue(settings.pinnedCharacterId, characters),
-              onChanged: (value) {
-                ref.read(homeWidgetSettingsProvider.notifier).update(
-                      settings.copyWith(pinnedCharacterId: value),
-                    );
-              },
-              items: [
-                DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text(l10n.homeWidgetPinCharacterNone),
+            trailing: SizedBox(
+              width: 150,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                  isExpanded: true,
+                  value: _pinnedValue(settings.pinnedCharacterId, characters),
+                  onChanged: (value) {
+                    ref.read(homeWidgetSettingsProvider.notifier).update(
+                          settings.copyWith(pinnedCharacterId: value),
+                        );
+                  },
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(l10n.homeWidgetPinCharacterNone),
+                    ),
+                    ..._pinItems(settings.pinnedCharacterId, characters),
+                  ],
                 ),
-                ..._pinItems(settings.pinnedCharacterId, characters),
-              ],
+              ),
             ),
           ),
           SwitchListTile(
@@ -284,7 +290,11 @@ class HomeWidgetSettingsScreen extends ConsumerWidget {
         .map(
           (character) => DropdownMenuItem<String?>(
             value: character.id,
-            child: Text(character.name),
+            child: Text(
+              character.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         )
         .toList();
@@ -295,7 +305,11 @@ class HomeWidgetSettingsScreen extends ConsumerWidget {
         0,
         DropdownMenuItem<String?>(
           value: pin,
-          child: Text(pin),
+          child: Text(
+            pin,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       );
     }

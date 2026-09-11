@@ -9,6 +9,7 @@ import 'package:native_tavern/domain/services/tokenizer_service.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:native_tavern/data/database/database.dart';
 import 'package:native_tavern/core/services/initialization_service.dart';
+import 'package:native_tavern/domain/services/local_model_service.dart';
 
 /// Log a message to the console
 void _log(String message, {String? error, StackTrace? stackTrace}) {
@@ -400,6 +401,24 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
           : state.openRouterProvider,
     );
     _enqueuePersistence(providerConfig: true);
+
+    // Auto-detect context length for local models
+    if (state.provider.isLocalServer) {
+      _detectAndApplyContextLimit();
+    }
+  }
+
+  Future<void> _detectAndApplyContextLimit() async {
+    final localModelService = LocalModelService();
+    try {
+      final limit = await localModelService.detectContextLimit(state, state.model);
+      if (limit != null && limit > 0) {
+        state = state.copyWith(contextLength: limit);
+        _enqueuePersistence();
+      }
+    } catch (e) {
+      _log('Failed to detect context limit: $e');
+    }
   }
 
   void updateOpenRouterProvider(String provider) {

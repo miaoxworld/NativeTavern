@@ -18,6 +18,7 @@ import 'package:native_tavern/presentation/widgets/common/group_avatar.dart';
 import 'package:native_tavern/domain/services/chat_export_service.dart';
 import 'package:native_tavern/presentation/widgets/chat/chat_import_dialog.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
+import 'package:native_tavern/presentation/providers/notification_providers.dart';
 
 /// Home screen showing recent chats
 class HomeScreen extends ConsumerStatefulWidget {
@@ -99,6 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             tooltip: l10n.groupChats,
             onPressed: () => context.push(AppRoutes.groups),
           ),
+          const _NotificationBell(),
           IconButton(
             icon: const Icon(Icons.file_download_outlined),
             tooltip: l10n.import,
@@ -112,6 +114,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         icon: const Icon(Icons.add),
         label: Text(l10n.newChat),
       ),
+    );
+  }
+}
+
+class _NotificationBell extends ConsumerWidget {
+  const _NotificationBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notificationsAsync = ref.watch(notificationsProvider);
+    final hasNotifications = notificationsAsync.maybeWhen(
+      data: (notifications) => notifications.isNotEmpty,
+      orElse: () => false,
+    );
+
+    if (!hasNotifications) {
+      return const SizedBox.shrink();
+    }
+
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    final l10n = AppLocalizations.of(context);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications),
+          tooltip: l10n.notifications,
+          onPressed: () => context.push('/notifications'),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 14,
+                minHeight: 14,
+              ),
+              child: Text(
+                '$unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

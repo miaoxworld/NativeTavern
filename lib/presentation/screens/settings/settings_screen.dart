@@ -10,7 +10,6 @@ import 'package:native_tavern/core/flags/rpg_product_ui.dart';
 import 'package:native_tavern/presentation/router/app_router.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/presentation/widgets/privacy/ai_data_sharing_consent_gate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
@@ -24,7 +23,6 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final packageInfo = ref.watch(packageInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,34 +30,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.language),
-                    label: Text(l10n.officialWebsite),
-                    onPressed: () => launchUrl(
-                      Uri.parse('https://nativetavern.com'),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.forum),
-                    label: const Text('Discord'),
-                    onPressed: () => launchUrl(
-                      Uri.parse('https://discord.com/invite/URQvW2FvZa'),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+
           const Divider(height: 16),
           _buildSectionHeader(context, l10n.user),
           _PersonaTile(),
@@ -249,35 +220,10 @@ class SettingsScreen extends ConsumerWidget {
           _buildSectionHeader(context, l10n.about),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: Text(l10n.version),
-            subtitle: Text(
-              packageInfo.when(
-                data: (info) => '${info.version}+${info.buildNumber}',
-                loading: () => l10n.loading,
-                error: (_, __) => l10n.error,
-              ),
-            ),
-            onLongPress: () {
-              final info = packageInfo.valueOrNull;
-              if (info == null) return;
-              final version = '${info.version}+${info.buildNumber}';
-              Clipboard.setData(ClipboardData(text: version));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${l10n.copiedToClipboard}: $version'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
+            title: Text(l10n.about),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/about'),
           ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: Text(l10n.licenses),
-            onTap: () {
-              showLicensePage(context: context);
-            },
-          ),
-          const PrivacyPolicyTile(),
           const SizedBox(height: 32),
         ],
       ),
