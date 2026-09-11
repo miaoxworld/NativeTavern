@@ -7,6 +7,7 @@ import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
 import 'package:native_tavern/presentation/providers/image_gen_providers.dart';
+import 'package:native_tavern/presentation/providers/mcp_providers.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/providers/stt_providers.dart';
 import 'package:native_tavern/presentation/providers/tts_providers.dart';
@@ -68,6 +69,7 @@ final capabilityDiagnosticInputsProvider =
     stt: ref.watch(sttSettingsProvider),
     vector: ref.watch(vectorStorageSettingsProvider),
     image: ref.watch(imageGenSettingsProvider),
+    mcp: ref.watch(mcpManagementProvider),
   );
 });
 
@@ -87,6 +89,7 @@ abstract class CapabilityInputFactory {
     required STTSettings stt,
     required VectorStorageSettings vector,
     required ImageGenSettings image,
+    required McpManagementState mcp,
   }) {
     final llmLocalProvider = llm.provider.isLocalServer;
     final llmNeedsKey =
@@ -149,10 +152,11 @@ abstract class CapabilityInputFactory {
         configurationIssue:
             imageConfigured ? null : 'Complete the image connection',
       ),
-      const CapabilityDiagnosticInput(
+      CapabilityDiagnosticInput(
         id: CapabilityId.mcp,
-        configured: false,
-        supported: false,
+        enabled: mcp.enabled,
+        configured: mcp.servers.isNotEmpty,
+        supported: true,
       ),
       const CapabilityDiagnosticInput(id: CapabilityId.live2d),
     ];

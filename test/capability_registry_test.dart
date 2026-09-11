@@ -6,6 +6,7 @@ import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
 import 'package:native_tavern/presentation/providers/capability_providers.dart';
+import 'package:native_tavern/presentation/providers/mcp_providers.dart';
 
 void main() {
   group('CapabilityRegistry', () {
@@ -143,6 +144,7 @@ void main() {
         stt: const STTSettings(),
         vector: const VectorStorageSettings(),
         image: const ImageGenSettings(),
+        mcp: const McpManagementState(),
       );
       final localInputs = CapabilityInputFactory.create(
         llm: local,
@@ -150,6 +152,7 @@ void main() {
         stt: const STTSettings(enabled: true),
         vector: const VectorStorageSettings(),
         image: const ImageGenSettings(),
+        mcp: const McpManagementState(),
       );
 
       final remoteLlm = remoteInputs.firstWhere(
