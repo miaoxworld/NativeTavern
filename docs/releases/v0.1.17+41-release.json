@@ -1,0 +1,46 @@
+{
+  "version": "0.1.17",
+  "buildNumber": 41,
+  "artifacts": {
+    "androidAab": {
+      "path": "release/NativeTavern_v0.1.17+41_Android.aab",
+      "sha256": "369dd9c469308b26251ba3870c2bd1a1faa3efbde0dc27c2ca6d228941a852e2",
+      "googlePlay": {
+        "track": "production",
+        "versionCode": 41,
+        "status": "completed"
+      }
+    },
+    "androidApk": {
+      "path": "release/NativeTavern_v0.1.17+41_Android.apk",
+      "sha256": "a8100d161a93eff3f122d2bb5c5ad195e804a9aaf6ecc3214a995b2c45606b6d",
+      "publicUrl": "https://download.nativetavern.com/NativeTavern.apk",
+      "publicSha256": "a8100d161a93eff3f122d2bb5c5ad195e804a9aaf6ecc3214a995b2c45606b6d",
+      "publicVerification": "downloaded the canonical URL and hashed it; sha256 matched the uploaded APK at 2026-09-15T22:29-07:00"
+    },
+    "iosIpa": {
+      "path": "release/NativeTavern_v0.1.17+41.ipa",
+      "sha256": "506f8b626e6a545842575397ffbe8cdcf2948789b70137693c07c1c35719ee49",
+      "minimumOsVersion": "15.0",
+      "appStoreConnectDeliveryUuid": "bdb3d9b6-b683-45e9-85a9-723ebb5599d4"
+    }
+  },
+  "appleStore": {
+    "status": "submitted for App Store review per explicit user instruction",
+    "appStoreVersionId": "6a4949af-d1ac-432f-91ca-16f53232e543",
+    "versionString": "1.2.14",
+    "buildId": "bdb3d9b6-b683-45e9-85a9-723ebb5599d4",
+    "buildNumber": "41",
+    "releaseType": "AFTER_APPROVAL",
+    "localizationCount": 17,
+    "reviewSubmissionId": "220481f8-763e-413d-9bb0-bf720dac8d86",
+    "submittedDate": "2026-09-15T14:34:56.418Z",
+    "stateAtVerification": "WAITING_FOR_REVIEW",
+    "previousLiveVersion": "1.2.13 (build 39)"
+  },
+  "discord": {
+    "announcementPublished": true,
+    "messageId": "1549428378782801970",
+    "url": "https://discord.com/channels/1462633743998255208/1462697210545176659/1549428378782801970"
+  }
+}

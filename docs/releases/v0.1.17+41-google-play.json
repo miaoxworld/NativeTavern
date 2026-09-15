@@ -1,0 +1,9 @@
+{
+  "versionString": "0.1.17",
+  "buildNumber": "41",
+  "localizations": {
+    "en-US": "NativeTavern 0.1.17\n\n• Connection profiles no longer lose your API key when you switch profiles; a key missing from the active configuration is restored on launch.\n• Every sampling parameter can now be omitted from requests — uncheck it in Advanced sampler settings, which fixes endpoints such as xAI/Grok that reject presence_penalty.\n• The capability check reports MCP servers from their real state.\n• Fixed community character-card imports with string numeric fields, and duplicate Moments posts.",
+    "zh-Hans": "NativeTavern 0.1.17\n\n• 切换连接档案不再丢失 API Key，活动配置中缺失的 Key 会在启动时自动恢复。\n• 每个采样参数都可在高级采样器设置中取消勾选，从而对所有服务商省略该参数（修复 xAI/Grok 拒绝 presence_penalty 的问题）。\n• 能力检查页按 MCP 服务器的真实状态显示。\n• 修复数值字段为字符串的社区角色卡导入，以及 Moments 重复发帖。",
+    "zh-Hant": "NativeTavern 0.1.17\n\n• 切換連接檔案不再遺失 API Key，活動設定中缺少的 Key 會在啟動時自動恢復。\n• 每個取樣參數都可在進階取樣器設定中取消勾選，從而對所有服務商省略該參數（修復 xAI/Grok 拒絕 presence_penalty 的問題）。\n• 能力檢查頁依 MCP 伺服器的真實狀態顯示。\n• 修復數值欄位為字串的社群角色卡匯入，以及 Moments 重複發文。"
+  }
+}
