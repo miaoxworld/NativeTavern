@@ -6,6 +6,7 @@ import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/domain/services/stt_service.dart';
 import 'package:native_tavern/domain/services/tts_service.dart';
 import 'package:native_tavern/presentation/providers/capability_providers.dart';
+import 'package:native_tavern/presentation/providers/mcp_providers.dart';
 
 void main() {
   group('CapabilityRegistry', () {
@@ -162,6 +163,60 @@ void main() {
       expect(remoteLlm.requiresNetwork, isTrue);
       expect(localLlm.configured, isTrue);
       expect(localLlm.requiresNetwork, isFalse);
+    });
+
+    test('MCP is available and reports configuration state', () {
+      final offInputs = CapabilityInputFactory.create(
+        llm: const LLMConfig(
+          provider: LLMProvider.openai,
+          model: 'gpt-test',
+          apiKey: 'key',
+          apiUrl: 'https://api.example.com/v1',
+        ),
+        tts: const TTSSettings(),
+        stt: const STTSettings(),
+        vector: const VectorStorageSettings(),
+        image: const ImageGenSettings(),
+        mcp: const McpManagementState(enabled: false, loading: false),
+      );
+      final mcpOff = offInputs.firstWhere(
+        (input) => input.id == CapabilityId.mcp,
+      );
+      expect(mcpOff.supported, isTrue);
+      expect(mcpOff.enabled, isFalse);
+
+      final onInputs = CapabilityInputFactory.create(
+        llm: const LLMConfig(
+          provider: LLMProvider.openai,
+          model: 'gpt-test',
+          apiKey: 'key',
+          apiUrl: 'https://api.example.com/v1',
+        ),
+        tts: const TTSSettings(),
+        stt: const STTSettings(),
+        vector: const VectorStorageSettings(),
+        image: const ImageGenSettings(),
+        mcp: const McpManagementState(enabled: true, loading: false),
+      );
+      final mcpOn = onInputs.firstWhere(
+        (input) => input.id == CapabilityId.mcp,
+      );
+      expect(mcpOn.supported, isTrue);
+      expect(mcpOn.enabled, isTrue);
+      expect(mcpOn.configured, isFalse);
+      expect(mcpOn.requiresNetwork, isTrue);
+
+      final registry = CapabilityRegistry.nativeTavern();
+      final report =
+          registry.diagnose(offInputs, const CapabilityRuntimeSignals());
+      expect(
+        report.resultFor(CapabilityId.mcp).availability,
+        CapabilityAvailability.disabled,
+      );
+      expect(
+        report.resultFor(CapabilityId.mcp).fixKind,
+        CapabilityFixKind.openSettings,
+      );
     });
   });
 }

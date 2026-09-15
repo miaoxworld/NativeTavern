@@ -166,6 +166,7 @@ class CapabilityRegistry {
         name: 'MCP tools',
         description: 'External tool servers',
         requirement: CapabilityRequirement.externalService,
+        settingsRoute: '/mcp-settings',
       ),
       CapabilityDescriptor(
         id: CapabilityId.live2d,
