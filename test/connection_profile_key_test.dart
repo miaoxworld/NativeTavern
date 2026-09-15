@@ -103,4 +103,37 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(reloaded.state.apiKey, 'good-key');
   });
+
+  test('a key missing from the active row is recovered at startup', () async {
+    const active = LLMConfig(
+      provider: LLMProvider.openai,
+      model: 'gpt-test',
+      apiKey: '',
+      apiUrl: 'https://api.openai.com/v1',
+    );
+    SharedPreferences.setMockInitialValues({
+      'llm_config': jsonEncode(active.toJson()),
+      'llm_provider_config_openai': jsonEncode({
+        'apiKey': 'provider-row-key',
+        'apiUrl': 'https://api.openai.com/v1',
+        'model': 'gpt-test',
+      }),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final database = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    final notifier = LLMConfigNotifier(prefs, database);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    await notifier.flushPersistence();
+
+    expect(notifier.state.apiKey, 'provider-row-key');
+    final activeRow = await (database.select(database.globalStates)
+          ..where((row) => row.key.equals('llm_config')))
+        .getSingle();
+    expect(
+      (jsonDecode(activeRow.value) as Map<String, dynamic>)['apiKey'],
+      'provider-row-key',
+    );
+  });
 }

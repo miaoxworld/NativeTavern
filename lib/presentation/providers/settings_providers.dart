@@ -255,7 +255,19 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
     if (jsonStr != null) {
       try {
         final map = jsonDecode(jsonStr) as Map<String, dynamic>;
-        final loaded = LLMConfig.fromJson(map);
+        var loaded = LLMConfig.fromJson(map);
+        // Applying a profile (or an older build) could leave the active row
+        // without a key while the provider row still has one. Recover it
+        // instead of asking the user to paste the key again.
+        var healed = false;
+        if (loaded.apiKey.trim().isEmpty) {
+          final recovered =
+              (await _loadProviderConfig(loaded.provider))['apiKey'];
+          if (recovered != null && recovered.trim().isNotEmpty) {
+            loaded = loaded.copyWith(apiKey: recovered);
+            healed = true;
+          }
+        }
         if (!_stateChangedBeforeLoad) {
           state = loaded.copyWith(
             apiUrl: _normalizeApiUrl(loaded.provider, loaded.apiUrl),
@@ -265,6 +277,10 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
         if (needsMigration) {
           _log('Migrating LLM config from SharedPreferences to Database');
           _enqueuePersistence(); // Save to DB
+        } else if (healed) {
+          _log(
+              'Recovered missing API key for ${loaded.provider.name} from its provider config');
+          _enqueuePersistence();
         }
       } catch (e) {
         // Use default config on error
