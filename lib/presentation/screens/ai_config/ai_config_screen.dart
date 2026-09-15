@@ -1281,7 +1281,9 @@ class _ConnectionProfilesTile extends ConsumerWidget {
                                 leading: const Icon(Icons.electrical_services),
                                 title: Text(profile.name),
                                 subtitle: Text(
-                                    '${profile.config.provider.name} · ${profile.config.model}'),
+                                  '${profile.config.provider.name} · ${profile.config.model}'
+                                  '${profile.config.apiKey.trim().isEmpty ? ' · ${AppLocalizations.of(context)!.profileNoApiKey}' : ''}',
+                                ),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.delete_outline),
                                   onPressed: () => ref

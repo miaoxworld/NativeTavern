@@ -3849,6 +3849,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'No profiles yet. Save the current connection to switch quickly later.';
 
   @override
+  String get profileNoApiKey => 'no API key saved';
+
+  @override
   String appliedProfile(String name) {
     return 'Applied profile: $name';
   }

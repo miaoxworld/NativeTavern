@@ -468,13 +468,36 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
   }
 
   /// Apply a full connection configuration (used by connection profiles)
+  ///
+  /// Profiles are snapshots, and a snapshot can legitimately carry an empty
+  /// key (created before the key was entered, or by a build that predates the
+  /// key-persistence fix). Applying such a profile must not erase a key the
+  /// user already has, so an empty profile key falls back to the provider's
+  /// saved key and then to the live key when the provider does not change.
   Future<void> applyConfig(LLMConfig config) async {
     _stateChangedBeforeLoad = true;
     await _enqueueWrite(() async {
-      state = config;
+      final applied = config.copyWith(
+        apiUrl: _normalizeApiUrl(config.provider, config.apiUrl),
+        apiKey: await _resolveAppliedApiKey(config),
+      );
+      state = applied;
       await _saveConfig(state);
       await _saveCurrentProviderConfig(state);
     });
+  }
+
+  Future<String> _resolveAppliedApiKey(LLMConfig config) async {
+    if (config.apiKey.trim().isNotEmpty) return config.apiKey;
+
+    final saved = await _loadProviderConfig(config.provider);
+    final savedKey = (saved['apiKey'] ?? '').trim();
+    if (savedKey.isNotEmpty) return savedKey;
+
+    if (config.provider == state.provider && state.apiKey.trim().isNotEmpty) {
+      return state.apiKey;
+    }
+    return config.apiKey;
   }
 
   // Advanced sampler methods

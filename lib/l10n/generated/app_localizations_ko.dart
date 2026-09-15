@@ -3834,6 +3834,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noProfilesHint => '프로필이 없습니다. 현재 연결을 저장하면 나중에 빠르게 전환할 수 있습니다.';
 
   @override
+  String get profileNoApiKey => 'no API key saved';
+
+  @override
   String appliedProfile(String name) {
     return '프로필 적용됨: $name';
   }

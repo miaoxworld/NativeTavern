@@ -3740,6 +3740,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noProfilesHint => '还没有档案。保存当前连接,以后即可一键切换。';
 
   @override
+  String get profileNoApiKey => '未保存 API Key';
+
+  @override
   String appliedProfile(String name) {
     return '已应用档案:$name';
   }

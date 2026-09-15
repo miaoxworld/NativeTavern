@@ -436,6 +436,7 @@
   "profilesSavedCount": "已保存 {count} 个",
   "saveCurrent": "保存当前",
   "noProfilesHint": "还没有档案。保存当前连接,以后即可一键切换。",
+  "profileNoApiKey": "未保存 API Key",
   "appliedProfile": "已应用档案:{name}",
   "saveConnectionProfile": "保存连接档案",
   "profileName": "档案名称",

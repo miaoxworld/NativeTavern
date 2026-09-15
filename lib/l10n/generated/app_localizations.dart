@@ -7045,6 +7045,12 @@ abstract class AppLocalizations {
   /// **'No profiles yet. Save the current connection to switch quickly later.'**
   String get noProfilesHint;
 
+  /// UI label: marks a connection profile that was saved without an API key
+  ///
+  /// In en, this message translates to:
+  /// **'no API key saved'**
+  String get profileNoApiKey;
+
   /// UI label: Applied profile: {name}
   ///
   /// In en, this message translates to:

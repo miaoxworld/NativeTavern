@@ -3836,6 +3836,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noProfilesHint => 'プロファイルがありません。現在の接続を保存すると後で素早く切り替えられます。';
 
   @override
+  String get profileNoApiKey => 'no API key saved';
+
+  @override
   String appliedProfile(String name) {
     return 'プロファイルを適用: $name';
   }

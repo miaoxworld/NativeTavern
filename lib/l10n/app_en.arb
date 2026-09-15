@@ -5268,6 +5268,10 @@
   "@noProfilesHint": {
     "description": "UI label: No profiles yet. Save the current connection to switch quickly later."
   },
+  "profileNoApiKey": "no API key saved",
+  "@profileNoApiKey": {
+    "description": "UI label: marks a connection profile that was saved without an API key"
+  },
   "appliedProfile": "Applied profile: {name}",
   "@appliedProfile": {
     "description": "UI label: Applied profile: {name}",
