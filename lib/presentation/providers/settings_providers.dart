@@ -433,6 +433,20 @@ class LLMConfigNotifier extends StateNotifier<LLMConfig> {
     _enqueuePersistence();
   }
 
+  /// Include or omit a request-body parameter for every provider. Disabled
+  /// parameters never reach the provider, which is required by endpoints that
+  /// reject fields such as presence/frequency penalty.
+  void updateParameterEnabled(String parameter, bool enabled) {
+    final disabled = Set<String>.from(state.disabledParameters);
+    if (enabled) {
+      disabled.remove(parameter);
+    } else {
+      disabled.add(parameter);
+    }
+    state = state.copyWith(disabledParameters: disabled);
+    _enqueuePersistence();
+  }
+
   void updateStreamEnabled(bool enabled) {
     state = state.copyWith(streamEnabled: enabled);
     _enqueuePersistence();

@@ -1038,6 +1038,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fullControlOverSampling => '完整控制采样参数';
 
   @override
+  String get sendParametersHint => '未勾选的参数不会发送给服务商。遇到接口不支持某个参数时，取消勾选即可。';
+
+  @override
+  String get sendParameterTooltip => '在请求中包含此参数';
+
+  @override
   String get selectLlmProvider => '选择 LLM 服务';
 
   @override

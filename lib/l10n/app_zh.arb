@@ -1590,6 +1590,8 @@
   "generationSettings": "生成设置",
   "advancedSamplerSettings": "高级采样器设置",
   "fullControlOverSampling": "完整控制采样参数",
+  "sendParametersHint": "未勾选的参数不会发送给服务商。遇到接口不支持某个参数时，取消勾选即可。",
+  "sendParameterTooltip": "在请求中包含此参数",
   "selectLlmProvider": "选择 LLM 服务",
   "notSet": "未设置",
   "modelName": "模型名称",

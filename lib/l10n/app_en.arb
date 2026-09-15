@@ -1468,6 +1468,14 @@
   "@fullControlOverSampling": {
     "description": "Advanced sampler settings subtitle"
   },
+  "sendParametersHint": "Unchecked parameters are not sent to the provider. Turn one off when an endpoint rejects it.",
+  "@sendParametersHint": {
+    "description": "Explains the per-parameter send checkboxes"
+  },
+  "sendParameterTooltip": "Include this parameter in provider requests",
+  "@sendParameterTooltip": {
+    "description": "Tooltip for a parameter send checkbox"
+  },
   "selectLlmProvider": "Select LLM Provider",
   "@selectLlmProvider": {
     "description": "Select LLM provider dialog title"

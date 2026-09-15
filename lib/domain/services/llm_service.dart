@@ -247,6 +247,47 @@ class ReasoningEffort {
   static const List<String> values = [auto, min, low, medium, high, max];
 }
 
+/// Canonical request-body keys for sampler parameters the user can include in
+/// or omit from provider requests. Providers differ in which fields they
+/// accept (for example, the xAI API rejects `presence_penalty`), so the app
+/// never sends a parameter the user unchecked.
+abstract final class SamplerParameters {
+  static const maxTokens = 'max_tokens';
+  static const temperature = 'temperature';
+  static const topP = 'top_p';
+  static const topK = 'top_k';
+  static const minP = 'min_p';
+  static const typicalP = 'typical_p';
+  static const topA = 'top_a';
+  static const tailFreeSampling = 'tfs_z';
+  static const repetitionPenalty = 'repetition_penalty';
+  static const repetitionPenaltyRange = 'rep_pen_range';
+  static const frequencyPenalty = 'frequency_penalty';
+  static const presencePenalty = 'presence_penalty';
+  static const stop = 'stop';
+  static const seed = 'seed';
+  static const mirostat = 'mirostat';
+
+  /// Every parameter exposed by the settings UI.
+  static const all = <String>{
+    maxTokens,
+    temperature,
+    topP,
+    topK,
+    minP,
+    typicalP,
+    topA,
+    tailFreeSampling,
+    repetitionPenalty,
+    repetitionPenaltyRange,
+    frequencyPenalty,
+    presencePenalty,
+    stop,
+    seed,
+    mirostat,
+  };
+}
+
 /// LLM Configuration
 class LLMConfig {
   final LLMProvider provider;
@@ -294,6 +335,11 @@ class LLMConfig {
   /// Optional OpenRouter upstream provider. Empty means automatic routing.
   final String openRouterProvider;
 
+  /// Request-body parameters the user chose not to send. Empty (the default)
+  /// means every parameter is eligible, which preserves existing behavior for
+  /// configurations saved before this option existed.
+  final Set<String> disabledParameters;
+
   const LLMConfig({
     required this.provider,
     required this.model,
@@ -326,7 +372,11 @@ class LLMConfig {
     this.promptCacheEnabled = false,
     this.mergeConsecutiveRoles = false,
     this.openRouterProvider = '',
+    this.disabledParameters = const <String>{},
   });
+
+  /// Whether [key] should be written into the provider request body.
+  bool sendsParameter(String key) => !disabledParameters.contains(key);
 
   LLMConfig copyWith({
     LLMProvider? provider,
@@ -358,6 +408,7 @@ class LLMConfig {
     bool? promptCacheEnabled,
     bool? mergeConsecutiveRoles,
     String? openRouterProvider,
+    Set<String>? disabledParameters,
   }) {
     return LLMConfig(
       provider: provider ?? this.provider,
@@ -392,6 +443,7 @@ class LLMConfig {
       mergeConsecutiveRoles:
           mergeConsecutiveRoles ?? this.mergeConsecutiveRoles,
       openRouterProvider: openRouterProvider ?? this.openRouterProvider,
+      disabledParameters: disabledParameters ?? this.disabledParameters,
     );
   }
 
@@ -425,6 +477,7 @@ class LLMConfig {
         'promptCacheEnabled': promptCacheEnabled,
         'mergeConsecutiveRoles': mergeConsecutiveRoles,
         'openRouterProvider': openRouterProvider,
+        'disabledParameters': disabledParameters.toList(),
       };
 
   factory LLMConfig.fromJson(Map<String, dynamic> json) => LLMConfig(
@@ -465,6 +518,10 @@ class LLMConfig {
         promptCacheEnabled: json['promptCacheEnabled'] as bool? ?? false,
         mergeConsecutiveRoles: json['mergeConsecutiveRoles'] as bool? ?? false,
         openRouterProvider: json['openRouterProvider'] as String? ?? '',
+        disabledParameters: (json['disabledParameters'] as List<dynamic>?)
+                ?.whereType<String>()
+                .toSet() ??
+            const <String>{},
       );
 }
 
@@ -614,28 +671,12 @@ class LLMService {
         [...baseMessages, ...continuationMessages],
         config,
       ),
-      'max_tokens': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'frequency_penalty': config.frequencyPenalty,
-      'presence_penalty': config.presencePenalty,
-      if (config.stopSequences.isNotEmpty) 'stop': config.stopSequences,
-      if (config.seed != -1) 'seed': config.seed,
+      ..._openAiCoreParameters(config),
+      ..._openAiOptionalParameters(config),
     };
     _applyOpenRouterRouting(baseRequest, config);
     if (config.provider != LLMProvider.openai) {
-      if (config.topK > 0) baseRequest['top_k'] = config.topK;
-      if (config.repetitionPenalty != 1.0) {
-        baseRequest['repetition_penalty'] = config.repetitionPenalty;
-      }
-      if (config.minP > 0.0) baseRequest['min_p'] = config.minP;
-      if (config.topA > 0.0) baseRequest['top_a'] = config.topA;
-      if (config.typicalP != 1.0) {
-        baseRequest['typical_p'] = config.typicalP;
-      }
-      if (config.tailFreeSampling != 1.0) {
-        baseRequest['tfs_z'] = config.tailFreeSampling;
-      }
+      baseRequest.addAll(_openAiExtendedParameters(config));
     }
     _applyOpenAIReasoning(baseRequest, config);
     final data = await _postToolJson(
@@ -682,7 +723,7 @@ class LLMService {
     ]);
     final baseRequest = <String, dynamic>{
       'model': config.model,
-      'max_tokens': config.maxTokens,
+      ..._claudeParameters(config),
       if (system.isNotEmpty) 'system': system,
       'messages': messages,
     };
@@ -723,10 +764,7 @@ class LLMService {
         .where((content) => content.isNotEmpty)
         .join('\n\n');
     final generationConfig = <String, dynamic>{
-      'maxOutputTokens': config.maxTokens,
-      'temperature': config.temperature,
-      'topP': config.topP,
-      'topK': config.topK,
+      ..._geminiParameters(config),
     };
     _applyGeminiThinking(generationConfig, config);
     final baseRequest = <String, dynamic>{
@@ -1923,42 +1961,154 @@ class LLMService {
     }
   }
 
+  /// OpenAI-compatible core sampling fields, minus any the user disabled.
+  Map<String, dynamic> _openAiCoreParameters(LLMConfig config) => {
+        if (config.sendsParameter(SamplerParameters.maxTokens))
+          'max_tokens': config.maxTokens,
+        if (config.sendsParameter(SamplerParameters.temperature))
+          'temperature': config.temperature,
+        if (config.sendsParameter(SamplerParameters.topP)) 'top_p': config.topP,
+        if (config.sendsParameter(SamplerParameters.frequencyPenalty))
+          'frequency_penalty': config.frequencyPenalty,
+        if (config.sendsParameter(SamplerParameters.presencePenalty))
+          'presence_penalty': config.presencePenalty,
+      };
+
+  /// Conditional OpenAI-compatible fields, also honoring the send toggles.
+  Map<String, dynamic> _openAiOptionalParameters(LLMConfig config) => {
+        if (config.sendsParameter(SamplerParameters.stop) &&
+            config.stopSequences.isNotEmpty)
+          'stop': config.stopSequences,
+        if (config.sendsParameter(SamplerParameters.seed) && config.seed != -1)
+          'seed': config.seed,
+      };
+
+  /// Extended sampler fields for OpenAI-compatible providers that accept them
+  /// (OpenRouter, local servers, and similar). Official OpenAI rejects these,
+  /// so callers only merge this map for non-OpenAI providers.
+  Map<String, dynamic> _openAiExtendedParameters(LLMConfig config) => {
+        if (config.sendsParameter(SamplerParameters.topK) && config.topK > 0)
+          'top_k': config.topK,
+        if (config.sendsParameter(SamplerParameters.repetitionPenalty) &&
+            config.repetitionPenalty != 1.0)
+          'repetition_penalty': config.repetitionPenalty,
+        if (config.sendsParameter(SamplerParameters.minP) && config.minP > 0.0)
+          'min_p': config.minP,
+        if (config.sendsParameter(SamplerParameters.topA) && config.topA > 0.0)
+          'top_a': config.topA,
+        if (config.sendsParameter(SamplerParameters.typicalP) &&
+            config.typicalP != 1.0)
+          'typical_p': config.typicalP,
+        if (config.sendsParameter(SamplerParameters.tailFreeSampling) &&
+            config.tailFreeSampling != 1.0)
+          'tfs_z': config.tailFreeSampling,
+      };
+
+  /// Claude request fields.
+  Map<String, dynamic> _claudeParameters(LLMConfig config) => {
+        if (config.sendsParameter(SamplerParameters.maxTokens))
+          'max_tokens': config.maxTokens,
+      };
+
+  /// Gemini generationConfig fields.
+  Map<String, dynamic> _geminiParameters(LLMConfig config) => {
+        if (config.sendsParameter(SamplerParameters.maxTokens))
+          'maxOutputTokens': config.maxTokens,
+        if (config.sendsParameter(SamplerParameters.temperature))
+          'temperature': config.temperature,
+        if (config.sendsParameter(SamplerParameters.topP)) 'topP': config.topP,
+        if (config.sendsParameter(SamplerParameters.topK)) 'topK': config.topK,
+      };
+
+  /// Ollama request options. [includeExtended] mirrors the historical split
+  /// between the non-streaming and streaming call sites.
+  Map<String, dynamic> _ollamaOptions(
+    LLMConfig config, {
+    required bool includeExtended,
+  }) =>
+      {
+        if (config.sendsParameter(SamplerParameters.maxTokens))
+          'num_predict': config.maxTokens,
+        if (config.sendsParameter(SamplerParameters.temperature))
+          'temperature': config.temperature,
+        if (config.sendsParameter(SamplerParameters.topP)) 'top_p': config.topP,
+        if (config.sendsParameter(SamplerParameters.topK)) 'top_k': config.topK,
+        if (includeExtended) ...{
+          if (config.sendsParameter(SamplerParameters.repetitionPenalty))
+            'repeat_penalty': config.repetitionPenalty,
+          if (config.sendsParameter(SamplerParameters.stop))
+            'stop': config.stopSequences,
+          if (config.sendsParameter(SamplerParameters.seed) &&
+              config.seed != -1)
+            'seed': config.seed,
+          if (config.sendsParameter(SamplerParameters.mirostat)) ...{
+            'mirostat': config.mirostatMode,
+            'mirostat_tau': config.mirostatTau,
+            'mirostat_eta': config.mirostatEta,
+          },
+          if (config.sendsParameter(SamplerParameters.tailFreeSampling))
+            'tfs_z': config.tailFreeSampling,
+          if (config.sendsParameter(SamplerParameters.typicalP))
+            'typical_p': config.typicalP,
+          if (config.sendsParameter(SamplerParameters.minP))
+            'min_p': config.minP,
+        },
+      };
+
+  /// KoboldCpp generation fields. [includeExtended] mirrors the historical
+  /// split between the non-streaming and streaming call sites.
+  Map<String, dynamic> _koboldParameters(
+    LLMConfig config, {
+    bool includeExtended = true,
+  }) =>
+      {
+        if (config.sendsParameter(SamplerParameters.maxTokens))
+          'max_length': config.maxTokens,
+        if (config.sendsParameter(SamplerParameters.temperature))
+          'temperature': config.temperature,
+        if (config.sendsParameter(SamplerParameters.topP)) 'top_p': config.topP,
+        if (config.sendsParameter(SamplerParameters.topK)) 'top_k': config.topK,
+        if (includeExtended) ...{
+          if (config.sendsParameter(SamplerParameters.repetitionPenalty))
+            'rep_pen': config.repetitionPenalty,
+          if (config.sendsParameter(SamplerParameters.repetitionPenaltyRange))
+            'rep_pen_range': config.repetitionPenaltyRange,
+          if (config.sendsParameter(SamplerParameters.typicalP))
+            'typical': config.typicalP,
+          if (config.sendsParameter(SamplerParameters.tailFreeSampling))
+            'tfs': config.tailFreeSampling,
+          if (config.sendsParameter(SamplerParameters.mirostat)) ...{
+            'mirostat': config.mirostatMode,
+            'mirostat_tau': config.mirostatTau,
+            'mirostat_eta': config.mirostatEta,
+          },
+          if (config.sendsParameter(SamplerParameters.stop))
+            'stop_sequence': config.stopSequences,
+          if (config.sendsParameter(SamplerParameters.seed))
+            'seed': config.seed != -1 ? config.seed : -1,
+          if (config.sendsParameter(SamplerParameters.minP))
+            'min_p': config.minP,
+        },
+      };
+
   // OpenAI / OpenAI-compatible with reasoning support
   Future<LLMResponse> _generateOpenAIWithReasoning(
     List<Map<String, dynamic>> messages,
     LLMConfig config,
   ) async {
     final endpoint = '${config.apiUrl}/chat/completions';
-    final requestData = {
+    final requestData = <String, dynamic>{
       'model': config.model,
       'messages': _prepareOpenAIMessages(messages, config),
-      'max_tokens': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'frequency_penalty': config.frequencyPenalty,
-      'presence_penalty': config.presencePenalty,
+      ..._openAiCoreParameters(config),
+      ..._openAiOptionalParameters(config),
     };
-
-    // Add standard OpenAI params
-    if (config.stopSequences.isNotEmpty) {
-      requestData['stop'] = config.stopSequences;
-    }
-    if (config.seed != -1) {
-      requestData['seed'] = config.seed;
-    }
     _applyOpenRouterRouting(requestData, config);
 
     // Add extended parameters for compatible providers (OpenRouter, local, etc)
     // Official OpenAI API might reject these, so we exclude them for LLMProvider.openai
     if (config.provider != LLMProvider.openai) {
-      if (config.topK > 0) requestData['top_k'] = config.topK;
-      if (config.repetitionPenalty != 1.0)
-        requestData['repetition_penalty'] = config.repetitionPenalty;
-      if (config.minP > 0.0) requestData['min_p'] = config.minP;
-      if (config.topA > 0.0) requestData['top_a'] = config.topA;
-      if (config.typicalP != 1.0) requestData['typical_p'] = config.typicalP;
-      if (config.tailFreeSampling != 1.0)
-        requestData['tfs_z'] = config.tailFreeSampling;
+      requestData.addAll(_openAiExtendedParameters(config));
     }
 
     _applyOpenAIReasoning(requestData, config);
@@ -2027,14 +2177,10 @@ class LLMService {
     LLMConfig config,
   ) async* {
     final endpoint = '${config.apiUrl}/chat/completions';
-    final requestData = {
+    final requestData = <String, dynamic>{
       'model': config.model,
       'messages': messages,
-      'max_tokens': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'frequency_penalty': config.frequencyPenalty,
-      'presence_penalty': config.presencePenalty,
+      ..._openAiCoreParameters(config),
       'stream': true,
     };
 
@@ -2127,7 +2273,7 @@ class LLMService {
     final endpoint = '${config.apiUrl}/v1/messages';
     final requestData = <String, dynamic>{
       'model': config.model,
-      'max_tokens': config.maxTokens,
+      ..._claudeParameters(config),
       'system': systemMessage['content'],
       'messages': chatMessages,
     };
@@ -2195,7 +2341,7 @@ class LLMService {
     final endpoint = '${config.apiUrl}/v1/messages';
     final requestData = <String, dynamic>{
       'model': config.model,
-      'max_tokens': config.maxTokens,
+      ..._claudeParameters(config),
       'system': systemMessage['content'],
       'messages': chatMessages,
       'stream': true,
@@ -2276,10 +2422,7 @@ class LLMService {
     final endpoint =
         '${config.apiUrl}/models/${config.model}:generateContent?key=${config.apiKey}';
     final generationConfig = <String, dynamic>{
-      'maxOutputTokens': config.maxTokens,
-      'temperature': config.temperature,
-      'topP': config.topP,
-      'topK': config.topK,
+      ..._geminiParameters(config),
     };
     _applyGeminiThinking(generationConfig, config);
     final requestData = {
@@ -2349,21 +2492,7 @@ class LLMService {
       'model': config.model,
       'messages': messages,
       'stream': false,
-      'options': {
-        'num_predict': config.maxTokens,
-        'temperature': config.temperature,
-        'top_p': config.topP,
-        'top_k': config.topK,
-        'repeat_penalty': config.repetitionPenalty,
-        'stop': config.stopSequences,
-        'seed': config.seed != -1 ? config.seed : null,
-        'mirostat': config.mirostatMode,
-        'mirostat_tau': config.mirostatTau,
-        'mirostat_eta': config.mirostatEta,
-        'tfs_z': config.tailFreeSampling,
-        'typical_p': config.typicalP,
-        'min_p': config.minP,
-      },
+      'options': _ollamaOptions(config, includeExtended: true),
     };
 
     _logRequest(endpoint, requestData, config);
@@ -2401,12 +2530,7 @@ class LLMService {
       'model': config.model,
       'messages': messages,
       'stream': true,
-      'options': {
-        'num_predict': config.maxTokens,
-        'temperature': config.temperature,
-        'top_p': config.topP,
-        'top_k': config.topK,
-      },
+      'options': _ollamaOptions(config, includeExtended: false),
     };
 
     _logRequest(endpoint, requestData, config);
@@ -2468,22 +2592,9 @@ class LLMService {
     final prompt = _buildKoboldPrompt(messages);
 
     final endpoint = '${config.apiUrl}/api/v1/generate';
-    final requestData = {
+    final requestData = <String, dynamic>{
       'prompt': prompt,
-      'max_length': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'top_k': config.topK,
-      'rep_pen': config.repetitionPenalty,
-      'rep_pen_range': config.repetitionPenaltyRange,
-      'typical': config.typicalP,
-      'tfs': config.tailFreeSampling,
-      'mirostat': config.mirostatMode,
-      'mirostat_tau': config.mirostatTau,
-      'mirostat_eta': config.mirostatEta,
-      'stop_sequence': config.stopSequences,
-      'seed': config.seed != -1 ? config.seed : -1,
-      'min_p': config.minP,
+      ..._koboldParameters(config),
     };
 
     _logRequest(endpoint, requestData, config);
@@ -2521,12 +2632,9 @@ class LLMService {
     final prompt = _buildKoboldPrompt(messages);
 
     final endpoint = '${config.apiUrl}/api/extra/generate/stream';
-    final requestData = {
+    final requestData = <String, dynamic>{
       'prompt': prompt,
-      'max_length': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'top_k': config.topK,
+      ..._koboldParameters(config, includeExtended: false),
     };
 
     _logRequest(endpoint, requestData, config);
@@ -2607,36 +2715,18 @@ class LLMService {
   ) async* {
     try {
       final endpoint = '${config.apiUrl}/chat/completions';
-      final requestData = {
+      final requestData = <String, dynamic>{
         'model': config.model,
         'messages': _prepareOpenAIMessages(messages, config),
-        'max_tokens': config.maxTokens,
-        'temperature': config.temperature,
-        'top_p': config.topP,
-        'frequency_penalty': config.frequencyPenalty,
-        'presence_penalty': config.presencePenalty,
+        ..._openAiCoreParameters(config),
+        ..._openAiOptionalParameters(config),
         'stream': true,
       };
-
-      // Add standard OpenAI params
-      if (config.stopSequences.isNotEmpty) {
-        requestData['stop'] = config.stopSequences;
-      }
-      if (config.seed != -1) {
-        requestData['seed'] = config.seed;
-      }
       _applyOpenRouterRouting(requestData, config);
 
       // Add extended parameters for compatible providers (OpenRouter, local, etc)
       if (config.provider != LLMProvider.openai) {
-        if (config.topK > 0) requestData['top_k'] = config.topK;
-        if (config.repetitionPenalty != 1.0)
-          requestData['repetition_penalty'] = config.repetitionPenalty;
-        if (config.minP > 0.0) requestData['min_p'] = config.minP;
-        if (config.topA > 0.0) requestData['top_a'] = config.topA;
-        if (config.typicalP != 1.0) requestData['typical_p'] = config.typicalP;
-        if (config.tailFreeSampling != 1.0)
-          requestData['tfs_z'] = config.tailFreeSampling;
+        requestData.addAll(_openAiExtendedParameters(config));
       }
 
       _applyOpenAIReasoning(requestData, config);
@@ -2783,7 +2873,7 @@ class LLMService {
     final endpoint = '${config.apiUrl}/v1/messages';
     final requestData = <String, dynamic>{
       'model': config.model,
-      'max_tokens': config.maxTokens,
+      ..._claudeParameters(config),
       'system': systemMessage['content'],
       'messages': chatMessages,
       'stream': true,
@@ -2911,10 +3001,7 @@ class LLMService {
     final endpoint =
         '${config.apiUrl}/models/${config.model}:streamGenerateContent?key=${config.apiKey}';
     final generationConfig = <String, dynamic>{
-      'maxOutputTokens': config.maxTokens,
-      'temperature': config.temperature,
-      'topP': config.topP,
-      'topK': config.topK,
+      ..._geminiParameters(config),
     };
     _applyGeminiThinking(generationConfig, config);
     final requestData = {
@@ -3006,21 +3093,7 @@ class LLMService {
       'model': config.model,
       'messages': messages,
       'stream': true,
-      'options': {
-        'num_predict': config.maxTokens,
-        'temperature': config.temperature,
-        'top_p': config.topP,
-        'top_k': config.topK,
-        'repeat_penalty': config.repetitionPenalty,
-        'stop': config.stopSequences,
-        'seed': config.seed != -1 ? config.seed : null,
-        'mirostat': config.mirostatMode,
-        'mirostat_tau': config.mirostatTau,
-        'mirostat_eta': config.mirostatEta,
-        'tfs_z': config.tailFreeSampling,
-        'typical_p': config.typicalP,
-        'min_p': config.minP,
-      },
+      'options': _ollamaOptions(config, includeExtended: true),
     };
 
     _logRequest(endpoint, requestData, config);
@@ -3081,22 +3154,9 @@ class LLMService {
     final prompt = _buildKoboldPrompt(messages);
 
     final endpoint = '${config.apiUrl}/api/extra/generate/stream';
-    final requestData = {
+    final requestData = <String, dynamic>{
       'prompt': prompt,
-      'max_length': config.maxTokens,
-      'temperature': config.temperature,
-      'top_p': config.topP,
-      'top_k': config.topK,
-      'rep_pen': config.repetitionPenalty,
-      'rep_pen_range': config.repetitionPenaltyRange,
-      'typical': config.typicalP,
-      'tfs': config.tailFreeSampling,
-      'mirostat': config.mirostatMode,
-      'mirostat_tau': config.mirostatTau,
-      'mirostat_eta': config.mirostatEta,
-      'stop_sequence': config.stopSequences,
-      'seed': config.seed != -1 ? config.seed : -1,
-      'min_p': config.minP,
+      ..._koboldParameters(config),
     };
 
     _logRequest(endpoint, requestData, config);

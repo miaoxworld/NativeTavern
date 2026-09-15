@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_tavern/domain/services/llm_service.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
 import 'package:native_tavern/presentation/providers/settings_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
@@ -29,8 +30,11 @@ class AdvancedSettingsScreen extends ConsumerWidget {
         children: [
           // Basic Sampling
           _buildSectionHeader(context, l10n.basicSampling),
+          _buildParameterHint(context, l10n.sendParametersHint),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.temperature,
             title: l10n.temperature,
             subtitle: l10n.temperatureDescription,
             value: config.temperature,
@@ -42,6 +46,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.topP,
             title: l10n.topPNucleusSampling,
             subtitle: l10n.topPDescription,
             value: config.topP,
@@ -53,6 +59,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildIntSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.topK,
             title: l10n.topK,
             subtitle: l10n.topKDescription,
             value: config.topK,
@@ -66,6 +74,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           _buildSectionHeader(context, l10n.advancedSampling),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.minP,
             title: l10n.minP,
             subtitle: l10n.minPDescription,
             value: config.minP,
@@ -77,6 +87,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.typicalP,
             title: l10n.typicalP,
             subtitle: l10n.typicalPDescription,
             value: config.typicalP,
@@ -88,6 +100,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.topA,
             title: l10n.topA,
             subtitle: l10n.topADescription,
             value: config.topA,
@@ -99,6 +113,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.tailFreeSampling,
             title: l10n.tailFreeSamplingTfs,
             subtitle: l10n.tfsDescription,
             value: config.tailFreeSampling,
@@ -113,6 +129,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           _buildSectionHeader(context, l10n.repetitionControl),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.repetitionPenalty,
             title: l10n.repetitionPenalty,
             subtitle: l10n.repetitionPenaltyDescription,
             value: config.repetitionPenalty,
@@ -124,6 +142,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildIntSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.repetitionPenaltyRange,
             title: l10n.repetitionPenaltyRange,
             subtitle: l10n.repetitionPenaltyRangeDescription,
             value: config.repetitionPenaltyRange,
@@ -135,6 +155,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.frequencyPenalty,
             title: l10n.frequencyPenalty,
             subtitle: l10n.frequencyPenaltyDescription,
             value: config.frequencyPenalty,
@@ -146,6 +168,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           ),
           _buildSliderTile(
             context: context,
+            ref: ref,
+            parameter: SamplerParameters.presencePenalty,
             title: l10n.presencePenalty,
             subtitle: l10n.presencePenaltyDescription,
             value: config.presencePenalty,
@@ -162,6 +186,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           if (config.mirostatMode > 0) ...[
             _buildSliderTile(
               context: context,
+              ref: ref,
               title: l10n.mirostatTau,
               subtitle: l10n.mirostatTauDescription,
               value: config.mirostatTau,
@@ -173,6 +198,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
             ),
             _buildSliderTile(
               context: context,
+              ref: ref,
               title: l10n.mirostatEta,
               subtitle: l10n.mirostatEtaDescription,
               value: config.mirostatEta,
@@ -190,6 +216,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           if (config.autoSummarizeEnabled)
             _buildSliderTile(
               context: context,
+              ref: ref,
               title: l10n.autoSummarizeThreshold,
               subtitle: l10n.autoSummarizeThresholdDescription,
               value: config.autoSummarizeThreshold,
@@ -206,6 +233,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           _buildIntInputTile(
             context: context,
             ref: ref,
+            parameter: SamplerParameters.maxTokens,
             title: l10n.maxTokens,
             subtitle: l10n.maxTokensDescription,
             value: config.maxTokens,
@@ -215,6 +243,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           _buildIntInputTile(
             context: context,
             ref: ref,
+            parameter: SamplerParameters.seed,
             title: l10n.seed,
             subtitle: l10n.seedDescription,
             value: config.seed,
@@ -242,8 +271,42 @@ class AdvancedSettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildParameterHint(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+      ),
+    );
+  }
+
+  /// Leading checkbox controlling whether a request-body parameter is sent.
+  /// Returns an empty box when the row is not a provider parameter.
+  Widget _buildParameterCheckbox(
+    BuildContext context,
+    WidgetRef ref,
+    String? parameter,
+  ) {
+    if (parameter == null) {
+      return const SizedBox.shrink();
+    }
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(llmConfigProvider).sendsParameter(parameter);
+    return Tooltip(
+      message: l10n.sendParameterTooltip,
+      child: Checkbox(
+        value: enabled,
+        onChanged: (checked) => ref
+            .read(llmConfigProvider.notifier)
+            .updateParameterEnabled(parameter, checked ?? true),
+      ),
+    );
+  }
+
   Widget _buildSliderTile({
     required BuildContext context,
+    required WidgetRef ref,
     required String title,
     required String subtitle,
     required double value,
@@ -251,8 +314,12 @@ class AdvancedSettingsScreen extends ConsumerWidget {
     required double max,
     required int divisions,
     required ValueChanged<double> onChanged,
+    String? parameter,
   }) {
+    final enabled = parameter == null ||
+        ref.watch(llmConfigProvider).sendsParameter(parameter);
     return ListTile(
+      leading: _buildParameterCheckbox(context, ref, parameter),
       title: Row(
         children: [
           Expanded(child: Text(title)),
@@ -274,7 +341,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
             min: min,
             max: max,
             divisions: divisions,
-            onChanged: onChanged,
+            onChanged: enabled ? onChanged : null,
           ),
         ],
       ),
@@ -283,14 +350,19 @@ class AdvancedSettingsScreen extends ConsumerWidget {
 
   Widget _buildIntSliderTile({
     required BuildContext context,
+    required WidgetRef ref,
     required String title,
     required String subtitle,
     required int value,
     required int min,
     required int max,
     required ValueChanged<int> onChanged,
+    String? parameter,
   }) {
+    final enabled = parameter == null ||
+        ref.watch(llmConfigProvider).sendsParameter(parameter);
     return ListTile(
+      leading: _buildParameterCheckbox(context, ref, parameter),
       title: Row(
         children: [
           Expanded(child: Text(title)),
@@ -312,7 +384,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
             min: min.toDouble(),
             max: max.toDouble(),
             divisions: max - min,
-            onChanged: (v) => onChanged(v.round()),
+            onChanged: enabled ? (v) => onChanged(v.round()) : null,
           ),
         ],
       ),
@@ -322,6 +394,8 @@ class AdvancedSettingsScreen extends ConsumerWidget {
   Widget _buildMirostatModeTile(BuildContext context, WidgetRef ref, int mode) {
     final l10n = AppLocalizations.of(context);
     return ListTile(
+      leading:
+          _buildParameterCheckbox(context, ref, SamplerParameters.mirostat),
       title: Text(l10n.mirostatMode),
       subtitle: Text(l10n.adaptiveSamplingForLocalModels),
       trailing: SegmentedButton<int>(
@@ -361,8 +435,12 @@ class AdvancedSettingsScreen extends ConsumerWidget {
     required String subtitle,
     required int value,
     required ValueChanged<int> onChanged,
+    String? parameter,
   }) {
+    final enabled = parameter == null ||
+        ref.watch(llmConfigProvider).sendsParameter(parameter);
     return ListTile(
+      leading: _buildParameterCheckbox(context, ref, parameter),
       title: Text(title),
       subtitle: Text(subtitle),
       trailing: SizedBox(
@@ -376,7 +454,9 @@ class AdvancedSettingsScreen extends ConsumerWidget {
           textAlign: TextAlign.end,
         ),
       ),
-      onTap: () => _showIntInputDialog(context, title, value, onChanged),
+      onTap: enabled
+          ? () => _showIntInputDialog(context, title, value, onChanged)
+          : null,
     );
   }
 
@@ -427,6 +507,7 @@ class AdvancedSettingsScreen extends ConsumerWidget {
   ) {
     final l10n = AppLocalizations.of(context);
     return ListTile(
+      leading: _buildParameterCheckbox(context, ref, SamplerParameters.stop),
       title: Text(l10n.stopSequences),
       subtitle: Text(
         sequences.isEmpty

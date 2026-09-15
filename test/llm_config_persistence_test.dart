@@ -57,4 +57,42 @@ void main() {
     await notifier.updateProvider(LLMProvider.openRouter);
     expect(notifier.state.apiKey, 'router-key');
   });
+
+  test('parameter send toggles persist and reload', () async {
+    const initial = LLMConfig(
+      provider: LLMProvider.openai,
+      model: 'gpt-test',
+      apiKey: 'key',
+      apiUrl: 'https://example.com/v1',
+    );
+    SharedPreferences.setMockInitialValues({
+      'llm_config': jsonEncode(initial.toJson()),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final database = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    final notifier = LLMConfigNotifier(prefs, database);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    notifier.updateParameterEnabled(SamplerParameters.presencePenalty, false);
+    await notifier.flushPersistence();
+
+    final row = await (database.select(database.globalStates)
+          ..where((r) => r.key.equals('llm_config')))
+        .getSingle();
+    final decoded = jsonDecode(row.value) as Map<String, dynamic>;
+    expect(decoded['disabledParameters'], contains('presence_penalty'));
+
+    final restored = LLMConfig.fromJson(decoded);
+    expect(restored.sendsParameter(SamplerParameters.presencePenalty), isFalse);
+    expect(restored.sendsParameter(SamplerParameters.temperature), isTrue);
+
+    notifier.updateParameterEnabled(SamplerParameters.presencePenalty, true);
+    await notifier.flushPersistence();
+    expect(
+      notifier.state.sendsParameter(SamplerParameters.presencePenalty),
+      isTrue,
+    );
+  });
 }

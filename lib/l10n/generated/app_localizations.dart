@@ -2077,6 +2077,18 @@ abstract class AppLocalizations {
   /// **'Full control over sampling parameters'**
   String get fullControlOverSampling;
 
+  /// Explains the per-parameter send checkboxes
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked parameters are not sent to the provider. Turn one off when an endpoint rejects it.'**
+  String get sendParametersHint;
+
+  /// Tooltip for a parameter send checkbox
+  ///
+  /// In en, this message translates to:
+  /// **'Include this parameter in provider requests'**
+  String get sendParameterTooltip;
+
   /// Select LLM provider dialog title
   ///
   /// In en, this message translates to:

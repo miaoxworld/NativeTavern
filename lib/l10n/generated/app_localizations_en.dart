@@ -1053,6 +1053,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullControlOverSampling => 'Full control over sampling parameters';
 
   @override
+  String get sendParametersHint =>
+      'Unchecked parameters are not sent to the provider. Turn one off when an endpoint rejects it.';
+
+  @override
+  String get sendParameterTooltip =>
+      'Include this parameter in provider requests';
+
+  @override
   String get selectLlmProvider => 'Select LLM Provider';
 
   @override
