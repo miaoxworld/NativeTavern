@@ -129,8 +129,11 @@ requirement. If an API submission flow reports a contact-field validation
 error, report the platform response without writing placeholder contact data.
 
 For a resubmission, inspect the existing `reviewSubmissions` collection and
-its `reviewSubmissionItems` first. Reuse the prepared submission item and
-submit it with `PATCH /v1/reviewSubmissions/{id}` using
+its `reviewSubmissionItems` first. When the item state is `REJECTED`, mark the
+existing item resolved with `PATCH /v1/reviewSubmissionItems/{id}` using
+`{"data":{"type":"reviewSubmissionItems","id":"{id}","attributes":{"resolved":true}}}`.
+Verify that the item becomes `READY_FOR_REVIEW`, then submit the existing
+review submission with `PATCH /v1/reviewSubmissions/{id}` using
 `{"data":{"type":"reviewSubmissions","id":"{id}","attributes":{"submitted":true}}}`.
 Do not create a second draft submission or add contact fields as a workaround.
 
