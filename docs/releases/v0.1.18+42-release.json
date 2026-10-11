@@ -1,0 +1,51 @@
+{
+  "version": "0.1.18",
+  "buildNumber": 42,
+  "artifacts": {
+    "iosIpa": {
+      "path": "release/NativeTavern_v0.1.18+42.ipa",
+      "sha256": "7f2215cbdb19d831fdbf1090dfa437b05557f83dd7abbe4888c3cf51e529e88b",
+      "minimumOsVersion": "15.0",
+      "appStoreConnectDeliveryUuid": "4f605ce0-788a-4723-94b1-b0ce18dd65f6"
+    }
+  },
+  "testFlight": {
+    "buildId": "4f605ce0-788a-4723-94b1-b0ce18dd65f6",
+    "buildNumber": "42",
+    "processingState": "VALID",
+    "groupId": "27eaadc8-ef71-4521-bd36-2f3c0c7c38ee",
+    "groupName": "NativeTavern Internal Testing",
+    "internalBuildState": "IN_BETA_TESTING"
+  },
+  "appleStore": {
+    "status": "submitted for App Store review",
+    "appStoreVersionId": "bd669328-5013-4f39-a741-66233ce6b778",
+    "versionString": "1.2.15",
+    "buildId": "4f605ce0-788a-4723-94b1-b0ce18dd65f6",
+    "buildNumber": "42",
+    "releaseType": "AFTER_APPROVAL",
+    "metadataFile": "docs/releases/v1.2.15-app-store-metadata.json",
+    "whatsNewFile": "docs/releases/v1.2.15-app-store-whats-new.json",
+    "localizationCount": 17,
+    "localizationReadBackMismatchCount": 0,
+    "riskyMarketingTermMatches": 0,
+    "reviewNotesUpdated": true,
+    "reviewSubmissionId": "81de8dc6-1c40-41ab-839b-23c9f468196c",
+    "submittedDate": "2026-10-11T09:35:19.966Z",
+    "stateAtVerification": "WAITING_FOR_REVIEW",
+    "previousLiveVersion": "1.2.14 (build 41)",
+    "metadataRestoration": {
+      "safeBaseVersion": "1.2.14",
+      "detailedSourceVersion": "1.2.13",
+      "restoredFields": [
+        "description details",
+        "keywords"
+      ],
+      "excludedTerms": [
+        "third-party character-chat service names",
+        "third-party character-card service names",
+        "unlimited or unrestricted marketing claims"
+      ]
+    }
+  }
+}
