@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/data/models/chat.dart';
@@ -80,15 +81,26 @@ class _VisualNovelMessageViewState
       return const SizedBox.shrink();
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Navigation buttons & page indicator
-        _buildNavigationBar(),
-        // Message content area
-        _buildMessageArea(),
-      ],
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final availableHeight = constraints.maxHeight;
+      final navigationHeight = math.min(64.0, availableHeight);
+      final panelHeight = math.min(
+        math.max(0.0, availableHeight - navigationHeight),
+        math.max(150.0, availableHeight * 0.4),
+      );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Navigation buttons & page indicator
+          SizedBox(
+            height: navigationHeight,
+            child: SingleChildScrollView(child: _buildNavigationBar()),
+          ),
+          // Message content area
+          _buildMessageArea(panelHeight),
+        ],
+      );
+    });
   }
 
   Widget _buildNavigationBar() {
@@ -150,12 +162,9 @@ class _VisualNovelMessageViewState
     );
   }
 
-  Widget _buildMessageArea() {
+  Widget _buildMessageArea(double height) {
     final messagePanel = Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.4,
-        minHeight: 150,
-      ),
+      height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,

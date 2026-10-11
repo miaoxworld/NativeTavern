@@ -98,6 +98,12 @@ abstract class AppRoutes {
   static const dataBank = '/data-bank';
   static const rpgScenarioEditor = '/rpg-scenario-editor';
   static const storageManagement = '/storage-management';
+
+  /// These routes provide bars that can share UIKit's vertical status column.
+  static bool sharesVerticalBar(Uri uri) =>
+      const {home, characters, play, worldInfo, aiConfig, settings}
+          .contains(uri.path) ||
+      RegExp(r'^/chat/[^/]+$').hasMatch(uri.path);
 }
 
 /// Navigation keys for nested navigation

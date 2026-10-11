@@ -327,6 +327,7 @@ class _Live2DCharacterViewState extends State<Live2DCharacterView>
   bool _transformDirty = false;
   Future<void> _mouthWrites = Future<void>.value();
   Future<void> _actionWrites = Future<void>.value();
+  bool _renderScaleSyncScheduled = false;
 
   @override
   void initState() {
@@ -412,6 +413,21 @@ class _Live2DCharacterViewState extends State<Live2DCharacterView>
           .setAppActive(state == AppLifecycleState.resumed)
           .catchError((_) {}),
     );
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!Platform.isIOS ||
+        widget.config.format != Live2DModelFormat.cubism ||
+        _renderScaleSyncScheduled) {
+      return;
+    }
+    _renderScaleSyncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _renderScaleSyncScheduled = false;
+      if (!mounted || !_nativeController.value.isAttached) return;
+      unawaited(_synchronizeIOSRenderScale(_loadGeneration));
+    });
   }
 
   @override
@@ -508,13 +524,12 @@ class _Live2DCharacterViewState extends State<Live2DCharacterView>
   }
 
   Future<void> _synchronizeIOSRenderScale(int generation) async {
-    final devicePixelRatio = View.of(context).devicePixelRatio;
     for (var attempt = 0; attempt < 4; attempt++) {
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted || generation != _loadGeneration) return;
       try {
         await _iosRenderScaleService.synchronize(
-          devicePixelRatio: devicePixelRatio,
+          devicePixelRatio: View.of(context).devicePixelRatio,
         );
       } catch (_) {
         // Rendering can continue at the platform default if the bridge is absent.

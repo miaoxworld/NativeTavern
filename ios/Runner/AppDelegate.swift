@@ -3,20 +3,24 @@ import UIKit
 import StoreKit
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
     // Register region detection channel
-    let controller = window?.rootViewController as! FlutterViewController
+    let messenger = engineBridge.applicationRegistrar.messenger()
     let regionChannel = FlutterMethodChannel(name: "com.nativetavern/region",
-                                              binaryMessenger: controller.binaryMessenger)
+                                              binaryMessenger: messenger)
     let live2DRenderScaleChannel = FlutterMethodChannel(
       name: "com.nativetavern/live2d_render_scale",
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
 
     regionChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
@@ -39,8 +43,6 @@ import StoreKit
         .map { CGFloat($0.doubleValue) }
       result(self?.synchronizeLive2DContentScale(requestedScale: requestedScale) ?? 0)
     }
-
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   private func synchronizeLive2DContentScale(requestedScale: CGFloat?) -> Int {
@@ -52,16 +54,21 @@ import StoreKit
       let validRequestedScale = requestedScale.flatMap { scale in
         scale.isFinite && scale >= 1 ? scale : nil
       }
-      let scale = validRequestedScale ?? window.screen.scale
-      return count + synchronizeLive2DContentScale(in: window, scale: scale)
+      return count + synchronizeLive2DContentScale(in: window, fallbackScale: validRequestedScale)
     }
   }
 
-  private func synchronizeLive2DContentScale(in view: UIView, scale: CGFloat) -> Int {
+  private func synchronizeLive2DContentScale(in view: UIView, fallbackScale: CGFloat?) -> Int {
     let className = NSStringFromClass(type(of: view))
     var matchedViews = 0
 
     if className == "Live2DGLView" || className.hasSuffix(".Live2DGLView") {
+      // A display transition can change scale without creating a new view.
+      // Read each surface's traits rather than applying one screen's scale to
+      // every connected scene.
+      let displayScale = view.traitCollection.displayScale
+      let scale = displayScale.isFinite && displayScale >= 1
+        ? displayScale : (fallbackScale ?? 1)
       matchedViews = 1
       if abs(view.contentScaleFactor - scale) > 0.001 ||
           abs(view.layer.contentsScale - scale) > 0.001 {
@@ -79,7 +86,7 @@ import StoreKit
     }
 
     return view.subviews.reduce(matchedViews) { count, subview in
-      count + synchronizeLive2DContentScale(in: subview, scale: scale)
+      count + synchronizeLive2DContentScale(in: subview, fallbackScale: fallbackScale)
     }
   }
 

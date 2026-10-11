@@ -46,6 +46,7 @@ import 'package:native_tavern/presentation/widgets/chat/message_content_widget.d
 import 'package:native_tavern/presentation/widgets/chat/memory_context_usage_sheet.dart';
 import 'package:native_tavern/presentation/widgets/chat/quick_reply_bar.dart';
 import 'package:native_tavern/presentation/widgets/common/adaptive_popup_menu.dart';
+import 'package:native_tavern/presentation/widgets/common/adaptive_scaffold.dart';
 import 'package:native_tavern/presentation/widgets/play/ai_play_feature_gate.dart';
 import 'package:native_tavern/presentation/widgets/chat/markdown_input_field.dart';
 import 'package:native_tavern/presentation/widgets/chat/reasoning_widget.dart';
@@ -98,6 +99,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _showSlashSuggestions = false;
   bool _showInputMenu = false;
   final LayerLink _inputMenuLayerLink = LayerLink();
+  final GlobalKey _formattingMenuButtonKey = GlobalKey();
   final List<ChatAttachment> _pendingAttachments = [];
   final ImagePicker _imagePicker = ImagePicker();
   final ChatTTSAutoPlayController _ttsAutoPlayController =
@@ -1054,76 +1056,92 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _handleChatTTSChange(previous, next);
     });
 
-    return Scaffold(
+    return AdaptiveScaffold(
       appBar: _buildAppBar(chatState),
       body: ChatBackgroundWidget(
         characterId: chatState.character?.id,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Column(
-              children: [
-                // API not configured banner
-                if (!isConfigured) _buildApiConfigBanner(),
-
-                // Error banner
-                if (chatState.error != null)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.red.withValues(alpha: 0.2),
-                    child: Row(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: LayoutBuilder(builder: (context, constraints) {
+            final contentWidth = math.min(constraints.maxWidth, 900.0);
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: contentWidth,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Column(
                       children: [
-                        const Icon(Icons.error, color: Colors.red, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            chatState.error!,
-                            style: const TextStyle(color: Colors.red),
+                        // API not configured banner
+                        if (!isConfigured) _buildApiConfigBanner(),
+
+                        // Error banner
+                        if (chatState.error != null)
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            color: Colors.red.withValues(alpha: 0.2),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error,
+                                    color: Colors.red, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    chatState.error!,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: () {
+                                    // Clear error
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
+
+                        // Messages list
+                        Expanded(
+                          child: chatState.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _buildMessagesArea(chatState),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 20),
-                          onPressed: () {
-                            // Clear error
-                          },
-                        ),
+
+                        if (kRpgProductUiEnabled)
+                          RpgGamePanel(
+                            chatId: widget.chatId,
+                            onDisable: _toggleRpgMode,
+                          ),
+
+                        ToolActivityPanel(chatId: widget.chatId),
+
+                        // Slash command suggestions
+                        if (_showSlashSuggestions)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: SlashCommandSuggestions(
+                              input: _messageController.text,
+                              onSelect: _onSlashCommandSelected,
+                              onDismiss: () =>
+                                  setState(() => _showSlashSuggestions = false),
+                            ),
+                          ),
+
+                        // Input area
+                        _buildInputArea(chatState),
                       ],
                     ),
-                  ),
-
-                // Messages list
-                Expanded(
-                  child: chatState.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _buildMessagesArea(chatState),
+                    if (_showInputMenu)
+                      _buildInputMenuOverlay(
+                          chatState, math.max(0, contentWidth - 32)),
+                  ],
                 ),
-
-                if (kRpgProductUiEnabled)
-                  RpgGamePanel(
-                    chatId: widget.chatId,
-                    onDisable: _toggleRpgMode,
-                  ),
-
-                ToolActivityPanel(chatId: widget.chatId),
-
-                // Slash command suggestions
-                if (_showSlashSuggestions)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: SlashCommandSuggestions(
-                      input: _messageController.text,
-                      onSelect: _onSlashCommandSelected,
-                      onDismiss: () =>
-                          setState(() => _showSlashSuggestions = false),
-                    ),
-                  ),
-
-                // Input area
-                _buildInputArea(chatState),
-              ],
-            ),
-            if (_showInputMenu) _buildInputMenuOverlay(chatState),
-          ],
+              ),
+            );
+          }),
         ),
       ),
     );
@@ -1192,6 +1210,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Text(
             chatState.group?.name ?? chatState.character?.name ?? l10n.chat,
             style: const TextStyle(fontSize: 16),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           // Model selector - tap to change model
           GestureDetector(
@@ -1199,15 +1219,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                Flexible(
+                    child: Text(
                   llmConfig.model.isEmpty ? l10n.selectModel : llmConfig.model,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     color: chatState.isGenerating
                         ? AppTheme.textMuted
                         : AppTheme.accentColor,
                   ),
-                ),
+                )),
                 const SizedBox(width: 4),
                 Icon(
                   Icons.expand_more,
@@ -1681,26 +1704,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
               ),
-            Column(
-              children: [
-                const Expanded(child: SizedBox.shrink()),
-                VisualNovelMessageView(
-                  messages: chatState.messages,
-                  character: chatState.character,
-                  characterForMessage: chatState.characterForMessage,
-                  isGenerating: chatState.isGenerating,
-                  onLongPress: (message) => _showMessageOptionsForVisualNovel(
-                    context,
-                    message,
-                    chatState,
-                  ),
-                  onSwipe: (swipeIndex, messageId) {
-                    ref
-                        .read(activeChatProvider.notifier)
-                        .swipeMessage(messageId, swipeIndex);
-                  },
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: VisualNovelMessageView(
+                messages: chatState.messages,
+                character: chatState.character,
+                characterForMessage: chatState.characterForMessage,
+                isGenerating: chatState.isGenerating,
+                onLongPress: (message) => _showMessageOptionsForVisualNovel(
+                  context,
+                  message,
+                  chatState,
                 ),
-              ],
+                onSwipe: (swipeIndex, messageId) {
+                  ref
+                      .read(activeChatProvider.notifier)
+                      .swipeMessage(messageId, swipeIndex);
+                },
+              ),
             ),
           ],
         ),
@@ -2380,13 +2401,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildInputMenuOverlay(ActiveChatState chatState) {
+  Widget _buildInputMenuOverlay(ActiveChatState chatState, double width) {
     final quickReplyConfig = ref.watch(quickReplyConfigProvider);
     final enabledReplies = ref.watch(enabledQuickRepliesProvider);
     final showQuickReplies = quickReplyConfig.showQuickReplies &&
         enabledReplies.isNotEmpty &&
         !chatState.isGenerating;
-    final width = math.max(0.0, MediaQuery.sizeOf(context).width - 32);
 
     return Positioned.fill(
       child: Align(
@@ -2416,6 +2436,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ActiveChatState chatState,
   ) {
     return Container(
+      key: const ValueKey('chat-input-menu-panel'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.darkBackground,
@@ -2427,7 +2448,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Row 1: Core tools
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               // Image attachment
               _InputMenuButton(
@@ -2438,14 +2461,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   _setInputMenuVisible(false);
                 },
               ),
-              const SizedBox(width: 8),
               // Markdown formatting
               _InputMenuButton(
+                key: _formattingMenuButtonKey,
                 icon: Icons.text_format,
                 label: AppLocalizations.of(context).formatting,
                 onTap: () => _showFormattingMenu(),
               ),
-              const SizedBox(width: 8),
               if (ref.watch(imageGenSettingsProvider).enabled)
                 _InputMenuButton(
                   key: const Key('chat-input-imagine'),
@@ -2456,10 +2478,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     _openImagineFromInput(chatState);
                   },
                 ),
-              if (ref.watch(imageGenSettingsProvider).enabled)
-                const SizedBox(width: 8),
               // Context usage indicator
-              Expanded(
+              SizedBox(
+                width: double.infinity,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -2532,18 +2553,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Show markdown formatting popup menu
   void _showFormattingMenu() {
-    // Get the size of the screen
-    final screenSize = MediaQuery.of(context).size;
-
-    // Position the menu above the input area (near the bottom of the screen)
     showMenu<MarkdownFormat>(
       context: context,
-      position: RelativeRect.fromLTRB(
-        16, // left padding
-        screenSize.height - 350, // show above input area
-        16, // right padding
-        100, // bottom padding
-      ),
+      positionBuilder: (context, constraints) {
+        final overlay = Navigator.of(context)
+            .overlay!
+            .context
+            .findRenderObject()! as RenderBox;
+        final target = _formattingMenuButtonKey.currentContext
+            ?.findRenderObject() as RenderBox?;
+        final rect = target != null && target.attached
+            ? Rect.fromPoints(
+                target.localToGlobal(Offset.zero, ancestor: overlay),
+                target.localToGlobal(target.size.bottomRight(Offset.zero),
+                    ancestor: overlay),
+              )
+            : Rect.fromLTWH(16, math.max(0, overlay.size.height - 100), 0, 0);
+        return RelativeRect.fromRect(rect, Offset.zero & overlay.size);
+      },
       items: [
         _buildFormattingMenuItem(MarkdownFormat.bold, Icons.format_bold, null),
         _buildFormattingMenuItem(

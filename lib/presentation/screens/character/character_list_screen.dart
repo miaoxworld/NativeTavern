@@ -86,51 +86,51 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                 return false;
               },
               child: charactersAsync.when(
-              data: (characters) {
-                final filtered = _searchQuery.isEmpty
-                    ? characters
-                    : characters
-                        .where((c) =>
-                            c.name
-                                .toLowerCase()
-                                .contains(_searchQuery.toLowerCase()) ||
-                            c.description
-                                .toLowerCase()
-                                .contains(_searchQuery.toLowerCase()))
-                        .toList();
+                data: (characters) {
+                  final filtered = _searchQuery.isEmpty
+                      ? characters
+                      : characters
+                          .where((c) =>
+                              c.name
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()) ||
+                              c.description
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()))
+                          .toList();
 
-                if (filtered.isEmpty) {
-                  return const _EmptyState();
-                }
+                  if (filtered.isEmpty) {
+                    return const _EmptyState();
+                  }
 
-                switch (_viewMode) {
-                  case CharacterViewMode.list:
-                    return _CharacterListView(characters: filtered);
-                  case CharacterViewMode.grid:
-                    return _CharacterGridView(characters: filtered);
-                  case CharacterViewMode.compactGrid:
-                    return _CharacterCompactGridView(characters: filtered);
-                }
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text('${l10n.error}: $error'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () =>
-                          ref.read(characterListProvider.notifier).refresh(),
-                      child: Text(l10n.retry),
-                    ),
-                  ],
+                  switch (_viewMode) {
+                    case CharacterViewMode.list:
+                      return _CharacterListView(characters: filtered);
+                    case CharacterViewMode.grid:
+                      return _CharacterGridView(characters: filtered);
+                    case CharacterViewMode.compactGrid:
+                      return _CharacterCompactGridView(characters: filtered);
+                  }
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('${l10n.error}: $error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () =>
+                            ref.read(characterListProvider.notifier).refresh(),
+                        child: Text(l10n.retry),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             ),
           ),
         ],
@@ -185,19 +185,20 @@ class _CharacterGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: characters.length,
-      itemBuilder: (context, index) {
-        return _CharacterGridCard(character: characters[index]);
-      },
-    );
+    return LayoutBuilder(
+        builder: (context, constraints) => GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _gridColumns(constraints.maxWidth, 160, 12),
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: characters.length,
+              itemBuilder: (context, index) {
+                return _CharacterGridCard(character: characters[index]);
+              },
+            ));
   }
 }
 
@@ -225,20 +226,30 @@ class _CharacterCompactGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: characters.length,
-      itemBuilder: (context, index) {
-        return _CharacterCompactGridCard(character: characters[index]);
-      },
-    );
+    return LayoutBuilder(
+        builder: (context, constraints) => GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _gridColumns(constraints.maxWidth, 110, 8),
+                childAspectRatio: 0.65,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: characters.length,
+              itemBuilder: (context, index) {
+                return _CharacterCompactGridCard(character: characters[index]);
+              },
+            ));
   }
+}
+
+int _gridColumns(double width, double minimumTileWidth, double spacing) {
+  var count = ((width - 32 + spacing) / (minimumTileWidth + spacing))
+      .floor()
+      .clamp(1, 12);
+  // Wider containers use symmetric columns, without identifying a device.
+  if (width >= 600 && count > 1 && count.isOdd) count--;
+  return count;
 }
 
 class _EmptyState extends StatelessWidget {
@@ -312,31 +323,29 @@ class _CharacterGridCard extends ConsumerWidget {
               flex: 3,
               child: _buildAvatar(),
             ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    character.name,
+                    style: Theme.of(context).textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (character.creator.isNotEmpty)
                     Text(
-                      character.name,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      'by ${character.creator}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textMuted,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (character.creator.isNotEmpty)
-                      Text(
-                        'by ${character.creator}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textMuted,
-                            ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
+                ],
               ),
             ),
           ],
@@ -428,23 +437,21 @@ class _CharacterCompactGridCard extends ConsumerWidget {
               flex: 4,
               child: _buildCompactAvatar(),
             ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      character.name,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+            Padding(
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    character.name,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ],

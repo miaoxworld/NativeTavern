@@ -44,6 +44,18 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 ios
+# Keep the custom Flutter host and its storyboard reproducible in fresh clones.
+!/ios/
+/ios/*
+!/ios/Runner/
+/ios/Runner/*
+!/ios/Runner/AppDelegate.swift
+!/ios/Runner/Info.plist
+!/ios/Runner/NativeTavernViewController.h
+!/ios/Runner/NativeTavernViewController.m
+!/ios/Runner/Base.lproj/
+/ios/Runner/Base.lproj/*
+!/ios/Runner/Base.lproj/Main.storyboard
 ios_*
 android
 web

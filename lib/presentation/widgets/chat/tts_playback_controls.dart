@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:native_tavern/presentation/providers/tts_providers.dart';
 import 'package:native_tavern/presentation/theme/app_theme.dart';
 import 'package:native_tavern/l10n/generated/app_localizations.dart';
+import 'package:native_tavern/presentation/widgets/common/app_viewport.dart';
 
 class ChatTTSMessageButton extends ConsumerWidget {
   const ChatTTSMessageButton({
@@ -91,7 +92,10 @@ class ChatTTSPlaybackControls extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Row(
+    return Flex(
+      direction: WindowLayoutScope.maybeOf(context)?.verticalBarEdge == null
+          ? Axis.horizontal
+          : Axis.vertical,
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
